@@ -2,18 +2,20 @@
 
 class UserModule
 {
+    static function SetUser($user_data){
+        if (isset($user_data->id) && !empty($user_data->id) && $user_data->id > 0){
+            Session::set('login', true);
+            Session::set('lock', false);
+            Session::set('user_id', $user_data->id);
+            Session::set('login_time', time());
+        }
+    }
     static function SetCurrentUserInfo()
     {
         global $CurrentUser;
         if (!empty(Session::get('user_id'))) {
 
-            $CurrentUser->id = Session::get("user_id");
-            $CurrentUser->name = Session::get("user_name");
-            $CurrentUser->surname = Session::get("user_last_name");
-            $CurrentUser->unique_text = Session::get("user_unique_text");
-            $CurrentUser->company = Session::get("user_company");
-            $CurrentUser->phone = Session::get("user_phone");
-
+            $CurrentUser = User::Select(['id'=>Session::get('user_id')]);
         }
     }
 

@@ -1,34 +1,34 @@
 <script>
 
 
-	$('input').keyup(function (e){
-		var code = e.keyCode || e.which;
-		if(code == 13) { //Enter keycode
-			submitForm();
-		}
-	});
+    $('input').keyup(function (e){
+        var code = e.keyCode || e.which;
+        if(code == 13) { //Enter keycode
+            submitForm();
+        }
+    });
 
-	function submitForm() {
-		// spinnerShow();
-		var form = $('form[name=singinform]');
-		var formData = form.serialize();
+    function submitForm() {
+        // spinnerShow();
+        var form = $('#kt_sign_in_form');
+        var formData = form.serialize();
 
-		$.ajax({
-			type    : 'POST',
-			dataType: 'json',
-			url     : 'app/login/login',
-			data    : formData,
-			success : function (cevap) {
+        $.ajax({
+            type    : 'POST',
+            dataType: 'json',
+            url     : 'app/login/login',
+            data    : formData,
+            success : function (cevap) {
                 showModalMessage(cevap.message, false);
-					setTimeout(function () {
-						window.location.href = '/index';
-					}, 2000);
+                setTimeout(function () {
+                    window.location.href = '/index';
+                }, 2000);
 
-			}, error: function (err) {
+            }, error: function (err) {
                 showModalMessage(err.message,true);
-			}
-		});
-		return false;
-	}
+            }
+        });
+        return false;
+    }
 
 </script>

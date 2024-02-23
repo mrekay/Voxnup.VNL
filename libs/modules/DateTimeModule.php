@@ -3,15 +3,10 @@
 class DateTimeModule
 {
 
-   static function ConvertTrDate($date)
+   static function ConvertTrDate($date,$hasClock = true)
     {
-        //GG.AA.YYYY -> YYYY-AA-GG
-        $day = substr($date, 0, 2);
-        $month = substr($date, 3, 2);
-        $year = substr($date, 6, 4);
-        $seperator = '-';
-
-        return $year . $seperator . $month . $seperator . $day;
+        $STR_DATE = strtotime($date);
+        return date("d.m.Y". ($hasClock? " H:i:s" : ""), $STR_DATE);
     }
 
     static function ago($date, $lang = 'tr')

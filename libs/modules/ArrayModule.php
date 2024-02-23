@@ -30,4 +30,5 @@ class ArrayModule
     {
         return empty($array2) ? $array1 : array_merge($array1, array_intersect_key($array2, $array1));
     }
+
 }

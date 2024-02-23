@@ -65,9 +65,12 @@ if (getDocumentRoot() != '')
     Session::init();
 
 
+
 $req = new Request();
+$lang = new Language(Language::GetLanguage());
 
 $PdfPrintEnabled = true;
+
 foreach (glob(__DIR__ . '/../modules/*.php') as $moduleFile) {
     require_once $moduleFile;
 }

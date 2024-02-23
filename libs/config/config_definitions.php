@@ -1,10 +1,12 @@
 <?php
 
+use Illuminate\Database\Capsule\Manager as Capsule;
+
 class ConfigDefinitions
 {
 
     private $testMode = false;
-    private $db;
+    private $db_info;
     private $master_db;
     private $cookie_prefix;
     private $salt_text;
@@ -15,15 +17,17 @@ class ConfigDefinitions
 
     public function __construct()
     {
-
         switch ($this->testMode) {
             case true:
-                $this->db = [
-                    'name' => 'i',
-                    'host' => '',
-                    'port' => '3306',
-                    'user' => 'root',
-                    'password' => '',
+                $this->db_info = [
+                    'driver' => 'mysql',
+                    'host' => 'localhost',
+                    'database' => '',
+                    'username' => 'root',
+                    'password' => 'password',
+                    'charset' => 'utf8',
+                    'collation' => 'utf8_unicode_ci',
+                    'prefix' => '',
                 ];
 
                 $this->master_db = "";
@@ -31,16 +35,19 @@ class ConfigDefinitions
                 $this->salt_text = "";
                 $this->site_url = "";
                 $this->master_site_url = "";
-                $this->assets_url = "";
+                $this->assets_url = "/assets";
                 $this->product_id = "";
                 break;
             case false:
-                $this->db = [
-                    'name' => 'i',
+                $this->db_info = [
+                    'driver' => 'mysql',
                     'host' => '',
-                    'port' => '3306',
-                    'user' => 'root',
+                    'database' => '',
+                    'username' => '',
                     'password' => '',
+                    'charset' => 'utf8',
+                    'collation' => 'utf8_unicode_ci',
+                    'prefix' => '',
                 ];
 
                 $this->master_db = "";
@@ -48,7 +55,7 @@ class ConfigDefinitions
                 $this->salt_text = "";
                 $this->site_url = "";
                 $this->master_site_url = "";
-                $this->assets_url = "";
+                $this->assets_url = "/assets";
                 $this->product_id = "";
 
         }
@@ -59,9 +66,9 @@ class ConfigDefinitions
     /**
      * @return string[]
      */
-    public function getDb(): array
+    public function getDBInfo() : array
     {
-        return $this->db;
+        return $this->db_info;
     }
 
     public function getMasterDb(): string
@@ -81,7 +88,7 @@ class ConfigDefinitions
 
     public function getSiteUrl(): string
     {
-        return $this->site_url;
+        return SITE_HTTP. $this->site_url;
     }
 
     public function getMasterSiteUrl(): string
