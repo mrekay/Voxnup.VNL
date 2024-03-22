@@ -26,9 +26,11 @@ class ArrayModule
         return null;
     }
 
-    static function array_merge_intersect_key($array1, $array2)
+    /* arrayleri birleştirme */
+   public static function array_merge_intersect_key($array1, $array2)
     {
         return empty($array2) ? $array1 : array_merge($array1, array_intersect_key($array2, $array1));
     }
+
 
 }

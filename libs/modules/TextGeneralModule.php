@@ -213,5 +213,12 @@ class TextGeneralModule
         return $addUnitLabel ? $size . ' ' . $units[$factor] : $size;
     }
 
+    static function convertHexCode($code){
+        if (substr($code, 0, 2) === '0x') {
+            $renkKodu = substr($code, 2);
+        }
+        return '#' . $renkKodu;
+    }
+
 
 }

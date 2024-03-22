@@ -52,7 +52,8 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
         $extras_default = array(
             'begin' => 0,
             'limit' => -1,
-            'order' => ''
+            'order' => '',
+            'order_by' => 'asc'
         );
         $extras = empty($extras) ? $extras_default : array_merge($extras_default, $extras);
 
@@ -65,7 +66,7 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
             $query->limit($extras['limit']);
 
         if (!empty($extras['order']))
-            $query->orderBy($extras['order']);
+            $query->orderBy($extras['order'],$extras['order_by']);
 
         foreach ($filters as $key => $filter) {
             if (!empty($filter['value']))

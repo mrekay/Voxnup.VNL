@@ -4,21 +4,21 @@ function controller($controllerName)
 {
 //	$controllerName = strtolower($controllerName);
 
-	return PATH . '/controller/' . $controllerName . '.php';
+	return getPath() . '/controller/' . $controllerName . '.php';
 }
 
 function view($viewName)
 {
-	return PATH . '/view/' . setting('theme') . '/' . $viewName . '.php';
+	return getPath()  . '/view/' . setting('theme') . '/' . $viewName . '.php';
 }
 
 function modal($modalName, $directory = null)
 {
 	if ($directory) {
-		return PATH . '/view/includes/modals/' . $directory . '/' . $modalName . '.php';
+		return getPath()  . '/view/includes/modals/' . $directory . '/' . $modalName . '.php';
 	}
 	else {
-		return PATH . '/view/includes/modals/' . $modalName . '.php';
+		return getPath()  . '/view/includes/modals/' . $modalName . '.php';
 	}
 }
 
@@ -140,12 +140,40 @@ function GetCurrentPageURL()
     return $protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 }
 
-function returnErrorMessage($errorMessage, $status)
+function getSubFolderName(): string
+{
+    return dirname($_SERVER['SCRIPT_NAME']);
+}
+
+function getPath(): string
+{
+    return realpath('.');
+}
+
+function throwErrorMessage($errorMessage, $status = 400)
 {
     http_response_code($status);
+    throw new Exception($errorMessage);
+}
 
-    $json = json_encode(["message" => is_string($errorMessage) ? $errorMessage : $errorMessage->message]);
-    throw new Exception($json);
+function returnErrorMessage($message, $error_code = 400){
+    http_response_code($error_code);
+    $json = json_encode(['message' => $message]);
+    echo $json;
+    die;
+}
+
+function returnWarningMessage($message, $code = 406){
+    http_response_code($code);
+    $json = json_encode(['message' => $message]);
+    echo $json;
+    die;
+}
+function returnInfoMessage($message, $code = 410){
+    http_response_code($code);
+    $json = json_encode(['message' => $message]);
+    echo $json;
+    die;
 }
 
 function returnSuccessMessage($message, $data = [])

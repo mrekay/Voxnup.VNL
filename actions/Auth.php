@@ -1,8 +1,6 @@
 <?php
 
-namespace actions;
-
-use function ActionGlobal\throwErrorMessage;
+namespace ActionGlobal;
 
 class Auth
 {
@@ -17,6 +15,12 @@ class Auth
     public static function UserPermis()
     {
         return self::User()->perm_id;
+    }
+
+    public static function CheckLogin($throwError = true){
+        $isLogined = !empty(self::User());
+        if (!$isLogined && $throwError) throwErrorMessage(Language::$ERR_LOGIN_FIRST);
+        return !empty(self::User());
     }
 
     public static function HasPermis(array $perms,$throwError = true)

@@ -1,5 +1,6 @@
 <?php
 ini_set('display_errors', 1);
+error_reporting(E_ALL ^ E_WARNING);
 ini_set('session.gc_maxlifetime', 3600);
 set_time_limit(20);
 
@@ -29,7 +30,7 @@ $assets_address = $cDefinitions->getAssetsUrl();
 define('SITE_HTTP', (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https://' : 'http://'));
 define('SITE_URL_NON_HTTP', $_SERVER["HTTP_HOST"]);
 define('MAIN_SITE_URL', $cDefinitions->getMasterSiteUrl());
-define('SITE_URL', SITE_HTTP . $cDefinitions->getSiteUrl());
+define('SITE_URL', $cDefinitions->getSiteUrl());
 
 function loadClass($class)
 {

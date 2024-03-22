@@ -13,7 +13,7 @@ require getDocumentRoot()."actions/Auth.php";
 
 if (!file_exists($action_path)) {
     try {
-        throwErrorMessage("Sayfa Bulunamadı1", 400);
+		throwErrorMessage("Sayfa Bulunamadı", 400);
     }catch (Exception $e){
         echo $e->getMessage();
         die();
@@ -33,6 +33,7 @@ try {
     $trace = $e->getTrace();
     $last_call = $trace[0];
 
+    header('Content-Type: text/html; charset=UTF-8');
     if ($last_call["function"] == "throwErrorMessage"){
         returnErrorMessage($e->getMessage());
     }else{

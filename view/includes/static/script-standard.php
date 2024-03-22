@@ -28,12 +28,14 @@
 <!--begin::Global Javascript Bundle(mandatory for all pages)-->
 <script src="<?= $theme_path ?>plugins/global/plugins.bundle.js"></script>
 <script src="<?= $theme_path ?>js/scripts.bundle.js"></script>
+<script src="<?= $theme_path ?>js/widgets.bundle.js"></script>
 <script src="<?= $theme_path ?>plugins/custom/draggable/draggable.bundle.js"></script>
 <!--end::Global Javascript Bundle-->
 <!--begin::Vendors Javascript(used for this page only)-->
 <script src="<?= $theme_path ?>plugins/custom/datatables/datatables.bundle.js"></script>
 
 <script src="<?= $assets_address ?>/scripts/_standard.js"></script>
+<script src="<?= $assets_address ?>/scripts/datatable.js"></script>
 
 <script>
 
@@ -80,9 +82,29 @@
         }
     });
 
-    function showModalMessage(message, is_err) {
+    function showModalMessage(message, mode = 1) {
+
+        var icon = "error";
+        switch (mode) {
+            case true:
+            case 1:
+                icon = "error";
+                break;
+            case false:
+            case 0:
+                icon = "success";
+                break;
+            case 2:
+                icon = "warning";
+                break;
+            case 3:
+                icon = "info";
+                break;
+
+        }
+
         Swal.fire({
-            icon: is_err ? 'error' : 'success',
+            icon: icon,
             html: message,
             confirmButtonText: 'Ok',
         })
@@ -128,52 +150,6 @@
         if (len <= 0) targetObject.fadeOut();
     })
 
-    $(document).ready(function () {
-        function reloadProjectSideBar(){
-            $.ajax({
-                type: 'POST',
-                dataType: 'json',
-                url: 'app/project/getProjectList',
-                async: false,
-                data: {
-                    dID: $(this).attr('projectID'),
-                },
-                success: function (response) {
-                    $('.projects-list-menu-item').remove();
-                    $('#kt_app_sidebar_menu').append(
-                        $('<div class="menu-item pt-5 projects-list-menu-item">').append(
-                            $('<div class="menu-content">').append(
-                                $('<div class="menu-heading fw-bold text-uppercase fs-7">').text("Projects")
-                            )
-                        )
-                    );
-                    if (response.data.length > 0){
-                        $.each(response.data,function (k,v){
-                            $('#kt_app_sidebar_menu').append(
-                                $('<div class="menu-item projects-list-menu-item">').append(
-                                    $(`<a target="_self" href="${v.url}" class="menu-link project-list-move-to-up">`).append(
-                                        $('<div class="menu-icon">').append($(`<i class="fas fa-${v.icon}">`)),
-                                        $('<span class="menu-title">').append(v.text)
-                                    )
-                                )
-                            );
-                        })
-                    }else{
-                        $('#kt_app_sidebar_menu').append(
-                            $('<div class="menu-item projects-list-menu-item">').append(
-                                $(`<a target="_self" href="project-manager?action=create-project" class="menu-link">`).append(
-                                    $('<div class="menu-icon">').append($(`<i class="fas fa-plus">`)),
-                                    $('<span class="menu-title">').append("Create Project")
-                                )
-                            )
-                        );
-                    }
-                }
-            });
-        }
-        setTimeout(reloadProjectSideBar,300);
-        setInterval(reloadProjectSideBar, 30000);
-    });
 
     function showSpinner(){
         $('#loadingSpinner').fadeIn();

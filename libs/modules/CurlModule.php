@@ -14,13 +14,12 @@ class CurlModule
                 break;
         }
 
-
         $content_length = strlen($content);
 
         $options = array(
             'http' => array(
-                'header' => ["Content-type: " . $content_type,
-                    "Authorization: Basic " . base64_encode($basic_auth['username'] . ":" . $basic_auth['password'])],
+                'header' => ["Content-type: " . $content_type,(!empty($basic_auth) ?
+                    "Authorization: Basic " . base64_encode($basic_auth['username'] . ":" . $basic_auth['password']):"")],
                 'method' => 'POST',
                 'content' => $content,
                 "Content-Length: " => $content_length,
