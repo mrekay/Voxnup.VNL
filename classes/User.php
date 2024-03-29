@@ -15,19 +15,17 @@ class User extends TableModel
         "permission" => ['class' => Permission::class, 'column' => 'perm_id'],
     ];
 
+    protected static $columns = array(
+        'name' => ['operator' => 'like'], // and
+        'id' => ['name' => 'tbl_users.id'],
+        'username' => ['name' => 'tbl_users.username'],
+        'password' => ['name' => 'tbl_users.password'],
+    );
+
     public static function SelectList($filters = [], $extras = [])
     {
-        $filters_default = array(
-            'name' => ['operator' => 'like', 'value' => ''], // and
-            'id' => ['name' => 'tbl_users.id', 'value' => ''],
-            'username' => ['name' => 'tbl_users.username', 'value' => ''],
-            'password' => ['name' => 'tbl_users.password', 'value' => ''],
-        );
 
-
-        $filters = self::setFilterDefault($filters_default, $filters);
-
-        $query = self::selectListQuery($filters, $extras)->select("tbl_users.*", "p.name as perm_name")
+        $query = self::selectListQuery(self::$columns,$filters, $extras)->select("tbl_users.*", "p.name as perm_name")
             ->leftJoin(Permission::tableName("p"), "perm_id", "=", "p.id");
 
 

@@ -47,7 +47,7 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
         return [];
     }
 
-    protected static function selectListQuery($filters = [], $extras = [])
+    protected static function selectListQuery($columns = [],$filters = [], $extras = [])
     {
         $extras_default = array(
             'begin' => 0,
@@ -57,6 +57,8 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
         );
         $extras = empty($extras) ? $extras_default : array_merge($extras_default, $extras);
 
+        $filters = self::setFilterDefault($columns, $filters);
+
         $query = self::query();
 
         if ($extras['begin'])
@@ -65,8 +67,8 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
         if ($extras['limit'])
             $query->limit($extras['limit']);
 
-        if (!empty($extras['order']))
-            $query->orderBy($extras['order'],$extras['order_by']);
+        if (!empty($extras['order']) && !empty($columns[$extras['order']]))
+            $query->orderBy($columns[$extras['order']]['name']??$extras['order'],$extras['order_by']);
 
         foreach ($filters as $key => $filter) {
             if (!empty($filter['value']))
