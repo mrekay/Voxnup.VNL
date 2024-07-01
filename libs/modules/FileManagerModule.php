@@ -93,4 +93,16 @@ class FileManagerModule
         return false;
     }
 
+    static function GetDiskSpaceText($disk_alani_mb)
+    {
+
+        // Eğer disk alanı 1 GB'den büyükse GB cinsine dönüştür
+        if ($disk_alani_mb >= 1024) {
+            $disk_alani_gb = $disk_alani_mb / 1024;
+            return round($disk_alani_gb, 2) . ' GB';
+        } else {
+            return round($disk_alani_mb, 2) . ' MB';
+        }
+    }
+
 }

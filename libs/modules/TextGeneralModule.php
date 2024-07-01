@@ -199,7 +199,7 @@ class TextGeneralModule
         return !empty($passwords) && count($passwords) == 1 ? $passwords[0] : $passwords; // return the generated password
     }
 
-    static function convertBytesToReadableFormat($bytes, $addUnitLabel = true)
+    static function ConvertBytesToReadableFormat($bytes, $addUnitLabel = true)
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         $factor = floor((strlen($bytes) - 1) / 3);
@@ -213,11 +213,19 @@ class TextGeneralModule
         return $addUnitLabel ? $size . ' ' . $units[$factor] : $size;
     }
 
-    static function convertHexCode($code){
+    static function ConvertHexCode($code){
         if (substr($code, 0, 2) === '0x') {
             $renkKodu = substr($code, 2);
         }
         return '#' . $renkKodu;
+    }
+
+    static function LimitString($string, $length) {
+        if (strlen($string) > $length) {
+            return substr($string, 0, $length) . "...";
+        } else {
+            return $string;
+        }
     }
 
 
