@@ -12,11 +12,6 @@ foreach (glob(__DIR__ . '/../helper/*.php') as $helperFile) {
 }
 
 $filename = basename($_SERVER['PHP_SELF']);
-$phpFileName = strtok(basename($_SERVER["REQUEST_URI"]), '?');
-
-if ($phpFileName == '/' || $phpFileName == '') {
-    $phpFileName = 'index.php';
-}
 
 if ('config.php' == $filename) {
     header('location:../');
