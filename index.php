@@ -4,7 +4,7 @@ require __DIR__ . '/libs/config.php';
 
 $routeExplode = explode('?', $_SERVER['REQUEST_URI']);
 $route = array_values(array_filter(explode('/', $routeExplode[0])));
-if (SUBFOLDER_NAME != '/' && SUBFOLDER_NAME != '\\') {
+if (getSubFolderName() != '/' && getSubFolderName() != '\\') {
     array_shift($route);
 }
 
