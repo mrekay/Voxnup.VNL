@@ -4,6 +4,15 @@ error_reporting(E_ALL ^ E_WARNING);
 ini_set('session.gc_maxlifetime', 3600);
 set_time_limit(20);
 
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '', // Gerekirse belirtebilirsiniz
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'None' // 'None', 'Lax' veya 'Strict'
+]);
+
 $cDefinitions = new ConfigDefinitions();
 
 /* helper'ları yükle (app,base_functions vs.)*/
@@ -67,7 +76,7 @@ $lang = new Language(Language::GetLanguage());
 
 $PdfPrintEnabled = true;
 
-foreach (glob(__DIR__ . '/../modules/*.php') as $moduleFile) {
+foreach (glob(getDocumentRoot() .'/libs/modules/*.php') as $moduleFile) {
     require_once $moduleFile;
 }
 

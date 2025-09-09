@@ -11,9 +11,14 @@ class ConfigDefinitions
     private $cookie_prefix;
     private $salt_text;
     private $site_url;
+    private $app_url;
     private $master_site_url;
     private $assets_url;
+    private $cdn_url;
+    private $cdn_path;
     private $product_id;
+    private $version = "BETA BUILD 10 (dev+d7998f61)";
+
 
     public function __construct()
     {
@@ -25,8 +30,8 @@ class ConfigDefinitions
                     'database' => '',
                     'username' => 'root',
                     'password' => 'password',
-                    'charset' => 'utf8',
-                    'collation' => 'utf8_unicode_ci',
+                    'charset' => 'utf8mb4',
+                    'collation' => 'utf8mb4_general_ci',
                     'prefix' => '',
                 ];
 
@@ -66,7 +71,12 @@ class ConfigDefinitions
     /**
      * @return string[]
      */
-    public function getDBInfo() : array
+
+    public function version(): string
+    {
+        return $this->version;
+    }
+    public function getDBInfo(): array
     {
         return $this->db_info;
     }
@@ -88,7 +98,7 @@ class ConfigDefinitions
 
     public function getSiteUrl(): string
     {
-        return SITE_HTTP. $this->site_url;
+        return SITE_HTTP . $this->site_url;
     }
 
     public function getMasterSiteUrl(): string

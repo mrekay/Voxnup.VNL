@@ -9,6 +9,42 @@ class DefaultValidator
             throw new StandartException(empty($region) ? Language::$PLEASE_FILL_THE_REQUIRED_FIELD : sprintf(Language::$PLEASE_FILL_IN_FIELD, $region));
         }
     }
+
+    static function validateValidPassword($password, $region = '')
+    {
+        // Minimum şifre uzunluğunu belirleyelim
+        $minLength = 8;
+
+        // Şifre boş mu kontrolü
+        if (empty($password)) {
+            throw new StandartException(empty($region) ? Language::$PLEASE_FILL_THE_REQUIRED_FIELD : sprintf(Language::$PLEASE_FILL_IN_FIELD, $region));
+        }
+
+        // Şifre uzunluk kontrolü
+        if (strlen($password) < $minLength) {
+            throw new StandartException("Şifre en az {$minLength} karakter uzunluğunda olmalıdır.");
+        }
+
+        // Büyük harf kontrolü
+        if (!preg_match('/[A-Z]/', $password)) {
+            throw new StandartException("Şifre en az bir büyük harf içermelidir.");
+        }
+
+        // Küçük harf kontrolü
+        if (!preg_match('/[a-z]/', $password)) {
+            throw new StandartException("Şifre en az bir küçük harf içermelidir.");
+        }
+
+        // Sayı kontrolü
+        if (!preg_match('/[0-9]/', $password)) {
+            throw new StandartException("Şifre en az bir rakam içermelidir.");
+        }
+
+        // Özel karakter kontrolü
+        if (!preg_match('/[\W_]/', $password)) { // \W, harf veya sayı olmayan karakterleri kapsar
+            throw new StandartException("Şifre en az bir özel karakter içermelidir.");
+        }
+    }
     static function validateEmptyOption($param, $region = '')
     {
         if (empty($param)) {
@@ -34,18 +70,12 @@ class DefaultValidator
         }
     }
 
+
     static function validateEmptyMail($param)
     {
-        if (empty($param) || !IsValidEmail($param)) {
-            throw new EmptyDataException(Language::$EMAIL_ADDRESS_CANNOT_BE_EMPTY);
-        }
-    }
-
-    static function validateMail($param)
-    {
-        if (empty($param)) return;
-        if (!IsValidEmail($param)) {
-            throw new EmptyDataException(Language::$EMAIL_ADDRESS_INVALID);
+        if (empty($param)) throw new StandartException(Language::$EMAIL_ADDRESS_CANNOT_BE_EMPTY);
+        if (!MailModule::isValidEmail($param)) {
+            throw new StandartException(Language::$EMAIL_ADDRESS_INVALID);
         }
     }
 
@@ -60,7 +90,7 @@ class DefaultValidator
     {
         if (empty($param)) {
             throw new StandartException(empty($region) ? Language::$PLEASE_SELECT_VALID_OPTION : sprintf(Language::$PLEASE_SELECT_VALID_OPTION_IN_FIELD, $region));
-        } else if (!AsInt($param, false) || $param <= 0) {
+        } else if (!is_int($param) || $param <= 0) {
             throw new StandartException(empty($region) ? Language::$PLEASE_SELECT_VALID_OPTION : sprintf(Language::$PLEASE_SELECT_VALID_OPTION_IN_FIELD, $region));
         }
     }
@@ -117,13 +147,13 @@ class DefaultValidator
         if (($d && $d->format($format) === $date) == false) {
             throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_DATE : sprintf(Language::$PLEASE_ENTER_VALID_DATE_IN_FIELD, $region));
         } else if ($date > date('Y-m-d')) {
-            throw new EmptyDataException(Language::$YOU_CANT_ENTER_FEATURE_DATE);
+            throw new StandartException(Language::$YOU_CANT_ENTER_FEATURE_DATE);
         }
     }
 
     static function validateEmptyDate($date, $region = '', $format = 'Y-m-d')
     {
-        if (empty($date)) throw new EmptyDataException(Language::$PLEASE_ENTER_DATE);
+        if (empty($date)) throw new StandartException(Language::$PLEASE_ENTER_DATE);
         $d = DateTime::createFromFormat($format, $date);
 
         // The Y ( 4 digits year ) returns TRUE for any integer with any number of digits so changing the comparison from == to === fixes the issue.
@@ -132,14 +162,34 @@ class DefaultValidator
         }
     }
 
+    static function validateAge($dateOfBirth, $region = '', $format = 'Y-m-d')
+    {
+        // Doğum tarihi boş mu kontrolü
+        if (empty($dateOfBirth)) throw new StandartException(Language::$PLEASE_ENTER_DATE);
+
+        // Tarih formatını kontrol et
+        $d = DateTime::createFromFormat($format, $dateOfBirth);
+        if (($d && $d->format($format) === $dateOfBirth) == false) {
+            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_DATE : sprintf(Language::$PLEASE_ENTER_VALID_DATE_IN_FIELD, $region));
+        }
+
+        // Yaş kontrolü: 16 yaşından küçükse hata fırlat
+        $today = new DateTime();
+        $age = $today->diff($d)->y; // Yaş hesaplama
+        if ($age < 16) {
+            throw new StandartException("Kayıt olmak için en az 16 yaşında olmalısınız.");
+        }
+    }
+
+
     static function validateTextLength($param, $maxlength = 255, $minlength = 3, $region = '')
     {
         $strlen = strlen($param);
         if ($strlen > $maxlength) {
-            throw new StandartException(empty($region) ? sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT, $maxlength) : sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT, $maxlength) : sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT_IN_FIELD, $region,$maxlength));
         }
         if ($strlen < $minlength) {
-            throw new StandartException(empty($region) ? sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT, $maxlength) : sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT, $maxlength) : sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT_IN_FIELD, $region, $minlength));
         }
 
     }

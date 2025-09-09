@@ -156,9 +156,9 @@ function throwErrorMessage($errorMessage, $status = 400)
     throw new Exception($errorMessage);
 }
 
-function returnErrorMessage($message, $error_code = 400){
+function returnErrorMessage($message, $error_code = 400,$devcode=""){
     http_response_code($error_code);
-    $json = json_encode(['message' => $message]);
+    $json = json_encode(['message' => $message, 'devcode' => $devcode]);
     echo $json;
     die;
 }
@@ -188,6 +188,7 @@ function returnSuccessDataOnly($data = [])
     http_response_code(200);
     $json = json_encode($data, JSON_NUMERIC_CHECK);
     echo $json;
+    die;
 }
 
 function returnAjaxError($result, $message, $data)

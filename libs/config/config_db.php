@@ -10,5 +10,12 @@ $CurrentUser = new User();
 
 /* AUTO LOGIN END */
 
+
+/* COOKIE ILE OTURUM AÇMA*/
+UserModule::CheckCookieAuth();
 UserModule::SetCurrentUserInfo();
 UserModule::CheckUser();
+
+if ($CurrentUser->id > 0)
+UserFriends::ReloadFriends($CurrentUser->id);
+

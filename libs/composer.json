@@ -1,6 +1,18 @@
 {
+
+    "autoload": {
+        "psr-4": {
+            "MyApp\\": "src"
+        }
+    },
     "require": {
         "illuminate/database": "^10.44",
-        "illuminate/events": "^10.44"
+        "illuminate/events": "^10.44",
+        "cboden/ratchet": "^0.4.4",
+        "octha/obfuscator": "dev-main",
+        "tedivm/jshrink": "^1.7",
+        "react/socket": "^1.16",
+        "symfony/http-foundation": "^6.4",
+        "phpmailer/phpmailer": "^6.9"
     }
 }

@@ -42,13 +42,13 @@ class FileManagerModule
             $FileName = @$File['name'];
 
             $FileName2 = pathinfo($FileName);
-            $NewName = sefUrl($FileName2['filename']);
+            $NewName = TextGeneralModule::SafeURL($FileName2['filename']);
 
             if (!empty($saveNewName)) {
 
-                $NewName = sefUrl($saveNewName);
+                $NewName = TextGeneralModule::SafeURL($saveNewName);
                 $NewName = mb_convert_encoding($NewName, "UTF-8");
-                $NewName = sefUrl($NewName);
+                $NewName = TextGeneralModule::SafeURL($NewName);
             }
             //print_r($NewName);
             //$NewName= empty($NewName) ? 'belirsiz' :$NewName;
@@ -69,7 +69,7 @@ class FileManagerModule
 //				$fileCounter++;
 //		}
 
-            $NewFileName = IFExistsChangeFileName($Destination, $NewFileName);
+            $NewFileName = self::IFExistsChangeFileName($Destination, $NewFileName);
 
             if (move_uploaded_file($File['tmp_name'], $Destination . $NewFileName)) {
                 //echo 'p3';
