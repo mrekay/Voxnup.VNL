@@ -5,6 +5,7 @@
  * V2.0
  **************************************************/
 let $first_datatable;
+var defaultOrder = [];
 
 $(document).ready(function () {
     setDatatable();
@@ -30,6 +31,7 @@ function setDatatable() {
         $datatableCols = [];
         $datatableColsSearch = [];
         $col_i = 0;
+        $row_i = 0;
 
         $datatable.find("thead tr th").each(function () {
 
@@ -41,6 +43,11 @@ function setDatatable() {
                 $objStr += ', "visible": false';
 
             }
+            var ord = $(this).data("default-order");
+            if (ord) {
+                defaultOrder.push([$row_i, ord]);
+            }
+
             $objStr += ', "searchable": true';
             $objStr += '}';
 //				alert($objStr);
@@ -48,6 +55,8 @@ function setDatatable() {
             var ob = jQuery.parseJSON($objStr);
             $datatableCols.push(ob);
             $datatableColsSearch.push(null);
+            $row_i++;
+
         });
         $.each($datatableCols, function (key, value) {
             $t_data = $datatable.find('.trFilter td[data-colindex="' + key + '"]').find('.dt-filter-td').val();
@@ -200,6 +209,7 @@ function setDatatable() {
             },
             "columns": $datatableCols,
             "searchCols": $datatableColsSearch,
+            "order": defaultOrder.length ? defaultOrder : []
         }
 
         datatable_options = Object.assign(datatable_options, datatable_options_main);
@@ -728,7 +738,10 @@ $(document).on('click', '.btn-dt-select-all', function () {
         $.fn.dataTable.ext.errMode = 'throw';
         $datatable.DataTable().ajax.url('app/datatableMultipleSelect/selectAllChange');
         $datatable.DataTable().ajax.reload();
-        $.fn.dataTable.ext.errMode = '';
+        $.fn.dataTable.ext.errMode = function(settings, helpPage, message) {
+            console.error("DT Error:", message);
+        };
+
         $datatable.DataTable().ajax.url(def_action);
         $datatable.DataTable().ajax.reload();
     }
@@ -842,7 +855,10 @@ $(document).on('click', '.datatableExcelButton', function () {
     datatable.DataTable().ajax.reload();
 
 
-    $.fn.dataTable.ext.errMode = '';
+    $.fn.dataTable.ext.errMode = function(settings, helpPage, message) {
+        console.error("DT Error:", message);
+    };
+
     datatable.DataTable().ajax.url(def_action);
     datatable.DataTable().ajax.reload();
 });
@@ -922,11 +938,11 @@ function multipleSelectionsCreateSession($datatable) {
             selected_list: getdatatableMultiSelectList($datatable),
         },
         success: function (response) {
-            if (response.result == 'ok') {
-                result_id = response.data.id;
-            } else {
-                TopMessageShow(true, response.message);
-            }
+            result_id = response.data.id;
+
+        },
+        error: function () {
+            showModalMessage("İşlem sırasında hata oluştu.", true);
         }
     });
     return result_id;
@@ -939,6 +955,9 @@ function multipleSelectionsCreateSession($datatable) {
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
 
 function InitalizeDatatableFilters(table = undefined) {
+    $.fn.dataTable.ext.errMode = function(settings, helpPage, message) {
+        console.error("DT Error:", message);
+    };
 
     if (typeof table === 'undefined') {
         $.each($('.dt-filter-td'), function (key, val) {
@@ -952,6 +971,7 @@ function InitalizeDatatableFilters(table = undefined) {
                     </div>`);
             $(val).addClass('d-none');
         });
+
     } else {
 
         $.each($(`${table} .dt-filter-td`), function (key, val) {
@@ -986,9 +1006,16 @@ function InitalizeDatatableFilters(table = undefined) {
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">${DATATABLES_BTN_SEARCH}</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
+                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                    <span class="svg-icon svg-icon-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1"
+                                  transform="rotate(-45 6 17.3137)" fill="black"/>
+                            <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)"
+                                  fill="black"/>
+                        </svg>
+                    </span>
+                </div>
             </div>
             <div class="modal-body">
                 <table class="table">
@@ -997,7 +1024,7 @@ function InitalizeDatatableFilters(table = undefined) {
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="filterSelectedButton" onclick="filterSelectedTable()">${DATATABLES_BTN_SEARCH}</button>
+                <button type="button" class="btn btn-primary" id="filterSelectedButton" onclick="filterSelectedTable()">Filtrele</button>
             </div>
         </div>
         <!-- /.modal-content -->
@@ -1071,7 +1098,10 @@ $(document).on('click', '.dt-datatableExcelButton', function () {
 
     datatable.DataTable().ajax.reload();
 
-    $.fn.dataTable.ext.errMode = '';
+    $.fn.dataTable.ext.errMode = function(settings, helpPage, message) {
+        console.error("DT Error:", message);
+    };
+
     datatable.DataTable().ajax.url(def_action);
     datatable.DataTable().ajax.reload();
 });

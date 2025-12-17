@@ -109,13 +109,15 @@ class SDTable
     {
         $returnHTML = "";
 
+        // 1. DEĞİŞİKLİK: Varsayılan kolona 'class' => 'table-col-box' ekledik.
         $columns_default = [
-            ['data-visibility' => 1, 'data-orderable' => 0, 'data-name' => 'id', 'data-visible-name' => '<i class="fas fa-cog"></i>']
+            ['class'=>'table-col-box', 'data-visibility' => 1, 'data-orderable' => 0, 'data-name' => 'no', 'data-visible-name' => '<i class="fas fa-cog"></i>']
         ];
 
         $columns = array_merge($columns_default,$columns);
 
         $column_default = [
+            'class' => '', // Varsayılan boş class
             'data-orderable' => 1,
             'data-visibilty' => 1,
             'data-name' => '',
@@ -126,7 +128,13 @@ class SDTable
 
             $column = array_merge($column_default, $column);
 
-            $returnHTML .= "<th data-visibility='" . $column['data-visibilty'] . "' data-orderable='" . $column['data-orderable'] . "' data-name='" . $column['data-name'] . "'>" . $column['data-visible-name'] . "</th>";
+            // 2. DEĞİŞİKLİK: <th ...> içine class özelliğini ekledik.
+            $returnHTML .= "<th class='" . $column['class'] . "' 
+                data-visibility='" . $column['data-visibilty'] . "' 
+                data-orderable='" . $column['data-orderable'] . "' 
+                data-name='" . $column['data-name'] . "'
+                data-default-order='" . ($column['data-default-order'] ?? '') . "'
+            >" . $column['data-visible-name'] . "</th>";
         }
 
         return $returnHTML;

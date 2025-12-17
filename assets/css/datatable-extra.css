@@ -85,7 +85,7 @@
 /*YEni yApılanlar */
 .dt-toprightpanel {
 	/* 26/07/2021 görünüm düzenleme*/
-	padding-top : 5px;
+	padding-top : 3vh;
 	/* 26/07/2021 görünüm düzenleme*/
 	position    : absolute;
 	right       : 20px;
@@ -150,13 +150,23 @@
 .datatable-selectedlist {
 	display : none;
 }
+/* İkonun eklendiği ilk sütunun hücreleri relative olmalı ki ikon içinde dursun */
+.datatable tbody td:first-child,
+.datatable tbody td.table-col-box {
+	position: relative !important;
+}
+
+/* Mevcut kodunda z-index 5, bunu biraz artırıp görünürlüğü garantiye alalım */
 .dt-select-check {
-	color            : #069706;
-	font-size        : 20px;
-	margin-right     : 10px;
-	position         : absolute;
-	z-index          : 5;
-	background-color : transparent;
+	color: #04ae3e !important;
+	font-size: 32px;
+	margin-right: 10px;
+	position: absolute;
+	left: 2px; /* Sol tarafa sabitle */
+	top: 50%;  /* Dikey ortala */
+	transform: translateY(-50%); /* Tam ortalama ayarı */
+	z-index: 100;
+	background-color: transparent;
 }
 
 .datatable-div .table-responsive {
@@ -167,7 +177,7 @@
 	-ms-overflow-style         : -ms-autohiding-scrollbar;
 	/* 26/07/2021 görünüm düzenleme*/
 	padding                    : 10px;
-	background                 : #ffffff;
+	/*background                 : #ffffff; karanlık tema desteği için kapatıldı*/
 	border-radius              : 15px;
 	border-style               : none;
 	/* 26/07/2021 görünüm düzenleme*/
@@ -214,4 +224,15 @@ table.dataTable td.dt-control::before {
 table.dataTable tr.dt-hasChild td.dt-control::before {
 	content: "-";
 	background-color: #d33333;
+}
+
+/* güncel dt için ufak düzenlemeler. */
+table.dataTable thead{
+	border: none !important;
+	border-bottom: 2px solid #d0d0d0 !important;
+
+}
+table.dataTable thead th{
+	cursor: pointer;
+
 }

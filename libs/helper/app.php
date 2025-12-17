@@ -160,20 +160,20 @@ function returnErrorMessage($message, $error_code = 400,$devcode=""){
     http_response_code($error_code);
     $json = json_encode(['message' => $message, 'devcode' => $devcode]);
     echo $json;
-    die;
+    if (!defined("PHPEXCELMODE"))  die;
 }
 
 function returnWarningMessage($message, $code = 406){
     http_response_code($code);
     $json = json_encode(['message' => $message]);
     echo $json;
-    die;
+    if (!defined("PHPEXCELMODE"))  die;
 }
 function returnInfoMessage($message, $code = 410){
     http_response_code($code);
     $json = json_encode(['message' => $message]);
     echo $json;
-    die;
+    if (!defined("PHPEXCELMODE")) die;
 }
 
 function returnSuccessMessage($message, $data = [])
@@ -188,7 +188,7 @@ function returnSuccessDataOnly($data = [])
     http_response_code(200);
     $json = json_encode($data, JSON_NUMERIC_CHECK);
     echo $json;
-    die;
+    if (!defined("PHPEXCELMODE")) die;
 }
 
 function returnAjaxError($result, $message, $data)
