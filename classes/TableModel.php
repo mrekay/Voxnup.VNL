@@ -5,6 +5,10 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
 {
 
     protected $foreign_keys = [];
+    protected $primaryKey = 'Id';
+    const DELETED_AT = 'deleted_at';
+    const UPDATED_AT = 'updated_at';
+    const CREATED_AT =  'created_at';
 
     public static function tableName(string $as)
     {
@@ -25,7 +29,7 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
         if (!empty($filters)) {
 
             foreach ($filters as $key => $filter) {
-                if (!isset($filters_changed[$key])) throwErrorMessage("İç Veritabanı Hatası : Geçerli Filtre Gelmedi");
+                if (!isset($filters_changed[$key])) throwErrorMessage("İç Veritabanı Hatası : Geçerli Filtre Gelmedi (" . $key . ")");
 
                 if (!empty($filters[$key])) {
                     $filters_changed[$key]['name'] = $filters_changed[$key]['name'] ?? $key;
@@ -71,8 +75,19 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
             $query->orderBy($columns[$extras['order']]['name']??$extras['order'],$extras['order_by']);
 
         foreach ($filters as $key => $filter) {
-            if (!empty($filter['value']))
-                $query->where($filter['name'], ($filter['operator'] ?? '='), ($filter['value'] ?? $filter));
+            if (!empty($filter['value'])) {
+
+                // Buradaki blok eklendi/güncellendi:
+                $operator = $filter['operator'] ?? '=';
+                $value = $filter['value'] ?? $filter;
+
+                if (strtolower($operator) === 'like') {
+                    // Eğer operatör 'like' ise, değerin başına ve sonuna % ekle
+                    $value = "%" . $value . "%";
+                }
+
+                $query->where($filter['name'], $operator, $value);
+            }
         }
         return $query;
     }
