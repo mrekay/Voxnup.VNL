@@ -5,7 +5,7 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
 {
 
     protected $foreign_keys = [];
-    protected $primaryKey = 'Id';
+    protected $primaryKey = 'id';
     const DELETED_AT = 'deleted_at';
     const UPDATED_AT = 'updated_at';
     const CREATED_AT =  'created_at';
