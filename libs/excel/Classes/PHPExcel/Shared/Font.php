@@ -424,7 +424,7 @@ class PHPExcel_Shared_Font
 	 * @return string Path to TrueType font file
 	 */
 	public static function getTrueTypeFontFileFromFont($font) {
-		if (!file_exists(self::$trueTypeFontPath) || !is_dir(self::$trueTypeFontPath)) {
+        if (isset(self::$trueTypeFontPath)  && (!file_exists(self::$trueTypeFontPath) || !is_dir(self::$trueTypeFontPath))) {
 			throw new PHPExcel_Exception('Valid directory to TrueType Font files not specified');
 		}
 

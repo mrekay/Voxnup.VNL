@@ -59,6 +59,8 @@ if (!defined('CALCULATION_REGEXP_CELLREF')) {
  * @package		PHPExcel_Calculation
  * @copyright	Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
  */
+#[AllowDynamicProperties]
+
 class PHPExcel_Calculation {
 
 	/** Constants				*/
