@@ -2,138 +2,219 @@
 $fileName = basename($_SERVER['REQUEST_URI'], '?' . (isset($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : ''));
 $qs = (isset($_SERVER['QUERY_STRING']) && !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
 $SidebarMenu = array(
-    [
-        "text" => "Pages",
-        "pages" => [
-            array(
-                'text' => "Projects",
-                'url' => 'project-manager',
-                'page_name' => 'project-manager.php',
-                'icon' => 'calendar',
-                'showmenu' => ($CurrentUser->id > 0),
-            ),
-        ]
-    ]
+        [
+                "text" => "Anasayfa",
+                'url' => 'index',
+                'page_name' => 'index.php',
+                'permission' => 'WebDashboard',
+                'icon' => 'home',
+                'showmenu' => true,
+                "child" => []
+        ],
+        [
+                "text" => "Örnek Sayfa",
+                'icon' => 'tasks', // İş yönetimi
+                'showmenu' => 1,
+                "child" => [
+                        [
+                                "text" => "Örnek Alt Sayfa",
+                                'url' => 'example-1',
+                                'page_name' => 'example-1.php',
+                                'permission' => 'ExamplePermPage1',
+                                'icon' => 'clock', // Zaman / bekleyen
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Örnek Alt Sayfa 2",
+                                'url' => 'example-2',
+                                'page_name' => 'example-2.php',
+                                'permission' => 'ExamplePermPage2',
+                                'icon' => 'clock', // Zaman / bekleyen
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Örnek Alt Aynı Yetkide Sayfa ",
+                                'url' => 'example-1',
+                                'page_name' => 'example-1.php',
+                                'permission' => 'ExamplePermPage1',
+                                'icon' => 'clock', // Zaman / bekleyen
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Örnek Alt Aynı Yetkide Sayfa ",
+                                'url' => 'example-1',
+                                'page_name' => 'example-1.php',
+                                'permission' => 'ExamplePermPage1',
+                                'icon' => 'clock', // Zaman / bekleyen
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+
+                ]
+        ],
+        [
+                "text" => "Oturum Açıldığında Gözükecek Sayfa",
+                'url' => 'example-login-page',
+                'page_name' => 'Example-Login-Page',
+                'permission' => 'ExampleLoginPage',
+                'icon' => 'home',
+                'showmenu' => 2,
+                "child" => []
+        ],
+        [
+                "text" => "Gizli Sayfa",
+                'url' => 'example-hidden',
+                'page_name' => 'example-hidden.php',
+                'permission' => 'ExampleHidden',
+                'icon' => 'home',
+                'showmenu' => 0,
+                "child" => []
+        ],
+
 );
+
 $NumberTexts = array('first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'nineth');
 
 if (!empty($customSideBar)) {
     $SidebarMenu[] = $customSideBar[0];
 }
 
-
 if ($page_config['leftsidebar'] != false) {
     ?>
 
-    <!--begin::Sidebar-->
-    <div id="kt_app_sidebar" class="app-sidebar flex-column" data-kt-drawer="true" data-kt-drawer-name="app-sidebar"
-         data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px"
-         data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
-        <!--begin::Logo-->
-        <div class="app-sidebar-logo px-6" id="kt_app_sidebar_logo">
-            <!--begin::Logo image-->
+    <!--begin::Aside-->
+    <div id="kt_aside" class="aside aside-dark aside-hoverable" data-kt-drawer="true" data-kt-drawer-name="aside"
+         data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true"
+         data-kt-drawer-width="{default:'200px', '300px': '250px'}" data-kt-drawer-direction="start"
+         data-kt-drawer-toggle="#kt_aside_mobile_toggle">
+        <!--begin::Brand-->
+        <div class="aside-logo flex-column-auto" id="kt_aside_logo">
+            <!--begin::Logo-->
             <a href="/">
-                <img alt="Logo" src="assets/images/logos/Subtract_dark.png" class=" h-25px me-2"/>
-                <img alt="Logo" src="assets/images/logos/latestset_black.svg" class="h-10px"/>
+
+                <img alt="Logo" src="<?=$cDefinitions->appLogoPath().'VNLBIG.png'?>" class="logo" style="height: 32px"/>
             </a>
-            <!--end::Logo image-->
-            <!--begin::Sidebar toggle-->
-            <!--begin::Minimized sidebar setup:
-    if (isset($_COOKIE["sidebar_minimize_state"]) && $_COOKIE["sidebar_minimize_state"] === "on") {
-    1. "src/js/layout/sidebar.js" adds "sidebar_minimize_state" cookie value to save the sidebar minimize state.
-    2. Set data-kt-app-sidebar-minimize="on" attribute for body tag.
-    3. Set data-kt-toggle-state="active" attribute to the toggle element with "kt_app_sidebar_toggle" id.
-    4. Add "active" class to to sidebar toggle element with "kt_app_sidebar_toggle" id.
-    }
-    -->
-            <div id="kt_app_sidebar_toggle"
-                 class="app-sidebar-toggle btn btn-icon btn-shadow btn-sm btn-color-muted btn-active-color-primary h-30px w-30px position-absolute top-50 start-100 translate-middle rotate"
+            <!--end::Logo-->
+            <!--begin::Aside toggler-->
+            <div id="kt_aside_toggle" class="btn btn-icon w-auto px-0 btn-active-color-primary aside-toggle me-n2"
                  data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body"
-                 data-kt-toggle-name="app-sidebar-minimize">
-                <i class="ki-duotone ki-black-left-line fs-3 rotate-180">
-                    <span class="path1"></span>
-                    <span class="path2"></span>
-                </i>
+                 data-kt-toggle-name="aside-minimize">
+                <i class="ki-outline ki-double-left fs-1 rotate-180"></i>
             </div>
-            <!--end::Sidebar toggle-->
+            <!--end::Aside toggler-->
         </div>
-        <!--end::Logo-->
-        <!--begin::sidebar menu-->
-        <div class="app-sidebar-menu overflow-hidden flex-column-fluid">
-            <!--begin::Menu wrapper-->
-            <div id="kt_app_sidebar_menu_wrapper" class="app-sidebar-wrapper">
-                <!--begin::Scroll wrapper-->
-                <div id="kt_app_sidebar_menu_scroll" class="scroll-y my-5 mx-3" data-kt-scroll="true"
-                     data-kt-scroll-activate="true" data-kt-scroll-height="auto"
-                     data-kt-scroll-dependencies="#kt_app_sidebar_logo, #kt_app_sidebar_footer"
-                     data-kt-scroll-wrappers="#kt_app_sidebar_menu" data-kt-scroll-offset="5px"
-                     data-kt-scroll-save-state="true">
-                    <!--begin::Menu-->
-                    <div class="menu menu-column menu-rounded menu-sub-indention fw-semibold fs-6"
-                         id="kt_app_sidebar_menu"
-                         data-kt-menu="true" data-kt-menu-expand="false">
-                        <?php showSideBar($SidebarMenu, 1); ?>
-                    </div>
-                    <!--end::Menu-->
+        <!--end::Brand-->
+
+        <!--begin::Aside menu-->
+        <div class="aside-menu flex-column-fluid">
+            <!--begin::Aside Menu-->
+            <div class="hover-scroll-overlay-y" id="kt_aside_menu_wrapper" data-kt-scroll="true"
+                 data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto"
+                 data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu"
+                 data-kt-scroll-offset="0">
+                <!--begin::Menu-->
+                <div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500"
+                     id="#kt_aside_menu" data-kt-menu="true">
+                    <?php ShowSidebarMenu($SidebarMenu, 0); ?>
                 </div>
-                <!--end::Scroll wrapper-->
+                <!--end::Menu-->
             </div>
-            <!--end::Menu wrapper-->
         </div>
-        <!--end::sidebar menu-->
+        <!--end::Aside menu-->
+        <!--begin::Footer-->
+        <div class="aside-footer flex-column-auto pb-7 px-5" id="kt_aside_footer">
+
+        </div>
+        <!--end::Footer-->
     </div>
-    <!--end::Sidebar-->
+    <!--end::Aside-->
 
     <?php
 }
 function showSideBar($array, $level)
 {
+    global $fileName, $meta;
+
+    $friendly_name = isset($meta['friendly_name']) ? $meta['friendly_name'] : '';
+
     foreach ($array as $item) {
+
+
+        //TODO : SİSTEMİ ENTEGRE ETTİKTEN SONRA AKTİF EDİN
+//        if (!empty($item['permission'])) {
+//            if (!UserPermissions::CanViewByCode($GLOBALS['CurrentUser']->Id, $item['permission'])) {
+//                continue;
+//            }
+//        }
+
         if (!empty($item["text"])) { ?>
-
-            <!--begin:Menu item-->
-            <div class="menu-item pt-5">
-                <!--begin:Menu content-->
-                <div class="menu-content">
-                    <span class="menu-heading fw-bold text-uppercase fs-7"><?= $item["text"] ?></span>
-                </div>
-                <!--end:Menu content-->
+            <div class="menu-item">
+                <a class="menu-link <?= ($item["url"] == $fileName || $item["url"] == $friendly_name) ? 'active' : '' ?>"
+                   href="/<?= $item["url"] ?>">
+                    <span class="menu-bullet">
+                        <span class="bullet bullet-dot"></span>
+                    </span>
+                    <span class="menu-title"><?= $item["text"] ?></span>
+                </a>
             </div>
-            <!--end:Menu item-->
-
         <?php }
-        ShowSidebarMenu($item["pages"], $level);
+
+        if (!empty($item['child'])) {
+            ShowSidebarMenu($item['child'], $level);
+        }
     }
 }
 
+
 function ShowSidebarMenu($array, $level)
 {
-    global $fileName, $NumberTexts, $CurrentUser, $ActiveProductId;
+    global $fileName, $NumberTexts, $CurrentUser, $ActiveProductId, $meta;
+
+    $friendly_name = isset($meta['friendly_name']) ? $meta['friendly_name'] : '';
+
+
+    $fileName = empty($fileName) ? '/' : $fileName;
+
     foreach ($array as $menu) {
-        $pagePermission = $CurrentUser->getPagePermission($menu['page_name'], $ActiveProductId);
+
+
+        // TODO: SİSTEMİ ENTEGRE ETTİKTEN SONRA AKTİF EDİN
+//        $pagePermission = !empty($menu['permission']) ? UserPermissions::CanViewByCode($CurrentUser->Id, $menu['permission']) : true;
+        $pagePermission = true;
+
+        if (!$pagePermission) continue;
 
         if ((!isset($menu['showmenu']) || (isset($menu['showmenu']) && $menu['showmenu']))) {
             $urls = SidebarMenuGetSubUrls($menu, (isset($menu['qs_active']) ? $menu['qs_active'] : true));
+
+            $isActive = in_array($fileName, $urls);
+
+
             ?>
 
             <!--begin:Menu item-->
-            <div <?= isset($menu['child']) && !empty($menu['child']) ? 'data-kt-menu-trigger="click"' : "" ?>
-                    class="menu-item <?= isset($menu['child']) && !empty($menu['child']) ? "menu-accordion" : "" ?>">
+            <div <?= !empty($menu['child']) ? 'data-kt-menu-trigger="click"' : "" ?>
+                    class="menu-item <?= isset($menu['child']) && !empty($menu['child']) ? "menu-accordion" . ($isActive ? 'hover show' : '') : "" ?>">
                 <!--begin:Menu link-->
-                <a target="_self" href="/<?= $menu["url"] ?>" class="menu-link">
+                <a <?= !empty($menu['child']) ? "menu-accordion" : ' target="_self" href="/' . $menu["url"] . '"' ?>
+                        class="menu-link <?= !empty($menu["url"]) && ($menu["url"] == $fileName || $menu["url"] == $friendly_name) ? 'active' : '' ?>">
                     <div class="menu-icon">
                         <i class="fas fa-<?= $menu['icon']; ?>"></i>
                     </div>
                     <span class="menu-title"><?= $menu['text']; ?></span>
-                    <?php if (isset($menu['child']) && !empty($menu['child'])) { ?>
+                    <?php if (!empty($menu['child'])) { ?>
                         <span class="menu-arrow"></span>
                     <?php } ?>
                 </a>
                 <!--end:Menu link-->
-                <?php if (isset($menu['child']) && !empty($menu['child'])) { ?>
+                <?php
+                if (isset($menu['child']) && !empty($menu['child'])) { ?>
                     <!--begin:Menu sub-->
                     <div class="menu-sub menu-sub-accordion">
-                        <?php ShowSidebarMenu($menu['child'], $level + 1); ?>
+                        <?php showSideBar($menu['child'], $level + 1); ?>
                     </div>
                     <!--end:Menu sub-->
                 <?php } ?>
@@ -168,4 +249,43 @@ function SidebarMenuGetSubUrls($array, $qs_active = true)
     }
 
     return $urls;
+}
+
+function hasVisibleChild($children)
+{
+    global $CurrentUser;
+
+    if (empty($children)) return false;
+
+    foreach ($children as $child) {
+
+
+        //TODO : BURAYI SİSTEMİ ENTEGRE ETTİKTEN SONRA AKTİF EDİN
+//        $permission = !empty($child['permission'])
+//                ? UserPermissions::CanViewByCode($CurrentUser->Id, $child['permission'])
+//                : true;
+
+        $permission = true;
+
+        $showmenu = !isset($child['showmenu']);
+        switch ($child['showmenu']) {
+            case 2:
+                $showmenu = $CurrentUser->id > 0;
+                break;
+            case 0:
+            case false:
+                $showmenu = false;
+        }
+
+        if ($permission && $showmenu) {
+            return true;
+        }
+
+        // Altın kural: child’ın child’ı olabilir
+        if (!empty($child['child']) && hasVisibleChild($child['child'])) {
+            return true;
+        }
+    }
+
+    return false;
 }

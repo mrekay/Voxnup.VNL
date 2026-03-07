@@ -6,6 +6,9 @@ class ConfigDefinitions
 {
 
     private $testMode = false;
+    private $app_name = "VNL";
+    private $app_logo = "VNL.png";
+    private $app_logo_path = "/assets/media/logos/";
     private $db_info;
     private $master_db;
     private $cookie_prefix;
@@ -17,7 +20,9 @@ class ConfigDefinitions
     private $cdn_url;
     private $cdn_path;
     private $product_id;
-    private $version = "BETA BUILD 10 (dev+d7998f61)";
+    private $version = "2.2.0";
+    private $vnl_version = "2.2.0"; // burayı sisteminizde değiştirmeyin. burası vnl'in takibini yapmak için var.
+    private $login_except_pages = ["app","login","register","logout","index"];
 
 
     public function __construct()
@@ -56,25 +61,36 @@ class ConfigDefinitions
                 ];
 
                 $this->master_db = "";
-                $this->cookie_prefix = "";
-                $this->salt_text = "";
-                $this->site_url = "";
-                $this->master_site_url = "";
+                $this->cookie_prefix = "vnl";
+                $this->salt_text = "vnl54.?**-";
+                $this->site_url = "vnl.voxnup.com";
+                $this->master_site_url = "vnl.voxnup.com";
                 $this->assets_url = "/assets";
-                $this->product_id = "";
+                $this->product_id = 0;
 
         }
 
     }
 
 
-    /**
-     * @return string[]
-     */
 
+    public function appName(): string
+    {
+        return $this->app_name;
+    }
+    public function appLogoPath(): string{
+        return $this->app_logo_path;
+    }
+    public function appLogo(): string{
+        return $this->appLogoPath(). $this->app_logo;
+    }
     public function version(): string
     {
         return $this->version;
+    }
+
+    public function getLoginExceptPages() : array{
+        return $this->login_except_pages;
     }
     public function getDBInfo(): array
     {

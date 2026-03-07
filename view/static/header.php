@@ -1,10 +1,10 @@
 <?php
 $page_config_default = array(
-    'leftsidebar' => true,//true,false ,'mini'
-    'topbar' => true,//true,false
-    'footer' => false,
-    'loader' => true,
-    'contentheader' => true,
+        'leftsidebar' => true,//true,false ,'mini'
+        'topbar' => true,//true,false
+        'footer' => false,
+        'loader' => true,
+        'contentheader' => true,
 );
 $page_config = !isset($page_config) || empty($page_config) ? $page_config_default : array_merge($page_config_default, $page_config);
 ?>
@@ -30,10 +30,14 @@ $page_config = !isset($page_config) || empty($page_config) ? $page_config_defaul
 
 
 </head>
-<body id="kt_app_body" data-kt-app-layout="<?=$page_config["leftsidebar"] ? "dark-sidebar" : ""?>" data-kt-app-header-fixed="true"
-      data-kt-app-sidebar-enabled="<?=$page_config["leftsidebar"] ? "true" : "false"?>" data-kt-app-sidebar-fixed="<?=$page_config["leftsidebar"] ? "true" : "false"?>" data-kt-app-sidebar-hoverable="<?=$page_config["leftsidebar"] ? "true" : "false"?>"
-      data-kt-app-sidebar-push-header="<?=$page_config["leftsidebar"] ? "true" : "false"?>" data-kt-app-sidebar-push-toolbar="<?=$page_config["leftsidebar"] ? "true" : "false"?>"
-      data-kt-app-sidebar-push-footer="true" data-kt-app-toolbar-enabled="true" class="app-default">
+<body id="kt_app_body" data-kt-app-layout="<?= $page_config["leftsidebar"] ? "dark-sidebar" : "" ?>"
+      data-kt-app-header-fixed="true"
+      data-kt-app-sidebar-enabled="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
+      data-kt-app-sidebar-fixed="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
+      data-kt-app-sidebar-hoverable="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
+      data-kt-app-sidebar-push-header="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
+      data-kt-app-sidebar-push-toolbar="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
+      data-kt-app-sidebar-push-footer="true" data-kt-app-toolbar-enabled="true" class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled toolbar-fixed toolbar-tablet-and-mobile-fixed aside-enabled aside-fixed">
 <!--begin::Theme mode setup on page load-->
 <script>
     var defaultThemeMode = "light";
@@ -56,26 +60,28 @@ $page_config = !isset($page_config) || empty($page_config) ? $page_config_defaul
 </script>
 <!--end::Theme mode setup on page load-->
 <!--begin::App-->
-<div class="d-flex flex-column flex-root app-root" id="kt_app_root">
+<div class="d-flex flex-column flex-root">
     <!--begin::Page-->
-    <div class="app-page flex-column flex-column-fluid" id="kt_app_page">
+    <div class="page d-flex flex-row flex-column-fluid">
         <div class="loading-overlay" id="loadingSpinner" style="display: none">
             <img src="/assets/images/loading3_black.gif" class="theme-dark-show">
             <img src="/assets/images/loading3.gif" class="theme-light-show">
         </div>
+
         <?php
-        if ($page_config['topbar'])
-            require_once view('static/topNavbar');
+
+
+        require_once view('static/leftSidebar');
+
         ?>
 
-        <!--begin::Wrapper-->
-        <div class="app-wrapper flex-column flex-row-fluid" id="kt_app_wrapper">
-
+        <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
             <?php
-            if ($page_config['leftsidebar'])
-                require_once view('static/leftSidebar');
+            if ($page_config['topbar'])
+                require_once view('static/topNavbar');
             ?>
-            <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
-                <!--begin::Content wrapper-->
-                <div class="d-flex flex-column flex-column-fluid">
+            <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+                <?php
+                require_once view('static/contentHeader');
+                ?>
 

@@ -3,3 +3,6 @@
 .idea/modules.xml
 .idea/php.xml
 .idea/vcs.xml
+.idea/deployment.xml
+.idea/VNL-TEMPLATE.iml
+.idea/webServers.xml

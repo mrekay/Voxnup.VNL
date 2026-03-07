@@ -1,1 +1,8 @@
-buraya seçtiğiniz kütüphaneyi eklemeniz gerekmekte
+VNL ASSETS
+
+VNL Metronic 8 ile uyumlu olacak şekilde geliştirilmiştir.
+Kullanmak istediğiniz temayı buraya atmanız gerekmektedir.
+Örneğin şuanda yüklü olan Metronic 8 Demo 13
+Yükleyeceğiniz demo dosyasının içerisindeki "assets" klasörü altındaki tüm dosyaları buraya atın.
+
+Demo dosyasının assetslerini yüklediğinizde VNL direkt olarak algılar ve çalışmaya başlar.

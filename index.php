@@ -16,7 +16,7 @@ if (!file_exists(controller(route(0)))) {
     $route[0] = '404';
 }
 
-if (!in_array($route[0], array('app','login', 'logout'))) {
+if (!in_array($route[0], $cDefinitions->getLoginExceptPages() )) {
     if ($CurrentUser->id <= 0) {
         header('location:' . $cDefinitions->getSiteUrl() . '/login');
     }

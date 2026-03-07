@@ -1,6 +1,6 @@
 <?php
 $meta = [
-    'title'       => "",
+    'title'       => "VNL Başarıyla kuruldu - " .$cDefinitions->version(),
     'description' => '',
     'keywords'    => '',
     'header'      => "",
@@ -8,8 +8,8 @@ $meta = [
 
 $page_config = [
     'topbar'=>true,
-    'leftsidebar'=>false,
-    'contentheader'=>false
+    'leftsidebar'=>true,
+    'contentheader'=>true
 ];
 
 
