@@ -77,16 +77,24 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
         foreach ($filters as $key => $filter) {
             if (!empty($filter['value'])) {
 
-                // Buradaki blok eklendi/güncellendi:
-                $operator = $filter['operator'] ?? '=';
-                $value = $filter['value'] ?? $filter;
+                $operator = strtolower($filter['operator'] ?? '=');
+                $value    = $filter['value'] ?? $filter;
+                $column   = $filter['name'];
 
-                if (strtolower($operator) === 'like') {
-                    // Eğer operatör 'like' ise, değerin başına ve sonuna % ekle
-                    $value = "%" . $value . "%";
+                if($operator === 'between'){
+                    $range = explode('|', $value, 2);
+                    if (count($range) === 2) {
+                        $query->whereBetween($column, [$range[0], $range[1]]);
+                    }
+                }else if($operator === 'like'){
+//                    $query->where($column, $operator, '%' . $value . '%');
+                    $query->whereRaw("LOWER($column) LIKE ?", ['%' . strtolower($value) . '%']);
+                }else if($operator === 'ilike'){//büyük küçük harf duyarlılığını yok sayar (SADECE POSTGRESQL'de kullanılabilir)
+                    $query->where($column, $operator, '%' . $value . '%');
+                }else{
+                    $query->where($column, $operator, $value);
                 }
 
-                $query->where($filter['name'], $operator, $value);
             }
         }
         return $query;

@@ -226,6 +226,68 @@ table.dataTable tr.dt-hasChild td.dt-control::before {
 	background-color: #d33333;
 }
 
+/* ── Range Slider Filter ─────────────────────────────────────── */
+.dt-range-filter-wrap {
+    padding: 4px 6px 2px;
+    min-width: 120px;
+}
+
+.dt-range-filter-wrap .noUi-target {
+    background: #e4e6ef;
+    border: none;
+    box-shadow: none;
+    height: 6px;
+    border-radius: 3px;
+    margin: 6px 4px 4px;
+}
+
+.dt-range-filter-wrap .noUi-connect {
+    background: #009ef7;
+    border-radius: 3px;
+}
+
+.dt-range-filter-wrap .noUi-handle {
+    width: 16px !important;
+    height: 16px !important;
+    top: -6px !important;
+    right: -8px !important;
+    border-radius: 50%;
+    border: 2px solid #009ef7;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    cursor: pointer;
+}
+
+.dt-range-filter-wrap .noUi-handle::before,
+.dt-range-filter-wrap .noUi-handle::after {
+    display: none;
+}
+
+.dt-range-filter-wrap .noUi-tooltip {
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    bottom: 120%;
+    border: 1px solid #d0d0d0;
+    background: #fff;
+    color: #333;
+    white-space: nowrap;
+}
+
+.dt-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #5e6278;
+    margin-top: 4px;
+    padding: 0 2px;
+}
+
+.dt-range-labels .dt-range-sep {
+    color: #a1a5b7;
+}
+/* ── Range Slider Filter End ─────────────────────────────────── */
+
 /* güncel dt için ufak düzenlemeler. */
 table.dataTable thead{
 	border: none !important;
@@ -235,4 +297,14 @@ table.dataTable thead{
 table.dataTable thead th{
 	cursor: pointer;
 
+}
+
+
+table.dataTable > thead tr.trFilter .dt-ordering-asc::after,
+table.dataTable > thead tr.trFilter .dt-ordering-asc::before,
+table.dataTable > thead tr.trFilter .dt-ordering-desc::after,
+table.dataTable > thead tr.trFilter .dt-ordering-desc::before
+{
+	display: none !important;
+	content: none !important;
 }

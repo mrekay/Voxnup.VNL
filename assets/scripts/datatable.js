@@ -5,7 +5,7 @@
  * V2.0
  **************************************************/
 let $first_datatable;
-var defaultOrder = [];
+// var defaultOrder = []; // BURASI KAPATILDI: Global değişken hataya sebep oluyordu.
 
 $(document).ready(function () {
     setDatatable();
@@ -17,21 +17,25 @@ function setDatatable() {
     $datatable_i = 0;
     $('.datatable:not(.datatable-initialized)').each(function () {
 
+        // HER TABLO İÇİN SIFIRLANACAK DEĞİŞKENLER BURADA TANIMLANMALI
+        let defaultOrder = []; // Düzeltme: Her tablo için kendi order dizisi oluşturulmalı.
+        let $datatable = $(this); // Düzeltme: Local scope kullanıldı.
+
         /* Aynı sayfada birden çok datatable varsa ilkini almak için */
         if ($datatable_i === 0) {
             $first_datatable = $(this);
         }
         $datatable_i++;
 
-        $datatable_obj = null;
-        $datatable = $(this);
+        let $datatable_obj = null;
+        // $datatable = $(this); // Yukarıda let ile tanımlandığı için kapatıldı.
 
 
-        $datatableColsName = [];
-        $datatableCols = [];
-        $datatableColsSearch = [];
-        $col_i = 0;
-        $row_i = 0;
+        let $datatableColsName = [];
+        let $datatableCols = [];
+        let $datatableColsSearch = [];
+        let $col_i = 0;
+        let $row_i = 0;
 
         $datatable.find("thead tr th").each(function () {
 
@@ -162,7 +166,10 @@ function setDatatable() {
 
                 $_dt_tmp = $(this[0]);
                 $.each(data.columns, function (key, value) {
-                    value.search.search = $_dt_tmp.find('.trFilter td[data-colindex="' + key + '"]').find('.dt-filter-td').val();
+                    var $filterEl = $_dt_tmp.find('.trFilter td[data-colindex="' + key + '"]').find('.dt-filter-td');
+                    value.search.search = $filterEl.hasClass('dt-range-filter-wrap')
+                        ? $filterEl.find('.dt-range-hidden-input').val()
+                        : $filterEl.val();
                 });
 
             },
@@ -224,6 +231,52 @@ function setDatatable() {
         /* UYARI! mobile-filter ekli değilse scroll-enabled modunda filtreler çalışmaz!!!! UYARI! */
 
         $datatable_obj = $datatable.DataTable(datatable_options);
+
+        /* ── Range Slider Init ─────────────────────────────────────── */
+        $datatable.find('.dt-range-filter-wrap').each(function () {
+            var $wrap    = $(this);
+            var rMin     = parseFloat($wrap.data('range-min'));
+            var rMax     = parseFloat($wrap.data('range-max'));
+            var rStep    = parseFloat($wrap.data('range-step'));
+            var vMin     = parseFloat($wrap.data('val-min'));
+            var vMax     = parseFloat($wrap.data('val-max'));
+            var sliderEl = $wrap.find('.dt-range-slider')[0];
+            var $hidden  = $wrap.find('.dt-range-hidden-input');
+
+            var decimals = (rStep % 1 !== 0) ? (rStep.toString().split('.')[1] || '').length : 0;
+
+            noUiSlider.create(sliderEl, {
+                start:   [vMin, vMax],
+                connect: true,
+                step:    rStep,
+                range:   { min: rMin, max: rMax },
+                tooltips: [true, true],
+                format: {
+                    to:   function (v) { return parseFloat(v.toFixed(decimals)); },
+                    from: function (v) { return parseFloat(v); }
+                }
+            });
+
+            sliderEl.noUiSlider.on('update', function (values) {
+                $wrap.find('.dt-range-label-min').text(values[0]);
+                $wrap.find('.dt-range-label-max').text(values[1]);
+            });
+
+            sliderEl.noUiSlider.on('change', function (values) {
+                var min = parseFloat(values[0]);
+                var max = parseFloat(values[1]);
+                var searchVal = (min === rMin && max === rMax) ? '' : min + '|' + max;
+                $hidden.val(searchVal);
+                var $dt = $wrap.closest('.datatable');
+                if ($dt.length) {
+                    var _table  = $dt.DataTable().table();
+                    var _visIdx = $wrap.closest('td').index();
+                    var _dataIdx = _table.column.index('fromVisible', _visIdx);
+                    $dt.DataTable().column(_dataIdx).search(searchVal).draw();
+                }
+            });
+        });
+        /* ── Range Slider Init End ─────────────────────────────────── */
 
         $datatable_obj.on('preXhr', function (e, settings, data) {
 
@@ -341,9 +394,9 @@ function setDatatable() {
             /* 01.02.2022 mobile-filter güncellemesi (mobile filter yazarak aratın.) */
             if (!$datatable.attr('mobile-filter')) {
                 if ($datatable.parents().hasClass('table-responsive')) {
-                    $datatable.parents('.table-responsive').before('<div id="" class="datatableFilterButton fa fa-trash" style=""></div>');
+                    $datatable.parents('.table-responsive').before('<div class="datatableFilterButton fa fa-trash" data-dt-id="' + $datatable_id + '"></div>');
                 } else {
-                    $datatable.before('<div id="" class="datatableFilterButton fa fa-search" style=""></div>');
+                    $datatable.before('<div class="datatableFilterButton fa fa-search" data-dt-id="' + $datatable_id + '"></div>');
                 }
             }
         }
@@ -351,15 +404,15 @@ function setDatatable() {
             /* 01.02.2022 mobile-filter güncellemesi (mobile filter yazarak aratın.) */
             if (!$datatable.attr('mobile-filter')) {
                 if ($datatable.parents().hasClass('table-responsive')) {
-                    $datatable.parents('.table-responsive').before('<div id="" class="datatableExcelButton far fa-file-excel" style=""></div>');
+                    $datatable.parents('.table-responsive').before('<div class="datatableExcelButton far fa-file-excel" data-dt-id="' + $datatable_id + '"></div>');
                 } else {
-                    $datatable.before('<div id="" class="datatableExcelButton fa fa-file-excel-o" style=""></div>');
+                    $datatable.before('<div class="datatableExcelButton fa fa-file-excel-o" data-dt-id="' + $datatable_id + '"></div>');
                 }
             }
         }
         $(this).addClass('datatable-initialized');
     });
-    $datatable = $first_datatable;
+    // $datatable = $first_datatable; // GLOBAL DEĞİŞKEN KAPATILDI, LOCAL KULLANILDIĞI İÇİN GEREKSİZ
 }
 
 
@@ -602,11 +655,13 @@ $(document).on('click', '.table-col-box', function () {
             if ($(this.header()).data('visibility') != undefined && $(this.header()).data('visibility') != '-1' && $(this.header()).data('visibility') != '2') {
 
                 // $name = '<input data-tableid="' + $taleId + '" class="toggle-col-vis buttons-columnVisibility" type="checkbox" data-colname="' + $(this.header()).data('name') + '" data-colindex="' + this.index() + '" ' + $checked + '>&nbsp;' + $(this.header()).text();
+                if ($(this.header()).data('name' )!= "no") {
                 $dtCheckbox = '<div class="dtbl-control dtbl-checkbox"><input type="checkbox" id="dtCheck' + this.index() + '" data-tableid="' + $taleId + '" class="toggle-col-vis buttons-columnVisibility dtbl-control-input" type="checkbox" data-colname="' + $(this.header()).data('name') + '" data-colindex="' + this.index() + '" ' + $checked + '><label class="dtbl-control-label" for="dtCheck' + this.index() + '">' + $(this.header()).text() + '</label></div>';
                 $col_array.push({
                     'name': $(this.header()).text(),
                     'html': "<div class='col-md-6'>" + $dtCheckbox + "</div>",
                 });
+            }
             }
         });
         $col_array = $col_array.sort(function (a, b) {
@@ -670,20 +725,25 @@ $(document).on('mouseout', '.datatableFilterButton', function () {
     $(this).text('');
 });
 $(document).on('click', '.datatableFilterButton', function () {
-    /*$datatable = $(this).parent().find('.datatable');
-    if ($datatable.find('thead .trFilter').hasClass('d-none')) {
-        //HideColControl($datatable_obj,$datatableCols);
-        $datatable.find('thead .trFilter').removeClass('d-none');
-        $(this).text(' Filtre Temizle');
+    /* Birden fazla datatable varsa doğru tabloyu bul */
+    var dt_id = $(this).attr('data-dt-id');
+    var $datatable = dt_id ? $('#' + dt_id) : $(this).parent().find('.datatable');
 
-    }
-    else {
-        $(this).text(' Filtrele');*/
     $datatable_obj = $datatable.DataTable();
     $datatable_obj.search('').columns().search('').draw();
     $datatable.find('thead .trFilter input:not(.datatable-pass-data)').val('');
-    //$datatable.find('thead .trFilter select:not(.datatable-pass-data)').val($datatable.find('thead .trFilter select:not(.datatable-pass-data) option').eq(0).val());
     $datatable.find('thead .trFilter select:not(.datatable-pass-data)').val('');
+    $datatable.find('.dt-range-filter-wrap').each(function () {
+        var $wrap = $(this);
+        var sliderEl = $wrap.find('.dt-range-slider')[0];
+        if (sliderEl && sliderEl.noUiSlider) {
+            sliderEl.noUiSlider.set([
+                parseFloat($wrap.data('range-min')),
+                parseFloat($wrap.data('range-max'))
+            ]);
+            $wrap.find('.dt-range-hidden-input').val('');
+        }
+    });
     // $datatable.find('thead .trFilter').addClass('d-none');
     /*}*/
 });
@@ -846,7 +906,9 @@ $(document).on('mouseout', '.datatableExcelButton', function () {
 });
 $(document).on('click', '.datatableExcelButton', function () {
     datatableExcelButtonLoadingEnable();
-    var datatable = $(this).parent().find('.datatable');
+    /* Birden fazla datatable varsa doğru tabloyu bul */
+    var dt_id = $(this).attr('data-dt-id');
+    var datatable = dt_id ? $('#' + dt_id) : $(this).parent().find('.datatable');
     var def_action = datatable.attr('data-action');
 
     $.fn.dataTable.ext.errMode = 'throw';
@@ -960,16 +1022,28 @@ function InitalizeDatatableFilters(table = undefined) {
     };
 
     if (typeof table === 'undefined') {
-        $.each($('.dt-filter-td'), function (key, val) {
-            if (!$(val).closest('.datatable').attr('mobile-filter')) return;
-            if (key == 0)
-                $(val).closest('tr.trFilter').find('td').eq(0).append(`
+        /* Her datatable için ayrı ayrı butonlar ekle */
+        $('.datatable').each(function() {
+            var $datatable = $(this);
+            if (!$datatable.attr('mobile-filter')) return;
+
+            /* Bu datatable için zaten mobile-mini-bar varsa atla */
+            if ($datatable.find('.mobile-mini-bar').length > 0) return;
+
+            var bFilter = !($datatable.attr('data-bFilter') === 'false' || $datatable.attr('data-bFilter') === '0');
+            var bExcel = !($datatable.attr('data-bExcel') === 'false' || $datatable.attr('data-bExcel') === '0');
+
+            var filterButtonHtml = bFilter ? `<div class='me-1 dt-mobile-filter btn btn-icon btn-sm btn-secondary' data-toggle="tooltip" title="${DATATABLES_BTN_SEARCH}"><i class="fas fa-search"></i></div>
+                    <div class='me-1 dt-datatableFilterButton btn btn-icon btn-sm btn-info' data-toggle="tooltip" title="${DATATABLES_BTN_CLEAR}"><i class="fas fa-trash"></i></div>` : '';
+            var excelButtonHtml = bExcel ? `<div class='me-1 dt-datatableExcelButton btn btn-icon btn-sm btn-success' data-toggle="tooltip" title="${DATATABLES_BTN_EXCEL_OUTPUT}"><i class="fas fa-file-excel"></i></div>` : '';
+
+            $datatable.find('tr.trFilter td').eq(0).append(`
                     <div class='d-flex mobile-mini-bar'>
-                    <div class='me-1 dt-mobile-filter btn btn-icon btn-sm btn-secondary' data-toggle="tooltip" title="${DATATABLES_BTN_SEARCH}"><i class="fas fa-search"></i></div>
-                    <div class='me-1 dt-datatableFilterButton btn btn-icon btn-sm btn-info' data-toggle="tooltip" title="${DATATABLES_BTN_CLEAR}"><i class="fas fa-trash"></i></div>
-                    <div class='me-1 dt-datatableExcelButton btn btn-icon btn-sm btn-success' data-toggle="tooltip" title="${DATATABLES_BTN_EXCEL_OUTPUT}"><i class="fas fa-file-excel"></i></div>
+                ${filterButtonHtml}
+                ${excelButtonHtml}
                     </div>`);
-            $(val).addClass('d-none');
+
+            $datatable.find('.dt-filter-td').addClass('d-none');
         });
 
     } else {
@@ -1027,9 +1101,7 @@ function InitalizeDatatableFilters(table = undefined) {
                 <button type="button" class="btn btn-primary" id="filterSelectedButton" onclick="filterSelectedTable()">Filtrele</button>
             </div>
         </div>
-        <!-- /.modal-content -->
         </div>
-            <!-- /.modal-dialog -->
         </div>
         `);
 
@@ -1084,6 +1156,17 @@ $(document).on('click', '.dt-datatableFilterButton', function () {
     // $datatable_obj.search('').columns().search('').draw();
     $this_datatable.find('thead .trFilter input:not(.datatable-pass-data)').val('');
     $this_datatable.find('thead .trFilter select:not(.datatable-pass-data)').val('');
+    $this_datatable.find('.dt-range-filter-wrap').each(function () {
+        var $wrap = $(this);
+        var sliderEl = $wrap.find('.dt-range-slider')[0];
+        if (sliderEl && sliderEl.noUiSlider) {
+            sliderEl.noUiSlider.set([
+                parseFloat($wrap.data('range-min')),
+                parseFloat($wrap.data('range-max'))
+            ]);
+            $wrap.find('.dt-range-hidden-input').val('');
+        }
+    });
 });
 
 
@@ -1114,7 +1197,10 @@ function filterSelectedTable() {
     $.each($('.dt-filter-content'), function (key, val) {
         var dataItem = $(val).find('.dt-filter-td');
         var dataIdx = table.column.index('fromVisible', key + 1);
-        datatable.column(dataIdx).search($(dataItem).val());
+        var searchVal = dataItem.hasClass('dt-range-filter-wrap')
+            ? dataItem.find('.dt-range-hidden-input').val()
+            : dataItem.val();
+        datatable.column(dataIdx).search(searchVal);
     });
     datatable.draw();
     $('#datatable-search').modal('hide');
