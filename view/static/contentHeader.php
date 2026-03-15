@@ -18,7 +18,7 @@
                 <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-1">
                     <!--begin::Item-->
                     <li class="breadcrumb-item text-muted">
-                        <a href="/" class="text-muted text-hover-primary">Üretim Kontrol Sistemi</a>
+                        <a href="/" class="text-muted text-hover-primary"><?=$cDefinitions->appName()?></a>
                     </li>
                     <!--end::Item-->
 
