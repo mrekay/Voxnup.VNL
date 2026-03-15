@@ -1,6 +1,11 @@
 <?php
 $fileName = basename($_SERVER['REQUEST_URI'], '?' . (isset($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : ''));
 $qs = (isset($_SERVER['QUERY_STRING']) && !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
+
+
+//show menu kullanım şekilleri:
+// 0: Her zaman gizli, 1: Her zaman açık, 2: Oturum açtığında açık
+//UYARI TRUE veya FALSE kullanmayın en iyi ihtimalle çalışmayacaktır...
 $SidebarMenu = array(
         [
                 "text" => "Anasayfa",
@@ -8,7 +13,7 @@ $SidebarMenu = array(
                 'page_name' => 'index.php',
                 'permission' => 'WebDashboard',
                 'icon' => 'home',
-                'showmenu' => true,
+                'showmenu' => 1,
                 "child" => []
         ],
         [
@@ -95,7 +100,8 @@ if ($page_config['leftsidebar'] != false) {
             <!--begin::Logo-->
             <a href="/">
 
-                <img alt="Logo" src="<?=$cDefinitions->appLogoPath().'VNLBIG.png'?>" class="logo" style="height: 32px"/>
+                <img alt="Logo" src="<?= $cDefinitions->appLogoPath() . 'VNLBIG.png' ?>" class="logo"
+                     style="height: 32px"/>
             </a>
             <!--end::Logo-->
             <!--begin::Aside toggler-->
@@ -185,9 +191,9 @@ function ShowSidebarMenu($array, $level)
 //        $pagePermission = !empty($menu['permission']) ? UserPermissions::CanViewByCode($CurrentUser->Id, $menu['permission']) : true;
         $pagePermission = true;
 
-        if (!$pagePermission) continue;
-
-        if ((!isset($menu['showmenu']) || (isset($menu['showmenu']) && $menu['showmenu']))) {
+        $showmenu = canShowMenu($menu['showmenu'], $pagePermission);
+//        if ($menu['showmenu'] == 2) _print($showmenu,1);
+        if ($showmenu) {
             $urls = SidebarMenuGetSubUrls($menu, (isset($menu['qs_active']) ? $menu['qs_active'] : true));
 
             $isActive = in_array($fileName, $urls);
@@ -251,6 +257,25 @@ function SidebarMenuGetSubUrls($array, $qs_active = true)
     return $urls;
 }
 
+function canShowMenu($showmenu, $permission = true): bool
+{
+    $_showmenu = true;
+    switch ($showmenu) {
+        case 0:
+            $_showmenu = false;
+            break;
+        case 1:
+            $_showmenu = true;
+            break;
+        case 2:
+            $_showmenu = $CurrentUser->id > 0;
+            break;
+    }
+
+    return $permission && $_showmenu;
+
+}
+
 function hasVisibleChild($children)
 {
     global $CurrentUser;
@@ -267,17 +292,9 @@ function hasVisibleChild($children)
 
         $permission = true;
 
-        $showmenu = !isset($child['showmenu']);
-        switch ($child['showmenu']) {
-            case 2:
-                $showmenu = $CurrentUser->id > 0;
-                break;
-            case 0:
-            case false:
-                $showmenu = false;
-        }
+        $showmenu = canShowMenu($child["showmenu"], $permission);
 
-        if ($permission && $showmenu) {
+        if ($showmenu) {
             return true;
         }
 
