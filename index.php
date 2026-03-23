@@ -12,14 +12,43 @@ if (!route(0)) {
     $route[0] = 'index';
 }
 
-if (!file_exists(controller(route(0)))) {
-    $route[0] = '404';
-}
+// Login kontrolü için orijinal route değerlerini sakla ($route[0] aşağıda değişebilir)
+$originalSegment0 = route(0);
+$originalSegment1 = route(1);
 
-if (!in_array($route[0], $cDefinitions->getLoginExceptPages() )) {
-    if ($CurrentUser->id <= 0) {
-        header('location:' . $cDefinitions->getSiteUrl() . '/login');
+// Alt klasör desteği: /docs/overview → controller/docs/overview.php
+$controllerPath = controller(route(0));
+if (is_dir(getPath() . '/controller/' . route(0)) && route(1)) {
+    $groupedController = route(0) . '/' . route(1);
+    if (file_exists(controller($groupedController))) {
+        $controllerPath = controller($groupedController);
+    } else {
+        $controllerPath = controller('404');
     }
+} elseif (!file_exists($controllerPath)) {
+    $route[0] = '404';
+    $controllerPath = controller('404');
 }
 
-require controller(route(0));
+// currentPage: gruplu sayfalarda "docs/overview", tekil sayfalarda "index" gibi
+$loginExceptPages = $cDefinitions->getLoginExceptPages();
+$currentPage = ($originalSegment1 && is_dir(getPath() . '/controller/' . $originalSegment0))
+    ? $originalSegment0 . '/' . $originalSegment1
+    : $originalSegment0;
+$isExceptPage = in_array($currentPage, $loginExceptPages) || in_array($originalSegment0, $loginExceptPages);
+
+if (!$isExceptPage && $CurrentUser->id <= 0) {
+    // Controller'ı çalıştır, output'u yakala; $page_config['public'] varsa geç
+    ob_start();
+    require $controllerPath;
+    $output = ob_get_clean();
+
+    if (!empty($page_config['public'])) {
+        echo $output;
+    } else {
+        header('location:' . $cDefinitions->getSiteUrl() . '/login');
+        exit;
+    }
+} else {
+    require $controllerPath;
+}

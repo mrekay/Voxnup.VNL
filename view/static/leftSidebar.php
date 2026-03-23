@@ -1,5 +1,9 @@
 <?php
-$fileName = basename($_SERVER['REQUEST_URI'], '?' . (isset($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : ''));
+$_uri = $_SERVER['REQUEST_URI'];
+if (!empty($_SERVER['QUERY_STRING'])) {
+    $_uri = strstr($_uri, '?', true) ?: $_uri;
+}
+$fileName = ltrim($_uri, '/');
 $qs = (isset($_SERVER['QUERY_STRING']) && !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
 
 
@@ -17,8 +21,133 @@ $SidebarMenu = array(
                 "child" => []
         ],
         [
+                "text" => "Dokümantasyon",
+                'icon' => 'tasks',
+                'showmenu' => 1,
+                "child" => [
+                        [
+                                "text" => "Başlangıç",
+                                'url' => 'docs/getting-started',
+                                'page_name' => 'getting-started.php',
+                                'permission' => '',
+                                'icon' => 'clock', // Zaman / bekleyen
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Yönlendirme (Routing) ve Controller",
+                                'url' => 'docs/routing',
+                                'page_name' => 'routing.php',
+                                'permission' => '',
+                                'icon' => 'clock', // Zaman / bekleyen
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "İstek Yönetimi ve Action'lar",
+                                'url' => 'docs/request-handling',
+                                'page_name' => 'request-handling.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Modal Sistemi",
+                                'url' => 'docs/modals',
+                                'page_name' => 'modals.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Oturum Yönetimi",
+                                'url' => 'docs/session',
+                                'page_name' => 'session.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Config Definitions",
+                                'url' => 'docs/config-definitions',
+                                'page_name' => 'config-definitions.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Model ve Veritabanı",
+                                'url' => 'docs/models',
+                                'page_name' => 'models.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Validators",
+                                'url' => 'docs/validators',
+                                'page_name' => 'validators.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Dil Sistemi (i18n)",
+                                'url' => 'docs/languages',
+                                'page_name' => 'languages.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "SDTable — DataTables",
+                                'url' => 'docs/sdtable',
+                                'page_name' => 'sdtable.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Excel Export",
+                                'url' => 'docs/excel-export',
+                                'page_name' => 'excel-export.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Modüller",
+                                'url' => 'docs/modules',
+                                'page_name' => 'modules.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "View Includes Sistemi",
+                                'url' => 'docs/view-includes',
+                                'page_name' => 'view-includes.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+
+                ]
+        ],
+        [
                 "text" => "Örnek Sayfa",
-                'icon' => 'tasks', // İş yönetimi
+                'icon' => 'tasks',
                 'showmenu' => 1,
                 "child" => [
                         [
