@@ -131,5 +131,4 @@ class ConfigDefinitions
         return $this->product_id;
     }
 
-
 }

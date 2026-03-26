@@ -26,8 +26,18 @@ if (is_dir(getPath() . '/controller/' . route(0)) && route(1)) {
         $controllerPath = controller('404');
     }
 } elseif (!file_exists($controllerPath)) {
-    $route[0] = '404';
-    $controllerPath = controller('404');
+    /* Extension controller fallback */
+    $_extCtrlFound = false;
+    foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_extCtrl) {
+        $controllerPath = $_extCtrl;
+        $_extCtrlFound  = true;
+        break;
+    }
+    if (!$_extCtrlFound) {
+        $route[0] = '404';
+        $controllerPath = controller('404');
+    }
+    unset($_extCtrlFound, $_extCtrl);
 }
 
 // currentPage: gruplu sayfalarda "docs/overview", tekil sayfalarda "index" gibi

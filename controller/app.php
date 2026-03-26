@@ -11,6 +11,14 @@ $action = route(2);
 $action_path = getDocumentRoot() . 'actions/action_' . route(1) . '.php';
 require getDocumentRoot()."actions/Auth.php";
 
+/* Extension action fallback */
+if (!file_exists($action_path)) {
+    foreach (glob(getDocumentRoot() . 'extensions/*/actions/action_' . route(1) . '.php') as $_extAction) {
+        $action_path = $_extAction;
+        break;
+    }
+}
+
 if (!file_exists($action_path)) {
     try {
 		throwErrorMessage("Sayfa Bulunamadı", 400);

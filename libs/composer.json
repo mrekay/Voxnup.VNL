@@ -13,6 +13,7 @@
         "tedivm/jshrink": "^1.7",
         "react/socket": "^1.16",
         "symfony/http-foundation": "^6.4",
-        "phpmailer/phpmailer": "^6.9"
+        "phpmailer/phpmailer": "^6.9",
+        "stripe/stripe-php": "^13.0"
     }
 }
