@@ -142,6 +142,24 @@ $SidebarMenu = array(
                                 'showmenu' => 1,
                                 "child" => []
                         ],
+                        [
+                                "text" => "Extension Sistemi",
+                                'url' => 'docs/extensions',
+                                'page_name' => 'extensions.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Stripe Extension",
+                                'url' => 'docs/stripe',
+                                'page_name' => 'stripe.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
 
                 ]
         ],

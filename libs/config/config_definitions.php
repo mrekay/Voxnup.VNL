@@ -22,7 +22,7 @@ class ConfigDefinitions
     private $product_id;
     private $version = "2.2.0";
     private $vnl_version = "2.2.0"; // burayı sisteminizde değiştirmeyin. burası vnl'in takibini yapmak için var.
-    private $login_except_pages = ["app","login","register","logout","index","getting-started","routing","request-handling","docs/overview","overview","docs/getting-started","docs/routing","docs/request-handling","docs/modals","docs/session","docs/config-definitions","docs/models","docs/validators","docs/languages","docs/sdtable","docs/excel-export","docs/modules","docs/view-includes"];
+    private $login_except_pages = ["app","login","register","logout","index","getting-started","routing","request-handling","docs/overview","overview","docs/getting-started","docs/routing","docs/request-handling","docs/modals","docs/session","docs/config-definitions","docs/models","docs/validators","docs/languages","docs/sdtable","docs/excel-export","docs/modules","docs/view-includes","docs/extensions","docs/stripe"];
 
     public function __construct()
     {
