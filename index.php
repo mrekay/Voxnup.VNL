@@ -50,7 +50,7 @@ $isExceptPage = in_array($currentPage, $loginExceptPages) || in_array($originalS
 if (!$isExceptPage && $CurrentUser->id <= 0) {
     // Controller'ı çalıştır, output'u yakala; $page_config['public'] varsa geç
     ob_start();
-    require $controllerPath;
+    try { require $controllerPath; } catch (Throwable $e) { ob_end_clean(); vnl_render_error($e); }
     $output = ob_get_clean();
 
     if (!empty($page_config['public'])) {
@@ -60,5 +60,5 @@ if (!$isExceptPage && $CurrentUser->id <= 0) {
         exit;
     }
 } else {
-    require $controllerPath;
+    try { require $controllerPath; } catch (Throwable $e) { vnl_render_error($e); }
 }
