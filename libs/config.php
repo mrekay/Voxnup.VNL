@@ -12,12 +12,18 @@ set_exception_handler(function (Throwable $e) {
     vnl_render_error($e);
 });
 
-/* Extension loader — extensions/*/boot.php otomatik yüklenir */
+/* Extension loader */
+$_extManifest     = getDocumentRoot() . 'extensions/extensions.php';
+$_enabledExtensions = file_exists($_extManifest) ? (require $_extManifest) : [];
+
 foreach (glob(getDocumentRoot() . 'extensions/*/boot.php') as $_extBoot) {
-    try {
-        require_once $_extBoot;
-    } catch (Throwable $_extErr) {
-        vnl_render_error($_extErr);
+    $_extName = basename(dirname($_extBoot));
+    if (isset($_enabledExtensions[$_extName]) && $_enabledExtensions[$_extName] === true) {
+        try {
+            require_once $_extBoot;
+        } catch (Throwable $_extErr) {
+            vnl_render_error($_extErr);
+        }
     }
 }
-unset($_extBoot);
+unset($_extManifest, $_enabledExtensions, $_extBoot, $_extName);
