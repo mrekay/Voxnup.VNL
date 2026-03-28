@@ -10,5 +10,5 @@
  * Klasör adı ile eşleşmelidir: extensions/{key}/boot.php
  */
 return [
-    'stripe' => true,
+    'stripe' => false,
 ];
