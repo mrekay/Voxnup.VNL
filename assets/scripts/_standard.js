@@ -155,6 +155,9 @@ $(document).ajaxStop(function () {
 
 
 $(document).ajaxComplete(function (event, request, settings) {
+    const default_settings={
+        customErrMessage: true
+    };
     if (request.status == 200) {
         if (typeof (request.responseJSON) != 'undefined' && typeof (request.responseJSON.excel_result) != 'undefined') {
             if (request.responseJSON.excel_result === 'ok' && !(request.responseJSON.excel_url === '')) {
