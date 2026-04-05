@@ -44,7 +44,7 @@ function vnl_render_error(Throwable $e): never
     // PHP & VNL sürümleri
     $_phpVersion = PHP_VERSION;
     $_vnlVersion = defined('VNL_VERSION') ? VNL_VERSION : (
-        class_exists('ConfigDefinitions') ? (new ReflectionClass('ConfigDefinitions'))->getMethod('version')->invoke(new ConfigDefinitions()) : '?'
+        class_exists('ConfigDefinitions') ? (new ReflectionClass('ConfigDefinitions'))->getMethod('vnl_version')->invoke(new ConfigDefinitions()) : '?'
     );
 
     echo <<<HTML

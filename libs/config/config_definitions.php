@@ -87,6 +87,10 @@ class ConfigDefinitions
     {
         return $this->version;
     }
+    public function vnl_version(): string
+    {
+        return $this->vnl_version;
+    }
 
     public function getLoginExceptPages() : array{
         return $this->login_except_pages;
