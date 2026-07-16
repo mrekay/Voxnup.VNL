@@ -13,8 +13,8 @@ function vnl_render_error(Throwable $e): never
 
     http_response_code(500);
 
-    // Logo: libs/ içindeki kopya (assets/'dan bağımsız)
-    $_logoPath = __DIR__ . '/VNLBIG.png';
+    // Logo: yeşil arkaplanlı kare maskot (assets/'dan bağımsız). "VNL" yazısı HTML ile eklenir.
+    $_logoPath = __DIR__ . '/VNLMASCOT.png';
     $_logoDataUri = file_exists($_logoPath)
         ? 'data:image/png;base64,' . base64_encode(file_get_contents($_logoPath))
         : '';
@@ -103,7 +103,8 @@ function vnl_render_error(Throwable $e): never
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 10px;
   }
-  .sidebar-brand img { height: 28px; }
+  .sidebar-brand img { height: 28px; width: 28px; flex-shrink: 0; }
+  .sidebar-brand .brand-name { font-size: 18px; font-weight: 900; letter-spacing: -.02em; color: var(--text); }
   .sidebar-brand span { font-size: 11px; color: var(--text-muted); letter-spacing: .04em; }
 
   .sidebar-section { padding: 16px 0 8px; }
@@ -295,10 +296,9 @@ function vnl_render_error(Throwable $e): never
 HTML;
 
     if ($_logoDataUri) {
-        echo '<img src="' . $_logoDataUri . '" alt="VNL">';
-    } else {
-        echo '<strong style="font-size:18px;font-weight:900;letter-spacing:-.02em;">VNL</strong>';
+        echo '<img src="' . $_logoDataUri . '" alt="VNL maskot">';
     }
+    echo '<strong class="brand-name">VNL</strong>';
 
     echo <<<HTML
       <span>error handler</span>

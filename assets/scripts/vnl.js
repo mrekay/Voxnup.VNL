@@ -1,3 +1,11 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) 2.4.0 — Standart Script Dosyası
+ *  Global AJAX yanıt yönetimi, toast/modal yardımcıları ve
+ *  ortak istemci fonksiyonları.
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 var expo_token = '';
 
 $(document).ready(function () {
@@ -180,10 +188,15 @@ $(document).ajaxComplete(function (event, request, settings) {
         if (!settings.customErrMessage) showModalMessage(request.responseJSON.message, true);
     } else if (request.status == 401) {
         spinnerHide();
-        if (!settings.customErrMessage) showModalMessage(request.responseJSON.message, true);
-        setTimeout(function () {
-            window.location.reload();
-        }, 1500);
+        // 401 = oturum yok/expired. Yalnızca GİRİŞ YAPMIŞ kullanıcıda anlamlıdır (oturumu düşmüş →
+        // uyar + yeniden yükle). Public sayfalarda ($page_config['public'] veya login_except_pages)
+        // login gerektiren arka-plan AJAX'ları da 401 döner; koşulsuz reload sonsuz yenileme yaratır.
+        if (typeof VNL_USER_ID !== 'undefined' && VNL_USER_ID > 0) {
+            if (!settings.customErrMessage) showModalMessage(request.responseJSON.message, true);
+            setTimeout(function () {
+                window.location.reload();
+            }, 1500);
+        }
     }
 });
 

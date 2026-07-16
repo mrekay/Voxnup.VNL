@@ -135,7 +135,7 @@
                                     </tr>
                                     <tr>
                                         <td><code>static/script-standard.php</code></td>
-                                        <td>DataTables global JS değişkenleri, <code>$SITE_URL</code>, Metronic JS paketi, özel <code>_standard.js</code>, <code>datatable.js</code>, <code>showMessage()</code> ve <code>showModalMessage()</code> yardımcıları</td>
+                                        <td>DataTables global JS değişkenleri, <code>$SITE_URL</code>, <code>VNL_USER_ID</code>, Metronic JS paketi, özel <code>vnl.js</code>, <code>datatable.js</code>, <code>showMessage()</code> ve <code>showModalMessage()</code> yardımcıları</td>
                                     </tr>
                                 </tbody>
                             </table>

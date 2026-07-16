@@ -11,6 +11,7 @@ class Language
     public static $ERR_INVALID_PARAMETERS_SENT = "";
     public static $ERR_PERM = "";
     public static $ERR_DATABASE = "";
+    public static $FUNCTION_NOT_FOUND = "";
     public static $SUC_GENERAL = "";
     public static $SUC_EXPORT = "";
     public static $ERR_LOGIN_EXCEPTION = "";

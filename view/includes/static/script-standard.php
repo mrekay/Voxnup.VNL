@@ -1,5 +1,7 @@
 <script>
     $SITE_URL = '<?php echo SITE_URL; ?>';
+    // vnl.js 401 yanıtında yalnızca oturumu düşmüş kullanıcıyı yeniden yükler; girişsizde 0 kalır.
+    var VNL_USER_ID = <?= (int)$CurrentUser->id ?>;
     var BTN_LOADING = 'Please Wait';
     var LBL_COPIED = 'Copied to clipboard';
 
@@ -34,7 +36,7 @@
 <!--begin::Vendors Javascript(used for this page only)-->
 <script src="<?= $theme_path ?>plugins/custom/datatables/datatables.bundle.js"></script>
 
-<script src="<?= $assets_address ?>/scripts/_standard.js"></script>
+<script src="<?= $assets_address ?>/scripts/vnl.js"></script>
 <script src="<?= $assets_address ?>/scripts/datatable.js"></script>
 
 <script>

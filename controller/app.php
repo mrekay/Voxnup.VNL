@@ -21,7 +21,7 @@ if (!file_exists($action_path)) {
 
 if (!file_exists($action_path)) {
     try {
-		throwErrorMessage("Sayfa Bulunamadı", 400);
+		throwErrorMessage(Language::$FUNCTION_NOT_FOUND, 400);
     }catch (Exception $e){
         echo $e->getMessage();
         die();
@@ -35,7 +35,7 @@ try {
     if (method_exists($action_class,$action)){
         call_user_func([$action_class, $action],$req);
     }else{
-        returnErrorMessage("Sayfa Bulunamadı", 400);
+        returnErrorMessage(Language::$FUNCTION_NOT_FOUND, 400);
     }
 } catch (Exception $e) {
     $trace = $e->getTrace();
