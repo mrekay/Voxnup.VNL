@@ -197,6 +197,20 @@ $(document).ajaxComplete(function (event, request, settings) {
                 window.location.reload();
             }, 1500);
         }
+    } else if (request.status == 500) {
+        // Sunucu tarafı fatal. Spinner'ı mutlaka kapat; aksi halde arayüz sonsuza kadar dönüyor.
+        spinnerHide();
+
+        var vnlErr = request.responseJSON;
+        var vnlMsg = (vnlErr && vnlErr.message) ? vnlErr.message : 'Sunucu tarafında beklenmeyen bir hata oluştu.';
+
+        if (vnlErr && vnlErr.error) {
+            console.error('[VNL] ' + vnlErr.error.type + ': ' + vnlErr.error.text +
+                ' (' + vnlErr.error.file + ':' + vnlErr.error.line + ')', vnlErr.error.trace);
+        }
+
+        // showModalMessage içeriği html olarak basar; hata metnini kaçışlayarak ver.
+        if (!settings.customErrMessage) showModalMessage($('<div>').text(vnlMsg).html(), true);
     }
 });
 

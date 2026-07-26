@@ -29,6 +29,8 @@
     "PLEASE_ENTER_DATE": "Please enter a date.",
     "PLEASE_DO_NOT_PASS_X_CHAR_LIMIT": "Please do not exceed %s character limit.",
     "PLEASE_DO_NOT_PASS_X_CHAR_LIMIT_IN_FIELD": "In the %s field, you can enter up to %s characters.",
+    "PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT": "Please enter at least %s characters.",
+    "PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT_IN_FIELD": "In the %s field, you must enter at least %s characters.",
     "ERR_LOGIN_FIRST": "You must log in to continue.",
     "ERR_PASSWORD_VALIDATION": "The password you entered is incorrect.",
     "ERR_PASSWORD_DOESNT_MATCH": "The passwords you entered do not match.",

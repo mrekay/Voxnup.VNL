@@ -1,6 +1,65 @@
 <?php
 
 /**
+ * İsteğin HTML hata sayfası mı yoksa JSON mı beklediğini belirler.
+ */
+function vnl_wants_json(): bool
+{
+    // jQuery/DataTables — VNL'in tüm AJAX çağrıları bu başlığı gönderir
+    if (strcasecmp($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest') === 0) {
+        return true;
+    }
+
+    // Modern tarayıcılar: sayfa gezinmesi "document", fetch/XHR "empty" gönderir
+    if (strcasecmp($_SERVER['HTTP_SEC_FETCH_DEST'] ?? '', 'empty') === 0) {
+        return true;
+    }
+
+    // Başlık yoksa Accept'e bak: JSON isteyip HTML istemeyen istemciler
+    $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+    if ($accept !== '' && stripos($accept, 'application/json') !== false && stripos($accept, 'text/html') === false) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * AJAX/API isteklerine, ön yüzün beklediği {message, devcode} biçiminde hata döner.
+ */
+function vnl_render_error_json(Throwable $e): never
+{
+    if (!headers_sent()) {
+        header('Content-Type: application/json; charset=utf-8');
+    }
+
+    $root = $_SERVER['DOCUMENT_ROOT'] ?? '';
+
+    $trace = [];
+    foreach (array_slice($e->getTrace(), 0, 12) as $frame) {
+        $trace[] = [
+            'file'     => isset($frame['file']) ? str_replace($root, '', $frame['file']) : '[internal function]',
+            'line'     => $frame['line'] ?? null,
+            'function' => ($frame['class'] ?? '') . ($frame['type'] ?? '') . ($frame['function'] ?? ''),
+        ];
+    }
+
+    echo json_encode([
+        'message' => get_class($e) . ': ' . $e->getMessage(),
+        'devcode' => 'VNL_FATAL',
+        'error'   => [
+            'type'  => get_class($e),
+            'text'  => $e->getMessage(),
+            'file'  => str_replace($root, '', $e->getFile()),
+            'line'  => $e->getLine(),
+            'trace' => $trace,
+        ],
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    exit(1);
+}
+
+/**
  * VNL Error Page
  *
  * Standalone hata sayfası — VNL'in view sistemine bağımlı değildir.
@@ -8,10 +67,22 @@
  */
 function vnl_render_error(Throwable $e): never
 {
+    // Hata sayfasının kendisi hata verirse sonsuz döngüye girmesin
+    static $rendering = false;
+    if ($rendering) {
+        exit(1);
+    }
+    $rendering = true;
+
     // Tüm önceki çıktıları temizle
     while (ob_get_level()) ob_end_clean();
 
     http_response_code(500);
+
+    // AJAX/API isteğinde HTML sayfa değil JSON dön — aksi halde ön yüz sessizce takılır
+    if (vnl_wants_json()) {
+        vnl_render_error_json($e);
+    }
 
     // Logo: yeşil arkaplanlı kare maskot (assets/'dan bağımsız). "VNL" yazısı HTML ile eklenir.
     $_logoPath = __DIR__ . '/VNLMASCOT.png';

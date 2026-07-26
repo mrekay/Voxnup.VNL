@@ -134,7 +134,7 @@ $lang = new Language(Languages::EN); // İngilizce yükle
 
                         <div class="alert bg-light-warning border border-warning d-flex align-items-center p-4">
                             <i class="ki-duotone ki-information-5 fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Tüm dil dosyalarındaki anahtarlar birbiriyle eşleşmelidir. Bir dosyada eksik anahtar varsa o dilde hata mesajı boş görünür.</span>
+                            <span class="text-gray-800 fs-6">Tüm dil dosyalarındaki anahtarlar birbiriyle eşleşmelidir. Bir dosyada eksik anahtar varsa o dilde hata mesajı boş görünür. Eşleşmeyen anahtarlar sistemi durdurmaz; ayrıntı için <a href="#" class="fw-bold">9. bölüme</a> bakın.</span>
                         </div>
                     </div>
                     <!--end::Section 3-->
@@ -362,8 +362,8 @@ public function dilDegistir(): void
                                 <div>
                                     <span class="fw-bold text-gray-800"><code>Language</code> sınıfına statik özellik ekleyin</span>
                                     <div class="bg-dark rounded p-3 mt-2">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// libs/languages/Language.php içinde
-public static string $STOCK_INSUFFICIENT = '';</code></pre>
+                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// classes/Language.php içinde
+public static $STOCK_INSUFFICIENT = '';</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -397,6 +397,43 @@ public static string $STOCK_INSUFFICIENT = '';</code></pre>
                         </div>
                     </div>
                     <!--end::Section 8-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
+                    <!--begin::Section 9-->
+                    <div class="mb-0">
+                        <h3 class="fw-bolder text-dark mb-4">9. Eksik Anahtarlar ve Güvenli Erişim</h3>
+                        <p class="fs-5 text-gray-700 mb-4">
+                            1. adım atlanırsa — yani anahtar JSON'da olup <code>Language</code> sınıfında tanımlı değilse — sistem çökmez. Bu anahtarlar yedek havuza alınır, <code>Language::get()</code> ile okunabilir ve tutarsızlık PHP hata günlüğüne <code>[VNL][Language]</code> etiketiyle yazılır.
+                        </p>
+
+                        <div class="bg-dark rounded p-5 mb-5">
+                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Güvenli okuma — anahtar tanımsızsa bile fatal vermez
+echo Language::get('STOCK_INSUFFICIENT');
+// Karşılığı yoksa anahtar adının kendisi döner: "STOCK_INSUFFICIENT"
+
+// Kendi varsayılanınızla
+echo Language::get('STOCK_INSUFFICIENT', 'Stok yetersiz.');
+
+// Anahtar var mı?
+if (Language::has('STOCK_INSUFFICIENT')) { /* ... */ }
+
+// Parametreli, sprintf'siz kullanım
+echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
+// "Lütfen Ad Soyad alanını doldurun."
+
+// Yükleme sırasında tespit edilen tutarsızlıklar
+print_r(Language::issues());</code></pre>
+                        </div>
+
+                        <div class="alert bg-light-danger border border-danger d-flex align-items-start p-4">
+                            <i class="ki-duotone ki-shield-tick fs-2 text-danger me-3"><span class="path1"></span><span class="path2"></span></i>
+                            <span class="text-gray-800 fs-6">
+                                <strong>Dikkat:</strong> <code>Language::$TANIMSIZ_ANAHTAR</code> doğrudan statik erişimi PHP tarafında hâlâ ölümcül hatadır — dilin doğası gereği bu engellenemez. Anahtarın sınıfta tanımlı olduğundan emin olmadığınız her durumda <code>Language::get()</code> veya <code>Language::ANAHTAR()</code> kullanın.
+                            </span>
+                        </div>
+                    </div>
+                    <!--end::Section 9-->
 
                 </div>
             </div>

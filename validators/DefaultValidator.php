@@ -124,7 +124,7 @@ class DefaultValidator
     static function validateEmptyINT_ID($param, $region = '')
     {
         if ((!empty($param) && !AsInt($param, false)) || $param <= 0) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_NUMBER_BIGGER_THAN : sprintf(Language::$PLEASE_ENTER_NUMBER_BIGGER_THAN_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_NUMBER_BIGGER_THAN_0 : sprintf(Language::$PLEASE_ENTER_NUMBER_BIGGER_THAN_0_IN_FIELD, $region));
         }
     }
 
@@ -189,7 +189,7 @@ class DefaultValidator
             throw new StandartException(empty($region) ? sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT, $maxlength) : sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT_IN_FIELD, $region,$maxlength));
         }
         if ($strlen < $minlength) {
-            throw new StandartException(empty($region) ? sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT, $maxlength) : sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT_IN_FIELD, $region, $minlength));
+            throw new StandartException(empty($region) ? sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT, $minlength) : sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT_IN_FIELD, $region, $minlength));
         }
 
     }

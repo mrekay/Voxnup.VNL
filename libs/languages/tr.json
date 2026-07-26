@@ -29,6 +29,8 @@
     "PLEASE_ENTER_DATE": "Lütfen tarih giriniz.",
     "PLEASE_DO_NOT_PASS_X_CHAR_LIMIT": "Lütfen %s karaketer limitini geçmeyin.",
     "PLEASE_DO_NOT_PASS_X_CHAR_LIMIT_IN_FIELD": "%s alanında en fazla %s karakter girebilirsiniz.",
+    "PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT": "Lütfen en az %s karakter giriniz.",
+    "PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT_IN_FIELD": "%s alanında en az %s karakter girmelisiniz.",
     "ERR_LOGIN_FIRST": "İşleme devam etmek için giriş yapmanız gerekmektedir.",
     "ERR_PASSWORD_VALIDATION": "Girdiğiniz parola doğru değil.",
     "ERR_PASSWORD_DOESNT_MATCH": "Girdiğiniz parolalar eşleşmiyor.",
