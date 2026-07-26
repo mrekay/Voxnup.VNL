@@ -8,7 +8,7 @@
                 <div class="vnl-lead">VNL, tekrar kullanılabilir yardımcı işlemleri <code>libs/modules/</code> dizinindeki statik sınıflar aracılığıyla sunar. Tüm modüller uygulama başlangıcında otomatik yüklenir; herhangi bir yerden <code>ModulAdi::Metot()</code> biçiminde statik olarak çağrılır.</div>
             </div>
 
-            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+            <div class="alert alert-primary d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-cubes fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-primary">Otomatik Yükleme ve Statik Kullanım</h5>
@@ -567,7 +567,7 @@ if (!empty($videoId)) {
                             </table>
                         </div>
 
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                        <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">SMTP bilgilerini (<code>Host</code>, <code>Username</code>, <code>Password</code>, <code>Port</code>) modül içinde yapılandırın. Üretim için bu değerleri config sistemi üzerinden okumanız önerilir.</span>
                         </div>

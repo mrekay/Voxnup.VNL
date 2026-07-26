@@ -8,7 +8,7 @@
                 <div class="vnl-lead">VNL'de karmaşık rota tanımlamaları (<code>Route::get</code>) yoktur. URL yapısı otomatik olarak parçalanır ve doğrudan <code>controller/</code> klasöründeki ilgili PHP dosyasını çalıştırır.</div>
             </div>
 
-            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+            <div class="alert alert-primary d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-lightbulb fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column text-primary">
                     <h4 class="mb-1 text-primary">Temel Kural</h4>
@@ -107,7 +107,7 @@ if ($islem === 'profil') {
 </code></pre>
                         </div>
 
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                        <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">Controller'da tanımlanan tüm değişkenler (örn. <code>$kullanici</code>) view dosyasında doğrudan kullanılabilir. <code>require view('...')</code> çağrısı aynı PHP kapsamında çalışır.</span>
                         </div>
@@ -338,7 +338,7 @@ if ($islem === 'profil') {
                                 </div>
                             </div>
                         </div>
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                        <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">Klasör içinde dosya bulunamazsa sistem otomatik olarak <code>controller/404.php</code>'ye yönlendirir.</span>
                         </div>

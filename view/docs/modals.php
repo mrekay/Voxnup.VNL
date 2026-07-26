@@ -8,7 +8,7 @@
                 <div class="vnl-lead">VNL, Bootstrap 5 modal'larını kendi dosya sistemiyle yönetir. Her modal bağımsız bir PHP dosyasıdır; HTML yapısını ve AJAX işlemini bir arada barındırır.</div>
             </div>
 
-            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+            <div class="alert alert-primary d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-circle-info fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h4 class="mb-1 text-primary">Neden Ayrı Dosya?</h4>
@@ -233,7 +233,7 @@ require view('static/footer');
                             Tüm sayfalarda ortak kullanılan modal'lar (örneğin resim önizleme kutusu) <code>view/static/modals.php</code> dosyasında tanımlanır ve <code>static/footer</code> tarafından her sayfaya otomatik dahil edilir. Bu dosyaya eklediğiniz her modal uygulamanın tamamında kullanılabilir olur.
                         </p>
 
-                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                        <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6">Sadece giriş yapmış kullanıcılar için görünmesi istenen global modal'lar <code>if (!empty($CurrentUser->id))</code> kontrolüyle sarılmalıdır. Mevcut <code>modals.php</code> bu kontrolü zaten uygulamaktadır.</span>
                         </div>
@@ -278,7 +278,7 @@ require view('static/footer');
 </code></pre>
                         </div>
 
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                        <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">Klasörleme zorunlu değildir ancak VNL felsefesi gereği <b>şiddetle önerilir</b>. Klasörsüz kullanımda tüm modaller tek dizinde birikir ve büyüyen projelerde yönetimi zorlaşır.</span>
                         </div>

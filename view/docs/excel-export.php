@@ -106,7 +106,7 @@ $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
                             </div>
                         </div>
 
-                        <div class="alert bg-warning-subtle border border-warning d-flex flex-column flex-sm-row p-5 mb-0">
+                        <div class="alert alert-warning d-flex flex-column flex-sm-row p-5 mb-0">
                             <i class="fa-solid fa-circle-info fs-2hx text-warning me-4 mb-5 mb-sm-0"></i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1">Gereksinim</h5>
@@ -304,7 +304,7 @@ class action_rapor
                             </table>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex flex-column flex-sm-row p-5 mb-0">
+                        <div class="alert alert-info d-flex flex-column flex-sm-row p-5 mb-0">
                             <i class="fa-solid fa-pencil fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1">Şablonu Özelleştirme</h5>

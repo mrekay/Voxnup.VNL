@@ -39,7 +39,19 @@
   padding-inline: 1.25rem;
   border-bottom: 1px solid var(--vnl-sidebar-border);
 
-  img { max-height: 2rem; }
+  img {
+    max-height: 2rem;
+    border-radius: .45rem;
+  }
+}
+
+// Marka adı görselden ayrı basılır: tema/uygulama adına göre adaptiftir,
+// logo varyantı üretmek gerekmez.
+.vnl-brand-text {
+  color: #e9eeeb;
+  font-size: .95rem;
+  font-weight: 650;
+  letter-spacing: -.01em;
 }
 
 .vnl-sidebar-nav {
@@ -74,7 +86,9 @@
     .vnl-menu-sub { display: none !important; } // mini'de alt menü açılmaz
 
     // Daraltma düğmesi ikonunu ters çevir
+    [data-vnl-toggle="sidebar-mini"] .bi-chevron-double-left,
     [data-vnl-toggle="sidebar-mini"] .fa-angles-left {
+      display: inline-block;
       transform: rotate(180deg);
     }
   }

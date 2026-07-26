@@ -67,7 +67,16 @@
 .dropdown-menu {
   --bs-dropdown-bg: var(--vnl-surface-raised);
   --bs-dropdown-border-color: var(--vnl-border);
+  --bs-dropdown-link-hover-bg: rgba(var(--bs-primary-rgb), .08);
+  --bs-dropdown-link-hover-color: var(--bs-emphasis-color);
+  --bs-dropdown-link-active-bg: var(--bs-primary-bg-subtle);
+  --bs-dropdown-link-active-color: var(--bs-primary-text-emphasis);
   box-shadow: var(--vnl-raised-shadow), 0 0 0 1px var(--vnl-raised-ring);
+}
+
+// Koyu temada tarayıcı scrollbar'ları da temaya uyar
+[data-bs-theme="dark"] {
+  scrollbar-color: #2a332f var(--bs-body-bg);
 }
 
 .toast {

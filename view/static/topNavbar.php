@@ -8,18 +8,18 @@ if ($page_config['topbar'] != false){
             <!-- Mobil: sidebar çekmecesi -->
             <button type="button" class="vnl-topbar-item d-lg-none" data-bs-toggle="offcanvas"
                     data-bs-target="#vnlSidebar" aria-controls="vnlSidebar" aria-label="<?= lang('LBL_MENU') ?>">
-                <i class="fa-solid fa-bars"></i>
+                <i class="bi bi-list fs-3"></i>
             </button>
             <!-- Desktop: sidebar daralt/genişlet -->
             <button type="button" class="vnl-topbar-item d-none d-lg-inline-flex"
                     data-vnl-toggle="sidebar-mini" aria-label="<?= lang('LBL_MENU') ?>">
-                <i class="fa-solid fa-angles-left"></i>
+                <i class="bi bi-chevron-double-left"></i>
             </button>
         <?php } ?>
 
         <a href="/" class="vnl-topbar-brand">
             <?php if ($page_config['leftsidebar'] == false) { ?>
-                <img alt="<?= $cDefinitions->appName() ?>" src="<?= $cDefinitions->appLogoPath() . 'VNLBIG.png' ?>"/>
+                <img alt="" src="<?= $cDefinitions->appLogoPath() . 'VNL.png' ?>"/>
             <?php } ?>
             <span><?= $cDefinitions->appName() ?></span>
             <span class="vnl-topbar-version"><?= $cDefinitions->version() ?></span>
@@ -31,22 +31,22 @@ if ($page_config['topbar'] != false){
         <div class="dropdown">
             <button type="button" class="vnl-topbar-item" data-bs-toggle="dropdown" aria-expanded="false"
                     aria-label="Tema">
-                <i class="fa-solid fa-circle-half-stroke"></i>
+                <i class="bi bi-circle-half"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li>
                     <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-vnl-theme-value="light">
-                        <i class="fa-solid fa-sun fa-fw"></i><?= lang('LBL_THEME_LIGHT') ?>
+                        <i class="bi bi-sun"></i><?= lang('LBL_THEME_LIGHT') ?>
                     </button>
                 </li>
                 <li>
                     <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-vnl-theme-value="dark">
-                        <i class="fa-solid fa-moon fa-fw"></i><?= lang('LBL_THEME_DARK') ?>
+                        <i class="bi bi-moon-stars"></i><?= lang('LBL_THEME_DARK') ?>
                     </button>
                 </li>
                 <li>
                     <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-vnl-theme-value="system">
-                        <i class="fa-solid fa-display fa-fw"></i><?= lang('LBL_THEME_SYSTEM') ?>
+                        <i class="bi bi-display"></i><?= lang('LBL_THEME_SYSTEM') ?>
                     </button>
                 </li>
             </ul>
@@ -56,7 +56,7 @@ if ($page_config['topbar'] != false){
         <div class="dropdown">
             <button type="button" class="vnl-topbar-item" data-bs-toggle="dropdown" aria-expanded="false"
                     aria-label="<?= lang('LBL_NOTIFICATIONS') ?>">
-                <i class="fa-solid fa-bell"></i>
+                <i class="bi bi-bell"></i>
                 <span class="vnl-topbar-dot animation-blink d-none" id="notification_dot"></span>
             </button>
             <div class="dropdown-menu dropdown-menu-end w-300px p-0">
@@ -66,7 +66,7 @@ if ($page_config['topbar'] != false){
                 </div>
                 <div class="scroll-y mh-300px p-5" id="notification_list">
                     <div class="text-center text-body-secondary py-5">
-                        <i class="fa-solid fa-bell-slash fs-2x d-block mb-3 text-body-tertiary"></i>
+                        <i class="bi bi-bell-slash fs-2x d-block mb-3 text-body-tertiary"></i>
                         <?= lang('LBL_NOTIFICATIONS_EMPTY') ?>
                     </div>
                 </div>
@@ -94,7 +94,7 @@ if ($page_config['topbar'] != false){
                     </div>
                     <hr class="dropdown-divider">
                     <a class="dropdown-item d-flex align-items-center gap-2" href="/logout">
-                        <i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i><?= lang('LBL_SIGN_OUT') ?>
+                        <i class="bi bi-box-arrow-right"></i><?= lang('LBL_SIGN_OUT') ?>
                     </a>
                 </div>
             </div>

@@ -35,8 +35,8 @@
             title: 'İşlem Seçiniz',
             showDenyButton: true,
             showCancelButton: false,
-            confirmButtonText: '<i class="fa-solid fa-arrow-right-arrow-left"></i> Fotoğrafı Değiştir',
-            denyButtonText: '<i class="fa-solid fa-eye"></i> Görüntüle',
+            confirmButtonText: '<i class="bi bi-arrow-left-right"></i> Fotoğrafı Değiştir',
+            denyButtonText: '<i class="bi bi-eye"></i> Görüntüle',
         }).then((result) => {
             if (result.isConfirmed) {
                 $('#techizat_image_input').click();

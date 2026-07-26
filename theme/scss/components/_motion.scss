@@ -1,0 +1,69 @@
+// ============================================================
+// VNL Theme — hareket dili
+// Metronic'in his imzası: menüler fade + yukarı kayma ile açılır,
+// sayfa içeriği yumuşak girer. Popper transform'u ile çakışmamak
+// için kaymalar margin üzerinden verilir (bilinen güvenli desen).
+// ============================================================
+
+// Dropdown / topbar menüleri
+.dropdown-menu.show {
+  animation: vnl-dropdown-in .18s ease both;
+}
+
+@keyframes vnl-dropdown-in {
+  from {
+    opacity: 0;
+    margin-top: .5rem;
+  }
+  to {
+    opacity: 1;
+    margin-top: 0;
+  }
+}
+
+// Sayfa içeriği girişi (SSR gezinmede her sayfa yumuşak açılır)
+.app-content,
+.vnl-focus {
+  animation: vnl-page-in .3s ease both;
+}
+
+@keyframes vnl-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(.375rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// Lightbox
+.vnl-lightbox.show {
+  animation: vnl-fade-in .16s ease both;
+}
+
+@keyframes vnl-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// Sidebar alt menüsü: Bootstrap Collapse yüksekliği animasyonlar;
+// içeriğe eşlik eden hafif bir fade katıyoruz.
+.vnl-menu-sub.collapsing {
+  opacity: .4;
+  transition-property: height, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-menu.show,
+  .app-content,
+  .vnl-focus,
+  .vnl-lightbox.show {
+    animation: none;
+  }
+
+  .vnl-menu-sub.collapsing {
+    opacity: 1;
+  }
+}

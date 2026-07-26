@@ -323,7 +323,7 @@ $.post('/app/stripe/createCheckoutSession', {
                         </table>
                     </div>
 
-                    <div class="alert bg-info-subtle border border-info d-flex align-items-center p-5">
+                    <div class="alert alert-info d-flex align-items-center p-5">
                         <i class="fa-solid fa-circle-info fs-2hx text-info me-4"></i>
                         <div>
                             <strong>Local test:</strong>
@@ -357,7 +357,7 @@ $.post('/app/stripe/createCheckoutSession', {
                             </tbody>
                         </table>
                     </div>
-                    <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-5">
+                    <div class="alert alert-warning d-flex align-items-center p-5">
                         <i class="fa-solid fa-circle-info fs-2hx text-warning me-4"></i>
                         <div>
                             Test modunda <code>4242 4242 4242 4242</code> kartını kullanın.

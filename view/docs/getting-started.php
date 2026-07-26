@@ -74,7 +74,7 @@
                             <span class="text-body-emphasis fs-4 fw-bold font-monospace user-select-all">git clone https://github.com/mrekay/VNL-TEMPLATE.git .</span>
                         </div>
 
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                        <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">Alt dizine kuruyorsanız <code>.htaccess</code>'deki HTTPS yönlendirme kuralını ve <code>config_definitions.php</code> içindeki <code>$site_url</code> değerini buna göre güncelleyin.</span>
                         </div>

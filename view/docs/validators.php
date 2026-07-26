@@ -8,7 +8,7 @@
                 <div class="vnl-lead">VNL'nin validator sistemi, gelen verilerin doğruluğunu action sınıflarında kontrol etmek için kullanılır. Doğrulama başarısız olduğunda <code>StandartException</code> fırlatılır ve otomatik olarak JSON hata yanıtı döndürülür.</div>
             </div>
 
-            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+            <div class="alert alert-primary d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-shield-halved fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-primary">Otomatik Yükleme</h5>
@@ -165,7 +165,7 @@ DefaultValidator::validateEmptyDate($tarih, 'Başlangıç Tarihi');
 </code></pre>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                        <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6">Hata mesajları <code>lang('PLEASE_FILL_IN_FIELD', $region)</code> gibi dil anahtarları üzerinden gelir ve aktif dile göre dinamik olarak üretilir.</span>
                         </div>
@@ -221,7 +221,7 @@ class UserValidator extends DefaultValidator
 </code></pre>
                         </div>
 
-                        <div class="alert bg-success-subtle border border-success d-flex align-items-center p-4">
+                        <div class="alert alert-success d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-check fs-2 text-success me-3"></i>
                             <span class="text-body fs-6">Dosyayı <code>validators/</code> klasörüne kaydetmeniz yeterlidir. Uygulama başlangıcında otomatik yükleneceği için ek kayıt veya <code>require</code> gerekmez.</span>
                         </div>
@@ -326,7 +326,7 @@ class action_kullanici
                             </div>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                        <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6">Her iki exception da JSON <code>{"success": false, "message": "..."}</code> formatında yanıt üretir ve PHP çalışmasını durdurur. AJAX çağrılarında istemci tarafı bu yanıtı <code>error</code> callback'inde yakalar.</span>
                         </div>
@@ -373,7 +373,7 @@ class action_kullanici
                             </div>
                         </div>
 
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                        <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">Dosya adı sınıf adıyla eşleşmelidir: <code>SiparisValidator.php</code> dosyasında <code>class SiparisValidator</code> bulunmalıdır. Bu kural <code>spl_autoload</code> yükleyicisinin gerektirdiği standarttır.</span>
                         </div>

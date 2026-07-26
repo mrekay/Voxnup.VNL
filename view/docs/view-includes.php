@@ -140,7 +140,7 @@
                             </table>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4 mb-0">
+                        <div class="alert alert-info d-flex align-items-center p-4 mb-0">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6">
                                 <code>static/</code> içindeki dosyalar <code>view/static/header.php</code> tarafından yüklenir.
@@ -169,7 +169,7 @@ if (file_exists(view('includes/header/head-' . route(0))))
                             ve <code>includes/header/head-index.php</code> otomatik yüklenir.
                         </p>
 
-                        <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-4 mb-4">
+                        <div class="alert alert-primary d-flex align-items-center p-4 mb-4">
                             <i class="fa-solid fa-circle-info fs-2 text-primary me-3"></i>
                             <div class="text-body fs-6">
                                 <strong>Nasıl kullanılır?</strong><br>
@@ -268,7 +268,7 @@ $page_config = [
                             </table>
                         </div>
 
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4 mb-0">
+                        <div class="alert alert-warning d-flex align-items-center p-4 mb-0">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">
                                 Dosya bulunamazsa sessizce atlanır — PHP hatası oluşmaz. Yolu doğru yazdığınızdan emin olun.
@@ -303,7 +303,7 @@ require_once view('includes/modals/kullanici/KullaniciEkle');
 require_once view('includes/modals/kullanici/KullaniciDuzenle');
 require_once view('includes/modals/urun/UrunEkle');</code></pre>
 
-                        <div class="alert bg-success-subtle border border-success d-flex align-items-center p-4 mb-0">
+                        <div class="alert alert-success d-flex align-items-center p-4 mb-0">
                             <i class="fa-solid fa-circle-info fs-2 text-success me-3"></i>
                             <span class="text-body fs-6">
                                 <strong>Neden alt klasör?</strong> Onlarca modal tek dosyada yönetildiğinde bakımı zorlaşır.

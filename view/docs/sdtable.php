@@ -8,7 +8,7 @@
                 <div class="vnl-lead"><code>SDTable</code> sınıfı, jQuery DataTables için sunucu taraflı işleme (server-side processing) desteğiyle HTML tablo yapısını PHP tarafında üretir. View'da tek satır çağrısıyla tam işlevsel, AJAX destekli, filtrelenebilir ve sıralanabilir bir tablo oluşturursunuz.</div>
             </div>
 
-            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+            <div class="alert alert-primary d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-cubes fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-primary">Nasıl Çalışır?</h5>
@@ -421,7 +421,7 @@ class action_kullanici
 </code></pre>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4 mb-5">
+                        <div class="alert alert-info d-flex align-items-center p-4 mb-5">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6">Sistem hata durumunda HTTP 400 döner. AJAX tarafında yanıt <code>response.result</code> gibi alanlarla değil, jQuery'nin <code>success</code> ve <code>error</code> callback'leriyle yakalanır.</span>
                         </div>
@@ -459,7 +459,7 @@ class action_kullanici
                             SDTable, yerleşik Excel export desteği sunar. Tablo başlığındaki export butonu, mevcut filtre durumunu koruyarak <code>datatableToExcel.php</code> dosyasına istek gönderir; tüm kayıtlar (limit=-1) action'dan alınır ve Excel dosyası oluşturulur.
                         </p>
 
-                        <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-4">
+                        <div class="alert alert-primary d-flex align-items-center p-4">
                             <i class="fa-solid fa-file-arrow-down fs-2 text-primary me-3"></i>
                             <span class="text-body fs-6">Excel export detayları ve manuel Excel oluşturma için <a href="/docs/excel-export" class="text-primary fw-bold">Excel Export</a> sayfasına bakın.</span>
                         </div>

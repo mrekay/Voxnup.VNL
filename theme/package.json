@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "npm run build:css && npm run build:js && npm run build:assets",
-    "build:css": "sass --style=compressed --no-source-map --quiet-deps --silence-deprecation=import,global-builtin,color-functions,if-function scss/vnl.scss:../assets/vnl/css/vnl.min.css scss/fa.scss:../assets/vnl/css/fa.min.css",
+    "build:css": "sass --style=compressed --no-source-map --quiet-deps --silence-deprecation=import,global-builtin,color-functions,if-function scss/vnl.scss:../assets/vnl/css/vnl.min.css scss/fa.scss:../assets/vnl/css/fa.min.css scss/bi.scss:../assets/vnl/css/bi.min.css",
     "build:js": "node build.mjs js",
     "build:assets": "node build.mjs assets",
     "watch:css": "sass --watch --style=expanded --embed-source-map --quiet-deps --silence-deprecation=import,global-builtin,color-functions,if-function scss/vnl.scss:../assets/vnl/css/vnl.min.css",
@@ -23,6 +23,7 @@
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fortawesome/fontawesome-free": "7.3.0",
     "bootstrap": "5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "jquery": "3.7.1",
     "slim-select": "3.4.3",
     "sweetalert2": "~11.26.0"

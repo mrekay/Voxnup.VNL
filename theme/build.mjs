@@ -35,6 +35,8 @@ const FONTS = [
     ['node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2', 'fonts/fa/fa-regular-400.woff2'],
     ['node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2', 'fonts/fa/fa-brands-400.woff2'],
     ['node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2', 'fonts/fa/fa-v4compatibility.woff2'],
+    ['node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2', 'fonts/bi/bootstrap-icons.woff2'],
+    ['node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff', 'fonts/bi/bootstrap-icons.woff'],
 ];
 
 const task = process.argv[2];

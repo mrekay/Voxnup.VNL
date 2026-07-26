@@ -10,7 +10,7 @@
                     bir pazarlama sayfasını ve bir hesap aracını layout preset'leriyle taşır.</div>
             </div>
 
-            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+            <div class="alert alert-primary d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-circle-info fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <span class="fw-bold">Kaynak <code>theme/</code> dizininde, derlenmiş çıktı <code>assets/vnl/</code> altındadır.</span>
@@ -39,6 +39,7 @@
 
 assets/vnl/
 ├── css/vnl.min.css  → Bootstrap 5.3.8 + VNL Theme + SweetAlert2/SlimSelect skin'leri
+├── css/bi.min.css   → Bootstrap Icons 1.13
 ├── css/fa.min.css   → Font Awesome Free (solid/regular/brands + v4 shim)
 ├── js/vendors.min.js→ jQuery 3.7.1 + Bootstrap bundle + SweetAlert2 v11 + SlimSelect
 ├── js/vnl.min.js    → tema davranışları
@@ -148,9 +149,9 @@ document.addEventListener('vnl.theme.changed', function (e) {
                             <code>view/static/leftSidebar.php</code> içindeki <code>$SidebarMenu</code> dizi sözleşmesi
                             VNL 2.x ile <b>birebir aynıdır</b> (<code>text</code>, <code>url</code>, <code>icon</code>,
                             <code>permission</code>, <code>showmenu</code> 0|1|2, <code>child</code>). Extension'lar
-                            <code>$customSideBar</code> ile menüye öğe eklemeye devam eder. <code>icon</code> alanı
-                            artık Font Awesome kısa adıdır (<code>'home'</code> → <code>fa-solid fa-home</code>;
-                            v5 adları FA7 uyumluluk katmanıyla çalışır).
+                            <code>$customSideBar</code> ile menüye öğe eklemeye devam eder. <code>icon</code> alanı FA kısa adı (<code>'home'</code> → <code>fa-solid fa-home</code>)
+                            ya da boşluklu tam class'tır (<code>'bi bi-house'</code> olduğu gibi basılır) —
+                            <b>Bootstrap Icons ve Font Awesome birlikte yüklüdür</b>, ikisi de kullanılabilir.
                         </p>
                         <ul class="text-body mb-0">
                             <li class="mb-2"><b>Mobil:</b> sidebar, Bootstrap Offcanvas olarak açılır (backdrop, ESC, odak yönetimi dahil).</li>
@@ -354,7 +355,7 @@ document.addEventListener('vnl.theme.changed', function (e) {
                                 </thead>
                                 <tbody class="text-body fw-semibold">
                                 <tr><td><code>assets/v1</code> bundle'ları (~7 MB)</td><td><code>assets/vnl</code> (~0.9 MB, font'lar dahil)</td></tr>
-                                <tr><td>keenicons (<code>ki-duotone ki-*</code> + path span'ları)</td><td>Font Awesome Free 7 (<code>fa-solid fa-*</code>; <code>fas fa-*</code> de çalışır)</td></tr>
+                                <tr><td>keenicons (<code>ki-duotone ki-*</code> + path span'ları)</td><td>Bootstrap Icons + Font Awesome Free 7 birlikte (<code>bi bi-*</code> ve <code>fa-solid fa-*</code>; <code>fas fa-*</code> de çalışır)</td></tr>
                                 <tr><td><code>badge-light-*</code>, <code>btn-light-*</code></td><td><code>badge-soft-*</code>, <code>btn-soft-*</code></td></tr>
                                 <tr><td><code>text-gray-800</code> vb. sabit griler</td><td><code>text-body*</code> adaptif aile</td></tr>
                                 <tr><td>KTMenu / KTDrawer / KTScroll runtime'ı</td><td>Bootstrap Collapse / Offcanvas / Dropdown + ~3 KB tema JS'i</td></tr>

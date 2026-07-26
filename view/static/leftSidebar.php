@@ -10,8 +10,8 @@ $qs = (isset($_SERVER['QUERY_STRING']) && !empty($_SERVER['QUERY_STRING']) ? '?'
 //show menu kullanım şekilleri:
 // 0: Her zaman gizli, 1: Her zaman açık, 2: Oturum açtığında açık
 //UYARI TRUE veya FALSE kullanmayın en iyi ihtimalle çalışmayacaktır...
-// icon: Font Awesome kısa adı (fa-solid fa-{icon} olarak basılır; v5 adları
-// FA7 compat ile çalışır)
+// icon: FA kısa adı ("home" → fa-solid fa-home) YA DA boşluklu tam class
+// ("bi bi-house" → olduğu gibi basılır). v5 fa adları FA7 compat ile çalışır.
 $SidebarMenu = array(
         [
                 "text" => "Anasayfa",
@@ -254,9 +254,9 @@ if ($page_config['leftsidebar'] != false) {
     <aside id="vnlSidebar" class="vnl-sidebar offcanvas-lg offcanvas-start" tabindex="-1"
            aria-label="<?= lang('LBL_MENU') ?>" data-bs-theme="dark">
         <div class="vnl-sidebar-brand">
-            <a href="/" class="d-inline-flex align-items-center">
-                <img alt="<?= $cDefinitions->appName() ?>" src="<?= $cDefinitions->appLogoPath() . 'VNLBIG.png' ?>"
-                     style="height: 30px"/>
+            <a href="/" class="d-inline-flex align-items-center gap-2 text-decoration-none">
+                <img alt="" src="<?= $cDefinitions->appLogoPath() . 'VNL.png' ?>" style="height: 30px"/>
+                <span class="vnl-brand-text"><?= $cDefinitions->appName() ?></span>
             </a>
             <button type="button" class="btn-close btn-close-white ms-auto d-lg-none"
                     data-bs-dismiss="offcanvas" data-bs-target="#vnlSidebar"
@@ -343,9 +343,9 @@ function ShowSidebarMenu($array, $level)
                             class="vnl-menu-link <?= $isActive ? 'active' : '' ?>"
                             data-bs-toggle="collapse" data-bs-target="#<?= $navId ?>"
                             aria-expanded="<?= $isActive ? 'true' : 'false' ?>" aria-controls="<?= $navId ?>">
-                        <span class="vnl-menu-icon"><i class="fa-solid fa-<?= $menu['icon']; ?>"></i></span>
+                        <span class="vnl-menu-icon"><i class="<?= strpos($menu['icon'], ' ') !== false ? $menu['icon'] : 'fa-solid fa-' . $menu['icon']; ?>"></i></span>
                         <span class="vnl-menu-title"><?= $menu['text']; ?></span>
-                        <span class="vnl-menu-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+                        <span class="vnl-menu-arrow"><i class="bi bi-chevron-right"></i></span>
                     </button>
                     <div class="vnl-menu-sub collapse <?= $isActive ? 'show' : '' ?>" id="<?= $navId ?>">
                         <?php showSideBar($menu['child'], $level + 1); ?>
@@ -357,7 +357,7 @@ function ShowSidebarMenu($array, $level)
                 <div class="vnl-menu-item">
                     <a class="vnl-menu-link <?= !empty($menu["url"]) && ($menu["url"] == $fileName || $menu["url"] == $friendly_name) ? 'active' : '' ?>"
                        target="_self" href="/<?= $menu["url"] ?>">
-                        <span class="vnl-menu-icon"><i class="fa-solid fa-<?= $menu['icon']; ?>"></i></span>
+                        <span class="vnl-menu-icon"><i class="<?= strpos($menu['icon'], ' ') !== false ? $menu['icon'] : 'fa-solid fa-' . $menu['icon']; ?>"></i></span>
                         <span class="vnl-menu-title"><?= $menu['text']; ?></span>
                     </a>
                 </div>

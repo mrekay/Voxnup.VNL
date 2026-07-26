@@ -8,7 +8,7 @@
                 <div class="vnl-lead">VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>libs/languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong>; aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.</div>
             </div>
 
-            <div class="alert bg-info-subtle border border-info d-flex flex-column flex-sm-row p-5 mb-10">
+            <div class="alert alert-info d-flex flex-column flex-sm-row p-5 mb-10">
                 <i class="fa-solid fa-globe fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                 <div class="d-flex flex-column pe-0 pe-sm-10">
                     <h5 class="mb-1">Desteklenen Diller</h5>
@@ -134,7 +134,7 @@ Language::set(Languages::EN); // İngilizce yükle
                             </div>
                         </div>
 
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                        <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">Bir anahtar ikinci dilde eksikse metin <strong>temel dilden</strong> karşılanır ve durum hata günlüğüne yazılır — boş metin görünmez. Ayrıntı için 9. bölüme bakın.</span>
                         </div>
@@ -180,7 +180,7 @@ echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
 </code></pre>
                         </div>
 
-                        <div class="alert bg-primary-subtle border border-primary d-flex align-items-start p-4">
+                        <div class="alert alert-primary d-flex align-items-start p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-primary me-3"></i>
                             <span class="text-body fs-6">
                                 <code>Language::$ANAHTAR</code> statik özellik söz dizimi <strong>VNL 3.0 ile kaldırılmıştır</strong>. Eski projelerde <code>Language::$X</code> → <code>lang('X')</code> ve <code>sprintf(Language::$X, $a)</code> → <code>lang('X', $a)</code> dönüşümü yapılmalıdır.
@@ -397,7 +397,7 @@ public function dilDegistir(): void
                             </div>
                         </div>
 
-                        <div class="alert bg-success-subtle border border-success d-flex align-items-center p-4">
+                        <div class="alert alert-success d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-check fs-2 text-success me-3"></i>
                             <span class="text-body fs-6">LSL Language Studio kullanıyorsanız tüm süreci uygulama üzerinden yürütebilirsiniz; kod tarafında yapılacak bir işlem kalmadı.</span>
                         </div>
@@ -460,7 +460,7 @@ $sozluk = Language::all();
 print_r(Language::issues());</code></pre>
                         </div>
 
-                        <div class="alert bg-success-subtle border border-success d-flex align-items-start p-4">
+                        <div class="alert alert-success d-flex align-items-start p-4">
                             <i class="fa-solid fa-shield-halved fs-2 text-success me-3"></i>
                             <span class="text-body fs-6">
                                 <strong>VNL 3.0 değişikliği:</strong> Anahtarlar artık statik özellik olarak tanımlanmadığı için dil dosyası ile kod arasında kayma oluşamaz. 2.4.0'a kadar tanımsız bir anahtar <code>Access to undeclared static property</code> ile isteği düşürüyordu; bu hata sınıfı tamamen ortadan kalktı.

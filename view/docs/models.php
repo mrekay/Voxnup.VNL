@@ -8,7 +8,7 @@
                 <div class="vnl-lead">VNL'de veritabanı işlemleri her zaman model sınıfları üzerinden yapılır. Her varlık için bir model sınıfı oluşturmak sistem bütünlüğünün temelidir; spagetti kodu önler ve tutarlı bir kod tabanı sağlar.</div>
             </div>
 
-            <div class="alert bg-danger-subtle border border-danger d-flex align-items-center p-5 mb-10">
+            <div class="alert alert-danger d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-circle-xmark fs-2hx text-danger me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-danger">Capsule:: Doğrudan Kullanımı Yasak Gibidir</h5>
@@ -218,7 +218,7 @@ class Urun extends TableModel
                         </div>
 
                         <h5 class="fw-bold text-body-emphasis mb-3">Statik Kullanım — <code>->get()</code> Zorunludur</h5>
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4 mb-4">
+                        <div class="alert alert-warning d-flex align-items-center p-4 mb-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6"><code>SelectList</code> bir query builder döndürür. Sonuçları almak için mutlaka <code>->get()</code> çağrılmalıdır. Bu kural olmadan veri gelmez.</span>
                         </div>
@@ -390,7 +390,7 @@ $urun->save();</code></pre>
                             </div>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex flex-column flex-sm-row p-5 mb-0">
+                        <div class="alert alert-info d-flex flex-column flex-sm-row p-5 mb-0">
                             <i class="fa-solid fa-shield-halved fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1">Soft Delete için Tablo Gereksinimi</h5>

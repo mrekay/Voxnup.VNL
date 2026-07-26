@@ -1,0 +1,9 @@
+/*!
+ * VNL Theme — Bootstrap Icons 1.13 (self-host)
+ * Çıktı: assets/vnl/css/bi.min.css — font'lar assets/vnl/fonts/bi/ altında.
+ * Font Awesome ile birlikte yüklenir: temanın kendi arayüzü bi-* kullanır,
+ * proje kodundaki fa-* kullanımları çalışmaya devam eder.
+ */
+
+$bootstrap-icons-font-dir: "../fonts/bi";
+@import "../node_modules/bootstrap-icons/font/bootstrap-icons";

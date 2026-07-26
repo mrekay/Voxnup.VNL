@@ -8,7 +8,7 @@
                 <div class="vnl-lead"><code>libs/config/config_definitions.php</code> dosyası, VNL uygulamasının tüm temel yapılandırmasını barındırır. Her yeni projede ilk doldurulması gereken dosyadır.</div>
             </div>
 
-            <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-5 mb-10">
+            <div class="alert alert-warning d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-shield fs-2hx text-warning me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-body-emphasis">Güvenlik Uyarısı</h5>
@@ -113,7 +113,7 @@ switch ($this->testMode) {
                             </table>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4 mb-4">
+                        <div class="alert alert-info d-flex align-items-center p-4 mb-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6"><code>$app_name</code>, şirket adı değil <b>uygulamanın adıdır</b>. Örneğin "Stok Takip", "Satış Portalı", "CRM" gibi uygulamanın işlevini yansıtan bir isim olmalıdır.</span>
                         </div>
@@ -164,7 +164,7 @@ private $version       = "1.0.0";
                             </table>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                        <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6"><code>getSiteUrl()</code>, isteğin HTTPS üzerinden gelip gelmediğini otomatik algılar ve <code>SITE_HTTP</code> sabitini buna göre ayarlar (<code>http://</code> veya <code>https://</code>). <code>$site_url</code>'e protokol yazmayın.</span>
                         </div>
@@ -336,7 +336,7 @@ $this->db_info = [
 </code></pre>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                        <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6">Sadece belirli bir controller dosyasını public yapmak istiyorsanız <code>$login_except_pages</code> yerine o controller'da <code>$page_config['public'] = true</code> kullanmak daha temiz bir yaklaşımdır. İkisi de çalışır ama <code>public=true</code> yapılandırmayı controller'da localize eder.</span>
                         </div>

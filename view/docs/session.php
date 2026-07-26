@@ -205,7 +205,7 @@ if ($CurrentUser->id > 0) {
 </code></pre>
                         </div>
 
-                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                        <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6">Action dosyalarında <code>$CurrentUser</code>'a <code>ActionGlobal\Auth::User()</code> üzerinden erişilir. Controller ve view dosyalarında ise global olarak doğrudan kullanılabilir.</span>
                         </div>
@@ -258,7 +258,7 @@ if ($CurrentUser->id > 0) {
                             </div>
                         </div>
 
-                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                        <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <div>
                                 <span class="text-body fs-6 fw-bold">İki Yöntem Arasındaki Fark:</span>
