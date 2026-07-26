@@ -19,6 +19,15 @@ function isDesktop() {
     return window.matchMedia('(min-width: 992px)').matches;
 }
 
+// Panel (flyout) modu mu? Accordion modunda bile daraltılmış rayda
+// (html[data-vnl-sidebar]) liste sığmayacağı için panele düşülür.
+function isPanelMode() {
+    return isDesktop() && (
+        document.body.getAttribute('data-vnl-submenu') !== 'accordion' ||
+        document.documentElement.hasAttribute('data-vnl-sidebar')
+    );
+}
+
 function subOf(item) {
     return item.querySelector(':scope > .vnl-menu-sub');
 }
@@ -33,7 +42,7 @@ function btnOf(item) {
 let trackFrame = null;
 
 function track() {
-    if (!openSub || !isDesktop()) {
+    if (!openSub || !isPanelMode()) {
         trackFrame = null;
         return;
     }
@@ -64,32 +73,36 @@ function open(item) {
     const sub = subOf(item);
     if (!sub) return;
 
+    // Yerinde açılım (accordion / mobil offcanvas): bağımsız toggle,
+    // panel yaşam döngüsüne (openSub, dış tıklama, ESC) karışmaz.
+    if (!isPanelMode()) {
+        sub.classList.add(OPEN_CLASS);
+        btnOf(item)?.setAttribute('aria-expanded', 'true');
+        return;
+    }
+
     clearTimeout(closeTimer);
     if (openSub && openSub !== sub) close();
 
     btnOf(item)?.setAttribute('aria-expanded', 'true');
     openSub = sub;
 
-    if (isDesktop()) {
-        const sidebar = item.closest('.vnl-sidebar');
-        const btnRect = btnOf(item).getBoundingClientRect();
+    const sidebar = item.closest('.vnl-sidebar');
+    const btnRect = btnOf(item).getBoundingClientRect();
 
-        // Görünmez aç → ölç → hizala → göster: panel hiçbir karede yanlış
-        // konumda boyanmaz, animasyon doğru yerde başlar.
-        sub.style.visibility = 'hidden';
-        sub.style.left = Math.round(sidebar.getBoundingClientRect().right) + 'px';
-        sub.style.top = '0px';
-        sub.classList.add(OPEN_CLASS);
+    // Görünmez aç → ölç → hizala → göster: panel hiçbir karede yanlış
+    // konumda boyanmaz, animasyon doğru yerde başlar.
+    sub.style.visibility = 'hidden';
+    sub.style.left = Math.round(sidebar.getBoundingClientRect().right) + 'px';
+    sub.style.top = '0px';
+    sub.classList.add(OPEN_CLASS);
 
-        const height = sub.offsetHeight;
-        const top = Math.max(8, Math.min(btnRect.top, window.innerHeight - height - 8));
-        sub.style.top = Math.round(top) + 'px';
-        sub.style.visibility = '';
+    const height = sub.offsetHeight;
+    const top = Math.max(8, Math.min(btnRect.top, window.innerHeight - height - 8));
+    sub.style.top = Math.round(top) + 'px';
+    sub.style.visibility = '';
 
-        startTracking();
-    } else {
-        sub.classList.add(OPEN_CLASS);
-    }
+    startTracking();
 }
 
 function close() {
@@ -110,17 +123,26 @@ function scheduleClose() {
 
 export function initFlyout() {
     document.querySelectorAll('.vnl-sidebar .vnl-has-sub').forEach(function (item) {
+        // Hover yalnız panel modunda açar; liste (accordion) modu tıklamayladır
         item.addEventListener('mouseenter', function () {
-            if (isDesktop()) open(item);
+            if (isPanelMode()) open(item);
         });
         item.addEventListener('mouseleave', function () {
-            if (isDesktop()) scheduleClose();
+            if (isPanelMode()) scheduleClose();
         });
 
         btnOf(item)?.addEventListener('click', function () {
             const sub = subOf(item);
-            if (sub && sub.classList.contains(OPEN_CLASS)) {
-                close();
+            if (!sub) return;
+
+            if (sub.classList.contains(OPEN_CLASS)) {
+                if (openSub === sub) {
+                    close();
+                } else {
+                    // Yerinde açılım (accordion / mobil): bağımsız kapatma
+                    sub.classList.remove(OPEN_CLASS);
+                    btnOf(item)?.setAttribute('aria-expanded', 'false');
+                }
             } else {
                 open(item);
             }

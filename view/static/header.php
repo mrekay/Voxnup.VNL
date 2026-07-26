@@ -52,8 +52,13 @@ $vnl_layout = $page_config['layout'];
 /* Daraltma düğmesinin hedef modu: 'mini' sabit dar, 'hover' üzerine
    gelince/tıklayınca genişleyen dar (varsayılan). */
 $vnl_sidebar_mode = $page_config['leftsidebar'] === 'mini' ? 'mini' : 'hover';
+
+/* Alt menü davranışı: 'flyout' sağda panel (varsayılan), 'accordion'
+   alt alta liste. Daraltılmış rayda accordion da flyout'a düşer. */
+$vnl_submenu = ($page_config['submenu'] ?? 'flyout') === 'accordion' ? 'accordion' : 'flyout';
 ?>
-<body class="vnl-app" data-vnl-layout="<?= $vnl_layout ?>" data-vnl-sidebar-mode="<?= $vnl_sidebar_mode ?>">
+<body class="vnl-app" data-vnl-layout="<?= $vnl_layout ?>" data-vnl-sidebar-mode="<?= $vnl_sidebar_mode ?>"
+      data-vnl-submenu="<?= $vnl_submenu ?>">
 
 <?php if ($page_config['loader'] != false) { ?>
     <div id="loadingSpinner" class="vnl-spinner-overlay" style="display: none">

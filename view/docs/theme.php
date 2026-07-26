@@ -161,7 +161,12 @@ document.addEventListener('vnl.theme.changed', function (e) {
                                     <li><code>'mini'</code> — sabit ikon rayı; genişlemez. Controller'da <code>$page_config['leftsidebar'] = 'mini'</code> ile seçilir.</li>
                                 </ul>
                             </li>
-                            <li><b>Flyout alt menüler:</b> alt menüler alt alta açılmaz — normal/mini fark etmeksizin öğenin üzerine gelince ya da tıklayınca sağda panel olarak çıkar; ESC, dış tıklama ve fare ayrılması kapatır. Mobil offcanvas'ta yerinde açılır.</li>
+                            <li><b>Alt menü davranışı</b> (<code>$page_config['submenu']</code>):
+                                <ul class="mt-2">
+                                    <li class="mb-1"><code>'flyout'</code> <span class="badge badge-soft-primary ms-1">varsayılan</span> — üzerine gelince ya da tıklayınca sağda panel; açıkken sidebar'ın kenarını canlı izler. ESC, dış tıklama ve fare ayrılması kapatır.</li>
+                                    <li><code>'accordion'</code> — alt alta liste; tıklamayla açılır/kapanır, aktif dal sayfa açılışında açık gelir. Daraltılmış rayda liste sığmayacağından geçici olarak flyout'a düşer. Mobil offcanvas'ta her iki mod da yerinde açılır.</li>
+                                </ul>
+                            </li>
                         </ul>
                     </div>
                     <!--end::Section-->

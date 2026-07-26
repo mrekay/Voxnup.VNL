@@ -117,6 +117,27 @@
   }
 }
 
+// ---- Liste (accordion) modu ------------------------------------------------
+// $page_config['submenu'] = 'accordion' → alt menüler alt alta açılır.
+// Daraltılmış rayda (html[data-vnl-sidebar]) liste sığmayacağından panel
+// stilleri geçerli kalır; flyout.js de aynı ayrımı yapar.
+@include media-breakpoint-up(lg) {
+  html:not([data-vnl-sidebar]) .vnl-app[data-vnl-submenu="accordion"] .vnl-menu-sub {
+    position: static;
+    z-index: auto;
+    min-width: 0;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    padding: 2px 0 2px 2rem;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+
+    &.show { animation: none; }
+  }
+}
+
 @keyframes vnl-flyout-in {
   from {
     opacity: 0;

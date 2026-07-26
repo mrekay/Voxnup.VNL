@@ -347,7 +347,7 @@ function ShowSidebarMenu($array, $level)
                         <span class="vnl-menu-title"><?= $menu['text']; ?></span>
                         <span class="vnl-menu-arrow"><i class="bi bi-chevron-right"></i></span>
                     </button>
-                    <div class="vnl-menu-sub">
+                    <div class="vnl-menu-sub <?= ($vnl_submenu ?? 'flyout') === 'accordion' && $isActive ? 'show' : '' ?>">
                         <?php showSideBar($menu['child'], $level + 1); ?>
                     </div>
                 </div>
