@@ -1,30 +1,37 @@
 /**
  * Sidebar davranışları.
  *
- * - Mini/daraltılmış durum (yalnız desktop): html[data-vnl-sidebar="mini"]
- *   attribute'u + localStorage('vnl-sidebar-mini'). Pre-paint restore
- *   head'deki inline script'te — burada yalnız toggle.
- * - Mobil offcanvas'ta bir menü linkine tıklanınca çekmece kapanır
- *   (Bootstrap Offcanvas instance'ı üzerinden).
+ * Daraltılmış durumun iki modu vardır (html[data-vnl-sidebar] değeri):
+ *   "mini"  → sabit ikon rayı
+ *   "hover" → ikon rayı; üzerine gelince/tıklayınca üstüne doğru genişler
  *
- * Markup sözleşmesi:
- *   <button data-vnl-toggle="sidebar-mini">  — daraltma düğmesi
- *   <aside id="vnlSidebar" class="vnl-sidebar offcanvas-lg offcanvas-start">
+ * Daraltma düğmesi hangi moda daraltacağını <body data-vnl-sidebar-mode>
+ * üzerinden okur (header.php, $page_config['leftsidebar'] değerinden basar;
+ * varsayılan "hover"). Tercih localStorage('vnl-sidebar-mini') ile kalıcıdır
+ * ve pre-paint restore head'deki inline script'tedir; eski kayıtlardaki
+ * "1" değeri "mini" olarak okunur.
+ *
+ * Mobil offcanvas'ta bir menü linkine tıklanınca çekmece kapanır.
  */
 
 const STORAGE_KEY = 'vnl-sidebar-mini';
+
+function collapseMode() {
+    return document.body.getAttribute('data-vnl-sidebar-mode') || 'hover';
+}
 
 export function initSidebar() {
     document.addEventListener('click', function (e) {
         const toggle = e.target.closest('[data-vnl-toggle="sidebar-mini"]');
         if (toggle) {
-            const mini = document.documentElement.getAttribute('data-vnl-sidebar') !== 'mini';
-            if (mini) {
-                document.documentElement.setAttribute('data-vnl-sidebar', 'mini');
-                localStorage.setItem(STORAGE_KEY, '1');
-            } else {
-                document.documentElement.removeAttribute('data-vnl-sidebar');
+            const html = document.documentElement;
+            if (html.hasAttribute('data-vnl-sidebar')) {
+                html.removeAttribute('data-vnl-sidebar');
                 localStorage.removeItem(STORAGE_KEY);
+            } else {
+                const mode = collapseMode();
+                html.setAttribute('data-vnl-sidebar', mode);
+                localStorage.setItem(STORAGE_KEY, mode);
             }
             return;
         }

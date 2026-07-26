@@ -14,8 +14,10 @@ $vnl_theme_path = $assets_address . '/vnl';
         }
         document.documentElement.setAttribute("data-bs-theme", mode);
         try {
-            if (localStorage.getItem("vnl-sidebar-mini") === "1") {
-                document.documentElement.setAttribute("data-vnl-sidebar", "mini");
+            var mini = localStorage.getItem("vnl-sidebar-mini");
+            if (mini === "1") mini = "mini"; // eski kayıt biçimiyle uyum
+            if (mini === "mini" || mini === "hover") {
+                document.documentElement.setAttribute("data-vnl-sidebar", mini);
             }
         } catch (e) {}
     })();

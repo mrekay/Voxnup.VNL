@@ -9,7 +9,7 @@
 
 $page_config_default = array(
         'layout' => 'app',
-        'leftsidebar' => true,   // true, false, 'mini'
+        'leftsidebar' => true,   // true, false, 'mini' (sabit dar), 'mini-hover' (dar + hover'da genişler)
         'topbar' => true,
         'footer' => false,
         'loader' => true,
@@ -48,7 +48,12 @@ $vnl_layout = $page_config['layout'];
     }
     ?>
 </head>
-<body class="vnl-app" data-vnl-layout="<?= $vnl_layout ?>">
+<?php
+/* Daraltma düğmesinin hedef modu: 'mini' sabit dar, 'hover' üzerine
+   gelince/tıklayınca genişleyen dar (varsayılan). */
+$vnl_sidebar_mode = $page_config['leftsidebar'] === 'mini' ? 'mini' : 'hover';
+?>
+<body class="vnl-app" data-vnl-layout="<?= $vnl_layout ?>" data-vnl-sidebar-mode="<?= $vnl_sidebar_mode ?>">
 
 <?php if ($page_config['loader'] != false) { ?>
     <div id="loadingSpinner" class="vnl-spinner-overlay" style="display: none">
@@ -61,13 +66,13 @@ $vnl_layout = $page_config['layout'];
 
 <?php
 if ($page_config['leftsidebar'] != false) {
-    /* leftsidebar === 'mini' başlangıcı: kullanıcı tercihi (localStorage)
-       head'deki inline script ile zaten uygulandı; controller 'mini' istediyse
-       ve tercih yoksa mini başlat. */
-    if ($page_config['leftsidebar'] === 'mini') { ?>
+    /* 'mini' / 'mini-hover' başlangıcı: kullanıcı tercihi (localStorage)
+       head'deki inline script ile zaten uygulandı; tercih yoksa controller'ın
+       istediği daraltılmış modda başlat. */
+    if ($page_config['leftsidebar'] === 'mini' || $page_config['leftsidebar'] === 'mini-hover') { ?>
         <script>
             if (!document.documentElement.hasAttribute('data-vnl-sidebar')) {
-                document.documentElement.setAttribute('data-vnl-sidebar', 'mini');
+                document.documentElement.setAttribute('data-vnl-sidebar', '<?= $vnl_sidebar_mode ?>');
             }
         </script>
     <?php }

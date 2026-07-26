@@ -155,7 +155,12 @@ document.addEventListener('vnl.theme.changed', function (e) {
                         </p>
                         <ul class="text-body mb-0">
                             <li class="mb-2"><b>Mobil:</b> sidebar, Bootstrap Offcanvas olarak açılır (backdrop, ESC, odak yönetimi dahil).</li>
-                            <li class="mb-2"><b>Desktop:</b> üst çubuktaki <i class="fa-solid fa-angles-left"></i> düğmesi menüyü daraltır; tercih <code>localStorage["vnl-sidebar-mini"]</code>'de kalıcıdır ve sayfa yüklenmeden geri uygulanır.</li>
+                            <li class="mb-2"><b>Desktop — iki daraltma modu:</b> marka satırındaki <i class="bi bi-chevron-double-left"></i> düğmesi menüyü daraltır; tercih <code>localStorage["vnl-sidebar-mini"]</code>'de kalıcıdır ve sayfa boyanmadan geri uygulanır.
+                                <ul class="mt-2">
+                                    <li class="mb-1"><code>'mini-hover'</code> <span class="badge badge-soft-primary ms-1">varsayılan</span> — ikon rayı; üzerine gelince ya da içine tıklayınca (dokunmatik dahil) içeriği itmeden üstüne doğru genişler.</li>
+                                    <li><code>'mini'</code> — sabit ikon rayı; genişlemez. Controller'da <code>$page_config['leftsidebar'] = 'mini'</code> ile seçilir.</li>
+                                </ul>
+                            </li>
                             <li><b>Accordion:</b> alt menüler Bootstrap Collapse ile açılır; aktif dal sunucu tarafında açık gelir.</li>
                         </ul>
                     </div>

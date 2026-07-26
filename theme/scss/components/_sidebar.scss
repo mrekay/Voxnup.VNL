@@ -20,15 +20,28 @@
   background: var(--vnl-sidebar-bg) !important;
 
   @include media-breakpoint-up(lg) {
-    position: sticky;
+    // Fixed konum: hover modunda genişleme içeriği İTMEZ, üstüne açılır.
+    // Kapladığı yer .vnl-main'in margin'i ile telafi edilir.
+    position: fixed;
     top: 0;
-    height: 100vh;
-    flex-shrink: 0;
-    transition: width .2s ease;
+    bottom: 0;
+    left: 0;
+    z-index: $zindex-sticky + 1; // genişlerken topbar'ın üstünden geçer
+    transition: width .2s ease, box-shadow .2s ease;
 
     @media (prefers-reduced-motion: reduce) {
       transition: none;
     }
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .vnl-main {
+    margin-left: var(--vnl-sidebar-width);
+  }
+
+  html[data-vnl-sidebar] .vnl-main {
+    margin-left: var(--vnl-sidebar-width-mini);
   }
 }
 
@@ -71,11 +84,19 @@
   &:empty { display: none; }
 }
 
-// ---- Mini (daraltılmış) durum — yalnız desktop -----------------------------
+// ---- Daraltılmış durum — yalnız desktop ------------------------------------
+// İki mod vardır (html[data-vnl-sidebar] değeri):
+//   "mini"  → sabit ikon rayı; alt menü açılmaz
+//   "hover" → ikon rayı; üzerine gelince ya da içine tıklanınca (focus-within,
+//             dokunmatik dahil) içeriği itmeden üstüne doğru genişler
 @include media-breakpoint-up(lg) {
-  html[data-vnl-sidebar="mini"] {
-    .vnl-sidebar { width: var(--vnl-sidebar-width-mini); }
+  html[data-vnl-sidebar] .vnl-sidebar {
+    width: var(--vnl-sidebar-width-mini);
+  }
 
+  // Daralmış görünüm: mini'de her zaman; hover modunda yalnız üzerinde değilken
+  html[data-vnl-sidebar="mini"] .vnl-sidebar,
+  html[data-vnl-sidebar="hover"] .vnl-sidebar:not(:hover):not(:focus-within) {
     .vnl-sidebar-brand { justify-content: center; padding-inline: .5rem; }
     .vnl-brand-text { display: none; }
 
@@ -83,7 +104,7 @@
     .vnl-menu-arrow { display: none; }
 
     .vnl-menu-link { justify-content: center; }
-    .vnl-menu-sub { display: none !important; } // mini'de alt menü açılmaz
+    .vnl-menu-sub { display: none !important; }
 
     // Daraltma düğmesi ikonunu ters çevir
     [data-vnl-toggle="sidebar-mini"] .bi-chevron-double-left,
@@ -91,5 +112,12 @@
       display: inline-block;
       transform: rotate(180deg);
     }
+  }
+
+  // Hover modunda geçici genişleme (overlay)
+  html[data-vnl-sidebar="hover"] .vnl-sidebar:hover,
+  html[data-vnl-sidebar="hover"] .vnl-sidebar:focus-within {
+    width: var(--vnl-sidebar-width);
+    box-shadow: .75rem 0 2.5rem rgba(0, 0, 0, .35);
   }
 }
