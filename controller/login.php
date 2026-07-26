@@ -1,21 +1,20 @@
 <?php
 
 $meta = [
-    'title' => '',
+    'title' => lang('LOGIN_TITLE'),
     'description' => '',
     'keywords' => ''
 ];
 
 $page_config = [
-    'footer'=>false,
-    'topbarSecond'=>false,
+    'layout' => 'focus',
 ];
 
-if($CurrentUser->id>0){
+if ($CurrentUser->id > 0) {
     header('Location:' . SITE_URL . '/');
+    exit;
 }
 
-//require view('static/header');
+require view('static/header');
 require view('login');
-//require_once view('includes/static/script-standard');
-//require view('static/footer');
+require view('static/footer');

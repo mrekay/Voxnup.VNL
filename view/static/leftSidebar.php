@@ -10,6 +10,8 @@ $qs = (isset($_SERVER['QUERY_STRING']) && !empty($_SERVER['QUERY_STRING']) ? '?'
 //show menu kullanım şekilleri:
 // 0: Her zaman gizli, 1: Her zaman açık, 2: Oturum açtığında açık
 //UYARI TRUE veya FALSE kullanmayın en iyi ihtimalle çalışmayacaktır...
+// icon: Font Awesome kısa adı (fa-solid fa-{icon} olarak basılır; v5 adları
+// FA7 compat ile çalışır)
 $SidebarMenu = array(
         [
                 "text" => "Anasayfa",
@@ -31,6 +33,15 @@ $SidebarMenu = array(
                                 'page_name' => 'getting-started.php',
                                 'permission' => '',
                                 'icon' => 'clock', // Zaman / bekleyen
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "VNL Theme",
+                                'url' => 'docs/theme',
+                                'page_name' => 'theme.php',
+                                'permission' => '',
+                                'icon' => 'clock',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -234,59 +245,39 @@ if (!empty($customSideBar)) {
     $SidebarMenu[] = $customSideBar[0];
 }
 
+/* Collapse id üreticisi (accordion hedefleri için) */
+$vnlNavIndex = 0;
+
 if ($page_config['leftsidebar'] != false) {
     ?>
 
-    <!--begin::Aside-->
-    <div id="kt_aside" class="aside aside-dark aside-hoverable" data-kt-drawer="true" data-kt-drawer-name="aside"
-         data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true"
-         data-kt-drawer-width="{default:'200px', '300px': '250px'}" data-kt-drawer-direction="start"
-         data-kt-drawer-toggle="#kt_aside_mobile_toggle">
-        <!--begin::Brand-->
-        <div class="aside-logo flex-column-auto" id="kt_aside_logo">
-            <!--begin::Logo-->
-            <a href="/">
-
-                <img alt="Logo" src="<?= $cDefinitions->appLogoPath() . 'VNLBIG.png' ?>" class="logo"
-                     style="height: 32px"/>
+    <aside id="vnlSidebar" class="vnl-sidebar offcanvas-lg offcanvas-start" tabindex="-1"
+           aria-label="<?= lang('LBL_MENU') ?>" data-bs-theme="dark">
+        <div class="vnl-sidebar-brand">
+            <a href="/" class="d-inline-flex align-items-center">
+                <img alt="<?= $cDefinitions->appName() ?>" src="<?= $cDefinitions->appLogoPath() . 'VNLBIG.png' ?>"
+                     style="height: 30px"/>
             </a>
-            <!--end::Logo-->
-            <!--begin::Aside toggler-->
-            <div id="kt_aside_toggle" class="btn btn-icon w-auto px-0 btn-active-color-primary aside-toggle me-n2"
-                 data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body"
-                 data-kt-toggle-name="aside-minimize">
-                <i class="ki-outline ki-double-left fs-1 rotate-180"></i>
-            </div>
-            <!--end::Aside toggler-->
+            <button type="button" class="btn-close btn-close-white ms-auto d-lg-none"
+                    data-bs-dismiss="offcanvas" data-bs-target="#vnlSidebar"
+                    aria-label="<?= lang('LBL_CLOSE') ?>"></button>
         </div>
-        <!--end::Brand-->
 
-        <!--begin::Aside menu-->
-        <div class="aside-menu flex-column-fluid">
-            <!--begin::Aside Menu-->
-            <div class="hover-scroll-overlay-y" id="kt_aside_menu_wrapper" data-kt-scroll="true"
-                 data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto"
-                 data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu"
-                 data-kt-scroll-offset="0">
-                <!--begin::Menu-->
-                <div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500"
-                     id="#kt_aside_menu" data-kt-menu="true">
-                    <?php ShowSidebarMenu($SidebarMenu, 0); ?>
-                </div>
-                <!--end::Menu-->
+        <nav class="vnl-sidebar-nav">
+            <div class="vnl-menu">
+                <?php ShowSidebarMenu($SidebarMenu, 0); ?>
             </div>
-        </div>
-        <!--end::Aside menu-->
-        <!--begin::Footer-->
-        <div class="aside-footer flex-column-auto pb-7 px-5" id="kt_aside_footer">
+        </nav>
 
-        </div>
-        <!--end::Footer-->
-    </div>
-    <!--end::Aside-->
+        <div class="vnl-sidebar-footer"></div>
+    </aside>
 
     <?php
 }
+
+/* Alt seviye menü öğeleri (accordion içeriği). Fonksiyon imzaları ve
+   $SidebarMenu dizi sözleşmesi VNL 2.x ile birebir aynıdır; yalnızca
+   üretilen markup VNL Theme'e aittir. */
 function showSideBar($array, $level)
 {
     global $fileName, $meta;
@@ -304,13 +295,10 @@ function showSideBar($array, $level)
 //        }
 
         if (!empty($item["text"])) { ?>
-            <div class="menu-item">
-                <a class="menu-link <?= ($item["url"] == $fileName || $item["url"] == $friendly_name) ? 'active' : '' ?>"
+            <div class="vnl-menu-item">
+                <a class="vnl-menu-link <?= ($item["url"] == $fileName || $item["url"] == $friendly_name) ? 'active' : '' ?>"
                    href="/<?= $item["url"] ?>">
-                    <span class="menu-bullet">
-                        <span class="bullet bullet-dot"></span>
-                    </span>
-                    <span class="menu-title"><?= $item["text"] ?></span>
+                    <span class="vnl-menu-title"><?= $item["text"] ?></span>
                 </a>
             </div>
         <?php }
@@ -324,7 +312,7 @@ function showSideBar($array, $level)
 
 function ShowSidebarMenu($array, $level)
 {
-    global $fileName, $NumberTexts, $CurrentUser, $ActiveProductId, $meta;
+    global $fileName, $NumberTexts, $CurrentUser, $ActiveProductId, $meta, $vnlNavIndex;
 
     $friendly_name = isset($meta['friendly_name']) ? $meta['friendly_name'] : '';
 
@@ -339,41 +327,42 @@ function ShowSidebarMenu($array, $level)
         $pagePermission = true;
 
         $showmenu = canShowMenu($menu['showmenu'], $pagePermission);
-//        if ($menu['showmenu'] == 2) _print($showmenu,1);
         if ($showmenu) {
             $urls = SidebarMenuGetSubUrls($menu, (isset($menu['qs_active']) ? $menu['qs_active'] : true));
 
             $isActive = in_array($fileName, $urls);
 
+            $hasChild = isset($menu['child']) && !empty($menu['child']);
 
-            ?>
-
-            <!--begin:Menu item-->
-            <div <?= !empty($menu['child']) ? 'data-kt-menu-trigger="click"' : "" ?>
-                    class="menu-item <?= isset($menu['child']) && !empty($menu['child']) ? "menu-accordion" . ($isActive ? 'hover show' : '') : "" ?>">
-                <!--begin:Menu link-->
-                <a <?= !empty($menu['child']) ? "menu-accordion" : ' target="_self" href="/' . $menu["url"] . '"' ?>
-                        class="menu-link <?= !empty($menu["url"]) && ($menu["url"] == $fileName || $menu["url"] == $friendly_name) ? 'active' : '' ?>">
-                    <div class="menu-icon">
-                        <i class="fas fa-<?= $menu['icon']; ?>"></i>
-                    </div>
-                    <span class="menu-title"><?= $menu['text']; ?></span>
-                    <?php if (!empty($menu['child'])) { ?>
-                        <span class="menu-arrow"></span>
-                    <?php } ?>
-                </a>
-                <!--end:Menu link-->
-                <?php
-                if (isset($menu['child']) && !empty($menu['child'])) { ?>
-                    <!--begin:Menu sub-->
-                    <div class="menu-sub menu-sub-accordion">
+            if ($hasChild) {
+                $vnlNavIndex++;
+                $navId = 'vnl-nav-' . $vnlNavIndex;
+                ?>
+                <div class="vnl-menu-item">
+                    <button type="button"
+                            class="vnl-menu-link <?= $isActive ? 'active' : '' ?>"
+                            data-bs-toggle="collapse" data-bs-target="#<?= $navId ?>"
+                            aria-expanded="<?= $isActive ? 'true' : 'false' ?>" aria-controls="<?= $navId ?>">
+                        <span class="vnl-menu-icon"><i class="fa-solid fa-<?= $menu['icon']; ?>"></i></span>
+                        <span class="vnl-menu-title"><?= $menu['text']; ?></span>
+                        <span class="vnl-menu-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+                    </button>
+                    <div class="vnl-menu-sub collapse <?= $isActive ? 'show' : '' ?>" id="<?= $navId ?>">
                         <?php showSideBar($menu['child'], $level + 1); ?>
                     </div>
-                    <!--end:Menu sub-->
-                <?php } ?>
-            </div>
-            <!--end:Menu item-->
-            <?php
+                </div>
+                <?php
+            } else {
+                ?>
+                <div class="vnl-menu-item">
+                    <a class="vnl-menu-link <?= !empty($menu["url"]) && ($menu["url"] == $fileName || $menu["url"] == $friendly_name) ? 'active' : '' ?>"
+                       target="_self" href="/<?= $menu["url"] ?>">
+                        <span class="vnl-menu-icon"><i class="fa-solid fa-<?= $menu['icon']; ?>"></i></span>
+                        <span class="vnl-menu-title"><?= $menu['text']; ?></span>
+                    </a>
+                </div>
+                <?php
+            }
         }
     }
 }
@@ -382,9 +371,9 @@ function SidebarMenuGetSubUrls($array, $qs_active = true)
 {
     global $qs;
     $urls = array();
-    $urls[] = $array['url'];
+    $urls[] = $array['url'] ?? '';
     if ($qs_active) {
-        $urls[] = $array['url'] . $qs;
+        $urls[] = ($array['url'] ?? '') . $qs;
     }
     if (isset($array['subs'])) {
         foreach ($array['subs'] as $sub) {
@@ -406,6 +395,8 @@ function SidebarMenuGetSubUrls($array, $qs_active = true)
 
 function canShowMenu($showmenu, $permission = true): bool
 {
+    global $CurrentUser;
+
     $_showmenu = true;
     switch ($showmenu) {
         case 0:
@@ -415,7 +406,7 @@ function canShowMenu($showmenu, $permission = true): bool
             $_showmenu = true;
             break;
         case 2:
-            $_showmenu = $CurrentUser->id > 0;
+            $_showmenu = !empty($CurrentUser->id) && $CurrentUser->id > 0;
             break;
     }
 
@@ -445,7 +436,7 @@ function hasVisibleChild($children)
             return true;
         }
 
-        // Altın kural: child’ın child’ı olabilir
+        // Altın kural: child'ın child'ı olabilir
         if (!empty($child['child']) && hasVisibleChild($child['child'])) {
             return true;
         }

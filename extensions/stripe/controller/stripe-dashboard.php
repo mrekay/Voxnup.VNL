@@ -15,7 +15,7 @@ $page_config = [
         [
             'type'   => 'a',
             'text'   => 'Fiyatlandırma',
-            'class'  => 'btn btn-sm btn-light-primary fw-bold',
+            'class'  => 'btn btn-sm btn-soft-primary fw-bold',
             'custom' => 'href="/stripe-test"',
             'icon'   => 'fa-solid fa-tag',
         ],

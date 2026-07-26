@@ -85,7 +85,7 @@
                             <code>view/includes/</code> altındaki tüm dizinler ve bunların amacı:
                         </p>
 
-                        <pre class="bg-dark text-light rounded p-6 fs-7 mb-4"><code>view/
+                        <pre class="vnl-code mb-4"><code>view/
 └── includes/
     ├── static/
     │   ├── head-standard.php       ← Her sayfada &lt;head&gt;'e eklenir (CSS, meta)
@@ -131,11 +131,11 @@
                                 <tbody>
                                     <tr>
                                         <td><code>static/head-standard.php</code></td>
-                                        <td>Meta etiketleri, Google Fonts, DataTables CSS, Metronic tema CSS paketi</td>
+                                        <td>Meta etiketleri, pre-paint tema modu script'i, <code>vnl.min.css</code> ve <code>fa.min.css</code></td>
                                     </tr>
                                     <tr>
                                         <td><code>static/script-standard.php</code></td>
-                                        <td>DataTables global JS değişkenleri, <code>$SITE_URL</code>, <code>VNL_USER_ID</code>, Metronic JS paketi, özel <code>vnl.js</code>, <code>datatable.js</code>, <code>showMessage()</code> ve <code>showModalMessage()</code> yardımcıları</td>
+                                        <td><code>$SITE_URL</code>, <code>VNL_USER_ID</code>, <code>VNL_LANG</code> dil köprüsü, vendor paketi (jQuery + Bootstrap + SweetAlert2 + SlimSelect), <code>vnl.min.js</code>, <code>vnl.js</code>, <code>showMessage()</code> ve <code>showModalMessage()</code> yardımcıları</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -160,7 +160,7 @@
                             <strong>eğer mevcutsa otomatik olarak yükler</strong>.
                         </p>
 
-                        <pre class="bg-dark text-light rounded p-6 fs-7 mb-4"><code>// view/static/header.php içinde:
+                        <pre class="vnl-code mb-4"><code>// view/static/header.php içinde:
 if (file_exists(view('includes/header/head-' . route(0))))
     require_once view('includes/header/head-' . route(0));</code></pre>
 
@@ -194,7 +194,7 @@ if (file_exists(view('includes/header/head-' . route(0))))
                             <strong>eğer mevcutsa otomatik olarak yükler</strong>.
                         </p>
 
-                        <pre class="bg-dark text-light rounded p-6 fs-7 mb-4"><code>// view/static/footer.php içinde:
+                        <pre class="vnl-code mb-4"><code>// view/static/footer.php içinde:
 if (file_exists(view('includes/footer/script-' . route(0))))
     require_once view('includes/footer/script-' . route(0));</code></pre>
 
@@ -205,7 +205,7 @@ if (file_exists(view('includes/footer/script-' . route(0))))
                         </p>
 
                         <h5 class="fw-bold text-body-emphasis mb-3">Örnek: script-kullanici.php</h5>
-                        <pre class="bg-dark text-light rounded p-6 fs-7 mb-0"><code>&lt;script&gt;
+                        <pre class="vnl-code mb-0"><code>&lt;script&gt;
     // Bu kod sadece /kullanici route'u yüklendiğinde çalışır
     $('#btnKullaniciEkle').click(function () {
         showModal('ModalKullaniciEkle');
@@ -237,7 +237,7 @@ if (file_exists(view('includes/footer/script-' . route(0))))
                             controller dosyasında <code>$page_config</code> içine dosya listesi ekleyebilirsiniz.
                         </p>
 
-                        <pre class="bg-dark text-light rounded p-6 fs-7 mb-4"><code>// controller/kullanici/liste.php
+                        <pre class="vnl-code mb-4"><code>// controller/kullanici/liste.php
 $page_config = [
     'topbar'      => true,
     'leftsidebar' => true,
@@ -286,7 +286,7 @@ $page_config = [
                             Felsefe gereği her sayfanın modalleri <strong>kendi alt klasöründe gruplandırılır</strong>.
                         </p>
 
-                        <pre class="bg-dark text-light rounded p-6 fs-7 mb-4"><code>view/includes/modals/
+                        <pre class="vnl-code mb-4"><code>view/includes/modals/
 ├── kullanici/
 │   ├── KullaniciEkle.php
 │   └── KullaniciDuzenle.php
@@ -299,7 +299,7 @@ $page_config = [
                             Siz sadece <code>modals.php</code>'ye hangi modal dosyalarını dahil edeceğinizi belirtirsiniz:
                         </p>
 
-                        <pre class="bg-dark text-light rounded p-6 fs-7 mb-4"><code>// view/static/modals.php
+                        <pre class="vnl-code mb-4"><code>// view/static/modals.php
 require_once view('includes/modals/kullanici/KullaniciEkle');
 require_once view('includes/modals/kullanici/KullaniciDuzenle');
 require_once view('includes/modals/urun/UrunEkle');</code></pre>
@@ -344,7 +344,7 @@ require_once view('includes/modals/urun/UrunEkle');</code></pre>
                                 </div>
                                 <div class="timeline-content mb-5 mt-n2 ms-4">
                                     <div class="fw-bold fs-5 text-body-emphasis mb-1">script-standard.php yüklenir</div>
-                                    <div class="text-muted fs-6">Global JS değişkenleri ve Metronic JS paketi <code>&lt;head&gt;</code>'e eklenir.</div>
+                                    <div class="text-muted fs-6">Global JS değişkenleri ve VNL Theme vendor paketi <code>&lt;head&gt;</code>'e eklenir.</div>
                                 </div>
                             </div>
                             <div class="timeline-item mb-4">

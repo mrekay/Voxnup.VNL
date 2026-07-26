@@ -42,7 +42,7 @@ return [
             ],
             'popular'     => false,
             'btn_text'    => 'Başla',
-            'btn_class'   => 'btn-light-primary',
+            'btn_class'   => 'btn-soft-primary',
         ],
         [
             'id'          => 'pro',
@@ -78,7 +78,7 @@ return [
             ],
             'popular'     => false,
             'btn_text'    => 'Satın Al',
-            'btn_class'   => 'btn-light-success',
+            'btn_class'   => 'btn-soft-success',
         ],
     ],
 ];

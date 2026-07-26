@@ -1,12 +1,9 @@
-<div class="error-page d-flex align-items-center flex-wrap justify-content-center pd-20">
-	<div class="pd-10">
-		<div class="error-page-wrap text-center">
-			<i class="fas fa-exclamation-triangle text-warning p-5" style="font-size: 128px"></i>
-			<h3><?=LBL_ERROR_401_TITLE?></h3>
-			<p><?=LBL_ERROR_401_TITLE?></p>
-			<div class="pt-20 mx-auto max-width-200 d-flex justify-content-center">
-				<a href="./" class="btn btn-primary btn-block btn-lg w-50"><i class="fas fa-home"></i> <?=LBL_RETURN_HOME?></a>
-			</div>
-		</div>
-	</div>
+<div class="text-center">
+    <img src="<?= $cDefinitions->appLogoPath() . 'VNLBIG.png' ?>" alt="" class="h-60px mb-6"/>
+    <div class="vnl-error-code text-warning">401</div>
+    <h1 class="fs-2x fw-bold mt-6 mb-3"><?= lang('ERR_401_TITLE') ?></h1>
+    <p class="text-body-secondary mw-450px mx-auto mb-9"><?= lang('ERR_401_TEXT') ?></p>
+    <a href="/" class="btn btn-primary">
+        <i class="fa-solid fa-house me-2"></i><?= lang('LBL_RETURN_HOME') ?>
+    </a>
 </div>

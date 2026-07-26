@@ -1,126 +1,82 @@
-<!-- Content Header (Page header) -->
 <?php if ($page_config['contentheader'] != false) { ?>
-    <!--begin::Toolbar-->
-    <div class="toolbar" id="kt_toolbar">
-        <!--begin::Container-->
-        <div id="kt_toolbar_container" class="container-fluid d-flex flex-stack">
-            <!--begin::Page title-->
-            <div data-kt-swapper="true" data-kt-swapper-mode="prepend"
-                 data-kt-swapper-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}"
-                 class="page-title d-flex align-items-center me-3 flex-wrap lh-1">
-                <!--begin::Title-->
-                <h1 class="d-flex align-items-center text-gray-900 fw-bold my-1 fs-3"><?= $meta["title"] ?></h1>
-                <!--end::Title-->
-                <!--begin::Separator-->
-                <span class="h-20px border-gray-200 border-start mx-4"></span>
-                <!--end::Separator-->
-                <!--begin::Breadcrumb-->
-                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-1">
-                    <!--begin::Item-->
-                    <li class="breadcrumb-item text-muted">
-                        <a href="/" class="text-muted text-hover-primary"><?=$cDefinitions->appName()?></a>
-                    </li>
-                    <!--end::Item-->
+    <div class="vnl-toolbar">
+        <div class="app-container container-fluid d-flex flex-stack flex-wrap gap-3">
 
-                    <?php if (!empty($meta["upper_title"])) { ?>
-                        <!--begin::Item-->
+            <div class="vnl-page-title">
+                <h1><?= $meta["title"] ?></h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
                         <li class="breadcrumb-item">
-                            <span class="bullet bg-gray-300 w-5px h-2px"></span>
+                            <a href="/" class="text-body-secondary text-hover-primary"><?= $cDefinitions->appName() ?></a>
                         </li>
-                        <!--end::Item-->
-                        <!--begin::Item-->
-                        <li class="breadcrumb-item text-muted"><?= $meta["upper_title"] ?></li>
-                        <!--end::Item-->
-                        <!--begin::Item-->
-                        <li class="breadcrumb-item">
-                            <span class="bullet bg-gray-300 w-5px h-2px"></span>
-                        </li>
-                        <!--end::Item-->
-                        <!--begin::Item-->
-                        <li class="breadcrumb-item text-gray-900"><?= $meta["title"] ?></li>
-                        <!--end::Item-->
-
-                    <?php } ?>
-                </ul>
-                <!--end::Breadcrumb-->
+                        <?php if (!empty($meta["upper_title"])) { ?>
+                            <li class="breadcrumb-item text-body-secondary"><?= $meta["upper_title"] ?></li>
+                        <?php } ?>
+                        <li class="breadcrumb-item active" aria-current="page"><?= $meta["title"] ?></li>
+                    </ol>
+                </nav>
             </div>
-            <!--end::Page title-->
-            <!--begin::Actions-->
-            <div class="d-flex align-items-center py-1">
-                <!--begin::Wrapper-->
-                <div class="me-4">
-                    <?php
 
-                    if (!empty($page_config["toolbaritems"])) { ?>
+            <?php if (!empty($page_config["toolbaritems"])) { ?>
+                <div class="vnl-toolbar-actions">
+                    <?php foreach ($page_config["toolbaritems"] as $item) {
 
-                    <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <?php foreach ($page_config["toolbaritems"] as $item) {
+                        // 1. Durum: Dropdown menülü öğe
+                        if (isset($item['items']) && is_array($item['items'])) {
+                            $vnl_dd_toggle = (strpos($item['custom'] ?? '', 'data-bs-toggle') === false)
+                                ? 'data-bs-toggle="dropdown" aria-expanded="false"' : '';
+                            ?>
 
-                        // 1. Durum: Dropdown Menü Var mı?
-                        if (isset($item['items']) && is_array($item['items'])) { ?>
-
-                        <div class="dropdown">
-                            <<?= $item["type"] ?>
-                            id="<?= $item["id"] ?? '' ?>"
-                            class="<?= $item["class"] ?>"
-                            <?= $item["custom"] ?? '' ?>
-                            >
-                            <?php if (!empty($item["icon"])) { ?>
-                                <i class="<?= $item["icon"] ?> fs-5 me-1"></i>
-                            <?php } ?>
-                            <?= $item["text"] ?>
-                        </<?= $item["type"] ?>>
-
-                        <ul class="dropdown-menu menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4">
-                            <?php foreach ($item['items'] as $subItem) { ?>
-                                <li>
-                                <<?= $subItem["type"] ?>
-                                class="<?= $subItem["class"] ?> px-3"
-                                <?= $subItem["custom"] ?? '' ?>
+                            <div class="dropdown">
+                                <<?= $item["type"] ?>
+                                id="<?= $item["id"] ?? '' ?>"
+                                class="<?= $item["class"] ?>"
+                                <?= $vnl_dd_toggle ?>
+                                <?= $item["custom"] ?? '' ?>
                                 >
-                                <?php if (!empty($subItem["icon"])) { ?>
-                                    <span class="menu-icon me-2">
-                                            <i class="<?= $subItem["icon"] ?>"></i>
-                                        </span>
+                                <?php if (!empty($item["icon"])) { ?>
+                                    <i class="<?= $item["icon"] ?> fs-7 me-1"></i>
                                 <?php } ?>
-                                <?= $subItem["text"] ?>
-                                </<?= $subItem["type"] ?>>
-                                </li>
-                            <?php } ?>
-                        </ul>
-                    </div>
+                                <?= $item["text"] ?>
+                            </<?= $item["type"] ?>>
+
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <?php foreach ($item['items'] as $subItem) { ?>
+                                    <li>
+                                    <<?= $subItem["type"] ?>
+                                    class="dropdown-item <?= $subItem["class"] ?>"
+                                    <?= $subItem["custom"] ?? '' ?>
+                                    >
+                                    <?php if (!empty($subItem["icon"])) { ?>
+                                        <i class="<?= $subItem["icon"] ?> fa-fw me-2"></i>
+                                    <?php } ?>
+                                    <?= $subItem["text"] ?>
+                                    </<?= $subItem["type"] ?>>
+                                    </li>
+                                <?php } ?>
+                            </ul>
+                        </div>
+
+                        <?php }
+                        // 2. Durum: Standart buton
+                        else { ?>
+
+                        <<?= $item["type"] ?>
+                        id="<?= $item["id"] ?? '' ?>"
+                        class="<?= $item["class"] ?>"
+                        <?= $item["custom"] ?? '' ?>
+                        >
+                        <?php if (!empty($item["icon"])) { ?>
+                            <i class="<?= $item["icon"] ?> fs-7 me-1"></i>
+                        <?php } ?>
+                        <?= $item["text"] ?>
+                    </<?= $item["type"] ?>>
 
                     <?php }
-                    // 2. Durum: Standart Buton
-                    else { ?>
-
-                    <<?= $item["type"] ?>
-                    id="<?= $item["id"] ?? '' ?>"
-                    class="<?= $item["class"] ?>"
-                    <?= $item["custom"] ?? '' ?>
-                    >
-                    <?php if (!empty($item["icon"])) { ?>
-                        <i class="<?= $item["icon"] ?> fs-5 me-1"></i>
-                    <?php } ?>
-                    <?= $item["text"] ?>
-                </<?= $item["type"] ?>>
-
-                <?php }
-                } ?>
-            </div>
-
+                    } ?>
+                </div>
             <?php } ?>
-            <!--begin::Menu-->
 
-
-            <!--end::Menu-->
         </div>
-        <!--end::Wrapper-->
     </div>
-    <!--end::Actions-->
-    </div>
-    <!--end::Container-->
-    </div>
-    <!--end::Toolbar-->
 <?php } ?>
-<!-- /.content-header -->

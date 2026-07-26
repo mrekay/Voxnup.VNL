@@ -31,7 +31,7 @@
                             <div class="col-md-6">
                                 <div class="border border-dashed border-success rounded p-5 h-100">
                                     <div class="d-flex align-items-center mb-3">
-                                        <span class="badge badge-light-success me-3">true</span>
+                                        <span class="badge badge-soft-success me-3">true</span>
                                         <h6 class="mb-0 fw-bold">Geliştirme Ortamı</h6>
                                     </div>
                                     <ul class="list-unstyled fs-6 text-body mb-0">
@@ -44,7 +44,7 @@
                             <div class="col-md-6">
                                 <div class="border border-dashed border-primary rounded p-5 h-100">
                                     <div class="d-flex align-items-center mb-3">
-                                        <span class="badge badge-light-primary me-3">false</span>
+                                        <span class="badge badge-soft-primary me-3">false</span>
                                         <h6 class="mb-0 fw-bold">Üretim Ortamı</h6>
                                     </div>
                                     <ul class="list-unstyled fs-6 text-body mb-0">
@@ -56,8 +56,8 @@
                             </div>
                         </div>
 
-                        <div class="bg-dark rounded p-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $testMode = false; // true = geliştirme, false = üretim
+                        <div class="vnl-code">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $testMode = false; // true = geliştirme, false = üretim
 
 // Constructor içinde bu anahtar seçimi yapar:
 switch ($this->testMode) {
@@ -119,8 +119,8 @@ switch ($this->testMode) {
                             <span class="text-body fs-6"><code>$app_name</code>, şirket adı değil <b>uygulamanın adıdır</b>. Örneğin "Stok Takip", "Satış Portalı", "CRM" gibi uygulamanın işlevini yansıtan bir isim olmalıdır.</span>
                         </div>
 
-                        <div class="bg-dark rounded p-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $app_name      = "Stok Takip";   // Uygulama adı — şirket adı değil
+                        <div class="vnl-code">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $app_name      = "Stok Takip";   // Uygulama adı — şirket adı değil
 private $app_logo      = "logo.png";
 private $app_logo_path = "/assets/media/logos/";
 private $version       = "1.0.0";
@@ -235,8 +235,8 @@ private $version       = "1.0.0";
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Üretim (case false) bloğu örneği
+                        <div class="vnl-code">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Üretim (case false) bloğu örneği
 $this->db_info = [
     'driver'    => 'mysql',
     'host'      => 'localhost',
@@ -320,8 +320,8 @@ $this->db_info = [
                             </div>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $login_except_pages = [
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $login_except_pages = [
     // Sistem sayfaları (değiştirmeyin)
     "app",          // AJAX/Action endpoint
     "login",        // Giriş sayfası

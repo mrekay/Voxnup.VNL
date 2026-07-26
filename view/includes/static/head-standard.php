@@ -1,25 +1,34 @@
 <?php
-
-$theme_path = $assets_address . '/v1/';
-$image_path = $assets_address . '/images';
+$vnl_theme_path = $assets_address . '/vnl';
 ?>
-<!-- Basic -->
+<!-- Pre-paint tema kurulumu: CSS'ten ÖNCE, senkron. localStorage anahtarı
+     "data-bs-theme" Metronic dönemiyle aynıdır; kayıtlı tercih korunur.
+     Kayıt yoksa VNL Theme varsayılanı KOYU'dur. -->
+<script>
+    (function () {
+        var mode = null;
+        try { mode = localStorage.getItem("data-bs-theme"); } catch (e) {}
+        if (!mode) mode = "dark";
+        if (mode === "system") {
+            mode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-bs-theme", mode);
+        try {
+            if (localStorage.getItem("vnl-sidebar-mini") === "1") {
+                document.documentElement.setAttribute("data-vnl-sidebar", "mini");
+            }
+        } catch (e) {}
+    })();
+</script>
+
 <meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-<!-- Mobile Metas -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
 
-<!-- Site Metas -->
-<title><?php echo $meta['title']; ?></title>
-<meta name="keywords" content="<?php echo $meta['keywords']; ?>">
-<meta name="description" content="<?php echo $meta['description']; ?>">
-<meta name="author" content="">
+<title><?php echo $meta['title'] ?? $cDefinitions->appName(); ?></title>
+<meta name="keywords" content="<?php echo $meta['keywords'] ?? ''; ?>">
+<meta name="description" content="<?php echo $meta['description'] ?? ''; ?>">
 
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="<?=$cDefinitions->appLogoPath().'VNL.png'?>" type="image/x-icon">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
-<link href="<?=$theme_path?>plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
-<link href="<?=$theme_path?>plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
-<link href="<?=$theme_path?>css/style.bundle.css" rel="stylesheet" type="text/css" />
+<link rel="icon" href="<?= $cDefinitions->appLogoPath() . 'VNL.png' ?>" type="image/png">
+<link href="<?= $vnl_theme_path ?>/css/vnl.min.css" rel="stylesheet" type="text/css"/>
+<link href="<?= $vnl_theme_path ?>/css/fa.min.css" rel="stylesheet" type="text/css"/>

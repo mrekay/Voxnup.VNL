@@ -40,14 +40,14 @@
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>site.com/kullanici/profil/15</code></td>
-                                    <td><span class="badge badge-light-primary">kullanici</span><br><small class="text-muted">(Controller dosyası)</small></td>
-                                    <td><span class="badge badge-light-success">profil</span><br><small class="text-muted">(Aksiyon / Sayfa)</small></td>
-                                    <td><span class="badge badge-light-info">15</span><br><small class="text-muted">(ID / Parametre)</small></td>
+                                    <td><span class="badge badge-soft-primary">kullanici</span><br><small class="text-muted">(Controller dosyası)</small></td>
+                                    <td><span class="badge badge-soft-success">profil</span><br><small class="text-muted">(Aksiyon / Sayfa)</small></td>
+                                    <td><span class="badge badge-soft-info">15</span><br><small class="text-muted">(ID / Parametre)</small></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>site.com/docs/routing</code></td>
-                                    <td><span class="badge badge-light-primary">docs</span><br><small class="text-muted">(Klasör adı)</small></td>
-                                    <td><span class="badge badge-light-success">routing</span><br><small class="text-muted">(Klasör içi dosya)</small></td>
+                                    <td><span class="badge badge-soft-primary">docs</span><br><small class="text-muted">(Klasör adı)</small></td>
+                                    <td><span class="badge badge-soft-success">routing</span><br><small class="text-muted">(Klasör içi dosya)</small></td>
                                     <td><span class="text-muted">—</span></td>
                                 </tr>
                                 </tbody>
@@ -65,8 +65,8 @@
                             Her controller dosyası aynı temel yapıyı izler: önce <code>$meta</code> ve <code>$page_config</code> tanımlanır, ardından veritabanı işlemleri yapılır, son olarak <code>header</code> + <code>içerik</code> + <code>footer</code> view'ları birleştirilerek ekrana basılır. Sınıf tanımlamasına (<code>class</code>) ya da constructor'a gerek yoktur; dosya düz PHP olarak çalışır.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // Dosya: controller/kullanici.php
 // Erişim: site.com/kullanici  veya  site.com/kullanici/profil/15
 
@@ -163,8 +163,8 @@ if ($islem === 'profil') {
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$meta = [
+                        <div class="vnl-code">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>$meta = [
     'title'       => 'Proje Listesi',
     'upper_title' => 'Proje Yönetimi', // breadcrumb: Uygulama > Proje Yönetimi > Proje Listesi
     'description' => 'Aktif projelerin listesi',
@@ -197,31 +197,31 @@ if ($islem === 'profil') {
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>leftsidebar</code></td>
-                                    <td><span class="badge badge-light-success">true</span></td>
+                                    <td><span class="badge badge-soft-success">true</span></td>
                                     <td><code>true / false</code></td>
                                     <td>Sol menü sidebar'ını gösterir veya gizler. <code>false</code> yapıldığında sayfa tam genişliğe geçer.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>topbar</code></td>
-                                    <td><span class="badge badge-light-success">true</span></td>
+                                    <td><span class="badge badge-soft-success">true</span></td>
                                     <td><code>true / false</code></td>
                                     <td>Üst navbar'ı (kullanıcı menüsü, bildirimler) gösterir veya gizler.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>contentheader</code></td>
-                                    <td><span class="badge badge-light-success">true</span></td>
+                                    <td><span class="badge badge-soft-success">true</span></td>
                                     <td><code>true / false</code></td>
                                     <td>Sayfa başlığı ve breadcrumb içeren toolbar alanını gösterir veya gizler.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>footer</code></td>
-                                    <td><span class="badge badge-light-danger">false</span></td>
+                                    <td><span class="badge badge-soft-danger">false</span></td>
                                     <td><code>true / false</code></td>
                                     <td>Alt footer alanını gösterir. Varsayılan olarak kapalıdır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>loader</code></td>
-                                    <td><span class="badge badge-light-success">true</span></td>
+                                    <td><span class="badge badge-soft-success">true</span></td>
                                     <td><code>true / false</code></td>
                                     <td>Sayfa yüklenirken gösterilen yükleme animasyonunu etkinleştirir.</td>
                                 </tr>
@@ -258,8 +258,8 @@ if ($islem === 'profil') {
                             <code>contentheader</code> alanının sağ kısmına buton veya dropdown eklemek için <code>toolbaritems</code> kullanılır. Her eleman bir buton veya dropdown tanımlar.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$page_config = [
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>$page_config = [
     'topbar'        => true,
     'leftsidebar'   => true,
     'contentheader' => true,
@@ -277,7 +277,7 @@ if ($islem === 'profil') {
         [
             'type'  => 'button',
             'text'  => 'Dışa Aktar',
-            'class' => 'btn btn-light-primary btn-sm dropdown-toggle',
+            'class' => 'btn btn-soft-primary btn-sm dropdown-toggle',
             'icon'  => 'fa-solid fa-file-arrow-down',
             'items' => [
                 [
@@ -355,8 +355,8 @@ if ($islem === 'profil') {
                             Controller içinden HTML çıktısı vermek için <code>require view('...')</code> kullanılır. Fonksiyon, <code>setting('theme')</code> ile belirlenen aktif tema klasörüne göre tam dosya yolunu oluşturur.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tam yol: view/{tema}/kullanici/profil.php
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tam yol: view/{tema}/kullanici/profil.php
 require view('kullanici/profil');
 
 // Tipik controller şablonu
@@ -396,8 +396,8 @@ require view('static/footer');   // Layout sonu
 
                         <p class="fs-6 text-body mb-3">Modal'lar genellikle <code>static/footer</code> <b>öncesinde</b> yüklenir, böylece içerik view'unun içinde veya sonrasında jQuery/JS ile tetiklenebilirler:</p>
 
-                        <div class="bg-dark rounded p-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>require view('static/header');
+                        <div class="vnl-code">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>require view('static/header');
 require view('kullanici/liste');
 require modal('KullaniciEkle', 'kullanici');   // Modal DOM'a eklendi
 require modal('KullaniciSil', 'kullanici');

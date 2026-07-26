@@ -1,16 +1,37 @@
 <?php
+/**
+ * VNL Theme sayfa iskeleti — üst yarı.
+ *
+ * Layout preset'i $page_config['layout'] ile seçilir; eski bayraklar
+ * (leftsidebar/topbar/contentheader/footer) preset'i EZEBİLİR.
+ * Merge sırası: varsayılanlar → preset → controller'ın $page_config'i.
+ */
+
 $page_config_default = array(
-        'leftsidebar' => true,//true,false ,'mini'
-        'topbar' => true,//true,false
+        'layout' => 'app',
+        'leftsidebar' => true,   // true, false, 'mini'
+        'topbar' => true,
         'footer' => false,
         'loader' => true,
         'contentheader' => true,
 );
-$page_config = !isset($page_config) || empty($page_config) ? $page_config_default : array_merge($page_config_default, $page_config);
-?>
 
+$vnl_layout_presets = array(
+        'app'     => array('leftsidebar' => true,  'topbar' => true,  'contentheader' => true,  'footer' => false),
+        'top-nav' => array('leftsidebar' => false, 'topbar' => true,  'contentheader' => true,  'footer' => true),
+        'landing' => array('leftsidebar' => false, 'topbar' => true,  'contentheader' => false, 'footer' => true),
+        'focus'   => array('leftsidebar' => false, 'topbar' => false, 'contentheader' => false, 'footer' => false),
+        'blank'   => array('leftsidebar' => false, 'topbar' => false, 'contentheader' => false, 'footer' => false, 'loader' => false),
+);
+
+$page_config = !isset($page_config) || !is_array($page_config) ? array() : $page_config;
+$vnl_layout = $page_config['layout'] ?? 'app';
+$vnl_preset = $vnl_layout_presets[$vnl_layout] ?? $vnl_layout_presets['app'];
+$page_config = array_merge($page_config_default, $vnl_preset, $page_config);
+$vnl_layout = $page_config['layout'];
+?>
 <!doctype html>
-<html lang="en">
+<html lang="tr" data-bs-theme="dark">
 <head>
     <?php
     require_once view('includes/static/head-standard');
@@ -18,70 +39,52 @@ $page_config = !isset($page_config) || empty($page_config) ? $page_config_defaul
     if (file_exists(view('includes/header/head-' . route(0))))
         require_once view('includes/header/head-' . route(0));
 
-    if (isset($css_files) && !empty($css_files)) {
-
-        foreach ($css_files as $item) {
-
-            if (file_exists(view('includes/header/' . $item)))
-                require_once view('includes/header/' . $item);
-        }
+    /* Manuel CSS include'ları: dokümante edilmiş $page_config['css_files']
+       ve tarihsel $css_files globali birlikte desteklenir. */
+    $vnl_css_files = $page_config['css_files'] ?? ($css_files ?? array());
+    foreach ($vnl_css_files as $item) {
+        if (file_exists(view('includes/header/' . $item)))
+            require_once view('includes/header/' . $item);
     }
     ?>
-
-
 </head>
-<body id="kt_app_body" data-kt-app-layout="<?= $page_config["leftsidebar"] ? "dark-sidebar" : "" ?>"
-      data-kt-app-header-fixed="true"
-      data-kt-app-sidebar-enabled="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
-      data-kt-app-sidebar-fixed="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
-      data-kt-app-sidebar-hoverable="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
-      data-kt-app-sidebar-push-header="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
-      data-kt-app-sidebar-push-toolbar="<?= $page_config["leftsidebar"] ? "true" : "false" ?>"
-      data-kt-app-sidebar-push-footer="true" data-kt-app-toolbar-enabled="true" class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled toolbar-fixed toolbar-tablet-and-mobile-fixed aside-enabled aside-fixed">
-<!--begin::Theme mode setup on page load-->
-<script>
-    var defaultThemeMode = "light";
-    var themeMode;
-    if (document.documentElement) {
-        if (document.documentElement.hasAttribute("data-bs-theme-mode")) {
-            themeMode = document.documentElement.getAttribute("data-bs-theme-mode");
-        } else {
-            if (localStorage.getItem("data-bs-theme") !== null) {
-                themeMode = localStorage.getItem("data-bs-theme");
-            } else {
-                themeMode = defaultThemeMode;
-            }
-        }
-        if (themeMode === "system") {
-            themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        }
-        document.documentElement.setAttribute("data-bs-theme", themeMode);
-    }
-</script>
-<!--end::Theme mode setup on page load-->
-<!--begin::App-->
-<div class="d-flex flex-column flex-root">
-    <!--begin::Page-->
-    <div class="page d-flex flex-row flex-column-fluid">
-        <div class="loading-overlay" id="loadingSpinner" style="display: none">
-            <img src="/assets/images/loading3_black.gif" class="theme-dark-show">
-            <img src="/assets/images/loading3.gif" class="theme-light-show">
+<body class="vnl-app" data-vnl-layout="<?= $vnl_layout ?>">
+
+<?php if ($page_config['loader'] != false) { ?>
+    <div id="loadingSpinner" class="vnl-spinner-overlay" style="display: none">
+        <div class="vnl-spinner-box">
+            <div class="vnl-spinner" role="status"></div>
+            <div class="spinner-text"></div>
         </div>
+    </div>
+<?php } ?>
 
+<?php
+if ($page_config['leftsidebar'] != false) {
+    /* leftsidebar === 'mini' başlangıcı: kullanıcı tercihi (localStorage)
+       head'deki inline script ile zaten uygulandı; controller 'mini' istediyse
+       ve tercih yoksa mini başlat. */
+    if ($page_config['leftsidebar'] === 'mini') { ?>
+        <script>
+            if (!document.documentElement.hasAttribute('data-vnl-sidebar')) {
+                document.documentElement.setAttribute('data-vnl-sidebar', 'mini');
+            }
+        </script>
+    <?php }
+    require_once view('static/leftSidebar');
+}
+?>
+
+<div class="vnl-main">
+    <?php
+    if ($page_config['topbar'] != false)
+        require_once view('static/topNavbar');
+    ?>
+    <main class="vnl-content">
         <?php
+        if ($page_config['contentheader'] != false)
+            require_once view('static/contentHeader');
 
-
-        require_once view('static/leftSidebar');
-
-        ?>
-
-        <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
-            <?php
-            if ($page_config['topbar'])
-                require_once view('static/topNavbar');
-            ?>
-            <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
-                <?php
-                require_once view('static/contentHeader');
-                ?>
-
+        if ($vnl_layout === 'focus') { ?>
+            <div class="vnl-focus">
+        <?php } ?>

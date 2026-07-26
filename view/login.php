@@ -1,105 +1,35 @@
+<div class="card w-100 mw-400px">
+    <div class="card-body p-10">
 
-<?php
-$theme_path = $assets_address . '/v1/';
-$image_path = $assets_address . '/images';
-?>
-<!DOCTYPE html>
-<html lang="en">
-<!--begin::Head-->
-<head><base href="/"/>
-    <title>LatestSet - Sign in</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <link rel="shortcut icon" href="assets/media/logos/favicon.ico" />
-    <!--begin::Fonts(mandatory for all pages)-->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
-    <!--end::Fonts-->
-    <!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
-    <link href="assets/v1/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
-    <link href="assets/v1/css/style.bundle.css" rel="stylesheet" type="text/css" />
-    <!--end::Global Stylesheets Bundle-->
-    <script>// Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }</script>
-</head>
-<!--end::Head-->
-<!--begin::Body-->
-<body id="kt_body" class="app-blank bgi-size-cover bgi-attachment-fixed bgi-position-center">
-<!--begin::Theme mode setup on page load-->
-<script>var defaultThemeMode = "light"; var themeMode; if ( document.documentElement ) { if ( document.documentElement.hasAttribute("data-bs-theme-mode")) { themeMode = document.documentElement.getAttribute("data-bs-theme-mode"); } else { if ( localStorage.getItem("data-bs-theme") !== null ) { themeMode = localStorage.getItem("data-bs-theme"); } else { themeMode = defaultThemeMode; } } if (themeMode === "system") { themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } document.documentElement.setAttribute("data-bs-theme", themeMode); }</script>
-<!--end::Theme mode setup on page load-->
-<!--begin::Root-->
-<div class="d-flex flex-column flex-root" id="kt_app_root">
-    <!--begin::Authentication - Sign-in -->
-    <div class="d-flex flex-column flex-lg-row flex-column-fluid">
-        <!--begin::Body-->
-        <div class="d-flex flex-column flex-lg-row-fluid w-lg-50 p-10 order-2 order-lg-1">
-            <!--begin::Form-->
-            <div class="d-flex flex-center flex-column flex-lg-row-fluid">
-                <!--begin::Wrapper-->
-                <div class="w-lg-500px p-10">
-                    <!--begin::Form-->
-                    <form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" method="post" action="app/login/login" >
-                        <!--begin::Heading-->
-                        <div class="text-center mb-11">
-                            <!--begin::Title-->
-                            <h1 class="text-gray-900 fw-bolder mb-3">Giriş Yap</h1>
-                            <!--end::Title-->
-                            <!--begin::Subtitle-->
-                            <div class="text-gray-500 fw-semibold fs-6">Lütfen Kullanıcı Bilgilerinizi Giriniz</div>
-                            <!--end::Subtitle=-->
-                        </div>
-                        <!--begin::Heading-->
-                        <!--begin::Input group=-->
-                        <div class="fv-row mb-8">
-                            <!--begin::Email-->
-                            <input type="text" placeholder="Kullanıcı Adı" name="email" autocomplete="off" class="form-control bg-transparent" />
-                            <!--end::Email-->
-                        </div>
-                        <!--end::Input group=-->
-                        <div class="fv-row mb-3">
-                            <!--begin::Password-->
-                            <input type="password" placeholder="Parola" name="password" autocomplete="off" class="form-control bg-transparent" />
-                            <!--end::Password-->
-                        </div>
-                        <!--end::Input group=-->
-                        <!--begin::Submit button-->
-                        <div class="d-grid mb-10">
-                            <div onclick="submitForm()" id="kt_sign_in_submit" class="btn btn-primary">
-                                <!--begin::Indicator label-->
-                                <span class="indicator-label">Giriş yap</span>
-                                <!--end::Indicator label-->
-                                <!--begin::Indicator progress-->
-                                <span class="indicator-progress">Please wait...
-                                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
-                                <!--end::Indicator progress-->
-                            </div>
-                        </div>
-                        <!--end::Submit button-->
-                    </form>
-                    <!--end::Form-->
-                </div>
-                <!--end::Wrapper-->
-            </div>
-            <!--end::Form-->
+        <div class="text-center mb-10">
+            <img src="<?= $cDefinitions->appLogoPath() . 'VNLBIG.png' ?>" alt="<?= $cDefinitions->appName() ?>"
+                 class="h-45px mb-5"/>
+            <h1 class="fs-2x fw-bold mb-2"><?= lang('LOGIN_TITLE') ?></h1>
+            <div class="text-body-secondary"><?= lang('LOGIN_SUBTITLE') ?></div>
         </div>
-        <!--end::Body-->
-    </div>
-    <!--end::Authentication - Sign-in-->
-</div>
-<!--end::Root-->
-<!--begin::Javascript-->
-<script>var hostUrl = "assets/";</script>
-<!--begin::Global Javascript Bundle(mandatory for all pages)-->
-<script src="assets/v1/plugins/global/plugins.bundle.js"></script>
-<script src="assets/v1/js/scripts.bundle.js"></script>
-<!--end::Global Javascript Bundle-->
-<!--begin::Custom Javascript(used for this page only)-->
-<?php
-require_once view('includes/static/script-standard');
-require_once view('includes/footer/script-login');
 
-?>
-<!--end::Custom Javascript-->
-<!--end::Javascript-->
-</body>
-<!--end::Body-->
-</html>
+        <form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" method="post"
+              action="app/login/login" onsubmit="submitForm(); return false;">
+
+            <div class="mb-5">
+                <input type="text" placeholder="<?= lang('LOGIN_USERNAME') ?>" name="email"
+                       autocomplete="username" class="form-control form-control-solid"/>
+            </div>
+
+            <div class="mb-8 show-password">
+                <input type="password" placeholder="<?= lang('LOGIN_PASSWORD') ?>" name="password"
+                       autocomplete="current-password" class="form-control form-control-solid"/>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" id="kt_sign_in_submit" class="btn btn-primary">
+                    <span class="indicator-label"><?= lang('BTN_LOGIN') ?></span>
+                    <span class="indicator-progress"><?= lang('BTN_LOADING') ?>
+                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>

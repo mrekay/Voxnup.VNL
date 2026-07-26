@@ -39,7 +39,7 @@
                             <i class="fa-solid fa-code fs-3x text-info mb-4">
                             </i>
                             <h3 class="fs-4 fw-bold mb-2 text-body-emphasis">Geliştirme</h3>
-                            <p class="text-body-secondary mb-0">Metronic 8 Demo 13 bileşenleri ile bu arayüzü kendi ihtiyaçlarınıza göre genişletin.</p>
+                            <p class="text-body-secondary mb-0">VNL Theme bileşenleri (Bootstrap 5.3) ile bu arayüzü kendi ihtiyaçlarınıza göre genişletin.</p>
                         </div>
                     </div>
                 </div>

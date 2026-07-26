@@ -22,7 +22,7 @@
                             <span class="badge badge-circle badge-primary me-4 mt-1 fs-6 flex-shrink-0">1</span>
                             <div>
                                 <div class="fw-bold text-body mb-1">Stripe PHP SDK'yı yükle</div>
-                                <div class="bg-dark rounded p-3 mt-2">
+                                <div class="vnl-code mt-2">
                                     <code class="text-warning">cd libs &amp;&amp; composer require stripe/stripe-php</code>
                                 </div>
                             </div>
@@ -85,8 +85,8 @@
                     </div>
 
                     <p class="fw-bold text-body mb-3">Plan Tanımı</p>
-                    <div class="bg-dark rounded p-5 mb-5">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>'plans' => [
+                    <div class="vnl-code mb-5">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>'plans' => [
     [
         'id'          => 'pro',
         'name'        => 'Pro',
@@ -113,8 +113,8 @@
                     <h2 class="card-title fw-bold text-body-emphasis">Dosya Yapısı</h2>
                 </div>
                 <div class="card-body pt-2">
-                    <div class="bg-dark rounded p-5 mb-5">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>extensions/stripe/
+                    <div class="vnl-code mb-5">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>extensions/stripe/
 ├── boot.php                    ← Otomatik yüklenir. SDK kontrolü, config, sabit tanımları.
 ├── config.php                  ← API key'leri ve plan tanımları
 ├── setup.sql                   ← DB kurulum scripti
@@ -204,8 +204,8 @@
                     </div>
 
                     <p class="fw-bold text-body mb-3">Örnek Kullanım</p>
-                    <div class="bg-dark rounded p-5">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>// Checkout başlat (subscription)
+                    <div class="vnl-code">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// Checkout başlat (subscription)
 $customerId = StripeModule::getOrCreateCustomer($user->Id, $user->Email, $user->fullname());
 $session    = StripeModule::createCheckoutSession([
     'mode'        => 'subscription',
@@ -279,8 +279,8 @@ $session = StripeModule::createCheckoutSession([
                         </table>
                     </div>
 
-                    <div class="bg-dark rounded p-5">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>// JavaScript örneği
+                    <div class="vnl-code">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// JavaScript örneği
 $.post('/app/stripe/createCheckoutSession', {
     mode:        'subscription',
     price_id:    'price_xxx',

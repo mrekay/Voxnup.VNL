@@ -19,7 +19,7 @@
                         <div class="card-header border-0">
                             <h3 class="card-title fw-bold text-body-emphasis">Abonelik Durumu</h3>
                             <div class="card-toolbar">
-                                <button type="button" class="btn btn-sm btn-light-primary" id="btn-refresh-status">
+                                <button type="button" class="btn btn-sm btn-soft-primary" id="btn-refresh-status">
                                     <i class="fa-solid fa-arrows-rotate fs-4">
                                     </i>
                                     Yenile
@@ -45,7 +45,7 @@
 
                             <div class="d-flex flex-column gap-3">
 
-                                <a href="/stripe-test" class="btn btn-light-primary d-flex align-items-center justify-content-between p-5">
+                                <a href="/stripe-test" class="btn btn-soft-primary d-flex align-items-center justify-content-between p-5">
                                     <div class="d-flex align-items-center">
                                         <i class="fa-solid fa-tag fs-2 text-primary me-3">
                                         </i>
@@ -58,7 +58,7 @@
                                     </i>
                                 </a>
 
-                                <button type="button" class="btn btn-light-info d-flex align-items-center justify-content-between p-5" id="btn-billing-portal">
+                                <button type="button" class="btn btn-soft-info d-flex align-items-center justify-content-between p-5" id="btn-billing-portal">
                                     <div class="d-flex align-items-center">
                                         <i class="fa-solid fa-credit-card fs-2 text-info me-3">
                                         </i>
@@ -71,7 +71,7 @@
                                     </i>
                                 </button>
 
-                                <button type="button" class="btn btn-light-danger d-flex align-items-center justify-content-between p-5" id="btn-cancel-subscription">
+                                <button type="button" class="btn btn-soft-danger d-flex align-items-center justify-content-between p-5" id="btn-cancel-subscription">
                                     <div class="d-flex align-items-center">
                                         <i class="fa-solid fa-circle-xmark fs-2 text-danger me-3">
                                         </i>
@@ -84,7 +84,7 @@
                                     </i>
                                 </button>
 
-                                <button type="button" class="btn btn-light-success d-flex align-items-center justify-content-between p-5 d-none" id="btn-resume-subscription">
+                                <button type="button" class="btn btn-soft-success d-flex align-items-center justify-content-between p-5 d-none" id="btn-resume-subscription">
                                     <div class="d-flex align-items-center">
                                         <i class="fa-solid fa-circle-check fs-2 text-success me-3">
                                         </i>
@@ -146,21 +146,21 @@
 const STRIPE_DASHBOARD = {
 
     statusBadge: {
-        active:              '<span class="badge badge-light-success">Aktif</span>',
-        trialing:            '<span class="badge badge-light-info">Deneme</span>',
-        past_due:            '<span class="badge badge-light-danger">Gecikmiş Ödeme</span>',
-        canceled:            '<span class="badge badge-light-secondary">İptal Edildi</span>',
-        unpaid:              '<span class="badge badge-light-danger">Ödenmedi</span>',
-        incomplete:          '<span class="badge badge-light-warning">Tamamlanmadı</span>',
-        incomplete_expired:  '<span class="badge badge-light-secondary">Süresi Doldu</span>',
-        paused:              '<span class="badge badge-light-warning">Duraklatıldı</span>',
+        active:              '<span class="badge badge-soft-success">Aktif</span>',
+        trialing:            '<span class="badge badge-soft-info">Deneme</span>',
+        past_due:            '<span class="badge badge-soft-danger">Gecikmiş Ödeme</span>',
+        canceled:            '<span class="badge badge-soft-secondary">İptal Edildi</span>',
+        unpaid:              '<span class="badge badge-soft-danger">Ödenmedi</span>',
+        incomplete:          '<span class="badge badge-soft-warning">Tamamlanmadı</span>',
+        incomplete_expired:  '<span class="badge badge-soft-secondary">Süresi Doldu</span>',
+        paused:              '<span class="badge badge-soft-warning">Duraklatıldı</span>',
     },
 
     paymentBadge: {
-        paid:     '<span class="badge badge-light-success">Ödendi</span>',
-        pending:  '<span class="badge badge-light-warning">Bekliyor</span>',
-        failed:   '<span class="badge badge-light-danger">Başarısız</span>',
-        refunded: '<span class="badge badge-light-info">İade Edildi</span>',
+        paid:     '<span class="badge badge-soft-success">Ödendi</span>',
+        pending:  '<span class="badge badge-soft-warning">Bekliyor</span>',
+        failed:   '<span class="badge badge-soft-danger">Başarısız</span>',
+        refunded: '<span class="badge badge-soft-info">İade Edildi</span>',
     },
 
     loadStatus() {
@@ -178,7 +178,7 @@ const STRIPE_DASHBOARD = {
                     </div>`;
                 $('#btn-cancel-subscription, #btn-resume-subscription').addClass('d-none');
             } else {
-                const badge      = STRIPE_DASHBOARD.statusBadge[res.status] ?? `<span class="badge badge-light-secondary">${res.status}</span>`;
+                const badge      = STRIPE_DASHBOARD.statusBadge[res.status] ?? `<span class="badge badge-soft-secondary">${res.status}</span>`;
                 const periodEnd  = res.current_period_end ? new Date(res.current_period_end).toLocaleDateString('tr-TR') : '—';
                 const cancelNote = res.is_canceling
                     ? `<div class="notice d-flex bg-warning-subtle rounded border-warning border border-dashed mt-4 p-4">
@@ -234,7 +234,7 @@ const STRIPE_DASHBOARD = {
             let rows = '';
             payments.forEach(p => {
                 const amount  = (p.Amount / 100).toFixed(2);
-                const badge   = STRIPE_DASHBOARD.paymentBadge[p.Status] ?? `<span class="badge badge-light-secondary">${p.Status}</span>`;
+                const badge   = STRIPE_DASHBOARD.paymentBadge[p.Status] ?? `<span class="badge badge-soft-secondary">${p.Status}</span>`;
                 const date    = p.InsertDate ? new Date(p.InsertDate).toLocaleDateString('tr-TR') : '—';
                 const desc    = p.Description || '—';
 

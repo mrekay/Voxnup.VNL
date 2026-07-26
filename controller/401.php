@@ -1,9 +1,16 @@
 <?php
 
+http_response_code(401);
+
 $meta = [
-    'title' => '',
+    'title' => lang('ERR_401_TITLE'),
     'description' => '',
     'keywords' => ''
+];
+
+$page_config = [
+    'layout' => 'focus',
+    'public' => true,
 ];
 
 require view('static/header');

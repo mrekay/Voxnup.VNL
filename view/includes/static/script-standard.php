@@ -2,42 +2,31 @@
     $SITE_URL = '<?php echo SITE_URL; ?>';
     // vnl.js 401 yanıtında yalnızca oturumu düşmüş kullanıcıyı yeniden yükler; girişsizde 0 kalır.
     var VNL_USER_ID = <?= (int)$CurrentUser->id ?>;
-    var BTN_LOADING = 'Please Wait';
-    var LBL_COPIED = 'Copied to clipboard';
 
-    var DATATABLES_PROCESSING = 'Processing...';
-    var DATATABLES_LENGTHMENU = 'Show _MENU_ Entries per Page';
-    var DATATABLES_ZERORECORDS = 'No Matching Records Found';
-    var DATATABLES_INFO = 'Showing _START_ to _END_ of _TOTAL_ Entries';
-    var DATATABLES_INFOEMPTY = 'No Entries';
-    var DATATABLES_INFOFILTERED = '(filtered from _MAX_ total entries)';
-    var DATATABLES_INFOPOSTFIX = '';
-    var DATATABLES_SEARCH = 'Search:';
-    var DATATABLES_URL = '';
-    var DATATABLES_PAGINATE_FIRST = 'First';
-    var DATATABLES_PAGINATE_PREVIOUS = 'Previous';
-    var DATATABLES_PAGINATE_NEXT = 'Next';
-    var DATATABLES_PAGINATE_LAST = 'Last';
+    // JS'e aktarılan dil sözlüğü: yalnız istemcinin kullandığı anahtarlar
+    // (Language::all() bilinçli kullanılmıyor — tüm sözlük her sayfaya gömülmesin).
+    const VNL_LANG = <?= json_encode([
+        'BTN_LOADING' => lang('BTN_LOADING'),
+        'LBL_COPIED'  => lang('LBL_COPIED'),
+        'LBL_CLOSE'   => lang('LBL_CLOSE'),
+        'ERR_GENERAL' => lang('ERR_GENERAL'),
+    ], JSON_UNESCAPED_UNICODE) ?>;
 
-    var DATATABLES_BTN_SEARCH = ' Filters';
-    var DATATABLES_BTN_CLEAR = ' Clear Filters';
-    var DATATABLES_BTN_EXCEL_OUTPUT = ' Excel Export';
-    var DATATABLES_LBL_PLEASE_WRITE_FILTER = ' Please Enter Filter';
+    function vnlLang(key) {
+        return Object.prototype.hasOwnProperty.call(VNL_LANG, key) ? VNL_LANG[key] : key;
+    }
 
+    // Geriye uyumlu global değişkenler (vnl.js ve proje script'leri kullanıyor)
+    var BTN_LOADING = VNL_LANG.BTN_LOADING;
+    var LBL_COPIED = VNL_LANG.LBL_COPIED;
 </script>
 
-
-<!--begin::Global Javascript Bundle(mandatory for all pages)-->
-<script src="<?= $theme_path ?>plugins/global/plugins.bundle.js"></script>
-<script src="<?= $theme_path ?>js/scripts.bundle.js"></script>
-<script src="<?= $theme_path ?>js/widgets.bundle.js"></script>
-<script src="<?= $theme_path ?>plugins/custom/draggable/draggable.bundle.js"></script>
-<!--end::Global Javascript Bundle-->
-<!--begin::Vendors Javascript(used for this page only)-->
-<script src="<?= $theme_path ?>plugins/custom/datatables/datatables.bundle.js"></script>
-
+<!-- VNL Theme: vendor paketi (jquery + bootstrap + sweetalert2 + slim-select),
+     tema davranışları ve VNL çekirdek script'i. Script'ler head'de kalır:
+     view/modal dosyaları body içinde satır arası $(...) çalıştırıyor. -->
+<script src="<?= $assets_address ?>/vnl/js/vendors.min.js"></script>
+<script src="<?= $assets_address ?>/vnl/js/vnl.min.js"></script>
 <script src="<?= $assets_address ?>/scripts/vnl.js"></script>
-<script src="<?= $assets_address ?>/scripts/datatable.js"></script>
 
 <script>
 
@@ -46,8 +35,8 @@
             title: 'İşlem Seçiniz',
             showDenyButton: true,
             showCancelButton: false,
-            confirmButtonText: '<i class="fas fa-exchange-alt"></i> Fotoğrafı Değiştir',
-            denyButtonText: `<i class="fas fa-eye"></i> Görüntüle`,
+            confirmButtonText: '<i class="fa-solid fa-arrow-right-arrow-left"></i> Fotoğrafı Değiştir',
+            denyButtonText: '<i class="fa-solid fa-eye"></i> Görüntüle',
         }).then((result) => {
             if (result.isConfirmed) {
                 $('#techizat_image_input').click();
@@ -72,13 +61,13 @@
     }
 
 
-    const Toast = swal.mixin({
+    const Toast = Swal.mixin({
         toast: true,
         position: 'bottom-end',
         showConfirmButton: false,
         timer: 3000,
         timerProgressBar: true,
-        onOpen: (toast) => {
+        didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer);
             toast.addEventListener('mouseleave', Swal.resumeTimer)
         }
@@ -121,19 +110,15 @@
         )
     }
 
+    // Görsel önizleme: eski .image-modal (hiç çalışmayan .modal('show') çağrısı)
+    // yerine tema lightbox'ı. Çağrı imzası korunur.
     $(document).on('click', '.modal-image', function () {
         modalImageShowImageModal($(this).attr('src'), $(this).attr('alt'));
     });
 
     function modalImageShowImageModal($src, $alt) {
-        $('.image-modal').modal('show');
-        $('.image-modal-content').attr('src', $src);
-        $('.image-caption').html($alt);
+        if (window.vnlLightbox) vnlLightbox($src, $alt);
     }
-
-    $('.image-modal-close').click(function () {
-        $('.image-modal').modal('hide');
-    });
 
 
     function isMobile() {

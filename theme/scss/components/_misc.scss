@@ -86,6 +86,16 @@
   50% { opacity: 0; }
 }
 
+// Hata sayfası kodu (401/404) — tipografik, görsel bağımlılığı yok
+.vnl-error-code {
+  font-family: var(--bs-font-monospace);
+  font-size: clamp(5rem, 16vw, 8rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.045em;
+  color: var(--bs-primary);
+}
+
 // Temaya göre görünürlük
 .theme-dark-show { display: none !important; }
 

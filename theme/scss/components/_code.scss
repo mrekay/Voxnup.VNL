@@ -5,8 +5,9 @@
 // (mühendislik-araç kimliğinin parçası).
 // ============================================================
 
+// Hem `<pre class="vnl-code">` hem `<div class="vnl-code"><pre>` biçimini
+// destekler (docs sayfalarında iki desen de yaşıyor).
 .vnl-code {
-  margin-bottom: 0;
   padding: 1rem 1.25rem;
   background: #0b0f0e;
   color: #d5ded9;
@@ -17,6 +18,21 @@
   line-height: 1.6;
   overflow-x: auto;
   tab-size: 4;
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  pre {
+    margin: 0;
+    padding: 0;
+    background: transparent !important; // eski inline style="background:transparent" kalıntılarıyla uyum
+    border: 0;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: inherit;
+    overflow: visible;
+  }
 
   code {
     padding: 0;
@@ -24,6 +40,10 @@
     color: inherit;
     font-size: inherit;
   }
+}
+
+pre.vnl-code {
+  margin-bottom: 0;
 }
 
 // Satır içi kod: iki temada da okunur kalsın

@@ -48,8 +48,8 @@
                             </div>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>use PhpOffice\PhpSpreadsheet\Spreadsheet;
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
@@ -126,8 +126,8 @@ $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
                             Özel rapor formatları, çok sayfalı çalışma kitapları veya özel şablonlar için action içinde PhpSpreadsheet API'sini doğrudan kullanabilirsiniz. Veri çekimi her zaman model sınıfı üzerinden yapılmalıdır.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // actions/action_rapor.php
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -255,11 +255,11 @@ class action_rapor
 
                         <h5 class="fw-bold text-body-emphasis mb-3">Tip Sabitleri (<code>DataType</code>)</h5>
                         <div class="d-flex flex-wrap gap-3 mb-5">
-                            <span class="badge badge-light-primary fs-7 p-3 font-monospace">DataType::TYPE_STRING</span>
-                            <span class="badge badge-light-success fs-7 p-3 font-monospace">DataType::TYPE_NUMERIC</span>
-                            <span class="badge badge-light-info fs-7 p-3 font-monospace">DataType::TYPE_BOOL</span>
-                            <span class="badge badge-light-warning fs-7 p-3 font-monospace">DataType::TYPE_FORMULA</span>
-                            <span class="badge badge-light-danger fs-7 p-3 font-monospace">DataType::TYPE_NULL</span>
+                            <span class="badge badge-soft-primary fs-7 p-3 font-monospace">DataType::TYPE_STRING</span>
+                            <span class="badge badge-soft-success fs-7 p-3 font-monospace">DataType::TYPE_NUMERIC</span>
+                            <span class="badge badge-soft-info fs-7 p-3 font-monospace">DataType::TYPE_BOOL</span>
+                            <span class="badge badge-soft-warning fs-7 p-3 font-monospace">DataType::TYPE_FORMULA</span>
+                            <span class="badge badge-soft-danger fs-7 p-3 font-monospace">DataType::TYPE_NULL</span>
                         </div>
                     </div>
                     <!--end::Section 4-->
@@ -292,12 +292,12 @@ class action_rapor
                                 </thead>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
-                                    <td class="ps-5"><span class="badge badge-light-primary">A1</span></td>
+                                    <td class="ps-5"><span class="badge badge-soft-primary">A1</span></td>
                                     <td>Başlık Stili</td>
                                     <td>Bu hücrenin font, arka plan, kenarlık ve hizalama stilleri başlık satırına uygulanır. <code>duplicateStyle($baslikStil, 'A1:Z1')</code> ile çoğaltılır.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><span class="badge badge-light-success">A2</span></td>
+                                    <td class="ps-5"><span class="badge badge-soft-success">A2</span></td>
                                     <td>Veri Satırı Stili</td>
                                     <td>Bu hücrenin stilleri tüm veri satırlarına uygulanır. Her satır için <code>duplicateStyle($veriStil, 'A' . $n . ':Z' . $n)</code> çağrılır.</td>
                                 </tr>

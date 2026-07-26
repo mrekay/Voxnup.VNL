@@ -75,32 +75,32 @@
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$table</code></td>
-                                    <td><span class="badge badge-light-danger">Zorunlu</span></td>
+                                    <td><span class="badge badge-soft-danger">Zorunlu</span></td>
                                     <td>Modelin bağlı olduğu veritabanı tablo adı. Örn: <code>'tbl_urunler'</code></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$fillable</code></td>
-                                    <td><span class="badge badge-light-warning">Zorunlu Gibi</span></td>
+                                    <td><span class="badge badge-soft-warning">Zorunlu Gibi</span></td>
                                     <td>Toplu atama ile doldurulabilecek sütun adları. Felsefe gereği <b>şiddetle önerilir</b>; tüm yazılabilir sütunlar burada tanımlanmalıdır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$foreign_keys</code></td>
-                                    <td><span class="badge badge-light-warning">Zorunlu Gibi</span></td>
+                                    <td><span class="badge badge-soft-warning">Zorunlu Gibi</span></td>
                                     <td>İlişki tanımları. Felsefe gereği <b>şiddetle önerilir</b>. Format: <code>['kategori' => ['class' => Kategori::class, 'column' => 'kategori_id']]</code></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>protected static $columns</code></td>
-                                    <td><span class="badge badge-light-danger">Kesinlikle Zorunlu</span></td>
+                                    <td><span class="badge badge-soft-danger">Kesinlikle Zorunlu</span></td>
                                     <td><code>SelectList</code> içinde filtrelenecek ve seçilecek sütunların listesi. Bu alan <b>doldurulmak zorundadır</b>, boş bırakılmamalıdır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>SoftDeletes trait</code></td>
-                                    <td><span class="badge badge-light-warning">Zorunlu Gibi</span></td>
+                                    <td><span class="badge badge-soft-warning">Zorunlu Gibi</span></td>
                                     <td>Silme işlemini fiziksel silme yerine <code>deleted_at</code> doldurarak yapar. Felsefe gereği tüm modellerde kullanılmalıdır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$primaryKey</code></td>
-                                    <td><span class="badge badge-light-success">Opsiyonel</span></td>
+                                    <td><span class="badge badge-soft-success">Opsiyonel</span></td>
                                     <td>Birincil anahtar sütunu. Varsayılan: <code>'id'</code>. Farklıysa belirtin.</td>
                                 </tr>
                                 </tbody>
@@ -157,8 +157,8 @@
                             <span class="fs-5 fw-bold text-body font-monospace">classes/Urun.php</span>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 
 class Urun extends TableModel
 {
@@ -224,8 +224,8 @@ class Urun extends TableModel
                             <span class="text-body fs-6"><code>SelectList</code> bir query builder döndürür. Sonuçları almak için mutlaka <code>->get()</code> çağrılmalıdır. Bu kural olmadan veri gelmez.</span>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tek kayıt — id ile
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tek kayıt — id ile
 $urun = Urun::Select(['u.Id' => 42]);
 
 // Filtrelenmiş liste — sayfalı — ->get() ZORUNLU
@@ -255,8 +255,8 @@ $tumListe = Urun::SelectList($filters, ['limit' => -1])->get();
                         </p>
 
                         <h5 class="fw-bold text-body-emphasis mb-3"><code>$filters</code> Formatı</h5>
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Kısa biçim — eşitlik kontrolü
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Kısa biçim — eşitlik kontrolü
 $filters = [
     'u.aktif' => 1,
     'u.ad'    => 'bisiklet',
@@ -353,9 +353,9 @@ $filters = [
                         <div class="row g-5 mb-6">
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100">
-                                    <span class="badge badge-light-danger mb-3">Soft Delete (Standart)</span>
-                                    <div class="bg-dark rounded p-3">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// deleted_at doldurulur
+                                    <span class="badge badge-soft-danger mb-3">Soft Delete (Standart)</span>
+                                    <div class="vnl-code">
+                                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// deleted_at doldurulur
 // Kayıt hâlâ tabloda durur
 Urun::where('Id', $id)
     ->update(['DeleteUser' => Auth::User()->Id]);
@@ -365,9 +365,9 @@ Urun::where('Id', $id)->delete();</code></pre>
                             </div>
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100">
-                                    <span class="badge badge-light-primary mb-3">Update (Standart)</span>
-                                    <div class="bg-dark rounded p-3">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$urun = Urun::Select(['Id' => $id]);
+                                    <span class="badge badge-soft-primary mb-3">Update (Standart)</span>
+                                    <div class="vnl-code">
+                                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>$urun = Urun::Select(['Id' => $id]);
 $urun->ad = $yeniAd;
 $urun->fiyat = $yeniFiyat;
 $urun->UpdateDate = now();
@@ -378,9 +378,9 @@ $urun->save();</code></pre>
                             </div>
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100">
-                                    <span class="badge badge-light-success mb-3">Insert (Standart)</span>
-                                    <div class="bg-dark rounded p-3">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$urun = new Urun();
+                                    <span class="badge badge-soft-success mb-3">Insert (Standart)</span>
+                                    <div class="vnl-code">
+                                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>$urun = new Urun();
 $urun->ad = $ad;
 $urun->fiyat = $fiyat;
 $urun->InsertDate = now();
@@ -418,8 +418,8 @@ $urun->save();</code></pre>
                                             <i class="fa-solid fa-circle-xmark fs-2 text-danger me-3"></i>
                                             <h6 class="mb-0 fw-bold text-danger">Yapma — Spagetti Kodu</h6>
                                         </div>
-                                        <div class="bg-dark rounded p-3">
-                                            <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Controller içinde doğrudan sorgu
+                                        <div class="vnl-code">
+                                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Controller içinde doğrudan sorgu
 $list = Capsule::table('tbl_urunler')
     ->where('aktif', 1)
     ->get();</code></pre>
@@ -435,8 +435,8 @@ $list = Capsule::table('tbl_urunler')
                                             <i class="fa-solid fa-circle-check fs-2 text-success me-3"></i>
                                             <h6 class="mb-0 fw-bold text-success">Yap — VNL Standardı</h6>
                                         </div>
-                                        <div class="bg-dark rounded p-3">
-                                            <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Model üzerinden statik çağrı
+                                        <div class="vnl-code">
+                                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Model üzerinden statik çağrı
 $list = Urun::SelectList(
     ['u.aktif' => 1], []
 )->get();</code></pre>

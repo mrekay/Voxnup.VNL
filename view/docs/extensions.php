@@ -18,8 +18,8 @@
                     <p class="fs-5 text-body mb-6">
                         VNL başlangıcında (<code>libs/config.php</code>) aşağıdaki glob çalışır ve bulunan tüm <code>boot.php</code> dosyaları sırayla yüklenir:
                     </p>
-                    <div class="bg-dark rounded p-5 mb-8">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>// libs/config.php
+                    <div class="vnl-code mb-8">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// libs/config.php
 foreach (glob(getDocumentRoot() . 'extensions/*/boot.php') as $_extBoot) {
     require_once $_extBoot;
 }
@@ -29,8 +29,8 @@ foreach (glob(getDocumentRoot() . 'extensions/*/boot.php') as $_extBoot) {
                     <p class="fs-5 text-body mb-6">
                         Action ve controller routing'i de extension klasörlerine fallback yapar:
                     </p>
-                    <div class="bg-dark rounded p-5 mb-8">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>// controller/app.php — action fallback
+                    <div class="vnl-code mb-8">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// controller/app.php — action fallback
 if (!file_exists($action_path)) {
     foreach (glob(getDocumentRoot() . 'extensions/*/actions/action_' . route(1) . '.php') as $_extAction) {
         $action_path = $_extAction;
@@ -56,8 +56,8 @@ foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_
                 </div>
                 <div class="card-body pt-2">
                     <p class="fs-5 text-body mb-5">Her eklenti <code>extensions/{eklenti-adi}/</code> altında şu yapıyı takip eder:</p>
-                    <div class="bg-dark rounded p-5 mb-8">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>extensions/
+                    <div class="vnl-code mb-8">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>extensions/
 └── my-extension/
     ├── boot.php            ← Otomatik yüklenir. Autoloader, config, sınıf yükleme buraya.
     ├── config.php          ← Eklentiye özgü ayarlar (kullanıcı düzenler)
@@ -88,8 +88,8 @@ foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_
                     <p class="fs-5 text-body mb-5">
                         <code>boot.php</code>, VNL'in config pipeline'ı tamamlandıktan sonra çalışır. Bu noktada Eloquent, Composer autoloader ve tüm VNL yardımcıları kullanılabilir durumdadır.
                     </p>
-                    <div class="bg-dark rounded p-5 mb-8">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>&lt;?php
+                    <div class="vnl-code mb-8">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>&lt;?php
 
 defined('MY_EXT_PATH') || define('MY_EXT_PATH', __DIR__);
 
@@ -124,8 +124,8 @@ require_once MY_EXT_PATH . '/src/MyModel.php';
                     <p class="fs-5 text-body mb-5">
                         Extension controller'ları standart VNL controller'larıyla özdeştir. VNL layout bileşenleri (<code>view('static/header')</code> vb.) kullanılabilir, ancak sayfa içeriği için extension'ın kendi view klasörü kullanılır.
                     </p>
-                    <div class="bg-dark rounded p-5 mb-8">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>&lt;?php
+                    <div class="vnl-code mb-8">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>&lt;?php
 // extensions/my-extension/controller/my-page.php
 
 $meta = [
@@ -165,8 +165,8 @@ require view('static/footer');                              // VNL layout
                     <p class="fs-5 text-body mb-5">
                         Action dosyaları standart VNL action'larıyla aynı kurallara uyar. <code>/app/{module}/{method}</code> pattern'ı extension action'larında da çalışır.
                     </p>
-                    <div class="bg-dark rounded p-5 mb-8">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>&lt;?php
+                    <div class="vnl-code mb-8">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>&lt;?php
 // extensions/my-extension/actions/action_myext.php
 
 use ActionGlobal\Auth;
@@ -198,8 +198,8 @@ class action_myext
                     <p class="fs-5 text-body mb-5">
                         Extension modelleri <code>TableModel</code>'i extend eder; Eloquent'in tüm özellikleri ve VNL'in <code>selectListQuery</code> yardımcısı kullanılabilir.
                     </p>
-                    <div class="bg-dark rounded p-5 mb-8">
-                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>&lt;?php
+                    <div class="vnl-code mb-8">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>&lt;?php
 // extensions/my-extension/src/MyModel.php
 
 use Illuminate\Database\Eloquent\SoftDeletes;

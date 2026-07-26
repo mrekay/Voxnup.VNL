@@ -50,7 +50,7 @@ $cancelUrl   = SITE_URL . '/stripe-test';
                         <div class="w-100 d-flex flex-column flex-center rounded-3 bg-body py-15 px-10 <?= $plan['popular'] ? 'border border-2 border-primary shadow' : '' ?>">
                             <?php if ($plan['popular']): ?>
                             <div class="mb-7 text-center">
-                                <span class="badge badge-light-primary py-2 px-4 fs-7 fw-semibold">En Popüler</span>
+                                <span class="badge badge-soft-primary py-2 px-4 fs-7 fw-semibold">En Popüler</span>
                             </div>
                             <?php endif; ?>
 

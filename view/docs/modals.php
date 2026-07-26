@@ -69,8 +69,8 @@
                             Modal'lar, sayfanın içerik view'larından <b>sonra</b> ve <code>static/footer</code>'dan <b>önce</b> yüklenir. Bu sıra, JavaScript'in modal DOM'una erişebilmesi için önemlidir.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // Dosya: controller/kullanici.php
 
 $meta        = ['title' => 'Kullanıcılar', 'upper_title' => 'Yönetim'];
@@ -113,8 +113,8 @@ require view('static/footer');
                             Her modal dosyası Bootstrap 5 modal HTML'i ve isteğe bağlı olarak bu modal'a özel JavaScript/AJAX kodunu içerir. PHP değişkenleri (controller'dan gelenler dahil) modal dosyasında kullanılabilir.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;!-- Dosya: view/includes/modals/kullanici/KullaniciEkle.php --&gt;
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;!-- Dosya: view/includes/modals/kullanici/KullaniciEkle.php --&gt;
 
 &lt;!--begin::Modal - Kullanıcı Ekle--&gt;
 &lt;div class="modal fade" id="modal_kullanici_ekle" tabindex="-1" aria-hidden="true"&gt;
@@ -124,10 +124,7 @@ require view('static/footer');
             &lt;!--begin::Modal header--&gt;
             &lt;div class="modal-header"&gt;
                 &lt;h2 class="fw-bold"&gt;Yeni Kullanıcı Ekle&lt;/h2&gt;
-                &lt;div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal"&gt;
-                    &lt;i class="fa-solid fa-xmark fs-1"&gt;
-                    &lt;/i&gt;
-                &lt;/div&gt;
+                &lt;button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"&gt;&lt;/button&gt;
             &lt;/div&gt;
             &lt;!--end::Modal header--&gt;
 
@@ -201,8 +198,8 @@ $('#btn_kullanici_kaydet').on('click', function () {
                             Controller'da tanımlanan değişkenlere modal dosyasından doğrudan erişilebilir. Bu sayede dropdown'ları veritabanından doldurabilir ya da düzenleme modal'larına mevcut veriyi aktarabilirsiniz.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-0">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-0">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // controller/kullanici.php
 
 $roller       = Permission::SelectList([], [])->get(); // Modal'da kullanılacak veri
@@ -215,8 +212,8 @@ require view('static/footer');
 </code></pre>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mt-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;!-- view/includes/modals/kullanici/KullaniciEkle.php --&gt;
+                        <div class="vnl-code mt-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;!-- view/includes/modals/kullanici/KullaniciEkle.php --&gt;
 &lt;select class="form-select form-select-solid" id="inp_kullanici_rol"&gt;
     &lt;option value=""&gt;Rol Seçin&lt;/option&gt;
     &lt;?php foreach ($roller as $rol): ?&gt;
@@ -266,8 +263,8 @@ require view('static/footer');
                             </ul>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // controller/kullanici.php — modal'lar sayfa klasöründen yüklenir
 
 require view('static/header');

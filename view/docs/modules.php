@@ -54,8 +54,8 @@
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-4">
-                            <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Parola hash'leme
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Parola hash'leme
 $hashli = EncryptionModule::PasswordEncrypt($req->post('password'));
 
 // Cookie için şifreleme
@@ -122,8 +122,8 @@ if ($veri) { /* kullan */ }
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-4">
-                            <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>echo DateTimeModule::ConvertTrDate('2024-06-15 10:30:00');
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>echo DateTimeModule::ConvertTrDate('2024-06-15 10:30:00');
 // → "15.06.2024 10:30:00"
 
 echo DateTimeModule::ago('2024-06-10 08:00:00', 'tr');
@@ -208,8 +208,8 @@ $gg = DateTimeModule::DiffDay('2024-01-01', '2024-12-31');
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-4">
-                            <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// URL slug oluşturma
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// URL slug oluşturma
 $slug = TextGeneralModule::SafeURL('Ürün Adı & Açıklama');
 // → "urun-adi-aciklama"
 
@@ -264,8 +264,8 @@ echo TextGeneralModule::NumberFormatTR(1234567.89, 2);
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-4">
-                            <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Action içinde dosya yükleme
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Action içinde dosya yükleme
 $dosya = $req->file('dosya'); // $_FILES['dosya']
 $hedef = getDocumentRoot() . 'files/belgeler/' . Auth::User()->Id . '/';
 
@@ -321,8 +321,8 @@ FileManagerModule::DeleteFile(getDocumentRoot() . $belge->DosyaYolu);
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-4">
-                            <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// JSON API'ye POST
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// JSON API'ye POST
 $yanit = CurlModule::Post(
     'https://api.example.com/orders',
     ['order_id' => 123, 'status' => 'confirmed'],
@@ -385,8 +385,8 @@ $data = CurlModule::GetCurlPage('https://api.example.com/products', 5, true);
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-4">
-                            <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Önemli bir olayı logla
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Önemli bir olayı logla
 LogModule::SetEventLog(
     '[' . date('Y-m-d H:i:s') . '] User #' . Auth::User()->Id . ' deleted product #' . $product_id
 );
@@ -439,7 +439,7 @@ LogModule::SetMysqErrorlLog(
                     <!--begin::ArrayModule-->
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
-                            <span class="badge badge-circle badge-light me-3 fs-5 text-body-emphasis border">A</span>
+                            <span class="badge badge-circle badge-soft-secondary me-3 fs-5">A</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">ArrayModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/ArrayModule.php</span>
                         </div>
@@ -522,8 +522,8 @@ LogModule::SetMysqErrorlLog(
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-4">
-                            <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$videoId = SocialLinkModule::IsYoutubeLink($url);
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>$videoId = SocialLinkModule::IsYoutubeLink($url);
 if (!empty($videoId)) {
     echo '&lt;iframe src="https://www.youtube.com/embed/' . $videoId . '"&gt;&lt;/iframe&gt;';
 }

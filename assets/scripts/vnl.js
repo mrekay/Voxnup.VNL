@@ -92,21 +92,56 @@ var dateRangePickerSettings2 = (typeof moment === 'undefined') ? null : {
     }
 };
 
+/**
+ * Select altyapısı: select2 söküldü, SlimSelect'e köprü.
+ * Sözleşme VNL 2.x ile aynıdır: `select.select2[action]` seçicisi, `prm_*`
+ * attribute'ları POST parametresi olur, `no-option`/`multiple` yoksa
+ * value="0" "Seçiniz" seçeneği eklenir (ClearForm .val(0) buna dayanır),
+ * `async` attribute'u senkron/asenkron davranışı korur. Fonksiyon adı
+ * dış projelerdeki çağrılar için değişmedi.
+ */
+function vnlSelectInit(el) {
+    if (typeof SlimSelect === 'undefined') return;
+
+    if (el.slim) {
+        el.slim.destroy();
+        el.slim = null;
+    }
+
+    var settings = {
+        showSearch: true,
+        allowDeselect: false,
+        searchPlaceholder: 'Ara…',
+        searchText: 'Sonuç yok',
+    };
+
+    if (el.hasAttribute('tags')) {
+        settings.addable = function (value) {
+            return value;
+        };
+    }
+
+    new SlimSelect({select: el, settings: settings});
+}
+
 function select2Reload(input) {
 
     $.each(input, function () {
         var parameters = {};
         var this_input = $(this);
+        var el = this;
         var async_mode = true;
-
-        var container = this_input.parent().find('.select2-container');
-        container.append('<img src="">')
 
         $.each(this.attributes, function () {
             if (this.name.startsWith('prm_')) {
                 parameters[(this.name).substring(4)] = this.value;
             }
         });
+
+        if (el.slim) {
+            el.slim.destroy();
+            el.slim = null;
+        }
 
         this_input.empty()
         if (!this_input.attr('no-option') && !this_input.attr('multiple')) {
@@ -116,45 +151,41 @@ function select2Reload(input) {
 
         if (this_input.attr('action')) {
             async_mode = !this_input.attr('async');
-            container.addClass('disabled');
-            setTimeout(function () {
-                $.ajax({
-                    dataType: 'json',
-                    type: 'POST',
-                    async: async_mode,
-                    url: this_input.attr('action'),
-                    data: parameters,
-                    success: function (response) {
-                        container.removeClass('disabled');
-                        this_input.select2({
-                            data: response,
-                        });
-
-                    }
-                });
-            }, 0);
-
+            $.ajax({
+                dataType: 'json',
+                type: 'POST',
+                async: async_mode,
+                url: this_input.attr('action'),
+                data: parameters,
+                success: function (response) {
+                    $.each(response, function (i, item) {
+                        this_input.append(new Option(item.text, item.id, false, false));
+                    });
+                    vnlSelectInit(el);
+                }
+            });
+        } else {
+            vnlSelectInit(el);
         }
     });
 }
 
+// Eski adın yanına nötr takma ad
+var selectReload = select2Reload;
+
 
 function elementReady() {
-    $('[data-toggle="tooltip"]').tooltip();
-    try {
-        $('select.select2').select2({
-            theme: 'bootstrap4',
-        });
-
-        $('select.select2[tags]').addClass('w-100').select2({
-            tags: true
-        });
-
-    } catch {
-
+    if (window.vnlTooltips) {
+        vnlTooltips(document);
     }
 
-
+    // ajaxStop her AJAX sonrasında buraya düşer; instance'lı select'e
+    // yeniden init UI çoğaltır — el.slim işareti çifte init'i engeller.
+    $('select.select2').each(function () {
+        if (!this.slim) {
+            vnlSelectInit(this);
+        }
+    });
 }
 
 $(document).on('click', '[data-toggle="tooltip"]', function (e) {
@@ -244,7 +275,13 @@ function isMobileScreen() {
 
 function ClearForm($form) {
     $form.find("input[type!='checkbox'], textarea").not('.no-clear').val("");
-    $form.find("select").not('.no-clear').val(0).trigger('change');
+    $form.find("select").not('.no-clear').each(function () {
+        // SlimSelect'li select'lerde UI'ın da sıfırlanması için instance API'si
+        if (this.slim) {
+            this.slim.setSelected('0');
+        }
+        $(this).val(0).trigger('change');
+    });
     $form.find("input[type='checkbox']").not('.no-clear').prop('checked', false);
 
 }

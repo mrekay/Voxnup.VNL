@@ -147,8 +147,8 @@
                             Çoğu metotta bulunan <code>$region</code> parametresi, hata mesajına alan adını eklemek için kullanılır. Dil sistemi ile entegre çalışır; hata mesajı <code>sprintf</code> ile formatlanır.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tüm validatörler statik olarak çağrılır
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tüm validatörler statik olarak çağrılır
 
 // $region belirtilmeden — genel mesaj
 DefaultValidator::validateEmptyString($ad);
@@ -187,8 +187,8 @@ DefaultValidator::validateEmptyDate($tarih, 'Başlangıç Tarihi');
                             <span class="fs-5 fw-bold text-body font-monospace">validators/UserValidator.php</span>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 
 class UserValidator extends DefaultValidator
 {
@@ -238,8 +238,8 @@ class UserValidator extends DefaultValidator
                             Validator metotları action sınıflarında doğrudan çağrılır. <code>StandartException</code> otomatik olarak işlendiğinden <code>try-catch</code> bloğuna gerek yoktur.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // Dosya: actions/action_kullanici.php
 // Validatörler ve modüller statik olarak çağrılır
 
@@ -305,10 +305,10 @@ class action_kullanici
                         <div class="row g-5 mb-5">
                             <div class="col-md-6">
                                 <div class="border border-dashed border-danger rounded p-5 h-100">
-                                    <span class="badge badge-light-danger mb-3 fs-7">StandartException</span>
+                                    <span class="badge badge-soft-danger mb-3 fs-7">StandartException</span>
                                     <p class="text-body fs-6 mb-3">Constructor'da doğrudan <code>returnErrorMessage()</code> çağırır. Validator metotlarından ve action sınıflarından fırlatılır.</p>
-                                    <div class="bg-dark rounded p-3">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new StandartException(
+                                    <div class="vnl-code">
+                                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new StandartException(
     'Hata mesajı buraya'
 );</code></pre>
                                     </div>
@@ -316,10 +316,10 @@ class action_kullanici
                             </div>
                             <div class="col-md-6">
                                 <div class="border border-dashed border-warning rounded p-5 h-100">
-                                    <span class="badge badge-light-warning mb-3 fs-7">EmptyDataException</span>
+                                    <span class="badge badge-soft-warning mb-3 fs-7">EmptyDataException</span>
                                     <p class="text-body fs-6 mb-3">Boş veri durumları için özelleştirilmiş hata sınıfı. <code>ErrorMessage</code> sınıfı üzerinden <code>returnErrorMessage()</code>'ı çağırır.</p>
-                                    <div class="bg-dark rounded p-3">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new EmptyDataException(
+                                    <div class="vnl-code">
+                                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new EmptyDataException(
     'Ad', // alan adı
 );</code></pre>
                                     </div>

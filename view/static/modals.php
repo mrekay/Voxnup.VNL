@@ -1,14 +1,12 @@
 <?php
-if (!empty($CurrentUser->id) || $CurrentUser->id > 0) { ?>
-    <!-- Image Modal -->
-    <div class="image-modal" style="z-index: 1100;display: none">
-        <span class="image-modal-close">&times;</span>
-        <div class="d-flex flex-column h-100">
-            <img class="image-modal-content">
-            <div class="image-caption"></div>
-        </div>
-    </div>
-
-
-
-<?php } ?>
+/**
+ * Proje modalları için toplama noktası.
+ *
+ * Modal şablonlarınızı view/includes/modals/ altına koyup buradan (ya da
+ * ilgili sayfanın footer script'inden) require edebilirsiniz — bkz.
+ * docs/view-includes ve docs/modals.
+ *
+ * Görsel önizleme artık tema lightbox'ıdır: vnlLightbox(src, caption) veya
+ * bir <img>'e .modal-image sınıfı vermek yeterlidir; eski .image-modal
+ * markup'ı (hiç çalışmayan .modal('show') çağrısıyla birlikte) kaldırıldı.
+ */

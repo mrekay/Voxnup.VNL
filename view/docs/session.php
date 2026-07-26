@@ -92,8 +92,8 @@
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Oturum açma (action içinde)
+                        <div class="vnl-code">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Oturum açma (action içinde)
 Session::set('login', true);
 Session::set('user_id', $kullanici->id);
 
@@ -126,8 +126,8 @@ exit;
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <h6 class="fw-bold mb-4">SetUser() Sonrası Session Anahtarları</h6>
                                     <ul class="list-unstyled fs-6 mb-0">
-                                        <li class="mb-2"><code>login</code> → <span class="badge badge-light-success">true</span></li>
-                                        <li class="mb-2"><code>lock</code> → <span class="badge badge-light-danger">false</span></li>
+                                        <li class="mb-2"><code>login</code> → <span class="badge badge-soft-success">true</span></li>
+                                        <li class="mb-2"><code>lock</code> → <span class="badge badge-soft-danger">false</span></li>
                                         <li class="mb-2"><code>user_id</code> → <code>$user->id</code></li>
                                         <li class="mb-0"><code>login_time</code> → <code>time()</code></li>
                                     </ul>
@@ -143,8 +143,8 @@ exit;
                             </div>
                         </div>
 
-                        <div class="bg-dark rounded p-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // actions/action_login.php örnek kalıbı
 
 class action_login
@@ -193,8 +193,8 @@ class action_login
                             <code>$CurrentUser</code>, <code>User</code> sınıfının bir örneğidir ve her istekte global olarak kullanılabilir. Giriş yapılmamışsa boş bir <code>User</code> nesnesidir (<code>id = 0</code> veya <code>null</code>).
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // Controller veya View içinden kullanım
 global $CurrentUser;
 

@@ -1,9 +1,16 @@
 <?php
 
+http_response_code(404);
+
 $meta = [
-    'title' => '404',
+    'title' => lang('ERR_404_TITLE'),
     'description' => '',
     'keywords' => ''
+];
+
+$page_config = [
+    'layout' => 'focus',
+    'public' => true,
 ];
 
 require view('static/header');

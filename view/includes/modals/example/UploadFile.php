@@ -36,10 +36,7 @@
                     <h2 class="fw-bold">Upload files</h2>
                     <!--end::Modal title-->
                     <!--begin::Close-->
-                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-                        <i class="fa-solid fa-xmark fs-1" onclick="clearUploadFileModal()">
-                        </i>
-                    </div>
+                    <button type="button" class="btn-close" onclick="clearUploadFileModal()" data-bs-dismiss="modal" aria-label="Kapat"></button>
                     <!--end::Close-->
                 </div>
                 <!--end::Modal header-->

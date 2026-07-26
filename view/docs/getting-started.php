@@ -5,7 +5,7 @@
             <div class="text-center mb-15 mt-10">
                 <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">VNL'ye Giriş</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    VNL, PHP tabanlı, Illuminate (Eloquent/Capsule) ORM kullanan, Metronic 8 + Bootstrap 5 ile tasarlanmış bir uygulama şablonudur.
+                    VNL, PHP tabanlı, Illuminate (Eloquent/Capsule) ORM kullanan, Bootstrap 5.3 üzerine inşa edilen VNL Theme ile gelen bir uygulama şablonudur.
                     Rota tanımlaması, ORM kurulumu ve frontend entegrasyonu hazır gelir — siz doğrudan iş mantığınızı yazmaya başlarsınız.
                 </div>
             </div>
@@ -212,7 +212,7 @@
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>assets/</b><span class="text-muted fw-normal ms-2">— CSS, JS, görseller. Metronic 8 tema dosyaları <code>assets/v1/</code> içindedir.</span></div>
+                                    <div><b>assets/</b><span class="text-muted fw-normal ms-2">— CSS, JS, görseller. Derlenmiş VNL Theme çıktısı <code>assets/vnl/</code> içindedir (kaynağı: <code>theme/</code>).</span></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
@@ -266,12 +266,12 @@
                             <div class="col-md-6">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <div class="d-flex align-items-center mb-3">
-                                        <span class="badge badge-light-primary me-3">1</span>
+                                        <span class="badge badge-soft-primary me-3">1</span>
                                         <h6 class="mb-0 fw-bold">Controller</h6>
                                     </div>
                                     <code class="fs-7 text-muted d-block mb-1">controller/musteriler.php</code>
-                                    <div class="bg-dark rounded p-3 mt-3">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent;white-space:pre-wrap"><code>&lt;?php
+                                    <div class="vnl-code mt-3">
+                                        <pre class="mb-0" style="background:transparent;white-space:pre-wrap"><code>&lt;?php
 $meta = [
     'title'       => 'Müşteriler',
     'upper_title' => 'CRM',
@@ -294,12 +294,12 @@ require view('static/footer');</code></pre>
                             <div class="col-md-6">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <div class="d-flex align-items-center mb-3">
-                                        <span class="badge badge-light-primary me-3">2</span>
+                                        <span class="badge badge-soft-primary me-3">2</span>
                                         <h6 class="mb-0 fw-bold">View</h6>
                                     </div>
                                     <code class="fs-7 text-muted d-block mb-1">view/musteriler/liste.php</code>
-                                    <div class="bg-dark rounded p-3 mt-3">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent;white-space:pre-wrap"><code>&lt;div class="app-content flex-column-fluid"&gt;
+                                    <div class="vnl-code mt-3">
+                                        <pre class="mb-0" style="background:transparent;white-space:pre-wrap"><code>&lt;div class="app-content flex-column-fluid"&gt;
   &lt;div class="app-container container-xxl"&gt;
     &lt;?php foreach ($musteriler as $m): ?&gt;
       &lt;div class="card mb-3"&gt;

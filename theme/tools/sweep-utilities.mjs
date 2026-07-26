@@ -44,9 +44,11 @@ const PHASE_A = [
 const PHASE_B = [
     [/\bbadge-light-(primary|secondary|success|danger|warning|info|dark)\b/g, 'badge-soft-$1'],
     [/\bbtn-light-(primary|secondary|success|danger|warning|info|dark)\b/g, 'btn-soft-$1'],
-    // Kod blokları: pre.bg-dark (+metin rengi sınıfları) → pre.vnl-code
-    [/\bbg-dark rounded p-5\b/g, 'vnl-code'],
-    [/ ?\btext-(?:white|light) fs-6 font-monospace\b/g, ''],
+    // Kod blokları → .vnl-code (hem div sarmalayıcı hem doğrudan pre biçimi)
+    [/\bbg-dark text-light rounded p-\d+ fs-\d+\b/g, 'vnl-code'],
+    [/\bbg-dark rounded p-\d+\b/g, 'vnl-code'],
+    [/\btext-(?:white|light) fs-\d font-monospace mb-0\b/g, 'mb-0'],
+    [/ ?\btext-(?:white|light) fs-\d font-monospace\b/g, ''],
 ];
 
 const rules = phase === 'a' ? PHASE_A : phase === 'b' ? PHASE_B : null;

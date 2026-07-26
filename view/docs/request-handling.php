@@ -43,18 +43,18 @@
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>/app/kullanici/kaydet</code></td>
-                                    <td><span class="badge badge-light-primary">actions/action_kullanici.php</span></td>
-                                    <td><span class="badge badge-light-success">kaydet($req)</span></td>
+                                    <td><span class="badge badge-soft-primary">actions/action_kullanici.php</span></td>
+                                    <td><span class="badge badge-soft-success">kaydet($req)</span></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>/app/urun/sil</code></td>
-                                    <td><span class="badge badge-light-primary">actions/action_urun.php</span></td>
-                                    <td><span class="badge badge-light-success">sil($req)</span></td>
+                                    <td><span class="badge badge-soft-primary">actions/action_urun.php</span></td>
+                                    <td><span class="badge badge-soft-success">sil($req)</span></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>/app/profil/guncelle</code></td>
-                                    <td><span class="badge badge-light-primary">actions/action_profil.php</span></td>
-                                    <td><span class="badge badge-light-success">guncelle($req)</span></td>
+                                    <td><span class="badge badge-soft-primary">actions/action_profil.php</span></td>
+                                    <td><span class="badge badge-soft-success">guncelle($req)</span></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -73,8 +73,8 @@
                         <p class="fs-5 text-body mb-4">
                             Her action dosyası tek bir sınıf içerir. Sistem, metodlara otomatik olarak global <code>$req</code> nesnesini iletir — ayrıca parametre tanımlamanıza gerek yoktur, sadece <code>$req</code> alırsınız.
                         </p>
-                        <div class="bg-dark rounded p-5 mb-0">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-0">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // Dosya: actions/action_kullanici.php
 
 class action_kullanici
@@ -238,8 +238,8 @@ class action_kullanici
                                 </tbody>
                             </table>
                         </div>
-                        <div class="bg-dark rounded p-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>use ActionGlobal\Auth;
+                        <div class="vnl-code">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>use ActionGlobal\Auth;
 
 class action_kullanici
 {
@@ -274,32 +274,32 @@ class action_kullanici
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>returnSuccessMessage($mesaj, $data = [])</code></td>
-                                    <td><span class="badge badge-light-success">200</span></td>
+                                    <td><span class="badge badge-soft-success">200</span></td>
                                     <td>İşlem başarıyla tamamlandı. İsteğe bağlı <code>$data</code> dizisi de döndürülebilir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>returnSuccessDataOnly($data)</code></td>
-                                    <td><span class="badge badge-light-success">200</span></td>
+                                    <td><span class="badge badge-soft-success">200</span></td>
                                     <td>Sadece veri döndürür (mesajsız). Datatable ve liste API'leri için idealdir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>returnErrorMessage($mesaj, $kod = 400)</code></td>
-                                    <td><span class="badge badge-light-danger">400+</span></td>
+                                    <td><span class="badge badge-soft-danger">400+</span></td>
                                     <td>Hata mesajı ile birlikte işlemi sonlandırır (<code>die</code>).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>returnWarningMessage($mesaj, $kod = 406)</code></td>
-                                    <td><span class="badge badge-light-warning">406</span></td>
+                                    <td><span class="badge badge-soft-warning">406</span></td>
                                     <td>Uyarı mesajı döndürür ve işlemi sonlandırır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>returnInfoMessage($mesaj, $kod = 410)</code></td>
-                                    <td><span class="badge badge-light-info">410</span></td>
+                                    <td><span class="badge badge-soft-info">410</span></td>
                                     <td>Bilgi mesajı döndürür ve işlemi sonlandırır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>throwErrorMessage($mesaj, $kod = 400)</code></td>
-                                    <td><span class="badge badge-light-danger">400+</span></td>
+                                    <td><span class="badge badge-soft-danger">400+</span></td>
                                     <td><code>Exception</code> fırlatır. <code>app.php</code>'nin try-catch bloğu yakalar ve JSON'a dönüştürür. Kodun herhangi bir yerinden hata fırlatmak için idealdir.</td>
                                 </tr>
                                 </tbody>
@@ -338,8 +338,8 @@ class action_kullanici
                             <code>/app/profil/guncelle</code> adresine gönderilen form verisi ve dosya yüklemesini işleyen eksiksiz bir action örneği:
                         </p>
 
-                        <div class="bg-dark rounded p-5">
-<pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code">
+<pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // Dosya: actions/action_profil.php
 
 use ActionGlobal\Auth;

@@ -41,31 +41,31 @@
                                 <tr>
                                     <td class="ps-5"><code>$url</code></td>
                                     <td>string</td>
-                                    <td><span class="badge badge-light-danger">Zorunlu</span></td>
+                                    <td><span class="badge badge-soft-danger">Zorunlu</span></td>
                                     <td>AJAX isteklerinin gönderileceği action endpoint. Örn: <code>'app/kullanici/liste'</code></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$columns</code></td>
                                     <td>array</td>
-                                    <td><span class="badge badge-light-danger">Zorunlu</span></td>
+                                    <td><span class="badge badge-soft-danger">Zorunlu</span></td>
                                     <td>Tablo sütun tanımları dizisi. Her eleman bir sütunu temsil eder.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$filters</code></td>
                                     <td>array</td>
-                                    <td><span class="badge badge-light-warning">Önerilen</span></td>
+                                    <td><span class="badge badge-soft-warning">Önerilen</span></td>
                                     <td>Filtre satırı tanımları dizisi. Boş dizi geçilebilir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$options</code></td>
                                     <td>array</td>
-                                    <td><span class="badge badge-light-danger">Zorunlu</span></td>
+                                    <td><span class="badge badge-soft-danger">Zorunlu</span></td>
                                     <td>Tablo seçenekleri. En az <code>dt-id</code> anahtarı içermelidir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$passdata</code></td>
                                     <td>array</td>
-                                    <td><span class="badge badge-light-success">Opsiyonel</span></td>
+                                    <td><span class="badge badge-soft-success">Opsiyonel</span></td>
                                     <td>Her AJAX isteğiyle gönderilecek gizli veriler. Bağlam ID'leri için kullanılır.</td>
                                 </tr>
                                 </tbody>
@@ -95,35 +95,35 @@
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>data-name</code></td>
-                                    <td><span class="badge badge-light-danger">Zorunlu</span></td>
+                                    <td><span class="badge badge-soft-danger">Zorunlu</span></td>
                                     <td>Action'ın döndürdüğü JSON'daki alan adı. DataTables bu key'e göre veriyi yerleştirir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>data-visible-name</code></td>
-                                    <td><span class="badge badge-light-danger">Zorunlu</span></td>
+                                    <td><span class="badge badge-soft-danger">Zorunlu</span></td>
                                     <td>Tablonun başlık satırında (<code>&lt;th&gt;</code>) gösterilecek metin.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>data-orderable</code></td>
-                                    <td><span class="badge badge-light-success">Opsiyonel</span></td>
+                                    <td><span class="badge badge-soft-success">Opsiyonel</span></td>
                                     <td>Bu sütuna göre sıralama yapılabilsin mi? <code>1</code> = evet, <code>0</code> = hayır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>data-visibilty</code></td>
-                                    <td><span class="badge badge-light-success">Opsiyonel</span></td>
+                                    <td><span class="badge badge-soft-success">Opsiyonel</span></td>
                                     <td>Sütun görünür mü? <code>1</code> = görünür, <code>0</code> = gizli.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>class</code></td>
-                                    <td><span class="badge badge-light-success">Opsiyonel</span></td>
+                                    <td><span class="badge badge-soft-success">Opsiyonel</span></td>
                                     <td>Sütun hücresine uygulanacak CSS sınıfları.</td>
                                 </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$columns = [
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>$columns = [
     [
         'data-name'         => 'ad',
         'data-visible-name' => 'Ad Soyad',
@@ -179,40 +179,40 @@
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>filter_type</code></td>
-                                    <td><span class="badge badge-light-danger">Zorunlu</span></td>
+                                    <td><span class="badge badge-soft-danger">Zorunlu</span></td>
                                     <td><code>'input'</code> veya <code>'select'</code>. Filtrenin tipini belirler.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>name</code></td>
-                                    <td><span class="badge badge-light-danger">Zorunlu</span></td>
+                                    <td><span class="badge badge-soft-danger">Zorunlu</span></td>
                                     <td>HTML <code>name</code> niteliği. Action'da <code>$req->post('ad-filter')</code> biçiminde okunur (<code>-filter</code> eklenir).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>placeholder</code></td>
-                                    <td><span class="badge badge-light-success">Opsiyonel</span></td>
+                                    <td><span class="badge badge-soft-success">Opsiyonel</span></td>
                                     <td>Input alanı için placeholder metni.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>class</code></td>
-                                    <td><span class="badge badge-light-success">Opsiyonel</span></td>
+                                    <td><span class="badge badge-soft-success">Opsiyonel</span></td>
                                     <td>Ek CSS sınıfları.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>id</code></td>
-                                    <td><span class="badge badge-light-success">Opsiyonel</span></td>
+                                    <td><span class="badge badge-soft-success">Opsiyonel</span></td>
                                     <td>HTML <code>id</code> niteliği. JS ile erişim için kullanılır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>options</code></td>
-                                    <td><span class="badge badge-light-warning">Select için</span></td>
+                                    <td><span class="badge badge-soft-warning">Select için</span></td>
                                     <td>Select tipi filtreler için seçenek listesi: <code>[['value' => '1', 'text' => 'Aktif']]</code></td>
                                 </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$filters = [
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>$filters = [
     // Text input filtresi
     [
         'filter_type' => 'input',
@@ -259,7 +259,7 @@
                                         <tbody class="text-body fw-semibold">
                                         <tr>
                                             <td class="ps-4"><code>dt-id</code></td>
-                                            <td>Tablonun HTML <code>id</code>'si. <span class="badge badge-light-danger">Zorunlu</span></td>
+                                            <td>Tablonun HTML <code>id</code>'si. <span class="badge badge-soft-danger">Zorunlu</span></td>
                                         </tr>
                                         <tr>
                                             <td class="ps-4"><code>dt-class</code></td>
@@ -276,8 +276,8 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="bg-dark rounded p-4">
-                                    <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$options = [
+                                <div class="vnl-code">
+                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>$options = [
     'dt-id'      => 'tablo_kullanici',
     'dt-class'   => 'table table-row-dashed',
     'width'      => '100%',
@@ -288,8 +288,8 @@
                             <div class="col-md-6">
                                 <h5 class="fw-bold text-body-emphasis mb-3"><code>$passdata</code> Dizisi</h5>
                                 <p class="text-body fs-6 mb-3">Her AJAX isteğiyle birlikte gönderilecek gizli veri alanlarıdır. Örneğin bir proje ID'sini her istekte action'a iletmek için kullanılır.</p>
-                                <div class="bg-dark rounded p-4">
-                                    <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$passdata = [
+                                <div class="vnl-code">
+                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>$passdata = [
     [
         'id'    => 'project_id',
         'name'  => 'project_id',
@@ -316,8 +316,8 @@
                             <code>SDTable::CreateDatable()</code> HTML string döndürür. <code>echo</code> ile view içine yazdırın.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-4">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // view/kullanici/liste.php
 
 $columns = [
@@ -354,8 +354,8 @@ echo SDTable::CreateDatable('app/kullanici/getList', $columns, $filters, $option
                             DataTables verisi çeken action metodu felsefe gereği <b>her zaman <code>getList</code></b> olarak adlandırılır. DataTables parametreleri (<code>columns</code>, <code>order</code>, <code>start</code>, <code>length</code>) standart biçimde okunur; model <b>statik olarak</b> çağrılır ve sonuna <b>mutlaka <code>->get()</code></b> eklenir.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // actions/action_kullanici.php
 
 use ActionGlobal\Auth;
@@ -406,8 +406,8 @@ class action_kullanici
                 'ad'      => htmlspecialchars($k->Name . ' ' . $k->Surname),
                 'email'   => htmlspecialchars($k->Email),
                 'aktif'   => $k->IsActive
-                    ? '&lt;span class="badge badge-light-success"&gt;Aktif&lt;/span&gt;'
-                    : '&lt;span class="badge badge-light-danger"&gt;Pasif&lt;/span&gt;',
+                    ? '&lt;span class="badge badge-soft-success"&gt;Aktif&lt;/span&gt;'
+                    : '&lt;span class="badge badge-soft-danger"&gt;Pasif&lt;/span&gt;',
             ];
             $i++;
         }
@@ -428,8 +428,8 @@ class action_kullanici
                         </div>
 
                         <h5 class="fw-bold text-body-emphasis mb-3">JS Tarafı — AJAX Örneği</h5>
-                        <div class="bg-dark rounded p-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$.ajax({
+                        <div class="vnl-code">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>$.ajax({
     type: 'POST',
     url: '/app/kullanici/kaydet',
     data: {
@@ -474,8 +474,8 @@ class action_kullanici
                         <h3 class="fw-bold text-body-emphasis mb-4">8. Tam Örnek — Controller + View + Action</h3>
 
                         <h5 class="fw-bold text-body-emphasis mb-3">Controller (<code>controller/kullanici.php</code>)</h5>
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 $meta = [
     'title'       => 'Kullanıcı Listesi',
     'upper_title' => 'Yönetim',
@@ -504,8 +504,8 @@ require view('static/footer');
                         </div>
 
                         <h5 class="fw-bold text-body-emphasis mb-3">View (<code>view/kullanici/liste.php</code>)</h5>
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 $columns = [
     ['data-name' => 'ad',     'data-visible-name' => 'Ad Soyad',  'data-orderable' => 1, 'data-visibilty' => 1, 'class' => ''],
     ['data-name' => 'email',  'data-visible-name' => 'E-posta',   'data-orderable' => 1, 'data-visibilty' => 1, 'class' => ''],

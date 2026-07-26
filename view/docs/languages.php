@@ -13,7 +13,7 @@
                 <i class="fa-solid fa-globe fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                 <div class="d-flex flex-column pe-0 pe-sm-10">
                     <h5 class="mb-1">Desteklenen Diller</h5>
-                    <span>Varsayılan olarak <span class="badge badge-light-primary">Türkçe (tr)</span> ve <span class="badge badge-light-success">İngilizce (en)</span> desteklenir. Yeni bir dil eklemek için JSON dosyası oluşturup <code>Languages</code> enum'una değer eklemek yeterlidir.</span>
+                    <span>Varsayılan olarak <span class="badge badge-soft-primary">Türkçe (tr)</span> ve <span class="badge badge-soft-success">İngilizce (en)</span> desteklenir. Yeni bir dil eklemek için JSON dosyası oluşturup <code>Languages</code> enum'una değer eklemek yeterlidir.</span>
                 </div>
             </div>
 
@@ -27,8 +27,8 @@
                             Dil sistemi uygulama başlangıcında <code>config_soft.php</code> içinde başlatılır. Session'da kayıtlı dil tercihine göre ilgili JSON dosyası okunur ve bellekte bir sözlük olarak tutulur. Anahtarlar sınıfta ayrıca tanımlanmaz — bu yüzden dosya ile kod arasında kayma oluşamaz.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// config_soft.php içinde otomatik başlatma
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// config_soft.php içinde otomatik başlatma
 Language::set(Language::GetLanguage());
 
 // Language::GetLanguage() — session'daki dil tercihi
@@ -75,8 +75,8 @@ $yuklu = Language::current();
                             <code>Languages</code> enum'u desteklenen dilleri tanımlar. <code>Language::base_language</code> sabit değeri temel dili belirtir; session'da dil bilgisi yoksa bu dil kullanılır.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>enum Languages: string
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>enum Languages: string
 {
     case TR = 'tr';
     case EN = 'en';
@@ -104,9 +104,9 @@ Language::set(Languages::EN); // İngilizce yükle
 
                         <div class="row g-5 mb-5">
                             <div class="col-md-6">
-                                <h6 class="fw-bold mb-3"><span class="badge badge-light-primary me-2">tr.json</span></h6>
-                                <div class="bg-dark rounded p-5">
-                                    <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>[
+                                <h6 class="fw-bold mb-3"><span class="badge badge-soft-primary me-2">tr.json</span></h6>
+                                <div class="vnl-code">
+                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>[
     {
         "ERR_GENERAL": "Bir hata oluştu.",
         "PLEASE_FILL_THE_REQUIRED_FIELD": "%s alanını doldurunuz.",
@@ -119,9 +119,9 @@ Language::set(Languages::EN); // İngilizce yükle
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="fw-bold mb-3"><span class="badge badge-light-success me-2">en.json</span></h6>
-                                <div class="bg-dark rounded p-5">
-                                    <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>[
+                                <h6 class="fw-bold mb-3"><span class="badge badge-soft-success me-2">en.json</span></h6>
+                                <div class="vnl-code">
+                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>[
     {
         "ERR_GENERAL": "An error occurred.",
         "PLEASE_FILL_THE_REQUIRED_FIELD": "Please fill in %s.",
@@ -151,8 +151,8 @@ Language::set(Languages::EN); // İngilizce yükle
                             Ana erişim biçimi <code>lang()</code> yardımcı fonksiyonudur. Ek argümanlar <code>sprintf</code> yer tutucularını doldurur; ayrıca <code>sprintf</code> çağırmanız gerekmez.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Basit kullanım
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Basit kullanım
 echo lang('ERR_GENERAL');
 // Türkçe: "Bir hata oluştu."
 
@@ -285,8 +285,8 @@ echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
                             Kullanıcı dil tercihini değiştirmek için <code>Language::set(Languages::EN)</code> çağrısı yapılır. Bu çağrı session'ı günceller ve belirtilen dilin JSON dosyasını yükler.
                         </p>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// İngilizceye geç
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// İngilizceye geç
 Language::set(Languages::EN);
 
 // Türkçeye geri dön
@@ -378,8 +378,8 @@ public function dilDegistir(): void
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">1</span>
                                 <div>
                                     <span class="fw-bold text-body">Tüm JSON dosyalarına anahtarı ekleyin</span>
-                                    <div class="bg-dark rounded p-3 mt-2">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// tr.json
+                                    <div class="vnl-code mt-2">
+                                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// tr.json
 "STOCK_INSUFFICIENT": "Yeterli stok bulunmamaktadır."
 
 // en.json
@@ -391,8 +391,8 @@ public function dilDegistir(): void
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
                                 <div>
                                     <span class="fw-bold text-body">Herhangi bir yerde kullanın</span>
-                                    <div class="bg-dark rounded p-3 mt-2">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new StandartException(lang('STOCK_INSUFFICIENT'));</code></pre>
+                                    <div class="vnl-code mt-2">
+                                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new StandartException(lang('STOCK_INSUFFICIENT'));</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -447,8 +447,8 @@ public function dilDegistir(): void
                             </table>
                         </div>
 
-                        <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Anahtar var mı?
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Anahtar var mı?
 if (lang_has('STOCK_INSUFFICIENT')) { /* ... */ }
 
 // Kendi varsayılanınızla
