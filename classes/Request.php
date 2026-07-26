@@ -1,127 +1,137 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: ErkayTeknoloji
- * Date: 29.04.2019
- * Time: 13:08
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) 3.0.0 — İstek Nesnesi
+ *  GET/POST ve JSON gövdesini tek arayüzde toplar.
+ *  Authors: Voxnup Authors
+ * ============================================================
  */
 
+/**
+ * İstek verisine erişim.
+ *
+ * VNL 3.0'da giriş tarafındaki htmlspecialchars KALDIRILDI. Veri ne
+ * gönderildiyse o şekilde okunur ve o şekilde saklanır; kaçış artık
+ * çıkış katmanının işidir:
+ *
+ *     {{ $ad }}          şablonda otomatik kaçışlar
+ *     vnl_e($ad)         düz PHP'de aynı işi yapar
+ *
+ * 2.x'te kaçış girişte yapılıyordu; bu, veritabanına "Ali &amp; Veli"
+ * yazılmasına, parolaların hash'lenmeden önce bozulmasına ve JSON
+ * gövdesindeki sayı/boolean değerlerin string'e dönmesine yol açıyordu.
+ */
 class Request
 {
-    function __construct()
+    /** @var array GET verisi — her zaman dizi. */
+    private array $get = [];
+
+    /** @var array POST ya da JSON gövdesi — her zaman dizi. */
+    private array $post = [];
+
+    public function __construct()
     {
-//print_r(json_decode(file_get_contents('php://input'), true));
-        if (empty($_POST)) {
-            try {
-                $_POST = json_decode(file_get_contents('php://input'), true);
-            } catch (Exception $e) {
-                $_POST = array();
-            }
-        }
-        $this->stripslashes_gpc();
+        $this->get  = is_array($_GET) ? $_GET : [];
+        $this->post = $this->readBody();
 
+        /* Superglobal'ler nesneyle aynı veriyi taşır. 2.x bunları bazı
+           isteklerde null'a çeviriyordu; artık daima dizi. */
+        $_GET  = $this->get;
+        $_POST = $this->post;
     }
 
-    function stripslashes_gpc()
+    /** GET ile gelen değer. Anahtar yoksa $default döner. */
+    public function get($key, $default = null)
     {
-        $_GET = $this->stripslashes_deep($_GET);
-        $_POST = $this->stripslashes_deep($_POST);
+        return array_key_exists($key, $this->get) ? $this->get[$key] : $default;
     }
 
-    function stripslashes_deep(&$data)
+    /** POST ya da JSON gövdesinden gelen değer. Anahtar yoksa $default döner. */
+    public function post($key, $default = null)
     {
-        if (empty($data)) return null;
-
-        if (is_array($data)) {
-            foreach ($data as $key => $value) {
-                $data[$key] = $this->stripslashes_deep($value);
-            }
-        } else {
-            $data = htmlspecialchars($data);
-        } // ters \ i kaldir
-
-        return $data;
+        return array_key_exists($key, $this->post) ? $this->post[$key] : $default;
     }
 
-    public function get($key)
-    { // get ile gelen veriyi al
-        return $this->_get($key, 'GET');
-    }
-
-    private function _get($key, $type = 'GET', $default = null)
-    { // siteye gönderilen verinin tipini bul ve tipi $dataya aktar.
-        switch (strtoupper($type)) {
-            case 'GET':
-                $data = $_GET;
-                break;
-            case 'POST':
-                $data = $_POST;
-                break;
-        }
-
-        return (isset($data[$key]) ? $data[$key] : $default); //  Veriyi $_POST["isim"] gibi $data["isim"] şeklinde geri gönder.
-    }
-
-    public function post($key)
-    {// post ile gelen veriyi al
-        return $this->_get($key, 'POST');
-    }
-
-    public function getHas($key)
+    /**
+     * Anahtar gönderildi mi?
+     *
+     * array_key_exists kullanılır: değeri null olan bir anahtar da
+     * gönderilmiş sayılır. 2.x isset() kullandığı için "0" ve boş
+     * string gönderimlerini görünmez yapıyordu.
+     */
+    public function getHas($key): bool
     {
-        return $this->has($key, 'GET');
+        return array_key_exists($key, $this->get);
     }
 
-    private function has($key, $type = 'GET')
+    public function postHas($key): bool
     {
-        switch (strtoupper($type)) { // gelen verinin tip yazısı büyüt ve kontrol et.
-            case 'GET':
-                return isset($_GET[$key]); // tip get ise veriyi get metodu ile al ve gönder.
-                break;
-            case 'POST':
-                return isset($_POST[$key]); // tip post ise veriyi post metodu ile al ve gönder.
-                break;
-
-        }
-
-        return null;
+        return array_key_exists($key, $this->post);
     }
 
-    public function postHas($key)
+    /** GET verisinin tamamı. */
+    public function getAll(): array
     {
-        return $this->has($key, 'POST');
+        return $this->get;
+    }
+
+    /** POST/JSON verisinin tamamı. */
+    public function postAll(): array
+    {
+        return $this->post;
+    }
+
+    public function setGet($key, $value)
+    {
+        $this->get[$key] = $value;
+        $_GET[$key]      = $value;
+
+        return $value;
     }
 
     public function setPost($key, $value)
     {
-        $this->_set($key, $value, 'POST');
+        $this->post[$key] = $value;
+        $_POST[$key]      = $value;
+
+        return $value;
     }
 
-    private function _set($key, $value, $type = 'GET')
+    public function isPost(): bool
     {
-        switch (strtoupper($type)) { // gelen verinin tip yazısı büyüt ve kontrol et.
-            case 'GET':
-                return $_GET[$key] = $value; // tip get ise veriyi get metodu ile al ve değeri ona aktarıp gönder.
-                break;
-            case 'POST':
-                return $_POST[$key] = $value; // tip post ise veriyi post metodu ile al ve değeri ona aktarıp gönder.
-                break;
+        return strtoupper($_SERVER['REQUEST_METHOD'] ?? '') === 'POST';
+    }
+
+    public function method(): string
+    {
+        return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+    }
+
+    /* ---------------------------------------------------------------- */
+
+    /**
+     * Gövdeyi okur.
+     *
+     * Form gönderimi zaten $_POST'u doldurur. Boşsa gövde JSON olarak
+     * çözülmeye çalışılır; çözülemezse boş dizi döner — 2.x burada
+     * $_POST'u null yapıyordu.
+     *
+     * JSON'daki tipler korunur: 0 sıfır kalır, false false kalır,
+     * iç içe nesneler dizi olarak gelir.
+     */
+    private function readBody(): array
+    {
+        if (!empty($_POST) && is_array($_POST)) {
+            return $_POST;
         }
 
-        return null;
-    }
+        $body = @file_get_contents('php://input');
+        if ($body === false || trim($body) === '') {
+            return [];
+        }
 
-    //previously stripSlashes
+        $decoded = json_decode($body, true);
 
-    public function setGet($key, $value)
-    {
-        $this->_set($key, $value);
-    }
-
-    public function isPost() // post verisi var mı ?
-    {
-        return (strtoupper($_SERVER['REQUEST_METHOD']) == 'POST');
+        return is_array($decoded) ? $decoded : [];
     }
 }
-
-?>

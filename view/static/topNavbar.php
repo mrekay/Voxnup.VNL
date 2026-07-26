@@ -70,7 +70,7 @@ if ($page_config['topbar'] != false){
             <!-- Kullanıcı -->
             <div class="dropdown">
                 <button type="button" class="vnl-topbar-item" data-bs-toggle="dropdown" aria-expanded="false"
-                        aria-label="<?= $CurrentUser->fullname() ?>">
+                        aria-label="{{ $CurrentUser->fullname() }}">
                     <span class="symbol symbol-circle symbol-30px">
                         <img src="<?= $cDefinitions->getAssetsUrl() ?>/media/images/user.png" alt=""/>
                     </span>
@@ -81,8 +81,8 @@ if ($page_config['topbar'] != false){
                             <img src="<?= $cDefinitions->getAssetsUrl() ?>/media/images/user.png" alt=""/>
                         </span>
                         <div class="min-w-0">
-                            <div class="fw-semibold text-truncate"><?= $CurrentUser->fullname() ?></div>
-                            <div class="fs-8 text-body-secondary text-truncate"><?= $CurrentUser->Username ?></div>
+                            <div class="fw-semibold text-truncate">{{ $CurrentUser->fullname() }}</div>
+                            <div class="fs-8 text-body-secondary text-truncate">{{ $CurrentUser->Username }}</div>
                         </div>
                     </div>
                     <hr class="dropdown-divider">
