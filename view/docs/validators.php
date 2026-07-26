@@ -273,7 +273,7 @@ class action_kullanici
         $kullanici->Email    = $email;
         $kullanici->Username = $username;
         if (!empty($sifre)) {
-            $kullanici->Password = EncryptionModule::PasswordEncrypt($sifre);
+            $kullanici->setStoredPassword(EncryptionModule::PasswordHash($sifre));
         }
         if (empty($user_id)) {
             $kullanici->InsertDate = date('Y-m-d H:i:s');

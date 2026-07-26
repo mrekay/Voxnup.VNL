@@ -37,4 +37,30 @@ class User extends TableModel
         return $this->name . ' ' . $this->surname;
     }
 
+    /**
+     * Saklanan parola hash'i.
+     *
+     * Sütunun yazımı projeden projeye password/Password olarak değişiyor
+     * (bu şablonda UserValidator küçük, action_users büyük harfle okuyor).
+     * Doğrulama tek noktadan geçsin diye ikisi de tolere edilir.
+     */
+    public function storedPassword(): ?string
+    {
+        $hash = $this->password ?? $this->Password ?? null;
+
+        return ($hash === null || $hash === '') ? null : (string)$hash;
+    }
+
+    /** Parola hash'ini yazar; kaydın mevcut sütun yazımını korur. */
+    public function setStoredPassword(string $hash): void
+    {
+        if (array_key_exists('Password', $this->getAttributes())) {
+            $this->Password = $hash;
+
+            return;
+        }
+
+        $this->password = $hash;
+    }
+
 }

@@ -12,7 +12,7 @@
                 <i class="fa-solid fa-cubes fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-primary">Otomatik Yükleme ve Statik Kullanım</h5>
-                    <span class="text-body"><code>libs/modules/</code> dizinindeki tüm PHP dosyaları uygulama başlangıcında otomatik olarak dahil edilir. Tüm modüller statik çağrı ile kullanılır: <code>EncryptionModule::PasswordEncrypt($sifre)</code></span>
+                    <span class="text-body"><code>libs/modules/</code> dizinindeki tüm PHP dosyaları uygulama başlangıcında otomatik olarak dahil edilir. Tüm modüller statik çağrı ile kullanılır: <code>EncryptionModule::PasswordHash($sifre)</code></span>
                 </div>
             </div>
 
@@ -38,12 +38,20 @@
                                 </thead>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
-                                    <td class="ps-5"><code>EncryptionModule::PasswordEncrypt($pass)</code></td>
-                                    <td>Parolayı SHA1(MD5) ile hash'ler. Kullanıcı girişi ve kayıt işlemlerinde kullanılır.</td>
+                                    <td class="ps-5"><code>EncryptionModule::PasswordHash($pass)</code></td>
+                                    <td>Parolayı <code>password_hash()</code> ile hash'ler (bcrypt, rastgele tuz). Her çağrıda farklı sonuç verir; <b>sorguda karşılaştırma ölçütü olarak kullanılamaz</b>.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>EncryptionModule::PasswordVerify($pass, $hash)</code></td>
+                                    <td>Parolayı saklanan hash ile karşılaştırır. VNL 2.x'ten kalan <code>sha1(md5())</code> hash'lerini de tanır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>EncryptionModule::PasswordNeedsRehash($hash)</code></td>
+                                    <td>Hash eski biçimdeyse ya da maliyet düştüyse <code>true</code>. Başarılı girişten sonra çağırıp hash'i tazeleyin.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>EncryptionModule::safeEncrypt($data)</code></td>
-                                    <td>Veriyi AES-128-CBC ile şifreler; URL güvenli hale getirilmiş string döndürür. Cookie yazımında kullanılır.</td>
+                                    <td>Veriyi AES-128-CBC ile şifreler; URL güvenli string döndürür. <b>Anahtarı kaynak kodda sabittir ve IV kullanmaz</b> — gizli veri için uygun değildir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>EncryptionModule::safeDecrypt($encrypted)</code></td>
@@ -54,16 +62,20 @@
                         </div>
 
                         <div class="vnl-code">
-                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Parola hash'leme
-$hashli = EncryptionModule::PasswordEncrypt($req->post('password'));
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Parola kaydetme
+$kullanici->setStoredPassword(EncryptionModule::PasswordHash($req->post('password')));
 
-// Cookie için şifreleme
-$sifreli = EncryptionModule::safeEncrypt(['user_id' => $user->Id, 'time' => time()]);
-setcookie($prefix . 'auth', $sifreli, time() + 86400 * 30, '/');
+// Parola doğrulama — hash ile SORGULANMAZ, önce kullanıcı çekilir
+$kullanici = User::select(['username' => $username]);
+if (!EncryptionModule::PasswordVerify($password, $kullanici->storedPassword())) {
+    throw new StandartException(lang('ERR_LOGIN_EXCEPTION'));
+}
 
-// Cookie okuma
-$veri = EncryptionModule::safeDecrypt($_COOKIE[$prefix . 'auth']);
-if ($veri) { /* kullan */ }
+// 2.x'ten kalan sha1(md5()) hash'ini sessizce bcrypt'e yükselt
+if (EncryptionModule::PasswordNeedsRehash($kullanici->storedPassword())) {
+    $kullanici->setStoredPassword(EncryptionModule::PasswordHash($password));
+    $kullanici->save();
+}
 </code></pre>
                         </div>
                     </div>

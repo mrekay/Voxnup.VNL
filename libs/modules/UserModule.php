@@ -23,30 +23,33 @@ class UserModule
         }
     }
 
+    /**
+     * "Beni hatırla" çerezi.
+     *
+     * VNL 3.0'da devre dışı: eski uygulama kullanıcı adı ve DÜZ PAROLAYI
+     * {prefix}auth çerezine yazıyor, her istekte çözüp yeniden giriş
+     * yaptırıyordu. Çerez EncryptionModule::safeEncrypt ile korunuyordu
+     * ama o fonksiyonun anahtarı kaynak kodda sabit ve IV kullanılmıyor —
+     * yani şablona erişen herkes çerezleri çözebiliyordu. password_hash'e
+     * geçilen bir sistemde parolanın çerezde taşınması anlamsız.
+     *
+     * Ayrıca çağırdığı User::Login() metodu hiçbir zaman var olmadı;
+     * {prefix}auth çerezi bir kez yazılsaydı bu satır fatal verecekti.
+     *
+     * Doğru çözüm rastgele bir hatırlama jetonu: jetonun hash'i kullanıcı
+     * kaydında saklanır, çerezde yalnızca jeton taşınır ve her kullanımda
+     * yenilenir. Bunun için bir sütun/tablo gerektiğinden ayrı ele alınacak.
+     */
     static function CheckCookieAuth()
     {
         global $cDefinitions;
-        if (empty(Session::get('login')) && !empty($_COOKIE[$cDefinitions->getCookiePrefix() . 'auth'])) {
-            $auth = json_decode(EncryptionModule::safeDecrypt($_COOKIE[$cDefinitions->getCookiePrefix() . 'auth']), true);
-            // auth içerisindeki time üzeirnden 30 gün geçtiyse cookie'yi sil
 
-            $now = new DateTime();
-            $authTime = new DateTime($auth['time']);
-            $authTime->modify('+30 days');
+        $cookie = $cDefinitions->getCookiePrefix() . 'auth';
 
-            if ($now > $authTime) {
-                setcookie($cDefinitions->getCookiePrefix() . 'auth', '', time() - 3600, '/');
-            } else {
-                /* kullanıcı adı ve şifre ile giriş yaptırt*/
-              $login_result =  User::Login($auth['username'], $auth['password']);
-                if (!empty($login_result) && $login_result->id > 0) {
-                  self::SetUser($login_result);
-
-                    $login_data = ['session_id' => Session::GetSessionId(), 'current_user_id' => $login_result->id, 'user_agent' => UserModule::CurrentBrowser(), 'ip_adress' => UserModule::CurrentIp()];
-                    $login_data_id = LoginData::insertGetId($login_data);
-                    setcookie($cDefinitions->getCookiePrefix() . "usr_data", json_encode($login_data_id), time() + 3600 * 24 * 30, '/');
-              }
-            }
+        /* Eski çerez düz parola taşıyor; tarayıcıdan sil. */
+        if (!empty($_COOKIE[$cookie])) {
+            setcookie($cookie, '', time() - 3600, '/');
+            unset($_COOKIE[$cookie]);
         }
     }
 

@@ -100,7 +100,7 @@ class action_users
         $user_id = $req->post('user_id');
         DefaultValidator::validateEmpty($password, "Parola");
         $currentUser = Auth::User();
-        if(EncryptionModule::PasswordEncrypt($password) == $currentUser->Password){
+        if(EncryptionModule::PasswordVerify($password, $currentUser->storedPassword())){
             User::where('Id', $user_id)->update(['DeleteUser' => $currentUser->Id]);
             if (User::where('Id',$user_id)->delete()){
                 returnSuccessMessage("Kullanıcı silindi.");
@@ -153,7 +153,7 @@ class action_users
         }
 
         $user->Username = $username;
-        if (!empty($password)) $user->Password = EncryptionModule::PasswordEncrypt($password);
+        if (!empty($password)) $user->setStoredPassword(EncryptionModule::PasswordHash($password));
         $user->Name = $first_name;
         $user->Surname = $last_name;
         $user->Email = $email;

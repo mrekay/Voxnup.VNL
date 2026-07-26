@@ -136,7 +136,7 @@ exit;
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <h6 class="fw-bold mb-4">Cookie ile Kalıcı Giriş</h6>
                                     <p class="fs-6 text-body mb-0">
-                                        "Beni hatırla" seçeneği için kullanıcı bilgileri <code>EncryptionModule::safeEncrypt()</code> ile AES-128-CBC şifrelenerek <code>{prefix}auth</code> cookie'sine yazılır. Geçerlilik süresi <b>30 gündür</b>; her istekte <code>CheckCookieAuth()</code> tarafından kontrol edilir.
+                                        <b>VNL 3.0'da devre dışı.</b> Eski uygulama kullanıcı adını ve <b>düz parolayı</b> <code>{prefix}auth</code> cookie'sine yazıyordu; <code>safeEncrypt()</code>'in anahtarı kaynak kodda sabit olduğu için bu koruma sayılmaz. <code>CheckCookieAuth()</code> artık yalnızca eski cookie'yi siler. Kalıcı giriş için rastgele jeton yaklaşımı gerekir — jetonun hash'i kullanıcı kaydında saklanır, cookie'de yalnızca jeton taşınır.
                                     </p>
                                 </div>
                             </div>
@@ -152,28 +152,23 @@ class action_login
     {
         $username = $req->post('username');
         $password = $req->post('password');
-        $remember = $req->post('remember'); // "1" veya boş
 
-        // Kullanıcıyı doğrula (User::Login kendi hash kontrolünü yapar)
-        $user = User::Login($username, $password);
+        // Hash ile SORGULANMAZ: password_hash her çağrıda farklı tuz üretir.
+        // Önce kullanıcı çekilir, sonra doğrulanır.
+        $user = User::select(['username' => $username]);
 
-        if (empty($user) || $user->id <= 0) {
+        if (empty($user) || !EncryptionModule::PasswordVerify($password, $user->storedPassword())) {
             throwErrorMessage("Kullanıcı adı veya şifre hatalı.", 401);
+        }
+
+        // 2.x'ten kalan sha1(md5()) hash'ini sessizce bcrypt'e yükselt
+        if (EncryptionModule::PasswordNeedsRehash($user->storedPassword())) {
+            $user->setStoredPassword(EncryptionModule::PasswordHash($password));
+            $user->save();
         }
 
         // Session'ı doldur
         UserModule::SetUser($user);
-
-        // Kalıcı giriş istendiyse cookie yaz
-        if ($remember == '1') {
-            $cookieData = json_encode([
-                'username' => $username,
-                'password' => $password,  // zaten hash'li
-                'time'     => date('Y-m-d H:i:s'),
-            ]);
-            $encrypted = EncryptionModule::safeEncrypt($cookieData);
-            setcookie($cDefinitions->getCookiePrefix() . 'auth', $encrypted, time() + 3600 * 24 * 30, '/');
-        }
 
         returnSuccessMessage("Giriş başarılı.", ['redirect' => '/']);
     }
