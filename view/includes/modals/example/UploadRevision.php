@@ -29,9 +29,7 @@
                     <!--end::Modal title-->
                     <!--begin::Close-->
                     <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-                        <i class="ki-duotone ki-cross fs-1" onclick="clearRevisionFileModal()">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
+                        <i class="fa-solid fa-xmark fs-1" onclick="clearRevisionFileModal()">
                         </i>
                     </div>
                     <!--end::Close-->
@@ -47,7 +45,7 @@
                                 <div class="card-body d-flex justify-content-center text-center flex-column p-8">
                                     <!--begin::Name-->
                                     <a href="javascript:void(0)"
-                                       class="text-gray-800 text-hover-primary d-flex flex-column">
+                                       class="text-body text-hover-primary d-flex flex-column">
                                         <!--begin::Image-->
                                         <div class="symbol symbol-60px mb-5">
                                             <img id="new-rev-file-symbol-file-ico"
@@ -66,7 +64,7 @@
                                     <!--end::Name-->
 
                                     <!--begin::Description-->
-                                    <div class="fs-7 fw-semibold text-gray-500" id="new-rev-file-description">
+                                    <div class="fs-7 fw-semibold text-body-secondary" id="new-rev-file-description">
                                     </div>
                                     <!--end::Description-->
                                 </div>

@@ -3,17 +3,17 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">Validator Sistemi</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Validator Sistemi</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     VNL'nin validator sistemi, gelen verilerin doğruluğunu action sınıflarında kontrol etmek için kullanılır. Doğrulama başarısız olduğunda <code>StandartException</code> fırlatılır ve otomatik olarak JSON hata yanıtı döndürülür.
                 </div>
             </div>
 
-            <div class="alert bg-light-primary border border-primary d-flex align-items-center p-5 mb-10">
-                <i class="ki-duotone ki-shield-tick fs-2hx text-primary me-4"><span class="path1"></span><span class="path2"></span></i>
+            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+                <i class="fa-solid fa-shield-halved fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-primary">Otomatik Yükleme</h5>
-                    <span class="text-gray-700"><code>validators/</code> klasöründeki tüm PHP dosyaları uygulama başlarken otomatik olarak yüklenir. Yeni bir validator oluşturmak için bu klasöre dosya eklemeniz yeterlidir.</span>
+                    <span class="text-body"><code>validators/</code> klasöründeki tüm PHP dosyaları uygulama başlarken otomatik olarak yüklenir. Yeni bir validator oluşturmak için bu klasöre dosya eklemeniz yeterlidir.</span>
                 </div>
             </div>
 
@@ -22,8 +22,8 @@
 
                     <!--begin::Section 1-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">1. Validator Nedir?</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">1. Validator Nedir?</h3>
+                        <p class="fs-5 text-body mb-4">
                             Validatorlar, action sınıflarında veritabanı işlemlerinden önce çalıştırılan doğrulama sınıflarıdır. Bir doğrulama başarısız olduğunda <code>StandartException</code> fırlatılır. Bu exception kendi constructor'ında <code>returnErrorMessage()</code> fonksiyonunu çağırır; dolayısıyla action metodu anında sonlanır ve istemciye JSON hata mesajı iletilir.
                         </p>
 
@@ -31,7 +31,7 @@
                             <div class="col-md-6">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <div class="d-flex align-items-center mb-3">
-                                        <i class="ki-duotone ki-check-circle fs-2 text-success me-3"><span class="path1"></span><span class="path2"></span></i>
+                                        <i class="fa-solid fa-circle-check fs-2 text-success me-3"></i>
                                         <h6 class="mb-0 fw-bold">Doğrulama Başarılı</h6>
                                     </div>
                                     <span class="text-muted fs-7">Metot çalışmaya devam eder, DB işlemi yapılır, başarı yanıtı döndürülür.</span>
@@ -40,7 +40,7 @@
                             <div class="col-md-6">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <div class="d-flex align-items-center mb-3">
-                                        <i class="ki-duotone ki-cross-circle fs-2 text-danger me-3"><span class="path1"></span><span class="path2"></span></i>
+                                        <i class="fa-solid fa-circle-xmark fs-2 text-danger me-3"></i>
                                         <h6 class="mb-0 fw-bold">Doğrulama Başarısız</h6>
                                     </div>
                                     <span class="text-muted fs-7"><code>StandartException</code> fırlatılır → <code>returnErrorMessage()</code> çağrılır → JSON hata yanıtı → Action durur.</span>
@@ -54,20 +54,20 @@
 
                     <!--begin::Section 2-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">2. DefaultValidator — Tüm Metotlar</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">2. DefaultValidator — Tüm Metotlar</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>DefaultValidator</code> sınıfı, yaygın kullanım senaryoları için hazır doğrulama metotlarını içerir. Tüm özel validator sınıfları bu sınıfı genişletir.
                         </p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-320px">Metot İmzası</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>validateEmptyString($param, $region='')</code></td>
                                     <td>Değer boş string veya <code>null</code> ise hata fırlatır.</td>
@@ -142,8 +142,8 @@
 
                     <!--begin::Section 3-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">3. <code>$region</code> Parametresi</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. <code>$region</code> Parametresi</h3>
+                        <p class="fs-5 text-body mb-4">
                             Çoğu metotta bulunan <code>$region</code> parametresi, hata mesajına alan adını eklemek için kullanılır. Dil sistemi ile entegre çalışır; hata mesajı <code>sprintf</code> ile formatlanır.
                         </p>
 
@@ -166,9 +166,9 @@ DefaultValidator::validateEmptyDate($tarih, 'Başlangıç Tarihi');
 </code></pre>
                         </div>
 
-                        <div class="alert bg-light-info border border-info d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-info me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Hata mesajları <code>lang('PLEASE_FILL_IN_FIELD', $region)</code> gibi dil anahtarları üzerinden gelir ve aktif dile göre dinamik olarak üretilir.</span>
+                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
+                            <span class="text-body fs-6">Hata mesajları <code>lang('PLEASE_FILL_IN_FIELD', $region)</code> gibi dil anahtarları üzerinden gelir ve aktif dile göre dinamik olarak üretilir.</span>
                         </div>
                     </div>
                     <!--end::Section 3-->
@@ -177,14 +177,14 @@ DefaultValidator::validateEmptyDate($tarih, 'Başlangıç Tarihi');
 
                     <!--begin::Section 4-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">4. Özel Validator Oluşturma</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Özel Validator Oluşturma</h3>
+                        <p class="fs-5 text-body mb-4">
                             Projenize özgü doğrulama kuralları için <code>validators/</code> klasörüne yeni bir dosya ekleyin. Sınıfınız <code>DefaultValidator</code>'ı genişletmeli ve özel metotlarınızı eklemelidir.
                         </p>
 
-                        <div class="d-flex align-items-center bg-light border border-dashed rounded p-4 mb-4">
-                            <i class="ki-duotone ki-file fs-1 text-primary me-3"><span class="path1"></span><span class="path2"></span></i>
-                            <span class="fs-5 fw-bold text-gray-800 font-monospace">validators/UserValidator.php</span>
+                        <div class="d-flex align-items-center bg-body-tertiary border border-dashed rounded p-4 mb-4">
+                            <i class="fa-solid fa-file fs-1 text-primary me-3"></i>
+                            <span class="fs-5 fw-bold text-body font-monospace">validators/UserValidator.php</span>
                         </div>
 
                         <div class="bg-dark rounded p-5 mb-4">
@@ -222,9 +222,9 @@ class UserValidator extends DefaultValidator
 </code></pre>
                         </div>
 
-                        <div class="alert bg-light-success border border-success d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-check-circle fs-2 text-success me-3"><span class="path1"></span><span class="path2"></span></i>
-                            <span class="text-gray-800 fs-6">Dosyayı <code>validators/</code> klasörüne kaydetmeniz yeterlidir. Uygulama başlangıcında otomatik yükleneceği için ek kayıt veya <code>require</code> gerekmez.</span>
+                        <div class="alert bg-success-subtle border border-success d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-check fs-2 text-success me-3"></i>
+                            <span class="text-body fs-6">Dosyayı <code>validators/</code> klasörüne kaydetmeniz yeterlidir. Uygulama başlangıcında otomatik yükleneceği için ek kayıt veya <code>require</code> gerekmez.</span>
                         </div>
                     </div>
                     <!--end::Section 4-->
@@ -233,8 +233,8 @@ class UserValidator extends DefaultValidator
 
                     <!--begin::Section 5-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">5. Action İçinde Kullanım</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Action İçinde Kullanım</h3>
+                        <p class="fs-5 text-body mb-4">
                             Validator metotları action sınıflarında doğrudan çağrılır. <code>StandartException</code> otomatik olarak işlendiğinden <code>try-catch</code> bloğuna gerek yoktur.
                         </p>
 
@@ -297,8 +297,8 @@ class action_kullanici
 
                     <!--begin::Section 6-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">6. StandartException ve EmptyDataException</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. StandartException ve EmptyDataException</h3>
+                        <p class="fs-5 text-body mb-4">
                             VNL'de iki temel hata sınıfı bulunur. İkisi de istemciye JSON formatında hata yanıtı döndürmek için tasarlanmıştır.
                         </p>
 
@@ -306,7 +306,7 @@ class action_kullanici
                             <div class="col-md-6">
                                 <div class="border border-dashed border-danger rounded p-5 h-100">
                                     <span class="badge badge-light-danger mb-3 fs-7">StandartException</span>
-                                    <p class="text-gray-700 fs-6 mb-3">Constructor'da doğrudan <code>returnErrorMessage()</code> çağırır. Validator metotlarından ve action sınıflarından fırlatılır.</p>
+                                    <p class="text-body fs-6 mb-3">Constructor'da doğrudan <code>returnErrorMessage()</code> çağırır. Validator metotlarından ve action sınıflarından fırlatılır.</p>
                                     <div class="bg-dark rounded p-3">
                                         <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new StandartException(
     'Hata mesajı buraya'
@@ -317,7 +317,7 @@ class action_kullanici
                             <div class="col-md-6">
                                 <div class="border border-dashed border-warning rounded p-5 h-100">
                                     <span class="badge badge-light-warning mb-3 fs-7">EmptyDataException</span>
-                                    <p class="text-gray-700 fs-6 mb-3">Boş veri durumları için özelleştirilmiş hata sınıfı. <code>ErrorMessage</code> sınıfı üzerinden <code>returnErrorMessage()</code>'ı çağırır.</p>
+                                    <p class="text-body fs-6 mb-3">Boş veri durumları için özelleştirilmiş hata sınıfı. <code>ErrorMessage</code> sınıfı üzerinden <code>returnErrorMessage()</code>'ı çağırır.</p>
                                     <div class="bg-dark rounded p-3">
                                         <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new EmptyDataException(
     'Ad', // alan adı
@@ -327,9 +327,9 @@ class action_kullanici
                             </div>
                         </div>
 
-                        <div class="alert bg-light-info border border-info d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-info me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Her iki exception da JSON <code>{"success": false, "message": "..."}</code> formatında yanıt üretir ve PHP çalışmasını durdurur. AJAX çağrılarında istemci tarafı bu yanıtı <code>error</code> callback'inde yakalar.</span>
+                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
+                            <span class="text-body fs-6">Her iki exception da JSON <code>{"success": false, "message": "..."}</code> formatında yanıt üretir ve PHP çalışmasını durdurur. AJAX çağrılarında istemci tarafı bu yanıtı <code>error</code> callback'inde yakalar.</span>
                         </div>
                     </div>
                     <!--end::Section 6-->
@@ -338,45 +338,45 @@ class action_kullanici
 
                     <!--begin::Section 7-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-4">7. Kendi Validator Dosyanızı Oluşturma</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. Kendi Validator Dosyanızı Oluşturma</h3>
+                        <p class="fs-5 text-body mb-4">
                             Adım adım özel validator oluşturma:
                         </p>
 
-                        <div class="border rounded p-5 bg-light mb-5">
+                        <div class="border rounded p-5 bg-body-tertiary mb-5">
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">1</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800">Dosyayı oluşturun</span>
+                                    <span class="fw-bold text-body">Dosyayı oluşturun</span>
                                     <div class="text-muted fs-6 mt-1"><code>validators/SiparisValidator.php</code></div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800"><code>DefaultValidator</code>'ı genişletin</span>
+                                    <span class="fw-bold text-body"><code>DefaultValidator</code>'ı genişletin</span>
                                     <div class="text-muted fs-6 mt-1"><code>class SiparisValidator extends DefaultValidator { ... }</code></div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">3</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800">Özel metotlarınızı ekleyin</span>
+                                    <span class="fw-bold text-body">Özel metotlarınızı ekleyin</span>
                                     <div class="text-muted fs-6 mt-1">Her metot başarısız olduğunda <code>throw new StandartException('mesaj')</code> fırlatmalıdır.</div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-0">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">4</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800">Action'da kullanın</span>
+                                    <span class="fw-bold text-body">Action'da kullanın</span>
                                     <div class="text-muted fs-6 mt-1"><code>$this->siparisValidator = new SiparisValidator();</code> şeklinde action constructor'ında başlatın.</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="alert bg-light-warning border border-warning d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Dosya adı sınıf adıyla eşleşmelidir: <code>SiparisValidator.php</code> dosyasında <code>class SiparisValidator</code> bulunmalıdır. Bu kural <code>spl_autoload</code> yükleyicisinin gerektirdiği standarttır.</span>
+                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">Dosya adı sınıf adıyla eşleşmelidir: <code>SiparisValidator.php</code> dosyasında <code>class SiparisValidator</code> bulunmalıdır. Bu kural <code>spl_autoload</code> yükleyicisinin gerektirdiği standarttır.</span>
                         </div>
                     </div>
                     <!--end::Section 7-->

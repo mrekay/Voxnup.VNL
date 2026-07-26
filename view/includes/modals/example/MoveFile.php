@@ -14,9 +14,7 @@
                     <!--end::Modal title-->
                     <!--begin::Close-->
                     <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-                        <i class="ki-duotone ki-cross fs-1">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
+                        <i class="fa-solid fa-xmark fs-1">
                         </i>
                     </div>
                     <!--end::Close-->
@@ -105,9 +103,9 @@
                             $(`<input class="form-check-input me-3" type="radio" name="move_to_folder" value="${v.UUID}"/>`).attr('checked', i == 0),
                             $(`<label class="form-check-label" style="cursor:pointer" onclick="loadMoveFileFolderDatas('${fileID}','${v.UUID}')">`).append(
                                 $('<div class="fw-bold">').append(
-                                    $('<i class="ki-duotone ki-folder fs-2 text-primary me-2">').append(
-                                        $('<span class="path1"></span>'),
-                                        $('<span class="path2"></span>')
+                                    $('<i class="fa-solid fa-folder fs-2 text-primary me-2">').append(
+                                        $(''),
+                                        $('')
                                     ),
                                     v.ff_name
                                 )

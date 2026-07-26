@@ -3,14 +3,14 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">Yönlendirme (Routing) ve Controller</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Yönlendirme (Routing) ve Controller</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     VNL'de karmaşık rota tanımlamaları (<code>Route::get</code>) yoktur. URL yapısı otomatik olarak parçalanır ve doğrudan <code>controller/</code> klasöründeki ilgili PHP dosyasını çalıştırır.
                 </div>
             </div>
 
-            <div class="alert bg-light-primary border border-primary d-flex align-items-center p-5 mb-10">
-                <i class="ki-duotone ki-lightbulb fs-2hx text-primary me-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+                <i class="fa-solid fa-lightbulb fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column text-primary">
                     <h4 class="mb-1 text-primary">Temel Kural</h4>
                     <span>URL'deki ilk segment her zaman çalıştırılacak <b>Controller</b> dosyasının adını belirler. Dosya yoksa <code>controller/404.php</code> devreye girer.</span>
@@ -22,22 +22,22 @@
 
                     <!--begin::Section 1-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">1. URL Parçalama Mantığı</h3>
-                        <p class="fs-5 text-gray-700 mb-5">
+                        <h3 class="fw-bold text-body-emphasis mb-4">1. URL Parçalama Mantığı</h3>
+                        <p class="fs-5 text-body mb-5">
                             Kullanıcı bir adrese girdiğinde, <code>index.php</code> URL'yi <code>/</code> ile bölerek bir <code>$route</code> dizisi oluşturur. Bu dizinin elemanlarına herhangi bir yerden <code>route(index)</code> yardımcı fonksiyonu ile ulaşılabilir. Proje bir alt klasörde çalışıyorsa alt klasör adı otomatik olarak diziden çıkarılır.
                         </p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-250px">Örnek URL İsteği</th>
                                     <th class="min-w-150px">route(0)</th>
                                     <th class="min-w-150px">route(1)</th>
                                     <th class="min-w-150px">route(2)</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>site.com/kullanici/profil/15</code></td>
                                     <td><span class="badge badge-light-primary">kullanici</span><br><small class="text-muted">(Controller dosyası)</small></td>
@@ -60,8 +60,8 @@
 
                     <!--begin::Section 2-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">2. Controller Anatomisi</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">2. Controller Anatomisi</h3>
+                        <p class="fs-5 text-body mb-4">
                             Her controller dosyası aynı temel yapıyı izler: önce <code>$meta</code> ve <code>$page_config</code> tanımlanır, ardından veritabanı işlemleri yapılır, son olarak <code>header</code> + <code>içerik</code> + <code>footer</code> view'ları birleştirilerek ekrana basılır. Sınıf tanımlamasına (<code>class</code>) ya da constructor'a gerek yoktur; dosya düz PHP olarak çalışır.
                         </p>
 
@@ -108,9 +108,9 @@ if ($islem === 'profil') {
 </code></pre>
                         </div>
 
-                        <div class="alert bg-light-warning border border-warning d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Controller'da tanımlanan tüm değişkenler (örn. <code>$kullanici</code>) view dosyasında doğrudan kullanılabilir. <code>require view('...')</code> çağrısı aynı PHP kapsamında çalışır.</span>
+                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">Controller'da tanımlanan tüm değişkenler (örn. <code>$kullanici</code>) view dosyasında doğrudan kullanılabilir. <code>require view('...')</code> çağrısı aynı PHP kapsamında çalışır.</span>
                         </div>
                     </div>
                     <!--end::Section 2-->
@@ -119,22 +119,22 @@ if ($islem === 'profil') {
 
                     <!--begin::Section 3 — meta-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">3. <code>$meta</code> Dizisi</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. <code>$meta</code> Dizisi</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>$meta</code>, sayfanın <code>&lt;head&gt;</code> etiketi ile üst toolbar alanını besler. <code>static/header</code> view'u yüklenmeden önce tanımlanmış olmalıdır.
                         </p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-180px">Alan</th>
                                     <th class="min-w-100px">Tip</th>
                                     <th class="min-w-120px">Varsayılan</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>title</code></td>
                                     <td>string</td>
@@ -179,22 +179,22 @@ if ($islem === 'profil') {
 
                     <!--begin::Section 4 — page_config-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">4. <code>$page_config</code> Dizisi</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. <code>$page_config</code> Dizisi</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>$page_config</code>, layout bileşenlerinin (sidebar, topbar, footer vb.) görünürlüğünü ve davranışını yönetir. Tanımlanmayan anahtarlar <code>static/header</code> tarafından aşağıdaki varsayılanlarla doldurulur.
                         </p>
 
-                        <div class="table-responsive border rounded bg-light mb-6">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-6">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-200px">Anahtar</th>
                                     <th class="min-w-100px">Varsayılan</th>
                                     <th class="min-w-100px">Değerler</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>leftsidebar</code></td>
                                     <td><span class="badge badge-light-success">true</span></td>
@@ -253,8 +253,8 @@ if ($islem === 'profil') {
                             </table>
                         </div>
 
-                        <h5 class="fw-bold text-dark mb-3">Toolbar Butonları (<code>toolbaritems</code>)</h5>
-                        <p class="fs-6 text-gray-700 mb-4">
+                        <h5 class="fw-bold text-body-emphasis mb-3">Toolbar Butonları (<code>toolbaritems</code>)</h5>
+                        <p class="fs-6 text-body mb-4">
                             <code>contentheader</code> alanının sağ kısmına buton veya dropdown eklemek için <code>toolbaritems</code> kullanılır. Her eleman bir buton veya dropdown tanımlar.
                         </p>
 
@@ -270,7 +270,7 @@ if ($islem === 'profil') {
             'id'     => 'btn_yeni_ekle',
             'text'   => 'Yeni Ekle',
             'class'  => 'btn btn-primary btn-sm',
-            'icon'   => 'ki-duotone ki-plus',
+            'icon'   => 'fa-solid fa-plus',
             'custom' => 'data-bs-toggle="modal" data-bs-target="#modal_kullanici_ekle"',
         ],
         // Dropdown buton
@@ -278,7 +278,7 @@ if ($islem === 'profil') {
             'type'  => 'button',
             'text'  => 'Dışa Aktar',
             'class' => 'btn btn-light-primary btn-sm dropdown-toggle',
-            'icon'  => 'ki-duotone ki-file-down',
+            'icon'  => 'fa-solid fa-file-arrow-down',
             'items' => [
                 [
                     'type'   => 'a',
@@ -305,8 +305,8 @@ if ($islem === 'profil') {
 
                     <!--begin::Section 5 — Grouped Controller-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">5. Gruplu Controller (Alt Klasör Desteği)</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Gruplu Controller (Alt Klasör Desteği)</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>route(0)</code> değeri bir <b>klasöre</b> karşılık geliyorsa sistem otomatik olarak <code>controller/{route(0)}/{route(1)}.php</code> dosyasını arar. İlgili controller'ları alt klasörler halinde gruplandırabilirsiniz.
                         </p>
 
@@ -314,7 +314,7 @@ if ($islem === 'profil') {
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <div class="d-flex align-items-center mb-3">
-                                        <i class="ki-duotone ki-abstract-26 fs-2 text-primary me-3"><span class="path1"></span><span class="path2"></span></i>
+                                        <i class="fa-solid fa-cubes fs-2 text-primary me-3"></i>
                                         <h6 class="mb-0 fw-bold">URL</h6>
                                     </div>
                                     <code class="fs-6">site.com/docs/routing</code>
@@ -323,7 +323,7 @@ if ($islem === 'profil') {
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <div class="d-flex align-items-center mb-3">
-                                        <i class="ki-duotone ki-file fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span></i>
+                                        <i class="fa-solid fa-file fs-2 text-warning me-3"></i>
                                         <h6 class="mb-0 fw-bold">Çalışan Dosya</h6>
                                     </div>
                                     <code class="fs-6">controller/docs/routing.php</code>
@@ -332,16 +332,16 @@ if ($islem === 'profil') {
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <div class="d-flex align-items-center mb-3">
-                                        <i class="ki-duotone ki-arrow-right fs-2 text-success me-3"><span class="path1"></span><span class="path2"></span></i>
+                                        <i class="fa-solid fa-arrow-right fs-2 text-success me-3"></i>
                                         <h6 class="mb-0 fw-bold">Parametreler</h6>
                                     </div>
                                     <code class="fs-6">route(2) ve üzeri</code>
                                 </div>
                             </div>
                         </div>
-                        <div class="alert bg-light-warning border border-warning d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Klasör içinde dosya bulunamazsa sistem otomatik olarak <code>controller/404.php</code>'ye yönlendirir.</span>
+                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">Klasör içinde dosya bulunamazsa sistem otomatik olarak <code>controller/404.php</code>'ye yönlendirir.</span>
                         </div>
                     </div>
                     <!--end::Section 5-->
@@ -350,8 +350,8 @@ if ($islem === 'profil') {
 
                     <!--begin::Section 6 — View-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">6. <code>view()</code> Fonksiyonu</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. <code>view()</code> Fonksiyonu</h3>
+                        <p class="fs-5 text-body mb-4">
                             Controller içinden HTML çıktısı vermek için <code>require view('...')</code> kullanılır. Fonksiyon, <code>setting('theme')</code> ile belirlenen aktif tema klasörüne göre tam dosya yolunu oluşturur.
                         </p>
 
@@ -372,8 +372,8 @@ require view('static/footer');   // Layout sonu
 
                     <!--begin::Section 7 — modal-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-4">7. <code>modal()</code> Fonksiyonu</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. <code>modal()</code> Fonksiyonu</h3>
+                        <p class="fs-5 text-body mb-4">
                             Bootstrap 5 modal'larını ayrı PHP dosyaları olarak yönetmek için <code>modal()</code> fonksiyonu kullanılır. Bu fonksiyon <code>view/includes/modals/</code> altındaki dosyaya gider; tema klasöründen bağımsızdır.
                         </p>
 
@@ -394,7 +394,7 @@ require view('static/footer');   // Layout sonu
                             </div>
                         </div>
 
-                        <p class="fs-6 text-gray-700 mb-3">Modal'lar genellikle <code>static/footer</code> <b>öncesinde</b> yüklenir, böylece içerik view'unun içinde veya sonrasında jQuery/JS ile tetiklenebilirler:</p>
+                        <p class="fs-6 text-body mb-3">Modal'lar genellikle <code>static/footer</code> <b>öncesinde</b> yüklenir, böylece içerik view'unun içinde veya sonrasında jQuery/JS ile tetiklenebilirler:</p>
 
                         <div class="bg-dark rounded p-5">
                             <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>require view('static/header');

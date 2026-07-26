@@ -3,17 +3,17 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">Config Definitions</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Config Definitions</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     <code>libs/config/config_definitions.php</code> dosyası, VNL uygulamasının tüm temel yapılandırmasını barındırır. Her yeni projede ilk doldurulması gereken dosyadır.
                 </div>
             </div>
 
-            <div class="alert bg-light-warning border border-warning d-flex align-items-center p-5 mb-10">
-                <i class="ki-duotone ki-shield fs-2hx text-warning me-4"><span class="path1"></span><span class="path2"></span></i>
+            <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-5 mb-10">
+                <i class="fa-solid fa-shield fs-2hx text-warning me-4"></i>
                 <div class="d-flex flex-column">
-                    <h5 class="mb-1 text-dark">Güvenlik Uyarısı</h5>
-                    <span class="text-gray-700"><code>$salt_text</code> ve veritabanı bilgilerini asla kod deposuna (<code>git</code>) gerçek değerleriyle commit etmeyin. Üretim ortamı için environment variable veya ayrı bir ignored config dosyası kullanmayı değerlendirin.</span>
+                    <h5 class="mb-1 text-body-emphasis">Güvenlik Uyarısı</h5>
+                    <span class="text-body"><code>$salt_text</code> ve veritabanı bilgilerini asla kod deposuna (<code>git</code>) gerçek değerleriyle commit etmeyin. Üretim ortamı için environment variable veya ayrı bir ignored config dosyası kullanmayı değerlendirin.</span>
                 </div>
             </div>
 
@@ -22,8 +22,8 @@
 
                     <!--begin::Section 1 - testMode-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">1. Test Modu (<code>$testMode</code>)</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">1. Test Modu (<code>$testMode</code>)</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>ConfigDefinitions</code> sınıfı iki bağımsız yapılandırma bloğuna sahiptir: geliştirme (<code>true</code>) ve üretim (<code>false</code>). <code>$testMode</code> değeri hangi bloğun aktif olacağını belirler.
                         </p>
 
@@ -34,10 +34,10 @@
                                         <span class="badge badge-light-success me-3">true</span>
                                         <h6 class="mb-0 fw-bold">Geliştirme Ortamı</h6>
                                     </div>
-                                    <ul class="list-unstyled fs-6 text-gray-700 mb-0">
-                                        <li class="mb-2"><i class="ki-duotone ki-right fs-4 text-success me-2"></i>Genellikle <code>localhost</code> veritabanı kullanılır</li>
-                                        <li class="mb-2"><i class="ki-duotone ki-right fs-4 text-success me-2"></i>Hata mesajları ekrana yansır</li>
-                                        <li class="mb-0"><i class="ki-duotone ki-right fs-4 text-success me-2"></i>Test kullanıcı verisi güvenli</li>
+                                    <ul class="list-unstyled fs-6 text-body mb-0">
+                                        <li class="mb-2"><i class="fa-solid fa-chevron-right fs-4 text-success me-2"></i>Genellikle <code>localhost</code> veritabanı kullanılır</li>
+                                        <li class="mb-2"><i class="fa-solid fa-chevron-right fs-4 text-success me-2"></i>Hata mesajları ekrana yansır</li>
+                                        <li class="mb-0"><i class="fa-solid fa-chevron-right fs-4 text-success me-2"></i>Test kullanıcı verisi güvenli</li>
                                     </ul>
                                 </div>
                             </div>
@@ -47,10 +47,10 @@
                                         <span class="badge badge-light-primary me-3">false</span>
                                         <h6 class="mb-0 fw-bold">Üretim Ortamı</h6>
                                     </div>
-                                    <ul class="list-unstyled fs-6 text-gray-700 mb-0">
-                                        <li class="mb-2"><i class="ki-duotone ki-right fs-4 text-primary me-2"></i>Canlı veritabanı bilgileri doldurulur</li>
-                                        <li class="mb-2"><i class="ki-duotone ki-right fs-4 text-primary me-2"></i>Gerçek domain ve cookie ayarları</li>
-                                        <li class="mb-0"><i class="ki-duotone ki-right fs-4 text-primary me-2"></i>Deploy sonrası aktif olması gereken mod</li>
+                                    <ul class="list-unstyled fs-6 text-body mb-0">
+                                        <li class="mb-2"><i class="fa-solid fa-chevron-right fs-4 text-primary me-2"></i>Canlı veritabanı bilgileri doldurulur</li>
+                                        <li class="mb-2"><i class="fa-solid fa-chevron-right fs-4 text-primary me-2"></i>Gerçek domain ve cookie ayarları</li>
+                                        <li class="mb-0"><i class="fa-solid fa-chevron-right fs-4 text-primary me-2"></i>Deploy sonrası aktif olması gereken mod</li>
                                     </ul>
                                 </div>
                             </div>
@@ -73,18 +73,18 @@ switch ($this->testMode) {
 
                     <!--begin::Section 2 - Uygulama-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">2. Uygulama Bilgileri</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">2. Uygulama Bilgileri</h3>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-200px">Alan</th>
                                     <th class="min-w-120px">Varsayılan</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$app_name</code></td>
                                     <td><code>"VNL"</code></td>
@@ -114,9 +114,9 @@ switch ($this->testMode) {
                             </table>
                         </div>
 
-                        <div class="alert bg-light-info border border-info d-flex align-items-center p-4 mb-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-info me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6"><code>$app_name</code>, şirket adı değil <b>uygulamanın adıdır</b>. Örneğin "Stok Takip", "Satış Portalı", "CRM" gibi uygulamanın işlevini yansıtan bir isim olmalıdır.</span>
+                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4 mb-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
+                            <span class="text-body fs-6"><code>$app_name</code>, şirket adı değil <b>uygulamanın adıdır</b>. Örneğin "Stok Takip", "Satış Portalı", "CRM" gibi uygulamanın işlevini yansıtan bir isim olmalıdır.</span>
                         </div>
 
                         <div class="bg-dark rounded p-5">
@@ -134,18 +134,18 @@ private $version       = "1.0.0";
 
                     <!--begin::Section 3 - URL-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">3. URL Yapılandırması</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. URL Yapılandırması</h3>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-200px">Alan</th>
                                     <th class="min-w-200px">Örnek Değer</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$site_url</code></td>
                                     <td><code>"myapp.com"</code></td>
@@ -165,9 +165,9 @@ private $version       = "1.0.0";
                             </table>
                         </div>
 
-                        <div class="alert bg-light-info border border-info d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-info me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6"><code>getSiteUrl()</code>, isteğin HTTPS üzerinden gelip gelmediğini otomatik algılar ve <code>SITE_HTTP</code> sabitini buna göre ayarlar (<code>http://</code> veya <code>https://</code>). <code>$site_url</code>'e protokol yazmayın.</span>
+                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
+                            <span class="text-body fs-6"><code>getSiteUrl()</code>, isteğin HTTPS üzerinden gelip gelmediğini otomatik algılar ve <code>SITE_HTTP</code> sabitini buna göre ayarlar (<code>http://</code> veya <code>https://</code>). <code>$site_url</code>'e protokol yazmayın.</span>
                         </div>
                     </div>
                     <!--end::Section 3-->
@@ -176,21 +176,21 @@ private $version       = "1.0.0";
 
                     <!--begin::Section 4 - DB-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">4. Veritabanı Yapılandırması (<code>$db_info</code>)</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Veritabanı Yapılandırması (<code>$db_info</code>)</h3>
+                        <p class="fs-5 text-body mb-4">
                             VNL, <b>Illuminate Database (Eloquent/Capsule)</b> kullanır. <code>$db_info</code> dizisi Capsule bağlantısını yapılandırır.
                         </p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-180px">Anahtar</th>
                                     <th class="min-w-200px">Örnek Değer</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>driver</code></td>
                                     <td><code>"mysql"</code></td>
@@ -256,18 +256,18 @@ $this->db_info = [
 
                     <!--begin::Section 5 - Güvenlik-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">5. Güvenlik ve Oturum Ayarları</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Güvenlik ve Oturum Ayarları</h3>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-200px">Alan</th>
                                     <th class="min-w-200px">Örnek Değer</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$cookie_prefix</code></td>
                                     <td><code>"myapp"</code></td>
@@ -298,8 +298,8 @@ $this->db_info = [
 
                     <!--begin::Section 6 - login_except_pages-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">6. Erişim İstisnaları (<code>$login_except_pages</code>)</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. Erişim İstisnaları (<code>$login_except_pages</code>)</h3>
+                        <p class="fs-5 text-body mb-4">
                             Giriş yapılmadan erişilmesine izin verilen sayfa listesidir. <code>index.php</code> her istekte bu listeyi kontrol eder. İki format desteklenir:
                         </p>
 
@@ -307,14 +307,14 @@ $this->db_info = [
                             <div class="col-md-6">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <h6 class="fw-bold mb-3">Tekil Sayfa</h6>
-                                    <p class="fs-6 text-gray-700 mb-2"><code>route(0)</code> değeri eşleştirilir.</p>
+                                    <p class="fs-6 text-body mb-2"><code>route(0)</code> değeri eşleştirilir.</p>
                                     <code class="fs-7">"login"</code> &nbsp;→&nbsp; <code class="fs-7">site.com/login</code>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <h6 class="fw-bold mb-3">Gruplu Sayfa</h6>
-                                    <p class="fs-6 text-gray-700 mb-2"><code>route(0)/route(1)</code> birleşimi eşleştirilir.</p>
+                                    <p class="fs-6 text-body mb-2"><code>route(0)/route(1)</code> birleşimi eşleştirilir.</p>
                                     <code class="fs-7">"docs/getting-started"</code> &nbsp;→&nbsp; <code class="fs-7">site.com/docs/getting-started</code>
                                 </div>
                             </div>
@@ -337,9 +337,9 @@ $this->db_info = [
 </code></pre>
                         </div>
 
-                        <div class="alert bg-light-info border border-info d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-info me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Sadece belirli bir controller dosyasını public yapmak istiyorsanız <code>$login_except_pages</code> yerine o controller'da <code>$page_config['public'] = true</code> kullanmak daha temiz bir yaklaşımdır. İkisi de çalışır ama <code>public=true</code> yapılandırmayı controller'da localize eder.</span>
+                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
+                            <span class="text-body fs-6">Sadece belirli bir controller dosyasını public yapmak istiyorsanız <code>$login_except_pages</code> yerine o controller'da <code>$page_config['public'] = true</code> kullanmak daha temiz bir yaklaşımdır. İkisi de çalışır ama <code>public=true</code> yapılandırmayı controller'da localize eder.</span>
                         </div>
                     </div>
                     <!--end::Section 6-->
@@ -348,21 +348,21 @@ $this->db_info = [
 
                     <!--begin::Section 7 - Public Getter Metotları-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-4">7. Public Getter Metotları</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. Public Getter Metotları</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>ConfigDefinitions</code> sınıfının private alanlarına <code>$cDefinitions</code> global nesnesi üzerinden aşağıdaki metotlarla erişilir. Bu nesne sistem başlangıcında otomatik oluşturulur.
                         </p>
 
-                        <div class="table-responsive border rounded bg-light">
+                        <div class="table-responsive border rounded bg-body-tertiary">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-260px">Metot</th>
                                     <th class="min-w-120px">Dönen Tip</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$cDefinitions->appName()</code></td>
                                     <td><code>string</code></td>

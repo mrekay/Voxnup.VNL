@@ -17,7 +17,7 @@ $page_config = [
             'text'   => 'Fiyatlandırma',
             'class'  => 'btn btn-sm btn-light-primary fw-bold',
             'custom' => 'href="/stripe-test"',
-            'icon'   => 'ki-duotone ki-price-tag',
+            'icon'   => 'fa-solid fa-tag',
         ],
     ],
 ];

@@ -3,17 +3,17 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">SDTable — Sunucu Taraflı DataTables</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">SDTable — Sunucu Taraflı DataTables</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     <code>SDTable</code> sınıfı, jQuery DataTables için sunucu taraflı işleme (server-side processing) desteğiyle HTML tablo yapısını PHP tarafında üretir. View'da tek satır çağrısıyla tam işlevsel, AJAX destekli, filtrelenebilir ve sıralanabilir bir tablo oluşturursunuz.
                 </div>
             </div>
 
-            <div class="alert bg-light-primary border border-primary d-flex align-items-center p-5 mb-10">
-                <i class="ki-duotone ki-abstract-26 fs-2hx text-primary me-4"><span class="path1"></span><span class="path2"></span></i>
+            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+                <i class="fa-solid fa-cubes fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-primary">Nasıl Çalışır?</h5>
-                    <span class="text-gray-700">PHP tarafı HTML yapısını ve DataTables konfigürasyonunu üretir. Sayfa yüklendiğinde JS DataTables'ı otomatik başlatır; her sayfalama, sıralama veya filtreleme işleminde <code>$url</code> parametresindeki action endpoint'ine AJAX isteği gönderilir.</span>
+                    <span class="text-body">PHP tarafı HTML yapısını ve DataTables konfigürasyonunu üretir. Sayfa yüklendiğinde JS DataTables'ı otomatik başlatır; her sayfalama, sıralama veya filtreleme işleminde <code>$url</code> parametresindeki action endpoint'ine AJAX isteği gönderilir.</span>
                 </div>
             </div>
 
@@ -22,22 +22,22 @@
 
                     <!--begin::Section 1-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">1. SDTable::CreateDatable() Parametreleri</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">1. SDTable::CreateDatable() Parametreleri</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>SDTable::CreateDatable()</code> statik metodu beş parametre alır ve HTML string döndürür:
                         </p>
 
-                        <div class="table-responsive border rounded bg-light mb-6">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-6">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-150px">Parametre</th>
                                     <th class="min-w-100px">Tip</th>
                                     <th class="min-w-100px">Zorunlu</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$url</code></td>
                                     <td>string</td>
@@ -78,21 +78,21 @@
 
                     <!--begin::Section 2-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">2. <code>$columns</code> Dizisi</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">2. <code>$columns</code> Dizisi</h3>
+                        <p class="fs-5 text-body mb-4">
                             Her sütun bir ilişkisel dizi ile tanımlanır. İlk sütun (aksiyonlar) <code>SDTable</code> tarafından otomatik eklenir; onu tanımlamaya gerek yoktur.
                         </p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-200px">Anahtar</th>
                                     <th class="min-w-100px">Zorunlu</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>data-name</code></td>
                                     <td><span class="badge badge-light-danger">Zorunlu</span></td>
@@ -162,21 +162,21 @@
 
                     <!--begin::Section 3-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">3. <code>$filters</code> Dizisi</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. <code>$filters</code> Dizisi</h3>
+                        <p class="fs-5 text-body mb-4">
                             Filtre satırı, tablonun üstünde gösterilen arama alanlarını tanımlar. Her filtre bir input veya select olabilir.
                         </p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-160px">Anahtar</th>
                                     <th class="min-w-100px">Zorunlu</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>filter_type</code></td>
                                     <td><span class="badge badge-light-danger">Zorunlu</span></td>
@@ -243,20 +243,20 @@
 
                     <!--begin::Section 4-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">4. <code>$options</code> ve <code>$passdata</code></h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. <code>$options</code> ve <code>$passdata</code></h3>
 
                         <div class="row g-5 mb-5">
                             <div class="col-md-6">
-                                <h5 class="fw-bold text-dark mb-3"><code>$options</code> Dizisi</h5>
-                                <div class="table-responsive border rounded bg-light mb-4">
+                                <h5 class="fw-bold text-body-emphasis mb-3"><code>$options</code> Dizisi</h5>
+                                <div class="table-responsive border rounded bg-body-tertiary mb-4">
                                     <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                         <thead>
-                                        <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                        <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                             <th class="ps-4 min-w-120px">Anahtar</th>
                                             <th class="min-w-200px">Açıklama</th>
                                         </tr>
                                         </thead>
-                                        <tbody class="text-gray-800 fw-semibold">
+                                        <tbody class="text-body fw-semibold">
                                         <tr>
                                             <td class="ps-4"><code>dt-id</code></td>
                                             <td>Tablonun HTML <code>id</code>'si. <span class="badge badge-light-danger">Zorunlu</span></td>
@@ -286,8 +286,8 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <h5 class="fw-bold text-dark mb-3"><code>$passdata</code> Dizisi</h5>
-                                <p class="text-gray-700 fs-6 mb-3">Her AJAX isteğiyle birlikte gönderilecek gizli veri alanlarıdır. Örneğin bir proje ID'sini her istekte action'a iletmek için kullanılır.</p>
+                                <h5 class="fw-bold text-body-emphasis mb-3"><code>$passdata</code> Dizisi</h5>
+                                <p class="text-body fs-6 mb-3">Her AJAX isteğiyle birlikte gönderilecek gizli veri alanlarıdır. Örneğin bir proje ID'sini her istekte action'a iletmek için kullanılır.</p>
                                 <div class="bg-dark rounded p-4">
                                     <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$passdata = [
     [
@@ -311,8 +311,8 @@
 
                     <!--begin::Section 5-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">5. View'da Kullanım</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. View'da Kullanım</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>SDTable::CreateDatable()</code> HTML string döndürür. <code>echo</code> ile view içine yazdırın.
                         </p>
 
@@ -349,8 +349,8 @@ echo SDTable::CreateDatable('app/kullanici/getList', $columns, $filters, $option
 
                     <!--begin::Section 6-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">6. Action Tarafı — <code>getList</code></h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. Action Tarafı — <code>getList</code></h3>
+                        <p class="fs-5 text-body mb-4">
                             DataTables verisi çeken action metodu felsefe gereği <b>her zaman <code>getList</code></b> olarak adlandırılır. DataTables parametreleri (<code>columns</code>, <code>order</code>, <code>start</code>, <code>length</code>) standart biçimde okunur; model <b>statik olarak</b> çağrılır ve sonuna <b>mutlaka <code>->get()</code></b> eklenir.
                         </p>
 
@@ -422,12 +422,12 @@ class action_kullanici
 </code></pre>
                         </div>
 
-                        <div class="alert bg-light-info border border-info d-flex align-items-center p-4 mb-5">
-                            <i class="ki-duotone ki-information-5 fs-2 text-info me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Sistem hata durumunda HTTP 400 döner. AJAX tarafında yanıt <code>response.result</code> gibi alanlarla değil, jQuery'nin <code>success</code> ve <code>error</code> callback'leriyle yakalanır.</span>
+                        <div class="alert bg-info-subtle border border-info d-flex align-items-center p-4 mb-5">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
+                            <span class="text-body fs-6">Sistem hata durumunda HTTP 400 döner. AJAX tarafında yanıt <code>response.result</code> gibi alanlarla değil, jQuery'nin <code>success</code> ve <code>error</code> callback'leriyle yakalanır.</span>
                         </div>
 
-                        <h5 class="fw-bold text-dark mb-3">JS Tarafı — AJAX Örneği</h5>
+                        <h5 class="fw-bold text-body-emphasis mb-3">JS Tarafı — AJAX Örneği</h5>
                         <div class="bg-dark rounded p-5">
                             <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>$.ajax({
     type: 'POST',
@@ -455,14 +455,14 @@ class action_kullanici
 
                     <!--begin::Section 7-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">7. Excel Export</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. Excel Export</h3>
+                        <p class="fs-5 text-body mb-4">
                             SDTable, yerleşik Excel export desteği sunar. Tablo başlığındaki export butonu, mevcut filtre durumunu koruyarak <code>datatableToExcel.php</code> dosyasına istek gönderir; tüm kayıtlar (limit=-1) action'dan alınır ve Excel dosyası oluşturulur.
                         </p>
 
-                        <div class="alert bg-light-primary border border-primary d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-file-down fs-2 text-primary me-3"><span class="path1"></span><span class="path2"></span></i>
-                            <span class="text-gray-800 fs-6">Excel export detayları ve manuel Excel oluşturma için <a href="/docs/excel-export" class="text-primary fw-bold">Excel Export</a> sayfasına bakın.</span>
+                        <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-4">
+                            <i class="fa-solid fa-file-arrow-down fs-2 text-primary me-3"></i>
+                            <span class="text-body fs-6">Excel export detayları ve manuel Excel oluşturma için <a href="/docs/excel-export" class="text-primary fw-bold">Excel Export</a> sayfasına bakın.</span>
                         </div>
                     </div>
                     <!--end::Section 7-->
@@ -471,9 +471,9 @@ class action_kullanici
 
                     <!--begin::Section 8 — Tam örnek-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-4">8. Tam Örnek — Controller + View + Action</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">8. Tam Örnek — Controller + View + Action</h3>
 
-                        <h5 class="fw-bold text-dark mb-3">Controller (<code>controller/kullanici.php</code>)</h5>
+                        <h5 class="fw-bold text-body-emphasis mb-3">Controller (<code>controller/kullanici.php</code>)</h5>
                         <div class="bg-dark rounded p-5 mb-5">
                             <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 $meta = [
@@ -490,7 +490,7 @@ $page_config = [
             'type'   => 'button',
             'text'   => 'Yeni Kullanıcı',
             'class'  => 'btn btn-primary btn-sm',
-            'icon'   => 'ki-duotone ki-plus',
+            'icon'   => 'fa-solid fa-plus',
             'custom' => 'data-bs-toggle="modal" data-bs-target="#modal_kullanici_ekle"',
         ],
     ],
@@ -503,7 +503,7 @@ require view('static/footer');
 </code></pre>
                         </div>
 
-                        <h5 class="fw-bold text-dark mb-3">View (<code>view/kullanici/liste.php</code>)</h5>
+                        <h5 class="fw-bold text-body-emphasis mb-3">View (<code>view/kullanici/liste.php</code>)</h5>
                         <div class="bg-dark rounded p-5 mb-5">
                             <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 $columns = [

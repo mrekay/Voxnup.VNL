@@ -3,17 +3,17 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">Veritabanı Katmanı ve Modeller</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Veritabanı Katmanı ve Modeller</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     VNL'de veritabanı işlemleri her zaman model sınıfları üzerinden yapılır. Her varlık için bir model sınıfı oluşturmak sistem bütünlüğünün temelidir; spagetti kodu önler ve tutarlı bir kod tabanı sağlar.
                 </div>
             </div>
 
-            <div class="alert bg-light-danger border border-danger d-flex align-items-center p-5 mb-10">
-                <i class="ki-duotone ki-cross-circle fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span></i>
+            <div class="alert bg-danger-subtle border border-danger d-flex align-items-center p-5 mb-10">
+                <i class="fa-solid fa-circle-xmark fs-2hx text-danger me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-danger">Capsule:: Doğrudan Kullanımı Yasak Gibidir</h5>
-                    <span class="text-gray-700"><code>Capsule::table('tbl_x')->...</code> çağrısı teknik olarak çalışsa da VNL felsefesi gereği <b>kesinlikle önerilmez</b>. Veritabanına erişen her işlem için bir model sınıfı oluşturun. Bu kural spagetti kodu engeller ve sistem bütünlüğünü korur. İstisna yoktur.</span>
+                    <span class="text-body"><code>Capsule::table('tbl_x')->...</code> çağrısı teknik olarak çalışsa da VNL felsefesi gereği <b>kesinlikle önerilmez</b>. Veritabanına erişen her işlem için bir model sınıfı oluşturun. Bu kural spagetti kodu engeller ve sistem bütünlüğünü korur. İstisna yoktur.</span>
                 </div>
             </div>
 
@@ -22,29 +22,29 @@
 
                     <!--begin::Section 1-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">1. Veritabanı Katmanına Genel Bakış</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">1. Veritabanı Katmanına Genel Bakış</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>Database</code> sınıfı, <code>\Illuminate\Database\Capsule\Manager</code>'ı genişletir. Yapılandırma bilgilerini <code>$cDefinitions->getDBInfo()</code> üzerinden okur ve bağlantıyı global olarak ayarlar. Bu altyapı sayesinde tüm model sınıfları otomatik olarak veritabanına bağlıdır.
                         </p>
 
                         <div class="row g-5">
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100 text-center">
-                                    <i class="ki-duotone ki-abstract-26 fs-3x text-primary mb-3"><span class="path1"></span><span class="path2"></span></i>
+                                    <i class="fa-solid fa-cubes fs-3x text-primary mb-3"></i>
                                     <h6 class="fw-bold mb-2">Illuminate\Database</h6>
                                     <span class="text-muted fs-7">Laravel'in ORM motoru. Eloquent model desteği ve sorgu oluşturucu içerir.</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100 text-center">
-                                    <i class="ki-duotone ki-data fs-3x text-success mb-3"><span class="path1"></span><span class="path2"></span></i>
+                                    <i class="fa-solid fa-database fs-3x text-success mb-3"></i>
                                     <h6 class="fw-bold mb-2">TableModel</h6>
                                     <span class="text-muted fs-7">Tüm model sınıflarının türediği soyut temel sınıf. Soft delete ve filtreleme desteği sunar.</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100 text-center">
-                                    <i class="ki-duotone ki-setting-2 fs-3x text-warning mb-3"><span class="path1"></span><span class="path2"></span></i>
+                                    <i class="fa-solid fa-gear fs-3x text-warning mb-3"></i>
                                     <h6 class="fw-bold mb-2">Config Entegrasyonu</h6>
                                     <span class="text-muted fs-7"><code>getDBInfo()</code> ile bağlantı bilgileri okunur; test/üretim moduna göre doğru veritabanı seçilir.</span>
                                 </div>
@@ -57,22 +57,22 @@
 
                     <!--begin::Section 2-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">2. TableModel — Temel Model Sınıfı</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">2. TableModel — Temel Model Sınıfı</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>TableModel</code>, <code>\Illuminate\Database\Eloquent\Model</code>'i genişleten soyut bir sınıftır. Projenizdeki tüm model sınıfları bu sınıfı miras alır. Aşağıdaki alanlar VNL felsefesi gereği zorunlu veya zorunlu gibi olarak kabul edilir.
                         </p>
 
-                        <h5 class="fw-bold text-dark mb-3">Temel Özellikler ve Alanlar</h5>
-                        <div class="table-responsive border rounded bg-light mb-6">
+                        <h5 class="fw-bold text-body-emphasis mb-3">Temel Özellikler ve Alanlar</h5>
+                        <div class="table-responsive border rounded bg-body-tertiary mb-6">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-220px">Alan / Özellik</th>
                                     <th class="min-w-120px">Durum</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$table</code></td>
                                     <td><span class="badge badge-light-danger">Zorunlu</span></td>
@@ -107,16 +107,16 @@
                             </table>
                         </div>
 
-                        <h5 class="fw-bold text-dark mb-3">Metotlar</h5>
-                        <div class="table-responsive border rounded bg-light mb-6">
+                        <h5 class="fw-bold text-body-emphasis mb-3">Metotlar</h5>
+                        <div class="table-responsive border rounded bg-body-tertiary mb-6">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-280px">Metot İmzası</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>tableName(string $as)</code></td>
                                     <td><code>'tbl_urunler as u'</code> biçiminde join için hazır tablo adı döndürür.</td>
@@ -147,14 +147,14 @@
 
                     <!--begin::Section 3-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">3. Model Oluşturma Standardı</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. Model Oluşturma Standardı</h3>
+                        <p class="fs-5 text-body mb-4">
                             Yeni bir model oluştururken <code>classes/</code> klasörü altında bir PHP dosyası açın ve <code>TableModel</code>'i genişletin. <code>SoftDeletes</code>, <code>$fillable</code>, <code>$foreign_keys</code> ve <code>static $columns</code> alanlarının tamamı eksiksiz doldurulmalıdır.
                         </p>
 
-                        <div class="d-flex align-items-center bg-light border border-dashed rounded p-4 mb-4">
-                            <i class="ki-duotone ki-file fs-1 text-primary me-3"><span class="path1"></span><span class="path2"></span></i>
-                            <span class="fs-5 fw-bold text-gray-800 font-monospace">classes/Urun.php</span>
+                        <div class="d-flex align-items-center bg-body-tertiary border border-dashed rounded p-4 mb-4">
+                            <i class="fa-solid fa-file fs-1 text-primary me-3"></i>
+                            <span class="fs-5 fw-bold text-body font-monospace">classes/Urun.php</span>
                         </div>
 
                         <div class="bg-dark rounded p-5 mb-5">
@@ -218,10 +218,10 @@ class Urun extends TableModel
 </code></pre>
                         </div>
 
-                        <h5 class="fw-bold text-dark mb-3">Statik Kullanım — <code>->get()</code> Zorunludur</h5>
-                        <div class="alert bg-light-warning border border-warning d-flex align-items-center p-4 mb-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6"><code>SelectList</code> bir query builder döndürür. Sonuçları almak için mutlaka <code>->get()</code> çağrılmalıdır. Bu kural olmadan veri gelmez.</span>
+                        <h5 class="fw-bold text-body-emphasis mb-3">Statik Kullanım — <code>->get()</code> Zorunludur</h5>
+                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4 mb-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6"><code>SelectList</code> bir query builder döndürür. Sonuçları almak için mutlaka <code>->get()</code> çağrılmalıdır. Bu kural olmadan veri gelmez.</span>
                         </div>
 
                         <div class="bg-dark rounded p-5 mb-4">
@@ -249,12 +249,12 @@ $tumListe = Urun::SelectList($filters, ['limit' => -1])->get();
 
                     <!--begin::Section 4-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">4. <code>selectListQuery</code> ile Filtreleme</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. <code>selectListQuery</code> ile Filtreleme</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>selectListQuery</code>, <code>$filters</code> ve <code>$extras</code> dizilerini alarak Eloquent sorgusuna WHERE koşulları, limit, offset ve ORDER BY ekler.
                         </p>
 
-                        <h5 class="fw-bold text-dark mb-3"><code>$filters</code> Formatı</h5>
+                        <h5 class="fw-bold text-body-emphasis mb-3"><code>$filters</code> Formatı</h5>
                         <div class="bg-dark rounded p-5 mb-5">
                             <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Kısa biçim — eşitlik kontrolü
 $filters = [
@@ -269,17 +269,17 @@ $filters = [
 ];</code></pre>
                         </div>
 
-                        <h5 class="fw-bold text-dark mb-3">Desteklenen Operatörler</h5>
-                        <div class="table-responsive border rounded bg-light mb-6">
+                        <h5 class="fw-bold text-body-emphasis mb-3">Desteklenen Operatörler</h5>
+                        <div class="table-responsive border rounded bg-body-tertiary mb-6">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-150px">Operatör</th>
                                     <th class="min-w-200px">Değer Formatı</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>=</code></td>
                                     <td>Herhangi bir değer</td>
@@ -304,17 +304,17 @@ $filters = [
                             </table>
                         </div>
 
-                        <h5 class="fw-bold text-dark mb-3"><code>$extras</code> Formatı</h5>
-                        <div class="table-responsive border rounded bg-light mb-6">
+                        <h5 class="fw-bold text-body-emphasis mb-3"><code>$extras</code> Formatı</h5>
+                        <div class="table-responsive border rounded bg-body-tertiary mb-6">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-150px">Anahtar</th>
                                     <th class="min-w-120px">Varsayılan</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>limit</code></td>
                                     <td><code>10</code></td>
@@ -345,8 +345,8 @@ $filters = [
 
                     <!--begin::Section 5-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">5. Soft Delete ve Update — Felsefe Gereği Zorunlu</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Soft Delete ve Update — Felsefe Gereği Zorunlu</h3>
+                        <p class="fs-5 text-body mb-4">
                             VNL felsefesinde <code>delete()</code> ve <code>update()</code> işlemleri <b>model sınıfı üzerinden</b> yapılmalıdır. Soft delete tüm modellerde kullanılmalı; fiziksel silme <code>forceDelete()</code> ile yalnızca özel durumlarda tercih edilmelidir.
                         </p>
 
@@ -391,8 +391,8 @@ $urun->save();</code></pre>
                             </div>
                         </div>
 
-                        <div class="alert bg-light-info border border-info d-flex flex-column flex-sm-row p-5 mb-0">
-                            <i class="ki-duotone ki-shield-tick fs-2hx text-info me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span></i>
+                        <div class="alert bg-info-subtle border border-info d-flex flex-column flex-sm-row p-5 mb-0">
+                            <i class="fa-solid fa-shield-halved fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1">Soft Delete için Tablo Gereksinimi</h5>
                                 <span>Tablonuzda <code>deleted_at TIMESTAMP NULL DEFAULT NULL</code> sütununun bulunması gerekir. Ayrıca silme işleminden önce <code>DeleteUser</code> alanını doldurmak iyi pratiktir — kimin sildiği takip edilebilir.</span>
@@ -405,8 +405,8 @@ $urun->save();</code></pre>
 
                     <!--begin::Section 6-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-4">6. Neden Model? — Felsefe</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. Neden Model? — Felsefe</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>Capsule::</code> ile doğrudan sorgu yazmak mümkündür ancak bu yaklaşım VNL felsefesine aykırıdır. Her veritabanı erişimi model sınıfından geçmelidir.
                         </p>
 
@@ -415,7 +415,7 @@ $urun->save();</code></pre>
                                 <div class="card border border-dashed border-danger h-100">
                                     <div class="card-body p-5">
                                         <div class="d-flex align-items-center mb-3">
-                                            <i class="ki-duotone ki-cross-circle fs-2 text-danger me-3"><span class="path1"></span><span class="path2"></span></i>
+                                            <i class="fa-solid fa-circle-xmark fs-2 text-danger me-3"></i>
                                             <h6 class="mb-0 fw-bold text-danger">Yapma — Spagetti Kodu</h6>
                                         </div>
                                         <div class="bg-dark rounded p-3">
@@ -432,7 +432,7 @@ $list = Capsule::table('tbl_urunler')
                                 <div class="card border border-dashed border-success h-100">
                                     <div class="card-body p-5">
                                         <div class="d-flex align-items-center mb-3">
-                                            <i class="ki-duotone ki-check-circle fs-2 text-success me-3"><span class="path1"></span><span class="path2"></span></i>
+                                            <i class="fa-solid fa-circle-check fs-2 text-success me-3"></i>
                                             <h6 class="mb-0 fw-bold text-success">Yap — VNL Standardı</h6>
                                         </div>
                                         <div class="bg-dark rounded p-3">

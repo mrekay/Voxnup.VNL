@@ -3,7 +3,7 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">Extension Sistemi</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Extension Sistemi</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     VNL, <code>extensions/</code> klasörü altında bağımsız eklentiler destekler. Her eklenti kendi controller, action, view ve kaynak dosyalarını barındırır; VNL core'una tek satır dokunmadan çalışır.
                 </div>
@@ -12,10 +12,10 @@
             <!--begin::Nasıl Çalışır-->
             <div class="card shadow-sm border-0 mb-10">
                 <div class="card-header border-0 pt-8">
-                    <h2 class="card-title fw-bolder text-gray-900">Nasıl Çalışır?</h2>
+                    <h2 class="card-title fw-bold text-body-emphasis">Nasıl Çalışır?</h2>
                 </div>
                 <div class="card-body pt-2">
-                    <p class="fs-5 text-gray-700 mb-6">
+                    <p class="fs-5 text-body mb-6">
                         VNL başlangıcında (<code>libs/config.php</code>) aşağıdaki glob çalışır ve bulunan tüm <code>boot.php</code> dosyaları sırayla yüklenir:
                     </p>
                     <div class="bg-dark rounded p-5 mb-8">
@@ -26,7 +26,7 @@ foreach (glob(getDocumentRoot() . 'extensions/*/boot.php') as $_extBoot) {
 </code></pre>
                     </div>
 
-                    <p class="fs-5 text-gray-700 mb-6">
+                    <p class="fs-5 text-body mb-6">
                         Action ve controller routing'i de extension klasörlerine fallback yapar:
                     </p>
                     <div class="bg-dark rounded p-5 mb-8">
@@ -52,10 +52,10 @@ foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_
             <!--begin::Klasör Yapısı-->
             <div class="card shadow-sm border-0 mb-10">
                 <div class="card-header border-0 pt-8">
-                    <h2 class="card-title fw-bolder text-gray-900">Standart Klasör Yapısı</h2>
+                    <h2 class="card-title fw-bold text-body-emphasis">Standart Klasör Yapısı</h2>
                 </div>
                 <div class="card-body pt-2">
-                    <p class="fs-5 text-gray-700 mb-5">Her eklenti <code>extensions/{eklenti-adi}/</code> altında şu yapıyı takip eder:</p>
+                    <p class="fs-5 text-body mb-5">Her eklenti <code>extensions/{eklenti-adi}/</code> altında şu yapıyı takip eder:</p>
                     <div class="bg-dark rounded p-5 mb-8">
                         <pre class="text-white fs-7 font-monospace mb-0" style="background:transparent; white-space:pre-wrap;"><code>extensions/
 └── my-extension/
@@ -82,10 +82,10 @@ foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_
             <!--begin::boot.php-->
             <div class="card shadow-sm border-0 mb-10">
                 <div class="card-header border-0 pt-8">
-                    <h2 class="card-title fw-bolder text-gray-900">boot.php</h2>
+                    <h2 class="card-title fw-bold text-body-emphasis">boot.php</h2>
                 </div>
                 <div class="card-body pt-2">
-                    <p class="fs-5 text-gray-700 mb-5">
+                    <p class="fs-5 text-body mb-5">
                         <code>boot.php</code>, VNL'in config pipeline'ı tamamlandıktan sonra çalışır. Bu noktada Eloquent, Composer autoloader ve tüm VNL yardımcıları kullanılabilir durumdadır.
                     </p>
                     <div class="bg-dark rounded p-5 mb-8">
@@ -104,8 +104,8 @@ require_once MY_EXT_PATH . '/src/MyModel.php';
 </code></pre>
                     </div>
 
-                    <div class="alert bg-light-info border border-info d-flex align-items-center p-5 mb-5">
-                        <i class="ki-duotone ki-information fs-2hx text-info me-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                    <div class="alert bg-info-subtle border border-info d-flex align-items-center p-5 mb-5">
+                        <i class="fa-solid fa-circle-info fs-2hx text-info me-4"></i>
                         <div>
                             <strong>Önemli:</strong> <code>boot.php</code>, <code>config_db.php</code>'den sonra çalışır.
                             Eloquent modeller, <code>$CurrentUser</code> ve tüm VNL modülleri bu noktada hazırdır.
@@ -118,10 +118,10 @@ require_once MY_EXT_PATH . '/src/MyModel.php';
             <!--begin::Controller & View-->
             <div class="card shadow-sm border-0 mb-10">
                 <div class="card-header border-0 pt-8">
-                    <h2 class="card-title fw-bolder text-gray-900">Controller ve View</h2>
+                    <h2 class="card-title fw-bold text-body-emphasis">Controller ve View</h2>
                 </div>
                 <div class="card-body pt-2">
-                    <p class="fs-5 text-gray-700 mb-5">
+                    <p class="fs-5 text-body mb-5">
                         Extension controller'ları standart VNL controller'larıyla özdeştir. VNL layout bileşenleri (<code>view('static/header')</code> vb.) kullanılabilir, ancak sayfa içeriği için extension'ın kendi view klasörü kullanılır.
                     </p>
                     <div class="bg-dark rounded p-5 mb-8">
@@ -144,8 +144,8 @@ require view('static/footer');                              // VNL layout
 </code></pre>
                     </div>
 
-                    <div class="alert bg-light-warning border border-warning d-flex align-items-center p-5">
-                        <i class="ki-duotone ki-information fs-2hx text-warning me-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                    <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-5">
+                        <i class="fa-solid fa-circle-info fs-2hx text-warning me-4"></i>
                         <div>
                             <strong>Public sayfalar için</strong> (auth gerektirmeyen, örn. webhook):
                             <code>$page_config = ['public' => true];</code> ayarlanmalıdır.
@@ -159,10 +159,10 @@ require view('static/footer');                              // VNL layout
             <!--begin::Action-->
             <div class="card shadow-sm border-0 mb-10">
                 <div class="card-header border-0 pt-8">
-                    <h2 class="card-title fw-bolder text-gray-900">Action (AJAX Endpoint)</h2>
+                    <h2 class="card-title fw-bold text-body-emphasis">Action (AJAX Endpoint)</h2>
                 </div>
                 <div class="card-body pt-2">
-                    <p class="fs-5 text-gray-700 mb-5">
+                    <p class="fs-5 text-body mb-5">
                         Action dosyaları standart VNL action'larıyla aynı kurallara uyar. <code>/app/{module}/{method}</code> pattern'ı extension action'larında da çalışır.
                     </p>
                     <div class="bg-dark rounded p-5 mb-8">
@@ -192,10 +192,10 @@ class action_myext
             <!--begin::Model-->
             <div class="card shadow-sm border-0 mb-10">
                 <div class="card-header border-0 pt-8">
-                    <h2 class="card-title fw-bolder text-gray-900">Model (Eloquent)</h2>
+                    <h2 class="card-title fw-bold text-body-emphasis">Model (Eloquent)</h2>
                 </div>
                 <div class="card-body pt-2">
-                    <p class="fs-5 text-gray-700 mb-5">
+                    <p class="fs-5 text-body mb-5">
                         Extension modelleri <code>TableModel</code>'i extend eder; Eloquent'in tüm özellikleri ve VNL'in <code>selectListQuery</code> yardımcısı kullanılabilir.
                     </p>
                     <div class="bg-dark rounded p-5 mb-8">
@@ -231,43 +231,43 @@ class MyModel extends TableModel
             <!--begin::Kurulum Adımları-->
             <div class="card shadow-sm border-0 mb-10">
                 <div class="card-header border-0 pt-8">
-                    <h2 class="card-title fw-bolder text-gray-900">Eklenti Kurulum Adımları</h2>
+                    <h2 class="card-title fw-bold text-body-emphasis">Eklenti Kurulum Adımları</h2>
                 </div>
                 <div class="card-body pt-2">
                     <div class="d-flex flex-column gap-5">
                         <div class="d-flex align-items-start">
                             <span class="badge badge-circle badge-primary me-4 mt-1 fs-6 flex-shrink-0">1</span>
                             <div>
-                                <div class="fw-bold text-gray-800 mb-1">Klasörü yerleştir</div>
-                                <div class="text-gray-600 fs-6"><code>extensions/eklenti-adi/</code> klasörünü projeye ekle.</div>
+                                <div class="fw-bold text-body mb-1">Klasörü yerleştir</div>
+                                <div class="text-body-secondary fs-6"><code>extensions/eklenti-adi/</code> klasörünü projeye ekle.</div>
                             </div>
                         </div>
                         <div class="d-flex align-items-start">
                             <span class="badge badge-circle badge-primary me-4 mt-1 fs-6 flex-shrink-0">2</span>
                             <div>
-                                <div class="fw-bold text-gray-800 mb-1">Config'i düzenle</div>
-                                <div class="text-gray-600 fs-6">Eklentinin <code>config.php</code> dosyasındaki ayarları doldur.</div>
+                                <div class="fw-bold text-body mb-1">Config'i düzenle</div>
+                                <div class="text-body-secondary fs-6">Eklentinin <code>config.php</code> dosyasındaki ayarları doldur.</div>
                             </div>
                         </div>
                         <div class="d-flex align-items-start">
                             <span class="badge badge-circle badge-primary me-4 mt-1 fs-6 flex-shrink-0">3</span>
                             <div>
-                                <div class="fw-bold text-gray-800 mb-1">Gerekli bağımlılıkları yükle</div>
-                                <div class="text-gray-600 fs-6">Eklentinin talep ettiği Composer paketlerini <code>libs/</code> altında kur. Örn: <code>composer require stripe/stripe-php</code></div>
+                                <div class="fw-bold text-body mb-1">Gerekli bağımlılıkları yükle</div>
+                                <div class="text-body-secondary fs-6">Eklentinin talep ettiği Composer paketlerini <code>libs/</code> altında kur. Örn: <code>composer require stripe/stripe-php</code></div>
                             </div>
                         </div>
                         <div class="d-flex align-items-start">
                             <span class="badge badge-circle badge-primary me-4 mt-1 fs-6 flex-shrink-0">4</span>
                             <div>
-                                <div class="fw-bold text-gray-800 mb-1">DB tablolarını oluştur</div>
-                                <div class="text-gray-600 fs-6">Eklentinin <code>setup.sql</code> dosyasını veritabanında çalıştır.</div>
+                                <div class="fw-bold text-body mb-1">DB tablolarını oluştur</div>
+                                <div class="text-body-secondary fs-6">Eklentinin <code>setup.sql</code> dosyasını veritabanında çalıştır.</div>
                             </div>
                         </div>
                         <div class="d-flex align-items-start">
                             <span class="badge badge-circle badge-success me-4 mt-1 fs-6 flex-shrink-0">✓</span>
                             <div>
-                                <div class="fw-bold text-gray-800 mb-1">Hazır</div>
-                                <div class="text-gray-600 fs-6">VNL bir sonraki istekte <code>boot.php</code>'yi otomatik yükler. Başka bir şeye gerek yok.</div>
+                                <div class="fw-bold text-body mb-1">Hazır</div>
+                                <div class="text-body-secondary fs-6">VNL bir sonraki istekte <code>boot.php</code>'yi otomatik yükler. Başka bir şeye gerek yok.</div>
                             </div>
                         </div>
                     </div>
@@ -278,14 +278,14 @@ class MyModel extends TableModel
             <!--begin::Kaldırma-->
             <div class="card shadow-sm border-0 mb-10">
                 <div class="card-header border-0 pt-8">
-                    <h2 class="card-title fw-bolder text-gray-900">Eklenti Kaldırma</h2>
+                    <h2 class="card-title fw-bold text-body-emphasis">Eklenti Kaldırma</h2>
                 </div>
                 <div class="card-body pt-2">
-                    <p class="fs-5 text-gray-700 mb-5">
+                    <p class="fs-5 text-body mb-5">
                         Eklentiyi devre dışı bırakmak için <code>extensions/{eklenti-adi}/</code> klasörünü silmek veya yeniden adlandırmak yeterlidir. VNL core'una hiçbir şey yazılmadığından temizlik yapmaya gerek yoktur.
                     </p>
-                    <div class="alert bg-light-danger border border-danger d-flex align-items-center p-5">
-                        <i class="ki-duotone ki-information fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                    <div class="alert bg-danger-subtle border border-danger d-flex align-items-center p-5">
+                        <i class="fa-solid fa-circle-info fs-2hx text-danger me-4"></i>
                         <div>Eklenti kaldırılmadan önce DB tablolarını ve Composer bağımlılıklarını manuel olarak temizlemeyi unutmayın.</div>
                     </div>
                 </div>

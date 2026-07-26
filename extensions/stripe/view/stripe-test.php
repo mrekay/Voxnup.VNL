@@ -18,14 +18,13 @@ $cancelUrl   = SITE_URL . '/stripe-test';
 
             <?php if ($isTestMode): ?>
             <!--begin::Test Mode Banner-->
-            <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed mb-9 p-6">
-                <i class="ki-duotone ki-information fs-2tx text-warning me-4">
-                    <span class="path1"></span><span class="path2"></span><span class="path3"></span>
+            <div class="notice d-flex bg-warning-subtle rounded border-warning border border-dashed mb-9 p-6">
+                <i class="fa-solid fa-circle-info fs-2tx text-warning me-4">
                 </i>
                 <div class="d-flex flex-stack flex-grow-1">
                     <div class="fw-semibold">
-                        <h4 class="text-gray-900 fw-bold">Test Modu Aktif</h4>
-                        <div class="fs-6 text-gray-700">
+                        <h4 class="text-body-emphasis fw-bold">Test Modu Aktif</h4>
+                        <div class="fs-6 text-body">
                             Gerçek ödeme alınmaz. Test kartı: <code>4242 4242 4242 4242</code> — Tarih: herhangi gelecek tarih — CVV: herhangi 3 hane.
                         </div>
                     </div>
@@ -36,7 +35,7 @@ $cancelUrl   = SITE_URL . '/stripe-test';
 
             <!--begin::Heading-->
             <div class="text-center mb-17">
-                <h1 class="fs-2hx fw-bold text-gray-900 mb-5">Planınızı Seçin</h1>
+                <h1 class="fs-2hx fw-bold text-body-emphasis mb-5">Planınızı Seçin</h1>
                 <div class="fs-5 text-muted fw-semibold">
                     İhtiyacınıza en uygun planı seçin. İstediğiniz zaman değiştirebilirsiniz.
                 </div>
@@ -56,12 +55,12 @@ $cancelUrl   = SITE_URL . '/stripe-test';
                             <?php endif; ?>
 
                             <div class="text-center mb-7">
-                                <h1 class="text-gray-900 fw-bolder mb-3 fs-2"><?= htmlspecialchars($plan['name']) ?></h1>
-                                <div class="text-gray-400 fw-semibold mb-5">
+                                <h1 class="text-body-emphasis fw-bold mb-3 fs-2"><?= htmlspecialchars($plan['name']) ?></h1>
+                                <div class="text-body-tertiary fw-semibold mb-5">
                                     <?= htmlspecialchars($plan['description']) ?>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-center">
-                                    <span class="fs-3x fw-bold text-gray-900"><?= htmlspecialchars($plan['price']) ?></span>
+                                    <span class="fs-3x fw-bold text-body-emphasis"><?= htmlspecialchars($plan['price']) ?></span>
                                     <span class="text-muted fs-7 fw-semibold ms-1"><?= htmlspecialchars($plan['period']) ?></span>
                                 </div>
                             </div>
@@ -69,11 +68,10 @@ $cancelUrl   = SITE_URL . '/stripe-test';
                             <div class="w-100 mb-10">
                                 <?php foreach ($plan['features'] as $feature): ?>
                                 <div class="d-flex align-items-center mb-3">
-                                    <span class="fw-semibold fs-6 text-gray-800 flex-grow-1 pe-3">
+                                    <span class="fw-semibold fs-6 text-body flex-grow-1 pe-3">
                                         <?= htmlspecialchars($feature) ?>
                                     </span>
-                                    <i class="ki-duotone ki-check-circle fs-1 text-success">
-                                        <span class="path1"></span><span class="path2"></span>
+                                    <i class="fa-solid fa-circle-check fs-1 text-success">
                                     </i>
                                 </div>
                                 <?php endforeach; ?>
@@ -100,48 +98,44 @@ $cancelUrl   = SITE_URL . '/stripe-test';
             <div class="card mt-10">
                 <div class="card-header border-0">
                     <div class="card-title">
-                        <h3 class="fw-bold text-gray-900">Sık Sorulan Sorular</h3>
+                        <h3 class="fw-bold text-body-emphasis">Sık Sorulan Sorular</h3>
                     </div>
                 </div>
                 <div class="card-body pt-2">
                     <div class="row g-10">
                         <div class="col-md-6">
                             <div class="d-flex mb-7">
-                                <i class="ki-duotone ki-question-2 fs-2 text-primary me-5 mt-1">
-                                    <span class="path1"></span><span class="path2"></span>
+                                <i class="fa-solid fa-circle-question fs-2 text-primary me-5 mt-1">
                                 </i>
                                 <div>
-                                    <div class="fw-bold text-gray-800 mb-1">Aboneliğimi iptal edebilir miyim?</div>
-                                    <div class="text-gray-600 fs-7">Evet, istediğiniz zaman iptal edebilirsiniz. Mevcut dönem sonuna kadar erişiminiz devam eder.</div>
+                                    <div class="fw-bold text-body mb-1">Aboneliğimi iptal edebilir miyim?</div>
+                                    <div class="text-body-secondary fs-7">Evet, istediğiniz zaman iptal edebilirsiniz. Mevcut dönem sonuna kadar erişiminiz devam eder.</div>
                                 </div>
                             </div>
                             <div class="d-flex mb-7">
-                                <i class="ki-duotone ki-question-2 fs-2 text-primary me-5 mt-1">
-                                    <span class="path1"></span><span class="path2"></span>
+                                <i class="fa-solid fa-circle-question fs-2 text-primary me-5 mt-1">
                                 </i>
                                 <div>
-                                    <div class="fw-bold text-gray-800 mb-1">Hangi ödeme yöntemlerini kabul ediyorsunuz?</div>
-                                    <div class="text-gray-600 fs-7">Visa, Mastercard, American Express ve diğer tüm Stripe destekli kartlar.</div>
+                                    <div class="fw-bold text-body mb-1">Hangi ödeme yöntemlerini kabul ediyorsunuz?</div>
+                                    <div class="text-body-secondary fs-7">Visa, Mastercard, American Express ve diğer tüm Stripe destekli kartlar.</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex mb-7">
-                                <i class="ki-duotone ki-question-2 fs-2 text-primary me-5 mt-1">
-                                    <span class="path1"></span><span class="path2"></span>
+                                <i class="fa-solid fa-circle-question fs-2 text-primary me-5 mt-1">
                                 </i>
                                 <div>
-                                    <div class="fw-bold text-gray-800 mb-1">Plan değiştirebilir miyim?</div>
-                                    <div class="text-gray-600 fs-7">Evet, istediğiniz zaman plan yükseltebilir veya düşürebilirsiniz.</div>
+                                    <div class="fw-bold text-body mb-1">Plan değiştirebilir miyim?</div>
+                                    <div class="text-body-secondary fs-7">Evet, istediğiniz zaman plan yükseltebilir veya düşürebilirsiniz.</div>
                                 </div>
                             </div>
                             <div class="d-flex mb-7">
-                                <i class="ki-duotone ki-question-2 fs-2 text-primary me-5 mt-1">
-                                    <span class="path1"></span><span class="path2"></span>
+                                <i class="fa-solid fa-circle-question fs-2 text-primary me-5 mt-1">
                                 </i>
                                 <div>
-                                    <div class="fw-bold text-gray-800 mb-1">Faturalarıma nasıl ulaşabilirim?</div>
-                                    <div class="text-gray-600 fs-7"><a href="/stripe-dashboard" class="link-primary">Abonelik Yönetimi</a> sayfasından tüm geçmişinize ulaşabilirsiniz.</div>
+                                    <div class="fw-bold text-body mb-1">Faturalarıma nasıl ulaşabilirim?</div>
+                                    <div class="text-body-secondary fs-7"><a href="/stripe-dashboard" class="link-primary">Abonelik Yönetimi</a> sayfasından tüm geçmişinize ulaşabilirsiniz.</div>
                                 </div>
                             </div>
                         </div>

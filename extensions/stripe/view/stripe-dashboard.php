@@ -17,11 +17,10 @@
                 <div class="col-xl-6">
                     <div class="card h-100" id="card-subscription-status">
                         <div class="card-header border-0">
-                            <h3 class="card-title fw-bold text-gray-900">Abonelik Durumu</h3>
+                            <h3 class="card-title fw-bold text-body-emphasis">Abonelik Durumu</h3>
                             <div class="card-toolbar">
                                 <button type="button" class="btn btn-sm btn-light-primary" id="btn-refresh-status">
-                                    <i class="ki-duotone ki-arrows-circle fs-4">
-                                        <span class="path1"></span><span class="path2"></span>
+                                    <i class="fa-solid fa-arrows-rotate fs-4">
                                     </i>
                                     Yenile
                                 </button>
@@ -40,7 +39,7 @@
                 <div class="col-xl-6">
                     <div class="card h-100">
                         <div class="card-header border-0">
-                            <h3 class="card-title fw-bold text-gray-900">Hızlı İşlemler</h3>
+                            <h3 class="card-title fw-bold text-body-emphasis">Hızlı İşlemler</h3>
                         </div>
                         <div class="card-body pt-2">
 
@@ -48,61 +47,53 @@
 
                                 <a href="/stripe-test" class="btn btn-light-primary d-flex align-items-center justify-content-between p-5">
                                     <div class="d-flex align-items-center">
-                                        <i class="ki-duotone ki-price-tag fs-2 text-primary me-3">
-                                            <span class="path1"></span><span class="path2"></span><span class="path3"></span>
+                                        <i class="fa-solid fa-tag fs-2 text-primary me-3">
                                         </i>
                                         <div class="text-start">
-                                            <div class="fw-bold text-gray-800">Plan Değiştir / Yükselt</div>
+                                            <div class="fw-bold text-body">Plan Değiştir / Yükselt</div>
                                             <div class="fs-7 text-muted">Mevcut planları görüntüle</div>
                                         </div>
                                     </div>
-                                    <i class="ki-duotone ki-arrow-right fs-3 text-gray-500">
-                                        <span class="path1"></span><span class="path2"></span>
+                                    <i class="fa-solid fa-arrow-right fs-3 text-body-secondary">
                                     </i>
                                 </a>
 
                                 <button type="button" class="btn btn-light-info d-flex align-items-center justify-content-between p-5" id="btn-billing-portal">
                                     <div class="d-flex align-items-center">
-                                        <i class="ki-duotone ki-credit-cart fs-2 text-info me-3">
-                                            <span class="path1"></span><span class="path2"></span>
+                                        <i class="fa-solid fa-credit-card fs-2 text-info me-3">
                                         </i>
                                         <div class="text-start">
-                                            <div class="fw-bold text-gray-800">Stripe Müşteri Portalı</div>
+                                            <div class="fw-bold text-body">Stripe Müşteri Portalı</div>
                                             <div class="fs-7 text-muted">Faturalar, kart bilgileri, iptal</div>
                                         </div>
                                     </div>
-                                    <i class="ki-duotone ki-arrow-right fs-3 text-gray-500">
-                                        <span class="path1"></span><span class="path2"></span>
+                                    <i class="fa-solid fa-arrow-right fs-3 text-body-secondary">
                                     </i>
                                 </button>
 
                                 <button type="button" class="btn btn-light-danger d-flex align-items-center justify-content-between p-5" id="btn-cancel-subscription">
                                     <div class="d-flex align-items-center">
-                                        <i class="ki-duotone ki-cross-circle fs-2 text-danger me-3">
-                                            <span class="path1"></span><span class="path2"></span>
+                                        <i class="fa-solid fa-circle-xmark fs-2 text-danger me-3">
                                         </i>
                                         <div class="text-start">
-                                            <div class="fw-bold text-gray-800">Aboneliği İptal Et</div>
+                                            <div class="fw-bold text-body">Aboneliği İptal Et</div>
                                             <div class="fs-7 text-muted">Dönem sonunda iptal edilir</div>
                                         </div>
                                     </div>
-                                    <i class="ki-duotone ki-arrow-right fs-3 text-gray-500">
-                                        <span class="path1"></span><span class="path2"></span>
+                                    <i class="fa-solid fa-arrow-right fs-3 text-body-secondary">
                                     </i>
                                 </button>
 
                                 <button type="button" class="btn btn-light-success d-flex align-items-center justify-content-between p-5 d-none" id="btn-resume-subscription">
                                     <div class="d-flex align-items-center">
-                                        <i class="ki-duotone ki-check-circle fs-2 text-success me-3">
-                                            <span class="path1"></span><span class="path2"></span>
+                                        <i class="fa-solid fa-circle-check fs-2 text-success me-3">
                                         </i>
                                         <div class="text-start">
-                                            <div class="fw-bold text-gray-800">İptali Geri Al</div>
+                                            <div class="fw-bold text-body">İptali Geri Al</div>
                                             <div class="fs-7 text-muted">Aboneliği sürdür</div>
                                         </div>
                                     </div>
-                                    <i class="ki-duotone ki-arrow-right fs-3 text-gray-500">
-                                        <span class="path1"></span><span class="path2"></span>
+                                    <i class="fa-solid fa-arrow-right fs-3 text-body-secondary">
                                     </i>
                                 </button>
 
@@ -119,7 +110,7 @@
             <!--begin::Payment History-->
             <div class="card">
                 <div class="card-header border-0">
-                    <h3 class="card-title fw-bold text-gray-900">Ödeme Geçmişi</h3>
+                    <h3 class="card-title fw-bold text-body-emphasis">Ödeme Geçmişi</h3>
                 </div>
                 <div class="card-body pt-0">
                     <div class="table-responsive">
@@ -180,8 +171,7 @@ const STRIPE_DASHBOARD = {
             if (!res.has_subscription) {
                 html = `
                     <div class="text-center py-8">
-                        <i class="ki-duotone ki-information-5 fs-3x text-muted mb-5">
-                            <span class="path1"></span><span class="path2"></span><span class="path3"></span>
+                        <i class="fa-solid fa-circle-info fs-3x text-muted mb-5">
                         </i>
                         <div class="text-muted fs-6 mb-5">Henüz aktif bir aboneliğiniz yok.</div>
                         <a href="/stripe-test" class="btn btn-sm btn-primary">Plan Seç</a>
@@ -191,25 +181,25 @@ const STRIPE_DASHBOARD = {
                 const badge      = STRIPE_DASHBOARD.statusBadge[res.status] ?? `<span class="badge badge-light-secondary">${res.status}</span>`;
                 const periodEnd  = res.current_period_end ? new Date(res.current_period_end).toLocaleDateString('tr-TR') : '—';
                 const cancelNote = res.is_canceling
-                    ? `<div class="notice d-flex bg-light-warning rounded border-warning border border-dashed mt-4 p-4">
-                           <i class="ki-duotone ki-information fs-2 text-warning me-3 mt-1"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                           <div class="fs-7 text-gray-700">Aboneliğiniz <strong>${periodEnd}</strong> tarihinde iptal edilecek.</div>
+                    ? `<div class="notice d-flex bg-warning-subtle rounded border-warning border border-dashed mt-4 p-4">
+                           <i class="fa-solid fa-circle-info fs-2 text-warning me-3 mt-1"></i>
+                           <div class="fs-7 text-body">Aboneliğiniz <strong>${periodEnd}</strong> tarihinde iptal edilecek.</div>
                        </div>`
                     : '';
 
                 html = `
                     <div class="d-flex flex-column gap-4">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-gray-600 fw-semibold">Durum</span>
+                            <span class="text-body-secondary fw-semibold">Durum</span>
                             <span>${badge}</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-gray-600 fw-semibold">Plan</span>
-                            <span class="fw-bold text-gray-800">${res.plan || '—'}</span>
+                            <span class="text-body-secondary fw-semibold">Plan</span>
+                            <span class="fw-bold text-body">${res.plan || '—'}</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-gray-600 fw-semibold">Dönem Sonu</span>
-                            <span class="fw-bold text-gray-800">${periodEnd}</span>
+                            <span class="text-body-secondary fw-semibold">Dönem Sonu</span>
+                            <span class="fw-bold text-body">${periodEnd}</span>
                         </div>
                         ${cancelNote}
                     </div>`;
@@ -249,8 +239,8 @@ const STRIPE_DASHBOARD = {
                 const desc    = p.Description || '—';
 
                 rows += `<tr>
-                    <td class="fw-semibold text-gray-800">${date}</td>
-                    <td class="fw-bold text-gray-900">${amount}</td>
+                    <td class="fw-semibold text-body">${date}</td>
+                    <td class="fw-bold text-body-emphasis">${amount}</td>
                     <td class="text-muted">${p.Currency}</td>
                     <td class="text-muted">${desc}</td>
                     <td>${badge}</td>

@@ -3,7 +3,7 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">Excel Export</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Excel Export</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     VNL, Excel dosyası oluşturmak için <b>PhpSpreadsheet</b> kütüphanesini kullanır. İki farklı yaklaşım mevcuttur: SDTable'ın yerleşik export mekanizması ve doğrudan action içinde özel Excel oluşturma.
                 </div>
@@ -16,7 +16,7 @@
                             <span class="badge badge-circle badge-primary me-3 fs-6">A</span>
                             <h5 class="fw-bold mb-0">SDTable Entegreli Export</h5>
                         </div>
-                        <p class="text-gray-600 fs-6 mb-0">DataTables üzerindeki export butonu otomatik devreye girer. <code>datatableToExcel.php</code> mevcut filtreleri koruyarak tüm veriyi çeker ve Excel dosyası üretir.</p>
+                        <p class="text-body-secondary fs-6 mb-0">DataTables üzerindeki export butonu otomatik devreye girer. <code>datatableToExcel.php</code> mevcut filtreleri koruyarak tüm veriyi çeker ve Excel dosyası üretir.</p>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -25,7 +25,7 @@
                             <span class="badge badge-circle badge-success me-3 fs-6">B</span>
                             <h5 class="fw-bold mb-0">Manuel Excel Oluşturma</h5>
                         </div>
-                        <p class="text-gray-600 fs-6 mb-0">Action sınıfı içinde PhpSpreadsheet API'sini doğrudan kullanarak özel formatlı, çok sayfalı veya şablonlu Excel dosyaları üretin.</p>
+                        <p class="text-body-secondary fs-6 mb-0">Action sınıfı içinde PhpSpreadsheet API'sini doğrudan kullanarak özel formatlı, çok sayfalı veya şablonlu Excel dosyaları üretin.</p>
                     </div>
                 </div>
             </div>
@@ -35,15 +35,15 @@
 
                     <!--begin::Section 1-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">1. Genel Bakış</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">1. Genel Bakış</h3>
+                        <p class="fs-5 text-body mb-4">
                             PhpSpreadsheet kütüphanesi <code>libs/excel/</code> dizininde bulunur. Kullanım için <code>use</code> ile namespace tanımlanır; sınıflar otomatik olarak dahil edilir.
                         </p>
 
-                        <div class="d-flex align-items-center bg-light border border-dashed rounded p-4 mb-4">
-                            <i class="ki-duotone ki-folder fs-1 text-warning me-3"><span class="path1"></span><span class="path2"></span></i>
+                        <div class="d-flex align-items-center bg-body-tertiary border border-dashed rounded p-4 mb-4">
+                            <i class="fa-solid fa-folder fs-1 text-warning me-3"></i>
                             <div>
-                                <span class="fs-5 fw-bold text-gray-800 font-monospace d-block">libs/excel/</span>
+                                <span class="fs-5 fw-bold text-body font-monospace d-block">libs/excel/</span>
                                 <span class="text-muted fs-7">PhpSpreadsheet kütüphane dizini.</span>
                             </div>
                         </div>
@@ -71,44 +71,44 @@ $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
 
                     <!--begin::Section 2-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">2. SDTable Entegreli Excel Export (<code>datatableToExcel.php</code>)</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">2. SDTable Entegreli Excel Export (<code>datatableToExcel.php</code>)</h3>
+                        <p class="fs-5 text-body mb-4">
                             SDTable tarafından oluşturulan tablolara otomatik olarak Excel export butonu eklenir. Kullanıcı butona tıkladığında arka planda şu süreç işler:
                         </p>
 
-                        <div class="border rounded p-5 bg-light mb-6">
+                        <div class="border rounded p-5 bg-body-tertiary mb-6">
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">1</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800">DataTables JS, mevcut filtre değerlerini ve sütun bilgilerini toplar</span>
+                                    <span class="fw-bold text-body">DataTables JS, mevcut filtre değerlerini ve sütun bilgilerini toplar</span>
                                     <div class="text-muted fs-7 mt-1">Aktif filtreler ve kolon isimleri <code>datatableToExcel.php</code>'ye POST ile gönderilir.</div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800">Action, <code>length=-1</code> ile yeniden çağrılır</span>
+                                    <span class="fw-bold text-body">Action, <code>length=-1</code> ile yeniden çağrılır</span>
                                     <div class="text-muted fs-7 mt-1">Sayfalama devre dışı bırakılarak filtrelenmiş tüm kayıtlar tek seferde alınır.</div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">3</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800"><code>files/template/GenelDataTable.xlsx</code> şablonu yüklenir</span>
+                                    <span class="fw-bold text-body"><code>files/template/GenelDataTable.xlsx</code> şablonu yüklenir</span>
                                     <div class="text-muted fs-7 mt-1">Şablon dosyasındaki header ve veri satırı stilleri kullanılarak Excel doldurulur.</div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-0">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">4</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800">Dosya <code>files/datatable/{kullanici_klasoru}/</code> dizinine kaydedilir</span>
+                                    <span class="fw-bold text-body">Dosya <code>files/datatable/{kullanici_klasoru}/</code> dizinine kaydedilir</span>
                                     <div class="text-muted fs-7 mt-1">Oluşturulan dosyanın URL'si JSON yanıtıyla döndürülür; tarayıcı indirme işlemini başlatır.</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="alert bg-light-warning border border-warning d-flex flex-column flex-sm-row p-5 mb-0">
-                            <i class="ki-duotone ki-information-5 fs-2hx text-warning me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                        <div class="alert bg-warning-subtle border border-warning d-flex flex-column flex-sm-row p-5 mb-0">
+                            <i class="fa-solid fa-circle-info fs-2hx text-warning me-4 mb-5 mb-sm-0"></i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1">Gereksinim</h5>
                                 <span><code>files/template/GenelDataTable.xlsx</code> şablon dosyası mevcut olmalıdır. Bu dosyanın <code>A1</code> hücresi başlık stili, <code>A2</code> hücresi veri satırı stilini içermelidir. Export sistemi bu stilleri otomatik olarak çoğaltır.</span>
@@ -121,8 +121,8 @@ $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
 
                     <!--begin::Section 3-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">3. Manuel Excel Oluşturma (Action İçinde)</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. Manuel Excel Oluşturma (Action İçinde)</h3>
+                        <p class="fs-5 text-body mb-4">
                             Özel rapor formatları, çok sayfalı çalışma kitapları veya özel şablonlar için action içinde PhpSpreadsheet API'sini doğrudan kullanabilirsiniz. Veri çekimi her zaman model sınıfı üzerinden yapılmalıdır.
                         </p>
 
@@ -198,17 +198,17 @@ class action_rapor
 
                     <!--begin::Section 4-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">4. PhpSpreadsheet Temel Kullanım Referansı</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. PhpSpreadsheet Temel Kullanım Referansı</h3>
 
-                        <div class="table-responsive border rounded bg-light mb-6">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-6">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-380px">Metot / Zincirleme</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>setCellValue('A1', 'Değer')</code></td>
                                     <td>Hücreye değer yazar. Tip otomatik algılanır.</td>
@@ -253,7 +253,7 @@ class action_rapor
                             </table>
                         </div>
 
-                        <h5 class="fw-bold text-dark mb-3">Tip Sabitleri (<code>DataType</code>)</h5>
+                        <h5 class="fw-bold text-body-emphasis mb-3">Tip Sabitleri (<code>DataType</code>)</h5>
                         <div class="d-flex flex-wrap gap-3 mb-5">
                             <span class="badge badge-light-primary fs-7 p-3 font-monospace">DataType::TYPE_STRING</span>
                             <span class="badge badge-light-success fs-7 p-3 font-monospace">DataType::TYPE_NUMERIC</span>
@@ -268,29 +268,29 @@ class action_rapor
 
                     <!--begin::Section 5-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-4">5. Excel Şablonu (<code>GenelDataTable.xlsx</code>)</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Excel Şablonu (<code>GenelDataTable.xlsx</code>)</h3>
+                        <p class="fs-5 text-body mb-4">
                             SDTable export sistemi ve özel raporlar için ortak şablon dosyası kullanılır. Bu dosya hem başlık hem de veri satırı stillerini barındırır.
                         </p>
 
-                        <div class="d-flex align-items-center bg-light border border-dashed rounded p-4 mb-5">
+                        <div class="d-flex align-items-center bg-body-tertiary border border-dashed rounded p-4 mb-5">
                             <i class="bi bi-file-earmark-excel fs-1 text-success me-3"></i>
                             <div>
-                                <span class="fs-5 fw-bold text-gray-800 font-monospace d-block">files/template/GenelDataTable.xlsx</span>
+                                <span class="fs-5 fw-bold text-body font-monospace d-block">files/template/GenelDataTable.xlsx</span>
                                 <span class="text-muted fs-7">SDTable export ve özel rapor şablonu</span>
                             </div>
                         </div>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-120px">Hücre</th>
                                     <th class="min-w-150px">Rol</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><span class="badge badge-light-primary">A1</span></td>
                                     <td>Başlık Stili</td>
@@ -305,8 +305,8 @@ class action_rapor
                             </table>
                         </div>
 
-                        <div class="alert bg-light-info border border-info d-flex flex-column flex-sm-row p-5 mb-0">
-                            <i class="ki-duotone ki-pencil fs-2hx text-info me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span></i>
+                        <div class="alert bg-info-subtle border border-info d-flex flex-column flex-sm-row p-5 mb-0">
+                            <i class="fa-solid fa-pencil fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1">Şablonu Özelleştirme</h5>
                                 <span><code>GenelDataTable.xlsx</code> dosyasını Excel'de açarak <code>A1</code> ve <code>A2</code> hücrelerinin stillerini istediğiniz gibi değiştirebilirsiniz. Tüm export işlemleri bu stilleri referans alır.</span>

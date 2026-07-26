@@ -37,9 +37,7 @@
                     <!--end::Modal title-->
                     <!--begin::Close-->
                     <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-                        <i class="ki-duotone ki-cross fs-1" onclick="clearUploadFileModal()">
-                            <span class="path1"></span>
-                            <span class="path2"></span>
+                        <i class="fa-solid fa-xmark fs-1" onclick="clearUploadFileModal()">
                         </i>
                     </div>
                     <!--end::Close-->

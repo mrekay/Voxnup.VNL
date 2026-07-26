@@ -3,14 +3,14 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">Dil ve Çoklu Dil Desteği (i18n)</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Dil ve Çoklu Dil Desteği (i18n)</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>libs/languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong>; aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.
                 </div>
             </div>
 
-            <div class="alert bg-light-info border border-info d-flex flex-column flex-sm-row p-5 mb-10">
-                <i class="ki-duotone ki-globe fs-2hx text-info me-4 mb-5 mb-sm-0"><span class="path1"></span><span class="path2"></span></i>
+            <div class="alert bg-info-subtle border border-info d-flex flex-column flex-sm-row p-5 mb-10">
+                <i class="fa-solid fa-globe fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                 <div class="d-flex flex-column pe-0 pe-sm-10">
                     <h5 class="mb-1">Desteklenen Diller</h5>
                     <span>Varsayılan olarak <span class="badge badge-light-primary">Türkçe (tr)</span> ve <span class="badge badge-light-success">İngilizce (en)</span> desteklenir. Yeni bir dil eklemek için JSON dosyası oluşturup <code>Languages</code> enum'una değer eklemek yeterlidir.</span>
@@ -22,8 +22,8 @@
 
                     <!--begin::Section 1-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">1. Genel Bakış</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">1. Genel Bakış</h3>
+                        <p class="fs-5 text-body mb-4">
                             Dil sistemi uygulama başlangıcında <code>config_soft.php</code> içinde başlatılır. Session'da kayıtlı dil tercihine göre ilgili JSON dosyası okunur ve bellekte bir sözlük olarak tutulur. Anahtarlar sınıfta ayrıca tanımlanmaz — bu yüzden dosya ile kod arasında kayma oluşamaz.
                         </p>
 
@@ -50,14 +50,14 @@ $yuklu = Language::current();
                             </div>
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100 text-center">
-                                    <i class="ki-duotone ki-abstract-26 fs-2x text-primary mb-3"><span class="path1"></span><span class="path2"></span></i>
+                                    <i class="fa-solid fa-cubes fs-2x text-primary mb-3"></i>
                                     <h6 class="fw-bold mb-2">Language Sınıfı</h6>
                                     <span class="text-muted fs-7">JSON anahtarları bellekte sözlük olarak tutulur. <code>lang('ANAHTAR')</code> ile erişilir.</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="border border-dashed rounded p-5 h-100 text-center">
-                                    <i class="ki-duotone ki-setting-2 fs-2x text-success mb-3"><span class="path1"></span><span class="path2"></span></i>
+                                    <i class="fa-solid fa-gear fs-2x text-success mb-3"></i>
                                     <h6 class="fw-bold mb-2">Session Entegrasyonu</h6>
                                     <span class="text-muted fs-7">Kullanıcı dil tercihi session'da saklanır; her istekte doğru dil yüklenir.</span>
                                 </div>
@@ -70,8 +70,8 @@ $yuklu = Language::current();
 
                     <!--begin::Section 2-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">2. <code>Languages</code> Enum</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">2. <code>Languages</code> Enum</h3>
+                        <p class="fs-5 text-body mb-4">
                             <code>Languages</code> enum'u desteklenen dilleri tanımlar. <code>Language::base_language</code> sabit değeri temel dili belirtir; session'da dil bilgisi yoksa bu dil kullanılır.
                         </p>
 
@@ -97,8 +97,8 @@ Language::set(Languages::EN); // İngilizce yükle
 
                     <!--begin::Section 3-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">3. Dil Dosyası Yapısı</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. Dil Dosyası Yapısı</h3>
+                        <p class="fs-5 text-body mb-4">
                             JSON dosyaları anahtar-değer çiftlerinden oluşan tek bir dizi içerir. Anahtarlar başka hiçbir yerde tanımlanmaz — dosyaya yazdığınız an kullanılabilir hale gelir.
                         </p>
 
@@ -135,9 +135,9 @@ Language::set(Languages::EN); // İngilizce yükle
                             </div>
                         </div>
 
-                        <div class="alert bg-light-warning border border-warning d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Bir anahtar ikinci dilde eksikse metin <strong>temel dilden</strong> karşılanır ve durum hata günlüğüne yazılır — boş metin görünmez. Ayrıntı için 9. bölüme bakın.</span>
+                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">Bir anahtar ikinci dilde eksikse metin <strong>temel dilden</strong> karşılanır ve durum hata günlüğüne yazılır — boş metin görünmez. Ayrıntı için 9. bölüme bakın.</span>
                         </div>
                     </div>
                     <!--end::Section 3-->
@@ -146,8 +146,8 @@ Language::set(Languages::EN); // İngilizce yükle
 
                     <!--begin::Section 4-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">4. Dil Anahtarlarına Erişim</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Dil Anahtarlarına Erişim</h3>
+                        <p class="fs-5 text-body mb-4">
                             Ana erişim biçimi <code>lang()</code> yardımcı fonksiyonudur. Ek argümanlar <code>sprintf</code> yer tutucularını doldurur; ayrıca <code>sprintf</code> çağırmanız gerekmez.
                         </p>
 
@@ -181,9 +181,9 @@ echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
 </code></pre>
                         </div>
 
-                        <div class="alert bg-light-primary border border-primary d-flex align-items-start p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-primary me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">
+                        <div class="alert bg-primary-subtle border border-primary d-flex align-items-start p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-primary me-3"></i>
+                            <span class="text-body fs-6">
                                 <code>Language::$ANAHTAR</code> statik özellik söz dizimi <strong>VNL 3.0 ile kaldırılmıştır</strong>. Eski projelerde <code>Language::$X</code> → <code>lang('X')</code> ve <code>sprintf(Language::$X, $a)</code> → <code>lang('X', $a)</code> dönüşümü yapılmalıdır.
                             </span>
                         </div>
@@ -195,17 +195,17 @@ echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
 
                     <!--begin::Section 5-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">5. Mevcut Dil Anahtarları</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Mevcut Dil Anahtarları</h3>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-280px">Anahtar</th>
                                     <th class="min-w-350px">Amaç / Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$ERR_GENERAL</code></td>
                                     <td>Genel hata mesajı. Spesifik bir mesaj yoksa kullanılır.</td>
@@ -280,8 +280,8 @@ echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
 
                     <!--begin::Section 6-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">6. Dil Değiştirme</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. Dil Değiştirme</h3>
+                        <p class="fs-5 text-body mb-4">
                             Kullanıcı dil tercihini değiştirmek için <code>Language::set(Languages::EN)</code> çağrısı yapılır. Bu çağrı session'ı günceller ve belirtilen dilin JSON dosyasını yükler.
                         </p>
 
@@ -319,37 +319,37 @@ public function dilDegistir(): void
 
                     <!--begin::Section 7 — LSL Language Studio (prominent)-->
                     <div class="mb-10">
-                        <div class="border border-2 border-primary rounded p-8 bg-light-primary mb-6">
+                        <div class="border border-2 border-primary rounded p-8 bg-primary-subtle mb-6">
                             <div class="d-flex align-items-center mb-5">
-                                <i class="ki-duotone ki-color-swatch fs-3x text-primary me-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                                <i class="fa-solid fa-palette fs-3x text-primary me-4"></i>
                                 <div>
-                                    <h3 class="fw-bolder text-primary mb-1">LSL Language Studio</h3>
-                                    <span class="text-gray-600 fs-6">Dil dosyalarını görsel olarak yönetmek için önerilen araç</span>
+                                    <h3 class="fw-bold text-primary mb-1">LSL Language Studio</h3>
+                                    <span class="text-body-secondary fs-6">Dil dosyalarını görsel olarak yönetmek için önerilen araç</span>
                                 </div>
                             </div>
 
-                            <p class="fs-5 text-gray-700 mb-5">
+                            <p class="fs-5 text-body mb-5">
                                 Dil dosyalarını (<code>tr.json</code>, <code>en.json</code>) elle düzenlemek yerine <strong>LSL Language Studio</strong> uygulamasını kullanmanızı öneririz. Bu uygulama, VNL projelerine özel geliştirilmiş bir masaüstü dil editörüdür.
                             </p>
 
                             <div class="row g-5 mb-6">
                                 <div class="col-md-4">
                                     <div class="bg-white rounded p-5 h-100 border border-dashed">
-                                        <i class="ki-duotone ki-eye fs-2x text-success mb-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                                        <i class="fa-solid fa-eye fs-2x text-success mb-3"></i>
                                         <h6 class="fw-bold mb-2">Görsel Editör</h6>
                                         <span class="text-muted fs-7">JSON dosyalarını tablo formatında görüntüleyin ve düzenleyin. JSON söz dizimi bilgisi gerekmez.</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="bg-white rounded p-5 h-100 border border-dashed">
-                                        <i class="ki-duotone ki-arrows-loop fs-2x text-primary mb-3"><span class="path1"></span><span class="path2"></span></i>
+                                        <i class="fa-solid fa-arrows-rotate fs-2x text-primary mb-3"></i>
                                         <h6 class="fw-bold mb-2">Yan Yana Yönetim</h6>
                                         <span class="text-muted fs-7">Birden fazla dili aynı anda yan yana görüntüleyin; eksik çevirileri kolayca tespit edin.</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="bg-white rounded p-5 h-100 border border-dashed">
-                                        <i class="ki-duotone ki-file-down fs-2x text-warning mb-3"><span class="path1"></span><span class="path2"></span></i>
+                                        <i class="fa-solid fa-file-arrow-down fs-2x text-warning mb-3"></i>
                                         <h6 class="fw-bold mb-2">VNL'ye Hazır Export</h6>
                                         <span class="text-muted fs-7">Düzenlenen dosyaları VNL'nin beklediği JSON formatında dışa aktarın.</span>
                                     </div>
@@ -368,16 +368,16 @@ public function dilDegistir(): void
 
                     <!--begin::Section 8-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-4">8. Yeni Dil Anahtarı Ekleme</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">8. Yeni Dil Anahtarı Ekleme</h3>
+                        <p class="fs-5 text-body mb-4">
                             VNL 3.0 ile anahtar eklemek iki adıma indi — artık <code>Language</code> sınıfına dokunulmuyor:
                         </p>
 
-                        <div class="border rounded p-5 bg-light mb-5">
+                        <div class="border rounded p-5 bg-body-tertiary mb-5">
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">1</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800">Tüm JSON dosyalarına anahtarı ekleyin</span>
+                                    <span class="fw-bold text-body">Tüm JSON dosyalarına anahtarı ekleyin</span>
                                     <div class="bg-dark rounded p-3 mt-2">
                                         <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// tr.json
 "STOCK_INSUFFICIENT": "Yeterli stok bulunmamaktadır."
@@ -390,7 +390,7 @@ public function dilDegistir(): void
                             <div class="d-flex align-items-start mb-0">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
                                 <div>
-                                    <span class="fw-bold text-gray-800">Herhangi bir yerde kullanın</span>
+                                    <span class="fw-bold text-body">Herhangi bir yerde kullanın</span>
                                     <div class="bg-dark rounded p-3 mt-2">
                                         <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new StandartException(lang('STOCK_INSUFFICIENT'));</code></pre>
                                     </div>
@@ -398,9 +398,9 @@ public function dilDegistir(): void
                             </div>
                         </div>
 
-                        <div class="alert bg-light-success border border-success d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-check-circle fs-2 text-success me-3"><span class="path1"></span><span class="path2"></span></i>
-                            <span class="text-gray-800 fs-6">LSL Language Studio kullanıyorsanız tüm süreci uygulama üzerinden yürütebilirsiniz; kod tarafında yapılacak bir işlem kalmadı.</span>
+                        <div class="alert bg-success-subtle border border-success d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-check fs-2 text-success me-3"></i>
+                            <span class="text-body fs-6">LSL Language Studio kullanıyorsanız tüm süreci uygulama üzerinden yürütebilirsiniz; kod tarafında yapılacak bir işlem kalmadı.</span>
                         </div>
                     </div>
                     <!--end::Section 8-->
@@ -409,20 +409,20 @@ public function dilDegistir(): void
 
                     <!--begin::Section 9-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-4">9. Eksik Anahtarlar ve Hata Dayanıklılığı</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">9. Eksik Anahtarlar ve Hata Dayanıklılığı</h3>
+                        <p class="fs-5 text-body mb-4">
                             Dil sistemi hiçbir koşulda isteği düşürmez. Eksik anahtar, eksik çeviri, kayıp veya bozuk dosya — hepsi kademeli olarak karşılanır ve durum PHP hata günlüğüne <code>[VNL][Language]</code> etiketiyle yazılır.
                         </p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-300px">Durum</th>
                                     <th class="min-w-350px">Davranış</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5">Anahtar aktif dilde yok, temel dilde var</td>
                                     <td>Metin temel dilden karşılanır</td>
@@ -461,9 +461,9 @@ $sozluk = Language::all();
 print_r(Language::issues());</code></pre>
                         </div>
 
-                        <div class="alert bg-light-success border border-success d-flex align-items-start p-4">
-                            <i class="ki-duotone ki-shield-tick fs-2 text-success me-3"><span class="path1"></span><span class="path2"></span></i>
-                            <span class="text-gray-800 fs-6">
+                        <div class="alert bg-success-subtle border border-success d-flex align-items-start p-4">
+                            <i class="fa-solid fa-shield-halved fs-2 text-success me-3"></i>
+                            <span class="text-body fs-6">
                                 <strong>VNL 3.0 değişikliği:</strong> Anahtarlar artık statik özellik olarak tanımlanmadığı için dil dosyası ile kod arasında kayma oluşamaz. 2.4.0'a kadar tanımsız bir anahtar <code>Access to undeclared static property</code> ile isteği düşürüyordu; bu hata sınıfı tamamen ortadan kalktı.
                             </span>
                         </div>

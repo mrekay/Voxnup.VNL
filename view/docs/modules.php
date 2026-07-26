@@ -3,17 +3,17 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">Modüller (libs/modules)</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Modüller (libs/modules)</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     VNL, tekrar kullanılabilir yardımcı işlemleri <code>libs/modules/</code> dizinindeki statik sınıflar aracılığıyla sunar. Tüm modüller uygulama başlangıcında otomatik yüklenir; herhangi bir yerden <code>ModulAdi::Metot()</code> biçiminde statik olarak çağrılır.
                 </div>
             </div>
 
-            <div class="alert bg-light-primary border border-primary d-flex align-items-center p-5 mb-10">
-                <i class="ki-duotone ki-abstract-26 fs-2hx text-primary me-4"><span class="path1"></span><span class="path2"></span></i>
+            <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">
+                <i class="fa-solid fa-cubes fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-primary">Otomatik Yükleme ve Statik Kullanım</h5>
-                    <span class="text-gray-700"><code>libs/modules/</code> dizinindeki tüm PHP dosyaları uygulama başlangıcında otomatik olarak dahil edilir. Tüm modüller statik çağrı ile kullanılır: <code>EncryptionModule::PasswordEncrypt($sifre)</code></span>
+                    <span class="text-body"><code>libs/modules/</code> dizinindeki tüm PHP dosyaları uygulama başlangıcında otomatik olarak dahil edilir. Tüm modüller statik çağrı ile kullanılır: <code>EncryptionModule::PasswordEncrypt($sifre)</code></span>
                 </div>
             </div>
 
@@ -24,20 +24,20 @@
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-primary me-3 fs-5">E</span>
-                            <h3 class="fw-bolder text-dark mb-0">EncryptionModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">EncryptionModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/EncryptionModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">Şifreleme ve deşifreleme işlemleri. Parola hash'leme ve cookie verisi için AES şifreleme sağlar.</p>
+                        <p class="fs-5 text-body mb-4">Şifreleme ve deşifreleme işlemleri. Parola hash'leme ve cookie verisi için AES şifreleme sağlar.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-300px">Metot</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>EncryptionModule::PasswordEncrypt($pass)</code></td>
                                     <td>Parolayı SHA1(MD5) ile hash'ler. Kullanıcı girişi ve kayıt işlemlerinde kullanılır.</td>
@@ -76,20 +76,20 @@ if ($veri) { /* kullan */ }
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-success me-3 fs-5">D</span>
-                            <h3 class="fw-bolder text-dark mb-0">DateTimeModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">DateTimeModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/DateTimeModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">Tarih ve zaman işlemleri; format dönüştürme, fark hesaplama ve "X zaman önce" gösterimi.</p>
+                        <p class="fs-5 text-body mb-4">Tarih ve zaman işlemleri; format dönüştürme, fark hesaplama ve "X zaman önce" gösterimi.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-350px">Metot</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>DateTimeModule::ConvertTrDate($date, $hasClock=true)</code></td>
                                     <td><code>Y-m-d H:i:s</code> formatını <code>d.m.Y H:i:s</code> (Türk tarih formatı) olarak döndürür.</td>
@@ -142,20 +142,20 @@ $gg = DateTimeModule::DiffDay('2024-01-01', '2024-12-31');
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-info me-3 fs-5">T</span>
-                            <h3 class="fw-bolder text-dark mb-0">TextGeneralModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">TextGeneralModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/TextGeneralModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">Metin işleme, sayı formatlama ve URL temizleme yardımcıları.</p>
+                        <p class="fs-5 text-body mb-4">Metin işleme, sayı formatlama ve URL temizleme yardımcıları.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-320px">Metot</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>TextGeneralModule::trToUpper($text)</code></td>
                                     <td>Türkçe karakter duyarlı büyük harfe çevirir (ı→I, i→İ vb.).</td>
@@ -230,20 +230,20 @@ echo TextGeneralModule::NumberFormatTR(1234567.89, 2);
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-warning me-3 fs-5">F</span>
-                            <h3 class="fw-bolder text-dark mb-0">FileManagerModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">FileManagerModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/FileManagerModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">Dosya yükleme, silme ve disk alanı işlemleri.</p>
+                        <p class="fs-5 text-body mb-4">Dosya yükleme, silme ve disk alanı işlemleri.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-380px">Metot</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>FileManagerModule::UploadFile($dest, $file, $allows, $newName)</code></td>
                                     <td>Dosyayı yükler. Dizin yoksa oluşturur. <code>$allows</code>: <code>'pdf,xlsx'</code> veya <code>'all'</code>. Başarıda dosya adı, hata durumunda boş string döner.</td>
@@ -291,20 +291,20 @@ FileManagerModule::DeleteFile(getDocumentRoot() . $belge->DosyaYolu);
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-danger me-3 fs-5">C</span>
-                            <h3 class="fw-bolder text-dark mb-0">CurlModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">CurlModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/CurlModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">Dış servislere HTTP isteği göndermek için kullanılır. Form-encoded, JSON ve Basic Auth destekler.</p>
+                        <p class="fs-5 text-body mb-4">Dış servislere HTTP isteği göndermek için kullanılır. Form-encoded, JSON ve Basic Auth destekler.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-340px">Metot</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>CurlModule::Post($url, $params, $content_type, $auth)</code></td>
                                     <td>HTTP POST isteği gönderir. Content-type: <code>application/x-www-form-urlencoded</code> veya <code>application/json</code>. Ham yanıt string döner.</td>
@@ -351,21 +351,21 @@ $data = CurlModule::GetCurlPage('https://api.example.com/products', 5, true);
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-dark me-3 fs-5">L</span>
-                            <h3 class="fw-bolder text-dark mb-0">LogModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">LogModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/LogModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">Günlük bazında log dosyası oluşturur. Her gün ayrı bir <code>log_Y-m-d.log</code> dosyası oluşturulur.</p>
+                        <p class="fs-5 text-body mb-4">Günlük bazında log dosyası oluşturur. Her gün ayrı bir <code>log_Y-m-d.log</code> dosyası oluşturulur.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-320px">Metot</th>
                                     <th class="min-w-120px">Hedef Klasör</th>
                                     <th class="min-w-250px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>LogModule::SetMysqErrorlLog($msg)</code></td>
                                     <td><code>mysql-log/</code></td>
@@ -406,20 +406,20 @@ LogModule::SetMysqErrorlLog(
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-secondary me-3 fs-5">U</span>
-                            <h3 class="fw-bolder text-dark mb-0">URLModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">URLModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/URLModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">Mevcut sayfa URL bilgisine erişmek için yardımcılar.</p>
+                        <p class="fs-5 text-body mb-4">Mevcut sayfa URL bilgisine erişmek için yardımcılar.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-280px">Metot</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>URLModule::getPageName()</code></td>
                                     <td>Mevcut sayfanın adını döndürür. <code>route(0)</code> ile aynı sonucu verir.</td>
@@ -439,21 +439,21 @@ LogModule::SetMysqErrorlLog(
                     <!--begin::ArrayModule-->
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
-                            <span class="badge badge-circle badge-light me-3 fs-5 text-dark border">A</span>
-                            <h3 class="fw-bolder text-dark mb-0">ArrayModule</h3>
+                            <span class="badge badge-circle badge-light me-3 fs-5 text-body-emphasis border">A</span>
+                            <h3 class="fw-bold text-body-emphasis mb-0">ArrayModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/ArrayModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">Dizi işleme yardımcıları.</p>
+                        <p class="fs-5 text-body mb-4">Dizi işleme yardımcıları.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-380px">Metot</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>ArrayModule::array_merge_intersect_key($arr1, $arr2)</code></td>
                                     <td>İki dizideki ortak anahtarlar için <code>$arr2</code>'nin değerleriyle <code>$arr1</code>'i günceller. <code>$arr2</code> boşsa <code>$arr1</code> olduğu gibi döner.</td>
@@ -470,20 +470,20 @@ LogModule::SetMysqErrorlLog(
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-danger me-3 fs-5">P</span>
-                            <h3 class="fw-bolder text-dark mb-0">PDFModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">PDFModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/PDFModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">PDF oluşturma servisiyle entegrasyon. Uzak print URL'ini çağırarak PDF üretir.</p>
+                        <p class="fs-5 text-body mb-4">PDF oluşturma servisiyle entegrasyon. Uzak print URL'ini çağırarak PDF üretir.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-420px">Metot</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>PDFModule::CreatePDF($orientation, $printurl, $title, $prefix, $filename, $queue_id)</code></td>
                                     <td><code>$orientation</code>: <code>'Portrait'</code> veya <code>'Landscape'</code>. Print URL'i çağırarak PDF üretir ve dosya adını döndürür.</td>
@@ -500,20 +500,20 @@ LogModule::SetMysqErrorlLog(
                     <div class="mb-10">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-primary me-3 fs-5">S</span>
-                            <h3 class="fw-bolder text-dark mb-0">SocialLinkModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">SocialLinkModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/SocialLinkModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">Sosyal medya link işlemleri.</p>
+                        <p class="fs-5 text-body mb-4">Sosyal medya link işlemleri.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-300px">Metot</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>SocialLinkModule::IsYoutubeLink($link)</code></td>
                                     <td>YouTube linki geçerliyse video ID'sini döndürür, değilse boş string döner. Embed iframe oluşturmak için kullanılır.</td>
@@ -538,20 +538,20 @@ if (!empty($videoId)) {
                     <div class="mb-0">
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-success me-3 fs-5">M</span>
-                            <h3 class="fw-bolder text-dark mb-0">MailModule</h3>
+                            <h3 class="fw-bold text-body-emphasis mb-0">MailModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/MailModule.php</span>
                         </div>
-                        <p class="fs-5 text-gray-700 mb-4">PHPMailer üzerinden SMTP e-posta gönderimi. SMTP ayarları modül içinde yapılandırılır.</p>
+                        <p class="fs-5 text-body mb-4">PHPMailer üzerinden SMTP e-posta gönderimi. SMTP ayarları modül içinde yapılandırılır.</p>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-320px">Metot</th>
                                     <th class="min-w-350px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>MailModule::SendMail(MailObject $mailObject)</code></td>
                                     <td>SMTP üzerinden e-posta gönderir. <code>MailObject</code>: <code>id, unique_code, title, content, to, media_data</code> alanlarını içerir.</td>
@@ -568,9 +568,9 @@ if (!empty($videoId)) {
                             </table>
                         </div>
 
-                        <div class="alert bg-light-warning border border-warning d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">SMTP bilgilerini (<code>Host</code>, <code>Username</code>, <code>Password</code>, <code>Port</code>) modül içinde yapılandırın. Üretim için bu değerleri config sistemi üzerinden okumanız önerilir.</span>
+                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">SMTP bilgilerini (<code>Host</code>, <code>Username</code>, <code>Password</code>, <code>Port</code>) modül içinde yapılandırın. Üretim için bu değerleri config sistemi üzerinden okumanız önerilir.</span>
                         </div>
                     </div>
                     <!--end::MailModule-->

@@ -3,7 +3,7 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-gray-900">VNL'ye Giriş</h1>
+                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">VNL'ye Giriş</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
                     VNL, PHP tabanlı, Illuminate (Eloquent/Capsule) ORM kullanan, Metronic 8 + Bootstrap 5 ile tasarlanmış bir uygulama şablonudur.
                     Rota tanımlaması, ORM kurulumu ve frontend entegrasyonu hazır gelir — siz doğrudan iş mantığınızı yazmaya başlarsınız.
@@ -16,12 +16,12 @@
                     <div class="card border border-dashed h-100">
                         <div class="card-body p-6 d-flex align-items-center">
                             <div class="symbol symbol-50px me-4">
-                                <span class="symbol-label bg-light-primary">
-                                    <i class="ki-duotone ki-setting-2 fs-2x text-primary"><span class="path1"></span><span class="path2"></span></i>
+                                <span class="symbol-label bg-primary-subtle">
+                                    <i class="fa-solid fa-gear fs-2x text-primary"></i>
                                 </span>
                             </div>
                             <div>
-                                <div class="fw-bold text-gray-800 fs-5">PHP 8.2+</div>
+                                <div class="fw-bold text-body fs-5">PHP 8.2+</div>
                                 <div class="text-muted fs-7">Minimum gereksinim</div>
                             </div>
                         </div>
@@ -31,12 +31,12 @@
                     <div class="card border border-dashed h-100">
                         <div class="card-body p-6 d-flex align-items-center">
                             <div class="symbol symbol-50px me-4">
-                                <span class="symbol-label bg-light-success">
-                                    <i class="ki-duotone ki-data fs-2x text-success"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                                <span class="symbol-label bg-success-subtle">
+                                    <i class="fa-solid fa-database fs-2x text-success"></i>
                                 </span>
                             </div>
                             <div>
-                                <div class="fw-bold text-gray-800 fs-5">MySQL / MariaDB</div>
+                                <div class="fw-bold text-body fs-5">MySQL / MariaDB</div>
                                 <div class="text-muted fs-7">PostgreSQL & MSSQL de desteklenir</div>
                             </div>
                         </div>
@@ -46,12 +46,12 @@
                     <div class="card border border-dashed h-100">
                         <div class="card-body p-6 d-flex align-items-center">
                             <div class="symbol symbol-50px me-4">
-                                <span class="symbol-label bg-light-info">
-                                    <i class="ki-duotone ki-cloud fs-2x text-info"><span class="path1"></span><span class="path2"></span></i>
+                                <span class="symbol-label bg-info-subtle">
+                                    <i class="fa-solid fa-cloud fs-2x text-info"></i>
                                 </span>
                             </div>
                             <div>
-                                <div class="fw-bold text-gray-800 fs-5">Apache / Nginx</div>
+                                <div class="fw-bold text-body fs-5">Apache / Nginx</div>
                                 <div class="text-muted fs-7">mod_rewrite aktif olmalı</div>
                             </div>
                         </div>
@@ -65,19 +65,19 @@
 
                     <!--begin::Section 1-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">1. Kurulum</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">1. Kurulum</h3>
+                        <p class="fs-5 text-body mb-4">
                             Projeyi web sunucunuzun kök dizinine klonlayın. <code>composer</code> gerekmez; vendor bağımlılıkları (<code>libs/vendor/</code>) repoya dahildir.
                         </p>
 
-                        <div class="d-flex align-items-center bg-secondary border border-gray-300 rounded p-5 mb-4">
-                            <i class="ki-duotone ki-abstract-14 fs-2 text-dark me-3"><span class="path1"></span><span class="path2"></span></i>
-                            <span class="text-gray-900 fs-4 fw-bold font-monospace user-select-all">git clone https://github.com/mrekay/VNL-TEMPLATE.git .</span>
+                        <div class="d-flex align-items-center bg-body-secondary border rounded p-5 mb-4">
+                            <i class="fa-solid fa-terminal fs-2 text-body-emphasis me-3"></i>
+                            <span class="text-body-emphasis fs-4 fw-bold font-monospace user-select-all">git clone https://github.com/mrekay/VNL-TEMPLATE.git .</span>
                         </div>
 
-                        <div class="alert bg-light-warning border border-warning d-flex align-items-center p-4">
-                            <i class="ki-duotone ki-information-5 fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Alt dizine kuruyorsanız <code>.htaccess</code>'deki HTTPS yönlendirme kuralını ve <code>config_definitions.php</code> içindeki <code>$site_url</code> değerini buna göre güncelleyin.</span>
+                        <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-4">
+                            <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">Alt dizine kuruyorsanız <code>.htaccess</code>'deki HTTPS yönlendirme kuralını ve <code>config_definitions.php</code> içindeki <code>$site_url</code> değerini buna göre güncelleyin.</span>
                         </div>
                     </div>
                     <!--end::Section 1-->
@@ -86,25 +86,25 @@
 
                     <!--begin::Section 2-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">2. Yapılandırma</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">2. Yapılandırma</h3>
+                        <p class="fs-5 text-body mb-4">
                             Tek yapılandırma dosyası: <code>libs/config/config_definitions.php</code>. Bu dosyayı açın ve aşağıdaki alanları doldurun.
                         </p>
-                        <div class="d-flex align-items-center bg-light border border-dashed rounded p-4 mb-5">
-                            <i class="ki-duotone ki-file fs-1 text-primary me-3"><span class="path1"></span><span class="path2"></span></i>
-                            <span class="fs-5 fw-bold text-gray-800 font-monospace">libs/config/config_definitions.php</span>
+                        <div class="d-flex align-items-center bg-body-tertiary border border-dashed rounded p-4 mb-5">
+                            <i class="fa-solid fa-file fs-1 text-primary me-3"></i>
+                            <span class="fs-5 fw-bold text-body font-monospace">libs/config/config_definitions.php</span>
                         </div>
 
-                        <div class="table-responsive border rounded bg-light mb-5">
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
-                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-180px">Alan</th>
                                     <th class="min-w-120px">Örnek</th>
                                     <th class="min-w-300px">Açıklama</th>
                                 </tr>
                                 </thead>
-                                <tbody class="text-gray-800 fw-semibold">
+                                <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$testMode</code></td>
                                     <td><code>false</code></td>
@@ -146,51 +146,51 @@
 
                     <!--begin::Section 3 — Yükleme sırası-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">3. Her İstekteki Yükleme Sırası</h3>
-                        <p class="fs-5 text-gray-700 mb-4">
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. Her İstekteki Yükleme Sırası</h3>
+                        <p class="fs-5 text-body mb-4">
                             Her HTTP isteğinde sistem şu zinciri çalıştırır. Bu sırayı bilmek; hangi değişkenin nerede hazır olduğunu anlamanızı sağlar.
                         </p>
 
-                        <div class="border rounded p-6 bg-light">
+                        <div class="border rounded p-6 bg-body-tertiary">
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">1</span>
                                 <div>
-                                    <code class="fw-bold text-gray-800">.htaccess</code>
+                                    <code class="fw-bold text-body">.htaccess</code>
                                     <p class="text-muted fs-7 mb-0 mt-1">Gelen her isteği (dosya/klasör değilse) <code>index.php</code>'ye yönlendirir. HTTPS zorlaması da burada yapılır.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
                                 <div>
-                                    <code class="fw-bold text-gray-800">index.php</code>
+                                    <code class="fw-bold text-body">index.php</code>
                                     <p class="text-muted fs-7 mb-0 mt-1">URL'yi parçalayarak <code>$route</code> dizisini oluşturur → <code>libs/config.php</code>'yi yükler → controller'ı belirler → login kontrolü yapar.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">3</span>
                                 <div>
-                                    <code class="fw-bold text-gray-800">libs/config.php</code>
+                                    <code class="fw-bold text-body">libs/config.php</code>
                                     <p class="text-muted fs-7 mb-0 mt-1"><code>config_definitions.php</code> → <code>config_soft.php</code> → <code>config_db.php</code> sırasıyla yüklenir.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">4</span>
                                 <div>
-                                    <code class="fw-bold text-gray-800">libs/config/config_soft.php</code>
+                                    <code class="fw-bold text-body">libs/config/config_soft.php</code>
                                     <p class="text-muted fs-7 mb-0 mt-1">Helper'lar, <code>spl_autoload</code> (sınıf otomatik yükleme), session başlatma, <code>$req</code> (Request), <code>$lang</code> (Language) nesneleri hazırlanır. <code>modules/</code>, <code>exceptions/</code>, <code>validators/</code> otomatik taranır.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">5</span>
                                 <div>
-                                    <code class="fw-bold text-gray-800">libs/config/config_db.php</code>
+                                    <code class="fw-bold text-body">libs/config/config_db.php</code>
                                     <p class="text-muted fs-7 mb-0 mt-1"><code>Database</code> (Capsule) başlatılır → <code>$CurrentUser</code> nesnesi hazırlanır → cookie ile otomatik giriş kontrolü → kullanıcı bilgisi yüklenir.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-0">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">6</span>
                                 <div>
-                                    <code class="fw-bold text-gray-800">controller/{sayfa}.php</code>
+                                    <code class="fw-bold text-body">controller/{sayfa}.php</code>
                                     <p class="text-muted fs-7 mb-0 mt-1">İlgili controller çalışır: <code>$meta</code> ve <code>$page_config</code> tanımlanır, DB sorguları yapılır, view dosyaları ekrana basılır.</p>
                                 </div>
                             </div>
@@ -202,10 +202,10 @@
 
                     <!--begin::Section 4 — Klasör yapısı-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">4. Klasör Yapısı</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Klasör Yapısı</h3>
 
-                        <div class="border rounded p-6 bg-light">
-                            <ul class="list-unstyled fs-6 text-gray-800 fw-semibold mb-0">
+                        <div class="border rounded p-6 bg-body-tertiary">
+                            <ul class="list-unstyled fs-6 text-body fw-semibold mb-0">
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
                                     <div><b>actions/</b><span class="text-muted fw-normal ms-2">— AJAX/form işlemcileri. <code>action_</code> önekli dosyalar, her biri bir PHP sınıfı içerir. <code>/app/</code> ön ekiyle çağrılır.</span></div>
@@ -259,8 +259,8 @@
 
                     <!--begin::Section 5 — İlk Sayfa-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">5. İlk Sayfanı Oluştur</h3>
-                        <p class="fs-5 text-gray-700 mb-4">Yapılandırma tamamlandıktan sonra yeni bir sayfa eklemek için sadece iki dosya gerekir:</p>
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. İlk Sayfanı Oluştur</h3>
+                        <p class="fs-5 text-body mb-4">Yapılandırma tamamlandıktan sonra yeni bir sayfa eklemek için sadece iki dosya gerekir:</p>
 
                         <div class="row g-5 mb-5">
                             <div class="col-md-6">
@@ -314,7 +314,7 @@ require view('static/footer');</code></pre>
                                 </div>
                             </div>
                         </div>
-                        <p class="fs-6 text-gray-700">Artık <code>site.com/musteriler</code> adresine gittiğinizde sayfa çalışır. Detaylar için <a href="/docs/routing" class="text-primary fw-bold">Routing ve Controller</a> sayfasına bakın.</p>
+                        <p class="fs-6 text-body">Artık <code>site.com/musteriler</code> adresine gittiğinizde sayfa çalışır. Detaylar için <a href="/docs/routing" class="text-primary fw-bold">Routing ve Controller</a> sayfasına bakın.</p>
                     </div>
                     <!--end::Section 5-->
 
@@ -322,14 +322,14 @@ require view('static/footer');</code></pre>
 
                     <!--begin::Section 6 — Sonraki adımlar-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-5">6. Sonraki Adımlar</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-5">6. Sonraki Adımlar</h3>
                         <div class="row g-4">
                             <div class="col-md-4">
                                 <a href="/docs/routing" class="card border border-dashed card-flush h-100 text-decoration-none hover-elevate-up">
                                     <div class="card-body p-6">
                                         <div class="d-flex align-items-center mb-3">
-                                            <i class="ki-duotone ki-directbox-default fs-2x text-primary me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span></i>
-                                            <h5 class="mb-0 fw-bold text-gray-800">Routing & Controller</h5>
+                                            <i class="fa-solid fa-inbox fs-2x text-primary me-3"></i>
+                                            <h5 class="mb-0 fw-bold text-body">Routing & Controller</h5>
                                         </div>
                                         <p class="text-muted fs-6 mb-0">URL yapısını, <code>$meta</code>, <code>$page_config</code> ve <code>view()</code> kullanımını öğren.</p>
                                     </div>
@@ -339,8 +339,8 @@ require view('static/footer');</code></pre>
                                 <a href="/docs/request-handling" class="card border border-dashed card-flush h-100 text-decoration-none hover-elevate-up">
                                     <div class="card-body p-6">
                                         <div class="d-flex align-items-center mb-3">
-                                            <i class="ki-duotone ki-send fs-2x text-success me-3"><span class="path1"></span><span class="path2"></span></i>
-                                            <h5 class="mb-0 fw-bold text-gray-800">Action'lar & AJAX</h5>
+                                            <i class="fa-solid fa-paper-plane fs-2x text-success me-3"></i>
+                                            <h5 class="mb-0 fw-bold text-body">Action'lar & AJAX</h5>
                                         </div>
                                         <p class="text-muted fs-6 mb-0">Form ve AJAX isteklerini <code>actions/</code> ile güvenli şekilde işle.</p>
                                     </div>
@@ -350,8 +350,8 @@ require view('static/footer');</code></pre>
                                 <a href="/docs/models" class="card border border-dashed card-flush h-100 text-decoration-none hover-elevate-up">
                                     <div class="card-body p-6">
                                         <div class="d-flex align-items-center mb-3">
-                                            <i class="ki-duotone ki-data fs-2x text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                                            <h5 class="mb-0 fw-bold text-gray-800">Model & Veritabanı</h5>
+                                            <i class="fa-solid fa-database fs-2x text-warning me-3"></i>
+                                            <h5 class="mb-0 fw-bold text-body">Model & Veritabanı</h5>
                                         </div>
                                         <p class="text-muted fs-6 mb-0">TableModel ile Eloquent sınıflarını nasıl oluşturacağını öğren.</p>
                                     </div>
@@ -361,8 +361,8 @@ require view('static/footer');</code></pre>
                                 <a href="/docs/validators" class="card border border-dashed card-flush h-100 text-decoration-none hover-elevate-up">
                                     <div class="card-body p-6">
                                         <div class="d-flex align-items-center mb-3">
-                                            <i class="ki-duotone ki-shield-tick fs-2x text-danger me-3"><span class="path1"></span><span class="path2"></span></i>
-                                            <h5 class="mb-0 fw-bold text-gray-800">Validators</h5>
+                                            <i class="fa-solid fa-shield-halved fs-2x text-danger me-3"></i>
+                                            <h5 class="mb-0 fw-bold text-body">Validators</h5>
                                         </div>
                                         <p class="text-muted fs-6 mb-0">Gelen veriyi <code>DefaultValidator</code> ile tek satırda doğrula.</p>
                                     </div>
@@ -372,8 +372,8 @@ require view('static/footer');</code></pre>
                                 <a href="/docs/session" class="card border border-dashed card-flush h-100 text-decoration-none hover-elevate-up">
                                     <div class="card-body p-6">
                                         <div class="d-flex align-items-center mb-3">
-                                            <i class="ki-duotone ki-lock fs-2x text-info me-3"><span class="path1"></span><span class="path2"></span></i>
-                                            <h5 class="mb-0 fw-bold text-gray-800">Oturum Yönetimi</h5>
+                                            <i class="fa-solid fa-lock fs-2x text-info me-3"></i>
+                                            <h5 class="mb-0 fw-bold text-body">Oturum Yönetimi</h5>
                                         </div>
                                         <p class="text-muted fs-6 mb-0">Login akışı, cookie otomatik giriş ve public sayfa yönetimi.</p>
                                     </div>
@@ -383,8 +383,8 @@ require view('static/footer');</code></pre>
                                 <a href="/docs/languages" class="card border border-dashed card-flush h-100 text-decoration-none hover-elevate-up">
                                     <div class="card-body p-6">
                                         <div class="d-flex align-items-center mb-3">
-                                            <i class="ki-duotone ki-message-text-2 fs-2x text-primary me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                                            <h5 class="mb-0 fw-bold text-gray-800">Dil Sistemi</h5>
+                                            <i class="fa-solid fa-message fs-2x text-primary me-3"></i>
+                                            <h5 class="mb-0 fw-bold text-body">Dil Sistemi</h5>
                                         </div>
                                         <p class="text-muted fs-6 mb-0">JSON tabanlı çoklu dil desteği ve LSL Studio entegrasyonu.</p>
                                     </div>
