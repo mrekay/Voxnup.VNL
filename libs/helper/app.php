@@ -9,16 +9,16 @@ function controller($controllerName)
 
 function view($viewName)
 {
-	return getPath()  . '/view/' . setting('theme') . '/' . $viewName . '.php';
+	return VnlTemplate::resolve(getPath()  . '/view/' . setting('theme') . '/' . $viewName . '.php');
 }
 
 function modal($modalName, $directory = null)
 {
 	if ($directory) {
-		return getPath()  . '/view/includes/modals/' . $directory . '/' . $modalName . '.php';
+		return VnlTemplate::resolve(getPath()  . '/view/includes/modals/' . $directory . '/' . $modalName . '.php');
 	}
 	else {
-		return getPath()  . '/view/includes/modals/' . $modalName . '.php';
+		return VnlTemplate::resolve(getPath()  . '/view/includes/modals/' . $modalName . '.php');
 	}
 }
 

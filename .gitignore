@@ -6,3 +6,6 @@
 .idea/deployment.xml
 .idea/VNL-TEMPLATE.iml
 .idea/webServers.xml
+
+# Derlenmis sablon onbellegi
+files/cache/
