@@ -52,6 +52,24 @@
     "DATATABLES_BTN_SEARCH": "Filter",
     "DATATABLES_BTN_CLEAR": "Clear Filters",
     "DATATABLES_BTN_EXCEL_OUTPUT": "Export to Excel",
-    "DATATABLES_LBL_PLEASE_WRITE_FILTER": "Please enter a filter."
+    "DATATABLES_LBL_PLEASE_WRITE_FILTER": "Please enter a filter.",
+    "ERR_401_TITLE": "Unauthorized Access",
+    "ERR_401_TEXT": "You do not have permission to view this page. Make sure you are signed in and your account has the required permissions.",
+    "ERR_404_TITLE": "Page Not Found",
+    "ERR_404_TEXT": "The page you are looking for may have been moved, renamed or may never have existed.",
+    "LBL_RETURN_HOME": "Return Home",
+    "LOGIN_TITLE": "Sign In",
+    "LOGIN_SUBTITLE": "Please enter your credentials",
+    "LOGIN_USERNAME": "Username",
+    "LOGIN_PASSWORD": "Password",
+    "BTN_LOGIN": "Sign in",
+    "LBL_NOTIFICATIONS": "Notifications",
+    "LBL_NOTIFICATIONS_EMPTY": "No new notifications",
+    "LBL_SIGN_OUT": "Sign Out",
+    "LBL_THEME_LIGHT": "Light",
+    "LBL_THEME_DARK": "Dark",
+    "LBL_THEME_SYSTEM": "System",
+    "LBL_MENU": "Menu",
+    "LBL_CLOSE": "Close"
   }
 ]

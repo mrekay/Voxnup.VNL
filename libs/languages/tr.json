@@ -52,6 +52,24 @@
     "DATATABLES_BTN_SEARCH": "Filtrele",
     "DATATABLES_BTN_CLEAR": "Filtreleri Temizle",
     "DATATABLES_BTN_EXCEL_OUTPUT": "Excel Çıktı",
-    "DATATABLES_LBL_PLEASE_WRITE_FILTER": "Lütfen bir filtre giriniz."
+    "DATATABLES_LBL_PLEASE_WRITE_FILTER": "Lütfen bir filtre giriniz.",
+    "ERR_401_TITLE": "Yetkisiz Erişim",
+    "ERR_401_TEXT": "Bu sayfayı görüntülemek için yetkiniz yok. Giriş yaptığınızdan ve hesabınızın gerekli izinlere sahip olduğundan emin olun.",
+    "ERR_404_TITLE": "Sayfa Bulunamadı",
+    "ERR_404_TEXT": "Aradığınız sayfa taşınmış, adı değişmiş ya da hiç var olmamış olabilir.",
+    "LBL_RETURN_HOME": "Anasayfaya Dön",
+    "LOGIN_TITLE": "Giriş Yap",
+    "LOGIN_SUBTITLE": "Lütfen kullanıcı bilgilerinizi girin",
+    "LOGIN_USERNAME": "Kullanıcı Adı",
+    "LOGIN_PASSWORD": "Parola",
+    "BTN_LOGIN": "Giriş yap",
+    "LBL_NOTIFICATIONS": "Bildirimler",
+    "LBL_NOTIFICATIONS_EMPTY": "Yeni bildiriminiz yok",
+    "LBL_SIGN_OUT": "Çıkış Yap",
+    "LBL_THEME_LIGHT": "Açık",
+    "LBL_THEME_DARK": "Koyu",
+    "LBL_THEME_SYSTEM": "Sistem",
+    "LBL_MENU": "Menü",
+    "LBL_CLOSE": "Kapat"
   }
 ]
