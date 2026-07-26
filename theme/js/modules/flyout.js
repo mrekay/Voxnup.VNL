@@ -27,24 +27,37 @@ function btnOf(item) {
     return item.querySelector(':scope > .vnl-menu-link');
 }
 
-// CSS uzunluk değişkenini px'e çevirir ("16.25rem" | "260px")
-function cssLength(el, name) {
-    const raw = getComputedStyle(el).getPropertyValue(name).trim();
-    const value = parseFloat(raw) || 0;
-    return raw.endsWith('rem')
-        ? value * parseFloat(getComputedStyle(document.documentElement).fontSize)
-        : value;
+// Panel açık olduğu sürece sidebar'ın CANLI sağ kenarına yapışık kalır:
+// hover-genişleme/daralma animasyonu sürerken de birlikte kayarlar
+// (kapanana kadar takip). rAF döngüsü yalnız panel açıkken çalışır.
+let trackFrame = null;
+
+function track() {
+    if (!openSub || !isDesktop()) {
+        trackFrame = null;
+        return;
+    }
+
+    const sidebar = openSub.closest('.vnl-sidebar');
+    const right = Math.round(sidebar.getBoundingClientRect().right);
+    if (parseInt(openSub.style.left, 10) !== right) {
+        openSub.style.left = right + 'px';
+    }
+
+    trackFrame = requestAnimationFrame(track);
 }
 
-// Panelin yaslanacağı kenar. Hover-genişleme modunda sidebar'ın O ANKİ
-// genişliği güvenilmez (transition sürüyor olabilir; panel açıkken ray
-// genişlemiş olacak) — hedef genişlikten hesaplanır.
-function sidebarRightEdge(sidebar) {
-    const rect = sidebar.getBoundingClientRect();
-    if (document.documentElement.getAttribute('data-vnl-sidebar') === 'hover') {
-        return rect.left + cssLength(sidebar, '--vnl-sidebar-width');
+function startTracking() {
+    if (trackFrame === null) {
+        trackFrame = requestAnimationFrame(track);
     }
-    return rect.right;
+}
+
+function stopTracking() {
+    if (trackFrame !== null) {
+        cancelAnimationFrame(trackFrame);
+        trackFrame = null;
+    }
 }
 
 function open(item) {
@@ -64,7 +77,7 @@ function open(item) {
         // Görünmez aç → ölç → hizala → göster: panel hiçbir karede yanlış
         // konumda boyanmaz, animasyon doğru yerde başlar.
         sub.style.visibility = 'hidden';
-        sub.style.left = Math.round(sidebarRightEdge(sidebar)) + 'px';
+        sub.style.left = Math.round(sidebar.getBoundingClientRect().right) + 'px';
         sub.style.top = '0px';
         sub.classList.add(OPEN_CLASS);
 
@@ -72,6 +85,8 @@ function open(item) {
         const top = Math.max(8, Math.min(btnRect.top, window.innerHeight - height - 8));
         sub.style.top = Math.round(top) + 'px';
         sub.style.visibility = '';
+
+        startTracking();
     } else {
         sub.classList.add(OPEN_CLASS);
     }
@@ -80,6 +95,7 @@ function open(item) {
 function close() {
     if (!openSub) return;
 
+    stopTracking();
     openSub.classList.remove(OPEN_CLASS);
     openSub.removeAttribute('style');
     const item = openSub.closest('.vnl-has-sub');
