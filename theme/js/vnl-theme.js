@@ -8,6 +8,7 @@
 
 import { initThemeMode } from './modules/theme-mode.js';
 import { initSidebar } from './modules/sidebar.js';
+import { initFlyout } from './modules/flyout.js';
 import { initTooltips } from './modules/tooltips.js';
 import { initLightbox } from './modules/lightbox.js';
 
@@ -20,6 +21,7 @@ if (document.readyState === 'loading') {
 function boot() {
     initThemeMode();
     initSidebar();
+    initFlyout();
     initTooltips();
     initLightbox();
 }

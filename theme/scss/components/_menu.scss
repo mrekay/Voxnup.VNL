@@ -3,13 +3,21 @@
 // ShowSidebarMenu()'nun ürettiği markup:
 //   .vnl-menu > .vnl-menu-item > (a|button).vnl-menu-link
 //     > .vnl-menu-icon + .vnl-menu-title + .vnl-menu-arrow
-//   alt menü: .vnl-menu-sub.collapse (Bootstrap Collapse accordion)
+//
+// Alt menüler alt alta AÇILMAZ: öğenin sağında flyout panel olarak
+// çıkar (hover ya da tıklama; konumlandırma theme/js/modules/flyout.js).
+// Mobil offcanvas'ta panel yerine yerinde (inline) açılır.
+// Mini/hover/normal genişlik fark etmeksizin aynı davranış.
 // ============================================================
 
 .vnl-menu {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.vnl-menu-item {
+  position: relative;
 }
 
 .vnl-menu-link {
@@ -61,30 +69,66 @@
   margin-left: auto;
   font-size: .625rem;
   opacity: .7;
-  transition: transform .2s ease;
 }
 
-.vnl-menu-link[aria-expanded="true"] > .vnl-menu-arrow {
-  transform: rotate(90deg);
-}
-
-// ---- Alt menü --------------------------------------------------------------
+// ---- Alt menü: flyout panel ------------------------------------------------
 .vnl-menu-sub {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 2px;
-  padding: 2px 0 2px 2rem;
-
-  // Bootstrap Collapse ile birlikte: .collapse display'i yönetir
-  &.collapse:not(.show) { display: none; }
 
   .vnl-menu-link {
-    padding: .4rem .625rem;
+    padding: .45rem .75rem;
     font-size: .8125rem;
   }
 }
 
+@include media-breakpoint-up(lg) {
+  .vnl-menu-sub {
+    // Konum (top/left) flyout.js tarafından yazılır — sidebar'ın sağ
+    // kenarından, hangi genişlik modunda olursa olsun.
+    position: fixed;
+    z-index: 1080;
+    min-width: 230px;
+    max-width: 300px;
+    max-height: min(72vh, 480px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: .5rem;
+    background: #121816; // sidebar'dan bir tık açık koyu panel (iki temada da)
+    border-radius: var(--bs-border-radius-lg);
+    box-shadow: var(--vnl-raised-shadow), 0 0 0 1px rgba(255, 255, 255, .05);
+    scrollbar-width: thin;
+    scrollbar-color: #2a332f transparent;
+
+    &.show {
+      display: flex;
+      animation: vnl-flyout-in .16s ease both;
+    }
+  }
+}
+
+@include media-breakpoint-down(lg) {
+  // Offcanvas'ta panel yerine yerinde açılım
+  .vnl-menu-sub {
+    padding: 2px 0 2px 2rem;
+
+    &.show { display: flex; }
+  }
+}
+
+@keyframes vnl-flyout-in {
+  from {
+    opacity: 0;
+    transform: translateX(.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .vnl-menu-link,
-  .vnl-menu-arrow { transition: none; }
+  .vnl-menu-link { transition: none; }
+  .vnl-menu-sub.show { animation: none; }
 }

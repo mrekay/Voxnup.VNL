@@ -38,6 +38,11 @@
 @include media-breakpoint-up(lg) {
   .vnl-main {
     margin-left: var(--vnl-sidebar-width);
+    transition: margin-left .2s ease; // mod geçişinde içerik sıçramasın
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
   }
 
   html[data-vnl-sidebar] .vnl-main {
@@ -94,9 +99,10 @@
     width: var(--vnl-sidebar-width-mini);
   }
 
-  // Daralmış görünüm: mini'de her zaman; hover modunda yalnız üzerinde değilken
+  // Daralmış görünüm: mini'de her zaman; hover modunda yalnız üzerinde
+  // değilken. (Alt menüler gizlenMEZ — flyout mini'de de çalışır.)
   html[data-vnl-sidebar="mini"] .vnl-sidebar,
-  html[data-vnl-sidebar="hover"] .vnl-sidebar:not(:hover):not(:focus-within) {
+  html[data-vnl-sidebar="hover"] .vnl-sidebar:not(:hover):not(:has(:focus-visible)) {
     .vnl-sidebar-brand { justify-content: center; padding-inline: .5rem; }
     .vnl-brand-text { display: none; }
 
@@ -104,7 +110,6 @@
     .vnl-menu-arrow { display: none; }
 
     .vnl-menu-link { justify-content: center; }
-    .vnl-menu-sub { display: none !important; }
 
     // Daraltma düğmesi ikonunu ters çevir
     [data-vnl-toggle="sidebar-mini"] .bi-chevron-double-left,
@@ -114,9 +119,11 @@
     }
   }
 
-  // Hover modunda geçici genişleme (overlay)
+  // Hover modunda geçici genişleme (overlay). Fare ayrılınca kapanır;
+  // tıklama focus'u yapıştırmaz (:focus-within yerine :has(:focus-visible) —
+  // yalnız klavye gezinmesi açık tutar).
   html[data-vnl-sidebar="hover"] .vnl-sidebar:hover,
-  html[data-vnl-sidebar="hover"] .vnl-sidebar:focus-within {
+  html[data-vnl-sidebar="hover"] .vnl-sidebar:has(:focus-visible) {
     width: var(--vnl-sidebar-width);
     box-shadow: .75rem 0 2.5rem rgba(0, 0, 0, .35);
   }

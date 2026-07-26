@@ -245,9 +245,6 @@ if (!empty($customSideBar)) {
     $SidebarMenu[] = $customSideBar[0];
 }
 
-/* Collapse id üreticisi (accordion hedefleri için) */
-$vnlNavIndex = 0;
-
 if ($page_config['leftsidebar'] != false) {
     ?>
 
@@ -316,7 +313,7 @@ function showSideBar($array, $level)
 
 function ShowSidebarMenu($array, $level)
 {
-    global $fileName, $NumberTexts, $CurrentUser, $ActiveProductId, $meta, $vnlNavIndex;
+    global $fileName, $NumberTexts, $CurrentUser, $ActiveProductId, $meta;
 
     $friendly_name = isset($meta['friendly_name']) ? $meta['friendly_name'] : '';
 
@@ -339,19 +336,18 @@ function ShowSidebarMenu($array, $level)
             $hasChild = isset($menu['child']) && !empty($menu['child']);
 
             if ($hasChild) {
-                $vnlNavIndex++;
-                $navId = 'vnl-nav-' . $vnlNavIndex;
+                /* Alt menü sağda flyout panel olarak açılır (hover ya da tıklama;
+                   mobil offcanvas'ta yerinde). Davranış: theme/js/modules/flyout.js */
                 ?>
-                <div class="vnl-menu-item">
+                <div class="vnl-menu-item vnl-has-sub">
                     <button type="button"
                             class="vnl-menu-link <?= $isActive ? 'active' : '' ?>"
-                            data-bs-toggle="collapse" data-bs-target="#<?= $navId ?>"
-                            aria-expanded="<?= $isActive ? 'true' : 'false' ?>" aria-controls="<?= $navId ?>">
+                            aria-haspopup="true" aria-expanded="false">
                         <span class="vnl-menu-icon"><i class="<?= strpos($menu['icon'], ' ') !== false ? $menu['icon'] : 'fa-solid fa-' . $menu['icon']; ?>"></i></span>
                         <span class="vnl-menu-title"><?= $menu['text']; ?></span>
                         <span class="vnl-menu-arrow"><i class="bi bi-chevron-right"></i></span>
                     </button>
-                    <div class="vnl-menu-sub collapse <?= $isActive ? 'show' : '' ?>" id="<?= $navId ?>">
+                    <div class="vnl-menu-sub">
                         <?php showSideBar($menu['child'], $level + 1); ?>
                     </div>
                 </div>

@@ -161,7 +161,7 @@ document.addEventListener('vnl.theme.changed', function (e) {
                                     <li><code>'mini'</code> — sabit ikon rayı; genişlemez. Controller'da <code>$page_config['leftsidebar'] = 'mini'</code> ile seçilir.</li>
                                 </ul>
                             </li>
-                            <li><b>Accordion:</b> alt menüler Bootstrap Collapse ile açılır; aktif dal sunucu tarafında açık gelir.</li>
+                            <li><b>Flyout alt menüler:</b> alt menüler alt alta açılmaz — normal/mini fark etmeksizin öğenin üzerine gelince ya da tıklayınca sağda panel olarak çıkar; ESC, dış tıklama ve fare ayrılması kapatır. Mobil offcanvas'ta yerinde açılır.</li>
                         </ul>
                     </div>
                     <!--end::Section-->

@@ -33,6 +33,8 @@ export function initSidebar() {
                 html.setAttribute('data-vnl-sidebar', mode);
                 localStorage.setItem(STORAGE_KEY, mode);
             }
+            // Focus butonda kalırsa hover modundaki sidebar açık yapışıyor
+            toggle.blur();
             return;
         }
 
