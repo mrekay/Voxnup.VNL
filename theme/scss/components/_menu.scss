@@ -73,9 +73,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 2px 0 2px 1rem;
-  margin-left: 1.3rem;
-  border-left: 1px solid var(--vnl-sidebar-border);
+  padding: 2px 0 2px 2rem;
 
   // Bootstrap Collapse ile birlikte: .collapse display'i yönetir
   &.collapse:not(.show) { display: none; }

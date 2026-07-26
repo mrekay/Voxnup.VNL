@@ -14,8 +14,10 @@
   display: flex;
   flex-direction: column;
   width: var(--vnl-sidebar-width);
-  background: var(--vnl-sidebar-bg);
-  border-right: 1px solid var(--vnl-sidebar-border);
+  // !important şart: responsive offcanvas (offcanvas-lg) lg ve üzerinde
+  // `background-color: transparent !important` basar (_offcanvas.scss:100)
+  // ve koyu şeridi siler — açık temada sidebar beyaz kalırdı.
+  background: var(--vnl-sidebar-bg) !important;
 
   @include media-breakpoint-up(lg) {
     position: sticky;
@@ -37,7 +39,6 @@
   flex-shrink: 0;
   height: var(--vnl-topbar-height);
   padding-inline: 1.25rem;
-  border-bottom: 1px solid var(--vnl-sidebar-border);
 
   img {
     max-height: 2rem;
@@ -66,7 +67,6 @@
 .vnl-sidebar-footer {
   flex-shrink: 0;
   padding: .75rem .625rem;
-  border-top: 1px solid var(--vnl-sidebar-border);
 
   &:empty { display: none; }
 }
