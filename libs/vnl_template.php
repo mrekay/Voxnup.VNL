@@ -76,8 +76,10 @@ class VnlTemplate
 
         $compiled = self::cachePath($path);
 
-        /* Güncel derleme varsa doğrudan kullan — kaynak dosya hiç okunmaz. */
-        if (is_file($compiled) && filemtime($compiled) >= filemtime($path)) {
+        /* Güncel derleme varsa doğrudan kullan — kaynak dosya hiç okunmaz.
+           Eşitlikte yeniden derlenir: mtime çözünürlüğü 1 saniye olduğu için
+           aynı saniyede kaydedilen değişiklik aksi halde bayat kalırdı. */
+        if (is_file($compiled) && filemtime($compiled) > filemtime($path)) {
             return $compiled;
         }
 
