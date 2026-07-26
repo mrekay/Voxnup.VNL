@@ -11,7 +11,7 @@
             </div>
 
             <!--begin::Kurulum-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Kurulum</h2>
                 </div>
@@ -59,7 +59,7 @@
             <!--end::Kurulum-->
 
             <!--begin::Config-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Config (<code>extensions/stripe/config.php</code>)</h2>
                 </div>
@@ -107,7 +107,7 @@
             <!--end::Config-->
 
             <!--begin::Dosya Yapısı-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Dosya Yapısı</h2>
                 </div>
@@ -145,7 +145,7 @@
             <!--end::Dosya Yapısı-->
 
             <!--begin::Sabit Değerler-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Sabit Değerler (Constants)</h2>
                 </div>
@@ -176,7 +176,7 @@
             <!--end::Sabit Değerler-->
 
             <!--begin::StripeModule-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">StripeModule — Metodlar</h2>
                 </div>
@@ -229,7 +229,7 @@ $session = StripeModule::createCheckoutSession([
             <!--end::StripeModule-->
 
             <!--begin::AJAX Endpoints-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">AJAX Endpoint'leri (<code>/app/stripe/*</code>)</h2>
                 </div>
@@ -295,7 +295,7 @@ $.post('/app/stripe/createCheckoutSession', {
             <!--end::AJAX Endpoints-->
 
             <!--begin::Webhook-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Webhook (<code>/stripe-webhook</code>)</h2>
                 </div>
@@ -336,7 +336,7 @@ $.post('/app/stripe/createCheckoutSession', {
             <!--end::Webhook-->
 
             <!--begin::Test Sayfaları-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Test Sayfaları</h2>
                 </div>
@@ -369,7 +369,7 @@ $.post('/app/stripe/createCheckoutSession', {
             <!--end::Test Sayfaları-->
 
             <!--begin::DB Tabloları-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Veritabanı Tabloları</h2>
                 </div>

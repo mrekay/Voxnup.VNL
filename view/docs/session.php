@@ -8,7 +8,7 @@
                 <div class="vnl-lead">VNL, oturum açma/kapama işlemlerini <code>Session</code> sınıfı ve <code>UserModule</code> modülü aracılığıyla yönetir. Her istekte kullanıcı kimliği doğrulanır; korunan sayfalara giriş yapılmadan erişim engellenir.</div>
             </div>
 
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-body p-10">
 
                     <!--begin::Section 1-->

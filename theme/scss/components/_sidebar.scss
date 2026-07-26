@@ -45,10 +45,10 @@
   }
 }
 
-// Marka adı görselden ayrı basılır: tema/uygulama adına göre adaptiftir,
-// logo varyantı üretmek gerekmez.
+// Marka adı görselden ayrı basılır ve bulunduğu zeminin temasına uyar:
+// koyu sidebar/topbar'da açık, açık zeminde koyu — logo varyantı gerekmez.
 .vnl-brand-text {
-  color: #e9eeeb;
+  color: var(--bs-emphasis-color);
   font-size: .95rem;
   font-weight: 650;
   letter-spacing: -.01em;

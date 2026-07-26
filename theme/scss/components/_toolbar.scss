@@ -3,9 +3,13 @@
 // $meta title + breadcrumb solda, $page_config['toolbaritems'] sağda.
 // ============================================================
 
+// Toolbar, zeminden ayrışan bir yüzey bandıdır (Metronic'in beyaz şeridi):
+// çizgi yok, ayrımı zemin/yüzey renk farkı yapar.
 .vnl-toolbar {
   flex-shrink: 0;
-  padding-top: 1.5rem;
+  padding: 1.05rem 0;
+  background: var(--vnl-surface);
+  box-shadow: 0 0 0 1px var(--vnl-card-ring);
 
   .vnl-page-title {
     display: flex;

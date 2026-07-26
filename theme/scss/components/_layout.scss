@@ -22,13 +22,6 @@
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-
-  // Mühendislik-kağıdı dokusu: kartların arkasındaki boşluklarda,
-  // fark edilir-edilmez incelikte bir teknik zemin.
-  background-image:
-    linear-gradient(var(--vnl-grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--vnl-grid-line) 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
 // Focus preset (login/auth/hata): ortalanmış tek kolon

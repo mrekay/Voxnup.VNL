@@ -74,7 +74,7 @@
             </div>
             <!--end::Dizin yapısı kartları-->
 
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-body p-10">
 
                     <!--begin::Section 1 - Dizin Yapısı-->

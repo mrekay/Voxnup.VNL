@@ -135,8 +135,14 @@ $dropdown-padding-y:        .5rem;
 $dropdown-item-padding-y:   .45rem;
 $dropdown-item-padding-x:   1rem;
 $dropdown-border-radius:    $border-radius-lg;
+$dropdown-border-width:     0;
 
 $modal-content-border-radius: $border-radius-lg;
+$modal-content-border-width:  0;
+
+// Derinlik çizgiyle değil gölgeyle anlatılır (Metronic dili): kart ve
+// yükselen yüzeyler border'sızdır; koyu temada ayrımı box-shadow ring'i verir.
+$card-border-width: 0;
 
 $table-cell-padding-y: .65rem;
 $table-cell-padding-x: .75rem;

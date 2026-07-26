@@ -2,6 +2,10 @@
 // VNL Theme — üst çubuk
 // ============================================================
 
+// Topbar sidebar ile aynı koyu şeridin devamıdır (Metronic Demo 13 dili):
+// iki temada da koyu kalır, içerik alanı açık/koyu değişir.
+// Markup <header data-bs-theme="dark"> taşır; içindeki BS bileşenleri
+// otomatik koyu varyanta düşer.
 .vnl-topbar {
   position: sticky;
   top: 0;
@@ -12,8 +16,7 @@
   flex-shrink: 0;
   height: var(--vnl-topbar-height);
   padding-inline: 1rem 1.25rem;
-  background: var(--vnl-surface);
-  border-bottom: 1px solid var(--vnl-border);
+  background: var(--vnl-sidebar-bg);
 }
 
 .vnl-topbar-brand {
@@ -29,23 +32,23 @@
   &:hover { color: var(--bs-emphasis-color); text-decoration: none; }
 }
 
-// Sürüm chip'i: mono, terminal etiketi hissi
+// Sürüm chip'i: mono, çizgisiz yumuşak etiket
 .vnl-topbar-version {
   font-family: var(--bs-font-monospace);
   font-size: .65rem;
   font-weight: 500;
   letter-spacing: .02em;
-  color: var(--bs-secondary-color);
-  background: var(--bs-tertiary-bg);
-  border: 1px solid var(--vnl-border);
+  color: rgba(255, 255, 255, .55);
+  background: rgba(255, 255, 255, .09);
   border-radius: $border-radius-sm;
-  padding: .1rem .4rem;
+  padding: .15rem .45rem;
   line-height: 1.4;
 }
 
 .vnl-topbar-spacer { flex: 1; }
 
-// İkon düğmeleri (tema modu, bildirim, kullanıcı…)
+// İkon düğmeleri (tema modu, bildirim, kullanıcı…) — koyu şeride göre;
+// sidebar brand'inde de kullanılır (o da hep koyu).
 .vnl-topbar-item {
   display: inline-flex;
   align-items: center;
@@ -56,7 +59,7 @@
   border: 0;
   border-radius: var(--bs-border-radius);
   background: transparent;
-  color: var(--bs-secondary-color);
+  color: #9aa69f;
   font-size: 1.05rem;
   position: relative;
   transition: color .15s ease, background-color .15s ease;
@@ -64,8 +67,8 @@
   &:hover,
   &:focus-visible,
   &[aria-expanded="true"] {
-    color: var(--bs-emphasis-color);
-    background: var(--bs-tertiary-bg);
+    color: #e9eeeb;
+    background: rgba(255, 255, 255, .07);
   }
 }
 

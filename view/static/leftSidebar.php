@@ -258,6 +258,10 @@ if ($page_config['leftsidebar'] != false) {
                 <img alt="" src="<?= $cDefinitions->appLogoPath() . 'VNL.png' ?>" style="height: 30px"/>
                 <span class="vnl-brand-text"><?= $cDefinitions->appName() ?></span>
             </a>
+            <button type="button" class="vnl-topbar-item ms-auto d-none d-lg-inline-flex"
+                    data-vnl-toggle="sidebar-mini" aria-label="<?= lang('LBL_MENU') ?>">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
             <button type="button" class="btn-close btn-close-white ms-auto d-lg-none"
                     data-bs-dismiss="offcanvas" data-bs-target="#vnlSidebar"
                     aria-label="<?= lang('LBL_CLOSE') ?>"></button>

@@ -2,7 +2,7 @@
 if ($page_config['topbar'] != false){
 
     ?>
-    <header class="vnl-topbar">
+    <header class="vnl-topbar" data-bs-theme="dark">
 
         <?php if ($page_config['leftsidebar'] != false) { ?>
             <!-- Mobil: sidebar çekmecesi -->
@@ -10,17 +10,10 @@ if ($page_config['topbar'] != false){
                     data-bs-target="#vnlSidebar" aria-controls="vnlSidebar" aria-label="<?= lang('LBL_MENU') ?>">
                 <i class="bi bi-list fs-3"></i>
             </button>
-            <!-- Desktop: sidebar daralt/genişlet -->
-            <button type="button" class="vnl-topbar-item d-none d-lg-inline-flex"
-                    data-vnl-toggle="sidebar-mini" aria-label="<?= lang('LBL_MENU') ?>">
-                <i class="bi bi-chevron-double-left"></i>
-            </button>
         <?php } ?>
 
         <a href="/" class="vnl-topbar-brand">
-            <?php if ($page_config['leftsidebar'] == false) { ?>
-                <img alt="" src="<?= $cDefinitions->appLogoPath() . 'VNL.png' ?>"/>
-            <?php } ?>
+            <img alt="" src="<?= $cDefinitions->appLogoPath() . 'VNL.png' ?>" class="rounded-2"/>
             <span><?= $cDefinitions->appName() ?></span>
             <span class="vnl-topbar-version"><?= $cDefinitions->version() ?></span>
         </a>

@@ -9,7 +9,7 @@
             </div>
 
             <!--begin::Nasıl Çalışır-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Nasıl Çalışır?</h2>
                 </div>
@@ -49,7 +49,7 @@ foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_
             <!--end::Nasıl Çalışır-->
 
             <!--begin::Klasör Yapısı-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Standart Klasör Yapısı</h2>
                 </div>
@@ -79,7 +79,7 @@ foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_
             <!--end::Klasör Yapısı-->
 
             <!--begin::boot.php-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">boot.php</h2>
                 </div>
@@ -115,7 +115,7 @@ require_once MY_EXT_PATH . '/src/MyModel.php';
             <!--end::boot.php-->
 
             <!--begin::Controller & View-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Controller ve View</h2>
                 </div>
@@ -156,7 +156,7 @@ require view('static/footer');                              // VNL layout
             <!--end::Controller & View-->
 
             <!--begin::Action-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Action (AJAX Endpoint)</h2>
                 </div>
@@ -189,7 +189,7 @@ class action_myext
             <!--end::Action-->
 
             <!--begin::Model-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Model (Eloquent)</h2>
                 </div>
@@ -228,7 +228,7 @@ class MyModel extends TableModel
             <!--end::Model-->
 
             <!--begin::Kurulum Adımları-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Eklenti Kurulum Adımları</h2>
                 </div>
@@ -275,7 +275,7 @@ class MyModel extends TableModel
             <!--end::Kurulum Adımları-->
 
             <!--begin::Kaldırma-->
-            <div class="card shadow-sm border-0 mb-10">
+            <div class="card mb-10">
                 <div class="card-header border-0 pt-8">
                     <h2 class="card-title fw-bold text-body-emphasis">Eklenti Kaldırma</h2>
                 </div>
