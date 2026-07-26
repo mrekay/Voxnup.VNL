@@ -9,9 +9,9 @@
 var expo_token = '';
 
 $(document).ready(function () {
-    elementReady();
+    // elementReady()/select başlatma ve show-password kurulumu VNL Theme'e
+    // taşındı (assets/vnl/js/vnl.min.js — theme/js/modules/select.js, password.js).
     $('input.dt-filter-td:not(.no-clear)').val('');
-    select2Reload($('select.select2[action]'));
     // $('.fixed-panel-title').fixedPanelTitle();
 
     // DataTables vendor'u VNL Theme 1.0 ile söküldü; datatable.js yüklü olmayan sayfalarda sessizce atla.
@@ -92,110 +92,12 @@ var dateRangePickerSettings2 = (typeof moment === 'undefined') ? null : {
     }
 };
 
-/**
- * Select altyapısı: select2 söküldü, SlimSelect'e köprü.
- * Sözleşme VNL 2.x ile aynıdır: `select.select2[action]` seçicisi, `prm_*`
- * attribute'ları POST parametresi olur, `no-option`/`multiple` yoksa
- * value="0" "Seçiniz" seçeneği eklenir (ClearForm .val(0) buna dayanır),
- * `async` attribute'u senkron/asenkron davranışı korur. Fonksiyon adı
- * dış projelerdeki çağrılar için değişmedi.
+/*
+ * Select altyapısı (vnlSelectInit / select2Reload / selectReload /
+ * elementReady + ajaxStop tazelemesi) ve tooltip tıklama davranışı
+ * VNL Theme'e taşındı: theme/js/modules/select.js ve tooltips.js
+ * (derlenmiş hali assets/vnl/js/vnl.min.js). Global isimler aynı kaldı.
  */
-function vnlSelectInit(el) {
-    if (typeof SlimSelect === 'undefined') return;
-
-    if (el.slim) {
-        el.slim.destroy();
-        el.slim = null;
-    }
-
-    var settings = {
-        showSearch: true,
-        allowDeselect: false,
-        searchPlaceholder: 'Ara…',
-        searchText: 'Sonuç yok',
-    };
-
-    if (el.hasAttribute('tags')) {
-        settings.addable = function (value) {
-            return value;
-        };
-    }
-
-    new SlimSelect({select: el, settings: settings});
-}
-
-function select2Reload(input) {
-
-    $.each(input, function () {
-        var parameters = {};
-        var this_input = $(this);
-        var el = this;
-        var async_mode = true;
-
-        $.each(this.attributes, function () {
-            if (this.name.startsWith('prm_')) {
-                parameters[(this.name).substring(4)] = this.value;
-            }
-        });
-
-        if (el.slim) {
-            el.slim.destroy();
-            el.slim = null;
-        }
-
-        this_input.empty()
-        if (!this_input.attr('no-option') && !this_input.attr('multiple')) {
-            var newOption = new Option('Seçiniz', '0', false, false);
-            this_input.append(newOption).trigger('change');
-        }
-
-        if (this_input.attr('action')) {
-            async_mode = !this_input.attr('async');
-            $.ajax({
-                dataType: 'json',
-                type: 'POST',
-                async: async_mode,
-                url: this_input.attr('action'),
-                data: parameters,
-                success: function (response) {
-                    $.each(response, function (i, item) {
-                        this_input.append(new Option(item.text, item.id, false, false));
-                    });
-                    vnlSelectInit(el);
-                }
-            });
-        } else {
-            vnlSelectInit(el);
-        }
-    });
-}
-
-// Eski adın yanına nötr takma ad
-var selectReload = select2Reload;
-
-
-function elementReady() {
-    if (window.vnlTooltips) {
-        vnlTooltips(document);
-    }
-
-    // ajaxStop her AJAX sonrasında buraya düşer; instance'lı select'e
-    // yeniden init UI çoğaltır — el.slim işareti çifte init'i engeller.
-    $('select.select2').each(function () {
-        if (!this.slim) {
-            vnlSelectInit(this);
-        }
-    });
-}
-
-$(document).on('click', '[data-toggle="tooltip"]', function (e) {
-    e.stopPropagation();
-});
-
-$(document).ajaxStop(function () {
-    elementReady();
-});
-
 
 $(document).ajaxComplete(function (event, request, settings) {
     const default_settings={
@@ -333,6 +235,8 @@ function ErrorMessage(msg) {
     TopMessageShow(true, msg);
 }
 
+// ÖLÜ BÖLGE — .preloader markup'ı Metronic öncesi temanın kalıntısı; VNL
+// Theme'de karşılığı yok (VNL 3.0 madde 3'te kaldırılacak).
 function preloaderShow() {
     $('.preloader img').show();
     $('.preloader').css('height', '100%');
@@ -357,14 +261,8 @@ function preloaderHide() {
 
 }
 
-function spinnerShow(text = "") {
-    $("#loadingSpinner").fadeIn();
-    $('#loadingSpinner .spinner-text').html(text);
-}
-
-function spinnerHide() {
-    $("#loadingSpinner").fadeOut();
-}
+/* spinnerShow()/spinnerHide() VNL Theme'e taşındı (theme/js/modules/spinner.js);
+   showSpinner()/hideSpinner() takma adlarıyla birlikte global olarak oradan gelir. */
 
 function AjaxError() {
     TopMessageShow(true, 'Bir hata oluştu, lütfen daha sonra tekrar deneyin.');
@@ -477,27 +375,8 @@ function sleep(milliseconds) {
 }
 
 
-$(document).ready(function () {
-
-    $('.show-password input').after('<div class="pass-input-wrapper"></div>');
-    $('.show-password input').appendTo($('.show-password .pass-input-wrapper'));
-    $('.show-password .pass-input-wrapper').append('<span class="spass-btn"><i class="far fa-eye"></i></span>');
-    $(document).on('click', '.show-password .spass-btn', function (event) {
-
-        if ($(this).find('i').hasClass('fa-eye')) {
-            $(this).find('i').removeClass('fa-eye');
-            $(this).find('i').addClass('fa-eye-slash');
-        } else {
-            $(this).find('i').addClass('fa-eye');
-            $(this).find('i').removeClass('fa-eye-slash');
-        }
-
-
-        $(this).prev().attr('type', function (index, attr) {
-            return attr == 'password' ? 'text' : 'password';
-        });
-    });
-});
+/* Parola göster/gizle (.show-password) VNL Theme'e taşındı
+   (theme/js/modules/password.js) — markup sözleşmesi aynı. */
 
 $(document).on('click', 'a', function (e) {
     if (typeof $(this).attr('download') == 'undefined') {

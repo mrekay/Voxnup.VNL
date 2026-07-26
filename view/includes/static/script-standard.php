@@ -147,14 +147,7 @@
     })
 
 
-    function showSpinner(){
-        $('#loadingSpinner').fadeIn();
-    }
-
-    function hideSpinner(){
-        $('#loadingSpinner').fadeOut();
-    }
-
-
+    // showSpinner()/hideSpinner() ve spinnerShow()/spinnerHide() global olarak
+    // VNL Theme'den gelir (theme/js/modules/spinner.js).
 
 </script>

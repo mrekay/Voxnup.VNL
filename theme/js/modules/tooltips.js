@@ -19,6 +19,14 @@ const SELECTOR = '[data-bs-toggle="tooltip"], [data-toggle="tooltip"]';
 export function initTooltips() {
     window.vnlTooltips = vnlTooltips;
     vnlTooltips(document);
+
+    // vnl.js'ten taşınan tarihsel davranış: tooltip tetikleyicisine tıklama
+    // olayı yukarı köpürmesin
+    document.addEventListener('click', function (e) {
+        if (e.target.closest(SELECTOR)) {
+            e.stopPropagation();
+        }
+    });
 }
 
 function vnlTooltips(scope) {

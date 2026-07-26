@@ -12,6 +12,9 @@ import { initSidebar } from './modules/sidebar.js';
 import { initFlyout } from './modules/flyout.js';
 import { initTooltips } from './modules/tooltips.js';
 import { initLightbox } from './modules/lightbox.js';
+import { initSpinner } from './modules/spinner.js';
+import { initPassword } from './modules/password.js';
+import { initSelect } from './modules/select.js';
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
@@ -25,4 +28,7 @@ function boot() {
     initFlyout();
     initTooltips();
     initLightbox();
+    initSpinner();
+    initPassword();
+    initSelect();
 }
