@@ -6,21 +6,125 @@
  *  Authors: Voxnup Authors
  * ============================================================
  */
-/*
- * Select altyapısı (vnlSelectInit / selectReload / elementReady + ajaxStop
- * tazelemesi), tooltip tıklama davranışı ve parola göster/gizle VNL Theme'e
- * taşındı: theme/js/modules/select.js, tooltips.js, password.js (derlenmiş
- * hali assets/vnl/js/vnl.min.js). VNL 3.0: select2Reload adı kaldırıldı.
+
+$(document).on('click', '#previewImg', function () {
+    Swal.fire({
+        title: 'İşlem Seçiniz',
+        showDenyButton: true,
+        showCancelButton: false,
+        confirmButtonText: '<i class="bi bi-arrow-left-right"></i> Fotoğrafı Değiştir',
+        denyButtonText: '<i class="bi bi-eye"></i> Görüntüle',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('#techizat_image_input').click();
+        } else if (result.isDenied) {
+            modalImageShowImageModal($('#previewImg').attr('src'), $('#previewImg').attr('alt'));
+        }
+    });
+});
+
+
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'bottom-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
+
+function showModalMessage(message, mode = 1) {
+
+    var icon = "error";
+    switch (mode) {
+        case true:
+        case 1:
+            icon = "error";
+            break;
+        case false:
+        case 0:
+            icon = "success";
+            break;
+        case 2:
+            icon = "warning";
+            break;
+        case 3:
+            icon = "info";
+            break;
+
+    }
+
+    Swal.fire({
+        icon: icon,
+        html: message,
+        confirmButtonText: 'Ok',
+    })
+}
+
+function showMessage(message, is_err) {
+    Toast.fire(
+        {
+            title: message,
+            icon: is_err ? 'error' : 'success',
+        }
+    )
+}
+
+// Görsel önizleme: eski .image-modal (hiç çalışmayan .modal('show') çağrısı)
+// yerine tema lightbox'ı. Çağrı imzası korunur.
+$(document).on('click', '.modal-image', function () {
+    modalImageShowImageModal($(this).attr('src'), $(this).attr('alt'));
+});
+
+function modalImageShowImageModal($src, $alt) {
+    if (window.vnlLightbox) vnlLightbox($src, $alt);
+}
+
+
+/**
+ * Mobil tarayıcı tespiti. VNL 2.x'te PHP tarafında checkMobileBrowser() ile
+ * üretilip script-standard.php'ye gömülüyordu; VNL 3.0'da istemciye taşındı.
+ *
+ * Sıra: User-Agent Client Hints (Chromium — UA ayrıştırmadan kesin bilgi) →
+ * UA deseni → çok dokunmalı Macintosh (iPadOS 13+ masaüstü UA'sı gönderir).
+ * Eski PHP'deki 2010 dönemi cihaz öneki tablosu bilinçli olarak taşınmadı.
  */
+function isMobile() {
+    if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+        return navigator.userAgentData.mobile;
+    }
+
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk/i.test(navigator.userAgent)) {
+        return true;
+    }
+
+    return navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent);
+}
+
+$(document).on('input', '.length-counter', function () {
+    var len = $(this).val().length;
+    var maxlen = $(this).attr('maxlength');
+    var targetObject = $($(this).attr('length-target-class'));
+
+    if (!targetObject.is(":visible")) targetObject.fadeIn();
+
+    $($(this).attr('length-target-class')).html(`${len}/${maxlen}`);
+
+    if (len <= 0) targetObject.fadeOut();
+})
+
 
 $(document).ajaxComplete(function (event, request, settings) {
     if (request.status == 406) {
         showModalMessage(request.responseJSON.message, 2);
         return;
-    }else if (request.status == 410) {
+    } else if (request.status == 410) {
         showModalMessage(request.responseJSON.message, 3);
         return;
-    }else if (request.status == 400) {
+    } else if (request.status == 400) {
         spinnerHide();
         if (!settings.customErrMessage) showModalMessage(request.responseJSON.message, true);
     } else if (request.status == 401) {
@@ -68,7 +172,7 @@ function convertFileSize(size) {
 }
 
 
-function ClearForm($form) {
+function clearForm($form) {
     $form.find("input[type!='checkbox'], textarea").not('.no-clear').val("");
     $form.find("select").not('.no-clear').each(function () {
         // SlimSelect'li select'lerde UI'ın da sıfırlanması için instance API'si
@@ -78,10 +182,17 @@ function ClearForm($form) {
         $(this).val(0).trigger('change');
     });
     $form.find("input[type='checkbox']").not('.no-clear').prop('checked', false);
-
 }
 
-function checkValidity($form) {
+/**
+ * Zorunlu alanları doğrular, geçersizleri .is-invalid ile işaretler ve
+ * formun geçerli olup olmadığını döner.
+ *
+ * Ad VNL 3.0'da checkValidity → validateForm oldu: tarayıcının yerleşik
+ * form.checkValidity() metodu farklı bir şey yapar (HTML5 constraint
+ * validation), aynı ad iki farklı davranışı karıştırıyordu.
+ */
+function validateForm($form) {
     $is_valid = true;
     $form.find('input').each(function () {
         if ($(this).attr('required')) {
@@ -119,113 +230,56 @@ function checkValidity($form) {
     return $is_valid;
 }
 
-function TopMessageShow($isErr, $message) {
-    if ($message == 'undefined') return;
-    showModalMessage($message, $isErr);
-}
-
-function ErrorMessage(msg) {
-    TopMessageShow(true, msg);
-}
-
-/* spinnerShow()/spinnerHide() VNL Theme'e taşındı (theme/js/modules/spinner.js);
-   showSpinner()/hideSpinner() takma adlarıyla birlikte global olarak oradan gelir. */
-
+/**
+ * Metni panoya kopyalar.
+ *
+ * Önce asenkron Clipboard API'si denenir; güvenli bağlam (HTTPS/localhost)
+ * yoksa ekran dışı textarea + execCommand'e düşülür. Bildirim yalnızca
+ * kopyalama gerçekten başarılıysa gösterilir.
+ *
+ * Not: showMessage parametresi aynı adlı global fonksiyonu gölgeler, bu
+ * yüzden bildirim için showModalMessage kullanılır.
+ */
 function copyToClipboard(text, showMessage = true) {
-    var $temp = $("<textarea>");
-    //geçici çözüm
-    if ($('.modal.show').length > 0) {
-        $('.modal.show').first().append($temp);
-    } else {
-        $("body").append($temp);
-    }
-    $temp.val(text).select();
-    document.execCommand("copy");
-    $temp.remove();
 
-    if (showMessage)
-        showModalMessage(LBL_COPIED, false);
-}
+    function legacyCopy() {
+        // Ekran dışına konumlanır: eski sürüm görünür textarea ekleyip
+        // select() ile sayfayı oraya kaydırıyordu.
+        var $temp = $('<textarea>')
+            .val(text)
+            .attr('readonly', true)
+            .css({position: 'fixed', top: '-9999px', left: '-9999px', opacity: 0});
 
-function openLink(url, target) {
-    target = target || '_self';
+        // Modal açıkken body'ye eklenen eleman odak tuzağının dışında kalır.
+        var $host = $('.modal.show').first();
+        ($host.length ? $host : $('body')).append($temp);
 
-    if (isMobile()) {
-        target = '_self';
-    }
-    window.open(url, target);
-}
+        $temp[0].focus();
+        $temp[0].setSelectionRange(0, String(text).length);
 
-$(document).on('click', 'a', function (e) {
-    if (typeof $(this).attr('download') == 'undefined') {
+        var ok = false;
+        try {
+            ok = document.execCommand('copy');
+        } catch (e) {
+            ok = false;
+        }
 
-        openLink($(this).attr('href'), $(this).attr('target'));
-        e.stopPropagation();
-        e.preventDefault();
-        return false;
-    }
-});
-
-
-$(document).ready(function () {
-    // openLink özelliğine sahip olan herhangi bir öğeye tıklandığında
-    $('[openLink]').click(function () {
-        // Öğenin openLink değerini al
-        var link = $(this).attr('openLink');
-        // Bağlantıyı aç
-        window.open(link, "_self");
-    });
-});
-
-/* silme için onay alma 20.02.2024 ertugrul*/
-function deleteItemFromDB(opt) {
-
-    var opt_default = {
-        async:false,
-        url: "",
-        data: {},
-        dataType: "JSON",
-        type: "POST",
-        success: function (response) {
-            showModalMessage(response.message, false);
-        },
-        error: function (response) {
-            showModalMessage(response.message, true);
-        },
-        complete: function(){},
+        $temp.remove();
+        return ok;
     }
 
-    // opt ve opt_default'ı birleştirme
-    opt = Object.assign({}, opt_default, opt);
+    function done(ok) {
+        if (!showMessage) return;
+        showModalMessage(ok ? 'Panoya kopyalandı.' : 'Kopyalanamadı, metni elle seçin.', !ok);
+    }
 
-    if (Object.keys(opt).length <= 0 || opt.url.length <= 0 || Object.keys(opt.data).length <= 0) {
-        showModalMessage("İç JS Hatası:  deleteItemFromDB için geçerli değerler gelmedi", true);
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(
+            function () { done(true); },
+            function () { done(legacyCopy()); }
+        );
         return;
     }
 
-    Swal.fire({
-        title: "Emin misiniz?",
-        text: "Kayıt silinecektir, bu işlem geri alınamaz.",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true,
-        showCancelButton: true,
-        confirmButtonText: "Sil",
-        CancelButtonText: `İptal`
-    })
-        .then((willDelete) => {
-            if (willDelete.isConfirmed) {
-                $.ajax({
-                    async:opt.async,
-                    dataType: opt.dataType,
-                    type: opt.type,
-                    url: opt.url,
-                    data: opt.data,
-                    success: opt.success,
-                    error: opt.error,
-                });
-                opt.complete();
-
-            }
-        });
+    done(legacyCopy());
 }

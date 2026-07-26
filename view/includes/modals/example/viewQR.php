@@ -216,7 +216,8 @@
         }
 
         function openQRInNewTab() {
-            openLink($('#file-qr').attr("qr-link"), "_BLANK");
+            // openLink() VNL 3.0'da kaldırıldı; doğrudan window.open kullanılıyor.
+            window.open($('#file-qr').attr("qr-link"), '_blank');
         }
 
         $('.s-file-revision-info').change(function () {

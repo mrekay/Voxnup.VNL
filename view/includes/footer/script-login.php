@@ -34,7 +34,8 @@
                 if (err.responseJSON && err.responseJSON.message) {
                     showModalMessage(err.responseJSON.message, true);
                 } else {
-                    showModalMessage(vnlLang('ERR_GENERAL'), true);
+                    // JS dil köprüsü kaldırıldı; metin sunucuda lang() ile gömülüyor.
+                    showModalMessage(<?= json_encode(lang('ERR_GENERAL'), JSON_UNESCAPED_UNICODE) ?>, true);
                 }
             }
         });

@@ -1,0 +1,532 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — Video Oynatıcı Stilleri
+ *  vnl-player.js tarafından üretilen DOM'u biçimlendirir.
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
+
+/* Oynatıcı içindeki gizli parçalar; .vnl-error gibi display atayan
+   kurallar UA'nın [hidden] varsayılanını ezdiği için gerekli. */
+.vnl-player [hidden] {
+    display: none !important;
+}
+
+.vnl-player {
+    --vnl-accent: var(--bs-primary, #04ab61);
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    outline: none;
+    line-height: 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.vnl-player:focus-visible {
+    box-shadow: 0 0 0 2px var(--vnl-accent);
+}
+
+.vnl-video {
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    background: #000;
+    cursor: pointer;
+}
+
+/* ---------- Sağ üst: marka + dosya adı ---------- */
+
+.vnl-topbar {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    max-width: calc(100% - 20px);
+    opacity: .7;
+    pointer-events: none;
+    transition: opacity .2s ease;
+}
+
+.vnl-player:hover .vnl-topbar {
+    opacity: 1;
+}
+
+.vnl-watermark {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #b6bac2;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    line-height: 1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .7);
+}
+
+.vnl-watermark svg {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .7));
+}
+
+.vnl-title {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #d7dae0;
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: right;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
+}
+
+/* ---------- Ortadaki oynat düğmesi ---------- */
+
+.vnl-bigplay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 62px;
+    height: 62px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, .55);
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    backdrop-filter: blur(2px);
+    transition: transform .15s ease, background .15s ease, opacity .15s ease;
+}
+
+.vnl-bigplay:hover {
+    background: var(--vnl-accent);
+    transform: translate(-50%, -50%) scale(1.06);
+}
+
+.vnl-bigplay i {
+    margin-left: 4px; /* üçgeni optik olarak ortalar */
+}
+
+.vnl-player.vnl-started .vnl-bigplay {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ---------- Yükleniyor ---------- */
+
+.vnl-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 3px solid rgba(255, 255, 255, .25);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: vnl-spin .8s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes vnl-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vnl-spinner { animation-duration: 2s; }
+    .vnl-bigplay,
+    .vnl-controls,
+    .vnl-topbar,
+    .vnl-progress-track,
+    .vnl-progress-thumb { transition: none; }
+}
+
+/* ---------- Hata ---------- */
+
+.vnl-error {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: #101114;
+    color: #cbd5e1;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.vnl-error i {
+    font-size: 22px;
+    color: #f1416c;
+}
+
+.vnl-error a {
+    color: var(--vnl-accent);
+    text-decoration: underline;
+}
+
+.vnl-player.vnl-errored .vnl-controls,
+.vnl-player.vnl-errored .vnl-topbar,
+.vnl-player.vnl-errored .vnl-bigplay {
+    display: none;
+}
+
+/* ---------- Kontrol çubuğu ---------- */
+
+.vnl-controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 24px 8px 6px;
+    background: linear-gradient(to top, rgba(0, 0, 0, .82) 0%, rgba(0, 0, 0, .45) 55%, transparent 100%);
+    opacity: 1;
+    line-height: normal;
+    transition: opacity .2s ease;
+}
+
+.vnl-player.vnl-hide-controls .vnl-controls {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.vnl-player.vnl-hide-controls .vnl-video {
+    cursor: none;
+}
+
+.vnl-bar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 2px;
+}
+
+.vnl-spacer {
+    flex: 1 1 auto;
+}
+
+.vnl-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+
+.vnl-btn:hover,
+.vnl-btn:focus-visible {
+    background: rgba(255, 255, 255, .16);
+    outline: none;
+}
+
+.vnl-time {
+    display: inline-flex;
+    gap: 4px;
+    padding: 0 8px;
+    color: #fff;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.vnl-time-sep {
+    opacity: .55;
+}
+
+/* ---------- Ses ---------- */
+
+.vnl-volume-wrap {
+    display: flex;
+    align-items: center;
+}
+
+/* Kaydırağın yeri her zaman ayrılı; hover'da yalnızca görünürlük ve yatay
+   ölçek değişiyor. Eskiden width 0 → 62px + margin animasyonu kutu modelini
+   değiştirdiği için kontrol barındaki tüm sağ düğmeler her hover'da
+   itiliyordu. transform reflow yaratmaz. */
+.vnl-volume {
+    width: 62px;
+    height: 4px;
+    margin: 0 8px 0 2px;
+    opacity: 0;
+    pointer-events: none;
+    transform: scaleX(0);
+    transform-origin: left center;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(255, 255, 255, .3);
+    border-radius: 2px;
+    transition: transform .18s ease, opacity .18s ease;
+}
+
+.vnl-volume-wrap:hover .vnl-volume,
+.vnl-volume:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scaleX(1);
+}
+
+.vnl-volume::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+}
+
+.vnl-volume::-moz-range-thumb {
+    width: 11px;
+    height: 11px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+}
+
+/* ---------- İlerleme çubuğu ---------- */
+
+.vnl-progress {
+    position: relative;
+    padding: 6px 0;
+    cursor: pointer;
+    touch-action: none;
+}
+
+/* Çubuğun yüksekliği sabit 6px; ince görünüm, üstten/alttan içeri çekilmiş
+   bir ::before ile elde ediliyor. Eskiden height 4px → 6px animasyonu akış
+   içindeki bu öğeyi büyüttüğü için altındaki kontrol barı ve içerik her
+   hover'da aşağı kayıyordu. */
+.vnl-progress-track {
+    position: relative;
+    height: 6px;
+    border-radius: 3px;
+    background: transparent;
+}
+
+.vnl-progress-track::before {
+    content: '';
+    position: absolute;
+    inset: 1px 0;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, .28);
+    transition: inset .12s ease, border-radius .12s ease;
+}
+
+.vnl-progress:hover .vnl-progress-track::before,
+.vnl-player.vnl-scrubbing .vnl-progress-track::before {
+    inset: 0;
+    border-radius: 3px;
+}
+
+/* Dolgu katmanları da track ile aynı "içeri çekilme" mantığını izler; böylece
+   ince/kalın görünüm yalnızca boyama değişimi olarak kalır, kutu modeli sabit.
+   Genişliği JS yazdığı için (style.width) width'e dokunulmuyor. */
+.vnl-progress-buffer,
+.vnl-progress-played {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    left: 0;
+    width: 0;
+    height: auto;
+    border-radius: 2px;
+    transition: top .12s ease, bottom .12s ease;
+}
+
+.vnl-progress:hover .vnl-progress-buffer,
+.vnl-progress:hover .vnl-progress-played,
+.vnl-player.vnl-scrubbing .vnl-progress-buffer,
+.vnl-player.vnl-scrubbing .vnl-progress-played {
+    top: 0;
+    bottom: 0;
+}
+
+.vnl-progress-buffer {
+    background: rgba(255, 255, 255, .35);
+}
+
+.vnl-progress-played {
+    background: var(--vnl-accent);
+}
+
+.vnl-progress-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    border-radius: 50%;
+    background: var(--vnl-accent);
+    transform: translateY(-50%) scale(0);
+    transition: transform .12s ease;
+}
+
+.vnl-progress:hover .vnl-progress-thumb,
+.vnl-player.vnl-scrubbing .vnl-progress-thumb {
+    transform: translateY(-50%) scale(1);
+}
+
+/* ---------- Seek önizlemesi ---------- */
+
+.vnl-preview {
+    position: absolute;
+    bottom: 18px;
+    left: 0;
+    width: 148px;
+    padding: 3px;
+    border-radius: 6px;
+    background: #000;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .55);
+    pointer-events: none;
+    line-height: 0;
+}
+
+.vnl-preview-video {
+    width: 100%;
+    height: 83px;
+    border-radius: 4px;
+    object-fit: cover;
+    background: #16171b;
+}
+
+.vnl-preview-time {
+    display: block;
+    padding-top: 2px;
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.4;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Hız menüsü ---------- */
+
+.vnl-speed-wrap {
+    position: relative;
+}
+
+.vnl-speed-btn {
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.vnl-speed-menu {
+    position: absolute;
+    right: 0;
+    bottom: 36px;
+    z-index: 2;
+    min-width: 76px;
+    padding: 4px;
+    border-radius: 6px;
+    background: rgba(18, 19, 23, .96);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .5);
+}
+
+.vnl-speed-menu button {
+    display: block;
+    width: 100%;
+    padding: 5px 10px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #fff;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.vnl-speed-menu button:hover {
+    background: rgba(255, 255, 255, .12);
+}
+
+.vnl-speed-menu button[aria-checked="true"] {
+    color: var(--vnl-accent);
+    font-weight: 700;
+}
+
+/* ---------- Tam ekran ---------- */
+
+.vnl-player:fullscreen {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border-radius: 0;
+}
+
+.vnl-player:fullscreen .vnl-video {
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.vnl-player:fullscreen .vnl-controls {
+    padding: 40px 18px 14px;
+}
+
+.vnl-player:fullscreen .vnl-topbar {
+    top: 16px;
+    right: 20px;
+}
+
+.vnl-player:fullscreen .vnl-watermark,
+.vnl-player:fullscreen .vnl-title {
+    font-size: 14px;
+}
+
+.vnl-player:fullscreen .vnl-preview {
+    bottom: 20px;
+    width: 208px;
+}
+
+.vnl-player:fullscreen .vnl-preview-video {
+    height: 117px;
+}
+
+/* ---------- İndirme düğmesi ---------- */
+
+.vnl-download {
+    text-decoration: none;
+}
+
+.vnl-download:hover {
+    color: #fff;
+}
+
+@media (max-width: 576px) {
+    .vnl-preview { width: 116px; }
+    .vnl-preview-video { height: 65px; }
+    /* Genişlik artık hover'a bağlı değil; dar ekranda taban genişliği kısaltıyoruz. */
+    .vnl-volume { width: 46px; }
+    .vnl-title { font-size: 10px; }
+}
