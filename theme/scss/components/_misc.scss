@@ -1,0 +1,95 @@
+// ============================================================
+// VNL Theme — küçük utility bileşenleri
+// Metronic'ten alışılan isimler korunur; tanımlar tema token'larıyla.
+// ============================================================
+
+// Ayraç çizgisi
+.separator {
+  display: block;
+  height: 0;
+  border-bottom: 1px solid var(--bs-border-color);
+
+  &.separator-dashed {
+    border-bottom-style: dashed;
+  }
+}
+
+// Kesikli satır ayraçlı tablo
+.table-row-dashed {
+  > :not(caption) > * > * {
+    border-bottom-style: dashed;
+  }
+
+  > tbody > tr:last-child > * {
+    border-bottom: 0;
+  }
+}
+
+// Dikey kaydırma bölgesi (ince scrollbar)
+.scroll-y {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bs-border-color) transparent;
+}
+
+// Hover'da yükselen kart
+.hover-elevate-up {
+  transition: transform .2s ease, box-shadow .2s ease;
+
+  &:hover {
+    transform: translateY(-.25rem);
+    box-shadow: var(--bs-box-shadow);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover { transform: none; }
+  }
+}
+
+// Hover'da primary'ye dönen metin
+.text-hover-primary {
+  transition: color .15s ease;
+
+  &:hover { color: var(--bs-primary) !important; }
+}
+
+// Nokta işaretleri (breadcrumb/menü)
+.bullet {
+  display: inline-block;
+  background: var(--bs-tertiary-color);
+  border-radius: 2rem;
+  width: .5rem;
+  height: .125rem;
+}
+
+.bullet-dot {
+  width: .25rem;
+  height: .25rem;
+  border-radius: 50%;
+}
+
+// Döndürme + yanıp sönme
+.rotate-180 {
+  display: inline-block;
+  transition: transform .2s ease;
+  transform: rotateZ(180deg);
+}
+
+.animation-blink {
+  animation: vnl-blink 1s steps(1) infinite;
+}
+
+@keyframes vnl-blink {
+  50% { opacity: 0; }
+}
+
+// Temaya göre görünürlük
+.theme-dark-show { display: none !important; }
+
+[data-bs-theme="dark"] {
+  .theme-light-show { display: none !important; }
+  .theme-dark-show { display: inline-block !important; }
+}

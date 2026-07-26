@@ -1,0 +1,36 @@
+// ============================================================
+// VNL Theme — içerik başlığı (contentHeader → .vnl-toolbar)
+// $meta title + breadcrumb solda, $page_config['toolbaritems'] sağda.
+// ============================================================
+
+.vnl-toolbar {
+  flex-shrink: 0;
+  padding-top: 1.5rem;
+
+  .vnl-page-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .375rem 1rem;
+
+    h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--bs-emphasis-color);
+    }
+  }
+
+  .breadcrumb {
+    margin: 0;
+    font-size: .75rem;
+    --bs-breadcrumb-divider-color: var(--bs-tertiary-color);
+    --bs-breadcrumb-item-active-color: var(--bs-secondary-color);
+  }
+
+  .vnl-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+}

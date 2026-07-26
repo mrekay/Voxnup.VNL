@@ -1,0 +1,56 @@
+// ============================================================
+// VNL Theme — buton ekleri
+// ============================================================
+
+// Kare ikon butonu (Metronic .btn-icon — isim korunur)
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  width: calc(#{$input-btn-padding-y * 2} + #{$btn-line-height * 1em} + #{$btn-border-width} * 2);
+  height: calc(#{$input-btn-padding-y * 2} + #{$btn-line-height * 1em} + #{$btn-border-width} * 2);
+
+  &.btn-sm {
+    width: calc(#{$input-btn-padding-y-sm * 2} + #{$btn-line-height * 1em} + #{$btn-border-width} * 2);
+    height: calc(#{$input-btn-padding-y-sm * 2} + #{$btn-line-height * 1em} + #{$btn-border-width} * 2);
+  }
+
+  &.btn-lg {
+    width: calc(#{$input-btn-padding-y-lg * 2} + #{$btn-line-height * 1em} + #{$btn-border-width} * 2);
+    height: calc(#{$input-btn-padding-y-lg * 2} + #{$btn-line-height * 1em} + #{$btn-border-width} * 2);
+  }
+}
+
+// Soft butonlar: subtle zemin + emphasis metin, hover'da dolu renk.
+// (Metronic btn-light-{renk} kullanımları btn-soft-{renk}'e sweep'lenir.)
+@each $color, $value in $theme-colors {
+  .btn-soft-#{$color} {
+    --bs-btn-color: var(--bs-#{$color}-text-emphasis);
+    --bs-btn-bg: var(--bs-#{$color}-bg-subtle);
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: #{color-contrast($value)};
+    --bs-btn-hover-bg: #{$value};
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-color: #{color-contrast($value)};
+    --bs-btn-active-bg: #{shade-color($value, 10%)};
+    --bs-btn-active-border-color: transparent;
+    --bs-btn-disabled-color: var(--bs-#{$color}-text-emphasis);
+    --bs-btn-disabled-bg: var(--bs-#{$color}-bg-subtle);
+    --bs-btn-disabled-border-color: transparent;
+    --bs-btn-focus-shadow-rgb: #{to-rgb($value)};
+  }
+}
+
+// Yükleniyor göstergesi (Metronic indicator deseni — isim ve data attribute
+// sözleşmesi korunur; yeni kod data-vnl-indicator kullanabilir)
+.indicator-progress {
+  display: none;
+}
+
+[data-kt-indicator="on"],
+[data-vnl-indicator="on"] {
+  > .indicator-label { display: none; }
+  > .indicator-progress { display: inline-block; }
+}

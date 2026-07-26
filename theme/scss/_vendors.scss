@@ -1,0 +1,69 @@
+// ============================================================
+// VNL Theme — vendor CSS'leri + iki tema için skin'ler
+// SweetAlert2 ve SlimSelect'in dist CSS'leri buraya gömülür
+// (uzantısız import → dart-sass inline eder), ardından
+// token bazlı skin override'ları gelir.
+// ============================================================
+
+@import "../node_modules/sweetalert2/dist/sweetalert2";
+@import "../node_modules/slim-select/dist/slimselect";
+
+// ---- SweetAlert2 skin ------------------------------------------------------
+.swal2-popup {
+  background: var(--vnl-surface-raised);
+  color: var(--bs-body-color);
+  border-radius: var(--bs-border-radius-lg);
+}
+
+.swal2-title {
+  color: var(--bs-emphasis-color);
+}
+
+.swal2-html-container {
+  color: var(--bs-body-color);
+}
+
+.swal2-styled.swal2-confirm {
+  background-color: var(--bs-primary);
+}
+
+[data-bs-theme="dark"] .swal2-popup {
+  box-shadow: 0 .5rem 2rem rgba(0, 0, 0, .55);
+}
+
+// Toast konumu (bottom-end) VNL'in mesaj sistemi tarafından kullanılıyor
+.swal2-container.swal2-bottom-end > .swal2-popup {
+  border: 1px solid var(--vnl-border);
+}
+
+// ---- SlimSelect skin -------------------------------------------------------
+// select2'nin bootstrap4 teması tamamen öldü; SlimSelect iki temada da
+// form-control görünümüne oturtulur.
+.ss-main {
+  --ss-primary-color: var(--bs-primary);
+  --ss-bg-color: var(--bs-body-bg);
+  --ss-font-color: var(--bs-body-color);
+  --ss-font-placeholder-color: var(--bs-secondary-color);
+  --ss-disabled-color: var(--bs-secondary-bg);
+  --ss-border-color: var(--bs-border-color);
+  --ss-highlight-color: rgba(var(--bs-primary-rgb), .18);
+  --ss-success-color: var(--bs-success);
+  --ss-error-color: var(--bs-danger);
+  --ss-main-height: calc(1.5em + .75rem + calc(var(--bs-border-width) * 2));
+  font-size: var(--bs-body-font-size);
+}
+
+.ss-content {
+  --ss-bg-color: var(--vnl-surface-raised);
+  --ss-font-color: var(--bs-body-color);
+  --ss-border-color: var(--bs-border-color);
+  --ss-primary-color: var(--bs-primary);
+  --ss-highlight-color: rgba(var(--bs-primary-rgb), .18);
+  font-size: var(--bs-body-font-size);
+  z-index: 1056; // modal (1055) üstünde açılabilsin
+}
+
+.ss-main:focus-within {
+  border-color: rgba(var(--bs-primary-rgb), .6);
+  box-shadow: 0 0 0 .25rem rgba(var(--bs-primary-rgb), .25);
+}

@@ -1,0 +1,15 @@
+/*!
+ * VNL Theme — Font Awesome Free 7.3.0 (self-host)
+ * Çıktı: assets/vnl/css/fa.min.css — webfont'lar assets/vnl/fonts/fa/ altında.
+ * v4-shims: canlı kodda `fa fa-spinner` gibi v4 adları var; v5 `fas fa-*`
+ * söz dizimi FA7 çekirdeğinde varsayılan compat ile çalışıyor.
+ */
+
+@use "../node_modules/@fortawesome/fontawesome-free/scss/variables" with (
+  $font-path: "../fonts/fa"
+);
+@use "../node_modules/@fortawesome/fontawesome-free/scss/fontawesome";
+@use "../node_modules/@fortawesome/fontawesome-free/scss/solid";
+@use "../node_modules/@fortawesome/fontawesome-free/scss/regular";
+@use "../node_modules/@fortawesome/fontawesome-free/scss/brands";
+@use "../node_modules/@fortawesome/fontawesome-free/scss/v4-shims";

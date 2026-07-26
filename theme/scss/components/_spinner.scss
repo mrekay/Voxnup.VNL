@@ -1,0 +1,51 @@
+// ============================================================
+// VNL Theme — tam sayfa yükleniyor katmanı
+// #loadingSpinner id'si API'dir: vnl.js spinnerShow()/spinnerHide()
+// jQuery fadeIn/fadeOut ile display'i değiştirir. fadeIn block
+// yazdığından flex düzeni İÇ kutuya verilir — dış katman block kalır.
+// Eski gif bağımlılığı (assets/images/loading3*.gif — repoda yoktu,
+// 404 veriyordu) tamamen kalktı: saf CSS spinner.
+// ============================================================
+
+.vnl-spinner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(6, 9, 7, .45);
+  backdrop-filter: blur(2px);
+
+  .vnl-spinner-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .875rem;
+    height: 100%;
+  }
+
+  .vnl-spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 3px solid rgba(var(--bs-primary-rgb), .25);
+    border-top-color: var(--bs-primary);
+    border-radius: 50%;
+    animation: vnl-spin .8s linear infinite;
+  }
+
+  .spinner-text {
+    color: #cfd8d3;
+    font-size: .8125rem;
+
+    &:empty { display: none; }
+  }
+}
+
+@keyframes vnl-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vnl-spinner-overlay .vnl-spinner {
+    animation-duration: 1.6s;
+  }
+}

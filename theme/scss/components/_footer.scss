@@ -1,0 +1,17 @@
+// ============================================================
+// VNL Theme — sayfa altbilgisi
+// ============================================================
+
+.vnl-footer {
+  flex-shrink: 0;
+  padding: 1rem 0;
+  border-top: 1px solid var(--vnl-border);
+  color: var(--bs-secondary-color);
+  font-size: .75rem;
+
+  a {
+    color: var(--bs-secondary-color);
+
+    &:hover { color: var(--bs-primary); }
+  }
+}

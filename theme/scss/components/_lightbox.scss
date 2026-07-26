@@ -1,0 +1,43 @@
+// ============================================================
+// VNL Theme — görsel lightbox
+// vnlLightbox(src, caption) ile açılır (theme/js/modules/lightbox.js).
+// Eski .image-modal deseni (CSS'i hiç olmayan, .modal('show') ile
+// açılamayan ölü kod) bunun lehine kaldırıldı.
+// ============================================================
+
+.vnl-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2010;
+  display: none;
+  background: rgba(4, 7, 5, .88);
+  padding: 2.5rem 1.5rem;
+
+  &.show {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  img {
+    max-width: min(92vw, 1400px);
+    max-height: 80vh;
+    border-radius: var(--bs-border-radius-lg);
+  }
+
+  .vnl-lightbox-caption {
+    color: #cfd8d3;
+    font-size: .875rem;
+    text-align: center;
+
+    &:empty { display: none; }
+  }
+
+  .vnl-lightbox-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+  }
+}

@@ -1,0 +1,91 @@
+// ============================================================
+// VNL Theme — sidebar menüsü
+// ShowSidebarMenu()'nun ürettiği markup:
+//   .vnl-menu > .vnl-menu-item > (a|button).vnl-menu-link
+//     > .vnl-menu-icon + .vnl-menu-title + .vnl-menu-arrow
+//   alt menü: .vnl-menu-sub.collapse (Bootstrap Collapse accordion)
+// ============================================================
+
+.vnl-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vnl-menu-link {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  width: 100%;
+  padding: .5rem .75rem;
+  border: 0;
+  background: transparent;
+  border-radius: var(--bs-border-radius);
+  color: var(--vnl-sidebar-color);
+  font-size: .875rem;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  transition: color .15s ease, background-color .15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--vnl-sidebar-color-hover);
+    background: rgba(255, 255, 255, .05);
+    text-decoration: none;
+  }
+
+  &.active {
+    color: var(--vnl-sidebar-active-color);
+    background: var(--vnl-sidebar-active-bg);
+  }
+}
+
+.vnl-menu-icon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  text-align: center;
+  font-size: .9375rem;
+  opacity: .9;
+}
+
+.vnl-menu-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vnl-menu-arrow {
+  margin-left: auto;
+  font-size: .625rem;
+  opacity: .7;
+  transition: transform .2s ease;
+}
+
+.vnl-menu-link[aria-expanded="true"] > .vnl-menu-arrow {
+  transform: rotate(90deg);
+}
+
+// ---- Alt menü --------------------------------------------------------------
+.vnl-menu-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0 2px 1rem;
+  margin-left: 1.3rem;
+  border-left: 1px solid var(--vnl-sidebar-border);
+
+  // Bootstrap Collapse ile birlikte: .collapse display'i yönetir
+  &.collapse:not(.show) { display: none; }
+
+  .vnl-menu-link {
+    padding: .4rem .625rem;
+    font-size: .8125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vnl-menu-link,
+  .vnl-menu-arrow { transition: none; }
+}

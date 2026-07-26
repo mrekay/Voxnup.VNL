@@ -1,0 +1,32 @@
+// ============================================================
+// VNL Theme — kod bloğu
+// Docs sayfalarındaki `pre.bg-dark > code` desenlerinin yerini alır.
+// Her iki temada da koyu yüzey: kod her zaman koyu zeminde okunur
+// (mühendislik-araç kimliğinin parçası).
+// ============================================================
+
+.vnl-code {
+  margin-bottom: 0;
+  padding: 1rem 1.25rem;
+  background: #0b0f0e;
+  color: #d5ded9;
+  border: 1px solid #1d2421;
+  border-radius: var(--bs-border-radius-lg);
+  font-family: var(--bs-font-monospace);
+  font-size: .8125rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  tab-size: 4;
+
+  code {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+  }
+}
+
+// Satır içi kod: iki temada da okunur kalsın
+code {
+  word-wrap: break-word;
+}

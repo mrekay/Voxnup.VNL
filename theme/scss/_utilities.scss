@@ -1,0 +1,77 @@
+// ============================================================
+// VNL Theme — Bootstrap Utility API ekleri
+// utilities import'undan SONRA, utilities/api'den ÖNCE çalışır.
+// ============================================================
+
+// Piksel bazlı boyut aileleri: Metronic alışkanlığı (min-w-125px, w-lg-500px,
+// mh-300px…) korunur. Liste, repoda kullanılan değerler + yuvarlak ara
+// değerlerden oluşur; her değer için ayrı utility üretmek yerine tek listeden
+// beş aile türetilir.
+$vnl-sizes-px: (
+  2, 3, 4, 5, 6, 8, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75,
+  80, 90, 100, 110, 120, 125, 130, 140, 150, 160, 175, 180, 200, 220, 225,
+  250, 260, 275, 280, 300, 320, 325, 340, 350, 375, 380, 400, 420, 450, 475,
+  500, 550, 600, 650, 700, 750, 800
+);
+
+@function vnl-px-map($sizes) {
+  $map: ();
+  @each $size in $sizes {
+    $map: map-merge($map, (#{$size}px: #{$size}px));
+  }
+  @return $map;
+}
+
+$vnl-px-values: vnl-px-map($vnl-sizes-px);
+
+$utilities: map-merge(
+  $utilities,
+  (
+    // BS'in yüzde width ailesi responsive olsun (docs hero: w-lg-75)
+    "width": map-merge(map-get($utilities, "width"), (responsive: true)),
+    "vnl-width-px": (
+      property: width,
+      class: w,
+      responsive: true,
+      values: $vnl-px-values,
+    ),
+    "vnl-height-px": (
+      property: height,
+      class: h,
+      responsive: true,
+      values: $vnl-px-values,
+    ),
+    "vnl-min-width-px": (
+      property: min-width,
+      class: min-w,
+      values: $vnl-px-values,
+    ),
+    "vnl-max-width-px": (
+      property: max-width,
+      class: mw,
+      values: $vnl-px-values,
+    ),
+    "vnl-max-height-px": (
+      property: max-height,
+      class: mh,
+      values: $vnl-px-values,
+    ),
+    // max-width yüzdeleri: mw-100 gibi kullanımlar için (BS'te mw-100 helper'ı
+    // var; yüzde ailesini utility olarak da tamamlıyoruz)
+    "vnl-max-width-pct": (
+      property: max-width,
+      class: mw,
+      values: (25: 25%, 50: 50%, 75: 75%),
+    ),
+    "cursor": (
+      property: cursor,
+      class: cursor,
+      values: pointer default grab,
+    ),
+    "font-variant-numeric": (
+      property: font-variant-numeric,
+      class: numeric,
+      values: (tabular: tabular-nums),
+    ),
+  )
+);

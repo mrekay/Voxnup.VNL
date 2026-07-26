@@ -1,0 +1,77 @@
+// ============================================================
+// VNL Theme — üst çubuk
+// ============================================================
+
+.vnl-topbar {
+  position: sticky;
+  top: 0;
+  z-index: $zindex-sticky;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-shrink: 0;
+  height: var(--vnl-topbar-height);
+  padding-inline: 1rem 1.25rem;
+  background: var(--vnl-surface);
+  border-bottom: 1px solid var(--vnl-border);
+}
+
+.vnl-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--bs-emphasis-color);
+  font-weight: 600;
+  text-decoration: none;
+
+  img { max-height: 1.75rem; }
+
+  &:hover { color: var(--bs-emphasis-color); text-decoration: none; }
+}
+
+.vnl-topbar-version {
+  color: var(--bs-secondary-color);
+  font-size: .75rem;
+  font-weight: 500;
+}
+
+.vnl-topbar-spacer { flex: 1; }
+
+// İkon düğmeleri (tema modu, bildirim, kullanıcı…)
+.vnl-topbar-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--bs-border-radius);
+  background: transparent;
+  color: var(--bs-secondary-color);
+  font-size: 1.05rem;
+  position: relative;
+  transition: color .15s ease, background-color .15s ease;
+
+  &:hover,
+  &:focus-visible,
+  &[aria-expanded="true"] {
+    color: var(--bs-emphasis-color);
+    background: var(--bs-tertiary-bg);
+  }
+}
+
+// Bildirim noktası
+.vnl-topbar-dot {
+  position: absolute;
+  top: .45rem;
+  right: .5rem;
+  width: .375rem;
+  height: .375rem;
+  border-radius: 50%;
+  background: var(--bs-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vnl-topbar-item { transition: none; }
+}

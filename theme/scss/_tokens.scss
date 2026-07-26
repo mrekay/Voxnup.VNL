@@ -1,0 +1,62 @@
+// ============================================================
+// VNL Theme — token katmanı
+// Bileşenler --vnl-* tüketir; --vnl-* mümkün olan her yerde
+// --bs-* üzerinden türetilir. Yüzey mimarisi:
+//   zemin (body) < surface (kart/modal) < surface-raised (dropdown/toast)
+// Sidebar her iki temada da koyu kalır (mühendislik-araç kimliği).
+// ============================================================
+
+:root {
+  --vnl-topbar-height: 3.5rem;
+  --vnl-sidebar-width: 16.25rem;      // 260px
+  --vnl-sidebar-width-mini: 4.25rem;  // 68px
+
+  --vnl-surface: #ffffff;
+  --vnl-surface-raised: #ffffff;
+  --vnl-border: var(--bs-border-color);
+
+  --vnl-sidebar-bg: #0b0f0e;
+  --vnl-sidebar-border: #1d2421;
+  --vnl-sidebar-color: #97a39c;
+  --vnl-sidebar-color-hover: #e7ece9;
+  --vnl-sidebar-active-color: #45c583;
+  --vnl-sidebar-active-bg: rgba(23, 166, 92, .12);
+}
+
+[data-bs-theme="dark"] {
+  color-scheme: dark;
+
+  --vnl-surface: #161c19;
+  --vnl-surface-raised: #1c2320;
+}
+
+// ---- Yüzey köprüleri: BS bileşen değişkenleri token'lara bağlanır ----------
+.card {
+  --bs-card-bg: var(--vnl-surface);
+}
+
+.modal {
+  --bs-modal-bg: var(--vnl-surface);
+}
+
+.offcanvas,
+.offcanvas-lg, .offcanvas-md, .offcanvas-sm, .offcanvas-xl, .offcanvas-xxl {
+  --bs-offcanvas-bg: var(--vnl-surface);
+}
+
+.dropdown-menu {
+  --bs-dropdown-bg: var(--vnl-surface-raised);
+}
+
+.toast {
+  --bs-toast-bg: var(--vnl-surface-raised);
+}
+
+.popover {
+  --bs-popover-bg: var(--vnl-surface-raised);
+}
+
+// Koyu temada kartlar zeminden kenarlıkla da ayrışsın (gölge koyuda okunmaz)
+[data-bs-theme="dark"] .card {
+  --bs-card-border-color: var(--bs-border-color);
+}

@@ -1,0 +1,107 @@
+// ============================================================
+// VNL Theme — Bootstrap değişken override'ları
+// Bootstrap functions'tan SONRA, variables'tan ÖNCE import edilir;
+// buradaki tanımlar Bootstrap'in `!default` değerlerini ezer.
+// ============================================================
+
+// ---- Marka renkleri --------------------------------------------------------
+// Primary: Voxnup emerald (VNL maskotu). Success bilinçli olarak teal'e
+// kaydırıldı — aksi halde durum rozetleri primary'den ayırt edilemiyor.
+$primary: #17a65c;
+$success: #0d9488;
+$info:    #3b82c4;
+$warning: #d97706;
+$danger:  #dc4c4c;
+
+// ---- Nötr aile (yeşile hafif eğimli griler) --------------------------------
+$white:    #ffffff;
+$gray-100: #f4f7f5;
+$gray-200: #e8edea;
+$gray-300: #d5dcd8;
+$gray-400: #b3bdb7;
+$gray-500: #8b968f;
+$gray-600: #67716b;
+$gray-700: #49524d;
+$gray-800: #2d332f;
+$gray-900: #1a201d;
+$black:    #060907;
+
+// Renkli zeminlerde koyu metin adayı: emerald butonda beyaz 4.5:1'i
+// sağlamadığından color-contrast() bu near-black'i seçer (bilinçli kimlik
+// tercihi — koyu metinli emerald buton).
+$color-contrast-dark: #06130c;
+
+// ---- Işık tema yüzeyleri ---------------------------------------------------
+$body-bg:             #f2f5f3;
+$body-color:          $gray-900;
+$body-emphasis-color: #0c100e;
+$body-secondary-bg:   $gray-200;
+$body-tertiary-bg:    #f8faf9;
+
+// ---- Koyu tema yüzeyleri (varsayılan kimlik) -------------------------------
+$body-bg-dark:              #0e1311;
+$body-color-dark:           #dce3df;
+$body-emphasis-color-dark:  #f2f6f4;
+$body-secondary-color-dark: #9aa69f;
+$body-secondary-bg-dark:    #141a17;
+$body-tertiary-color-dark:  #6f7a74;
+$body-tertiary-bg-dark:     #161c19;
+$border-color-dark:         #242b28;
+
+// ---- Tipografi -------------------------------------------------------------
+// Kök 16px kalır; base 14px — araç/ERP yoğunluğu için. Ölçek ekleri
+// (fs-7/8/9, fs-2x/2hx/3x) _utilities üzerinden $font-sizes ile gelir.
+$font-family-sans-serif: "InterVariable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", sans-serif;
+$font-size-base:         .875rem;
+$headings-font-weight:   600;
+$font-sizes: (
+  1: 1.4rem,
+  2: 1.2rem,
+  3: 1.05rem,
+  4: 1rem,
+  5: .95rem,
+  6: .875rem,
+  7: .75rem,
+  8: .7rem,
+  9: .625rem,
+  "2x":  1.75rem,
+  "2hx": 2.25rem,
+  "3x":  2.75rem,
+  "3hx": 3.25rem,
+  "4x":  3.5rem,
+);
+
+// ---- Boşluk ölçeği ---------------------------------------------------------
+// Metronic'in 0–20 (.25rem adımlı) ölçeği aynen korunur: mevcut tüm view'lar
+// (mb-10, my-8, p-5, px-lg-17…) bu ölçekle yazılmış durumda. Bootstrap'in
+// 5'lik varsayılan ölçeğine dönmek ~400 kullanımı kırardı.
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: $spacer * .25,
+  2: $spacer * .5,
+  3: $spacer * .75,
+  4: $spacer,
+  5: $spacer * 1.25,
+  6: $spacer * 1.5,
+  7: $spacer * 1.75,
+  8: $spacer * 2,
+  9: $spacer * 2.25,
+  10: $spacer * 2.5,
+  11: $spacer * 2.75,
+  12: $spacer * 3,
+  13: $spacer * 3.25,
+  14: $spacer * 3.5,
+  15: $spacer * 3.75,
+  16: $spacer * 4,
+  17: $spacer * 4.25,
+  18: $spacer * 4.5,
+  19: $spacer * 4.75,
+  20: $spacer * 5,
+);
+$enable-negative-margins: true;
+
+// ---- Davranış/görünüm ayarları ---------------------------------------------
+$link-decoration:       none;
+$link-hover-decoration: underline;
+$card-cap-bg:           transparent;

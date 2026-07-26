@@ -1,0 +1,81 @@
+// ============================================================
+// VNL Theme — sidebar
+// <aside class="vnl-sidebar offcanvas-lg offcanvas-start" data-bs-theme="dark">
+// lg altında Bootstrap offcanvas (backdrop/focus/ESC native), lg ve üstünde
+// yapışkan kolon. Mini durumu html[data-vnl-sidebar="mini"] ile pre-paint
+// restore edilir (localStorage: vnl-sidebar-mini).
+// Sidebar her iki temada da koyudur — renkler --vnl-sidebar-* token'larından.
+// ============================================================
+
+.vnl-sidebar {
+  --bs-offcanvas-width: var(--vnl-sidebar-width);
+  --bs-offcanvas-bg: var(--vnl-sidebar-bg);
+
+  display: flex;
+  flex-direction: column;
+  width: var(--vnl-sidebar-width);
+  background: var(--vnl-sidebar-bg);
+  border-right: 1px solid var(--vnl-sidebar-border);
+
+  @include media-breakpoint-up(lg) {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex-shrink: 0;
+    transition: width .2s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+}
+
+.vnl-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  flex-shrink: 0;
+  height: var(--vnl-topbar-height);
+  padding-inline: 1.25rem;
+  border-bottom: 1px solid var(--vnl-sidebar-border);
+
+  img { max-height: 2rem; }
+}
+
+.vnl-sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: .75rem .625rem;
+  scrollbar-width: thin;
+  scrollbar-color: #2a332f transparent;
+}
+
+.vnl-sidebar-footer {
+  flex-shrink: 0;
+  padding: .75rem .625rem;
+  border-top: 1px solid var(--vnl-sidebar-border);
+
+  &:empty { display: none; }
+}
+
+// ---- Mini (daraltılmış) durum — yalnız desktop -----------------------------
+@include media-breakpoint-up(lg) {
+  html[data-vnl-sidebar="mini"] {
+    .vnl-sidebar { width: var(--vnl-sidebar-width-mini); }
+
+    .vnl-sidebar-brand { justify-content: center; padding-inline: .5rem; }
+    .vnl-brand-text { display: none; }
+
+    .vnl-menu-title,
+    .vnl-menu-arrow { display: none; }
+
+    .vnl-menu-link { justify-content: center; }
+    .vnl-menu-sub { display: none !important; } // mini'de alt menü açılmaz
+
+    // Daraltma düğmesi ikonunu ters çevir
+    [data-vnl-toggle="sidebar-mini"] .fa-angles-left {
+      transform: rotate(180deg);
+    }
+  }
+}
