@@ -5,7 +5,7 @@
             <div class="text-center mb-15 mt-10">
                 <h1 class="fs-2hx fw-bold mb-5 text-gray-900">Dil ve Çoklu Dil Desteği (i18n)</h1>
                 <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>libs/languages/</code> klasöründe tutulur; aktif dil session üzerinden yönetilir. <code>Language::$KEY</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.
+                    VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>libs/languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong>; aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.
                 </div>
             </div>
 
@@ -24,15 +24,18 @@
                     <div class="mb-10">
                         <h3 class="fw-bolder text-dark mb-4">1. Genel Bakış</h3>
                         <p class="fs-5 text-gray-700 mb-4">
-                            Dil sistemi uygulama başlangıcında <code>config_soft.php</code> içinde başlatılır. Session'da kayıtlı dil tercihine göre ilgili JSON dosyası yüklenir ve her anahtar <code>Language</code> sınıfının statik özelliklerine atanır.
+                            Dil sistemi uygulama başlangıcında <code>config_soft.php</code> içinde başlatılır. Session'da kayıtlı dil tercihine göre ilgili JSON dosyası okunur ve bellekte bir sözlük olarak tutulur. Anahtarlar sınıfta ayrıca tanımlanmaz — bu yüzden dosya ile kod arasında kayma oluşamaz.
                         </p>
 
                         <div class="bg-dark rounded p-5 mb-5">
                             <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// config_soft.php içinde otomatik başlatma
-$lang = new Language(Languages::TR);
+Language::set(Language::GetLanguage());
 
-// Language::GetLanguage() — session'daki dili döndürür
-$mevcutDil = Language::GetLanguage(); // "tr" veya "en"
+// Language::GetLanguage() — session'daki dil tercihi
+$mevcutDil = Language::GetLanguage();  // Languages::TR veya Languages::EN
+
+// Language::current() — o an yüklü olan dil
+$yuklu = Language::current();
 </code></pre>
                         </div>
 
@@ -49,7 +52,7 @@ $mevcutDil = Language::GetLanguage(); // "tr" veya "en"
                                 <div class="border border-dashed rounded p-5 h-100 text-center">
                                     <i class="ki-duotone ki-abstract-26 fs-2x text-primary mb-3"><span class="path1"></span><span class="path2"></span></i>
                                     <h6 class="fw-bold mb-2">Language Sınıfı</h6>
-                                    <span class="text-muted fs-7">JSON anahtarları statik özellik olarak yüklenir. <code>Language::$KEY</code> ile erişilir.</span>
+                                    <span class="text-muted fs-7">JSON anahtarları bellekte sözlük olarak tutulur. <code>lang('ANAHTAR')</code> ile erişilir.</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -83,8 +86,8 @@ $mevcutDil = Language::GetLanguage(); // "tr" veya "en"
 Language::base_language = Languages::TR;
 
 // Kullanım
-$lang = new Language(Languages::TR); // Türkçe yükle
-$lang = new Language(Languages::EN); // İngilizce yükle
+Language::set(Languages::TR); // Türkçe yükle
+Language::set(Languages::EN); // İngilizce yükle
 </code></pre>
                         </div>
                     </div>
@@ -96,7 +99,7 @@ $lang = new Language(Languages::EN); // İngilizce yükle
                     <div class="mb-10">
                         <h3 class="fw-bolder text-dark mb-4">3. Dil Dosyası Yapısı</h3>
                         <p class="fs-5 text-gray-700 mb-4">
-                            JSON dosyaları anahtar-değer çiftlerinden oluşan tek bir dizi içerir. Her anahtar, <code>Language</code> sınıfındaki statik özellik adıyla birebir eşleşmelidir.
+                            JSON dosyaları anahtar-değer çiftlerinden oluşan tek bir dizi içerir. Anahtarlar başka hiçbir yerde tanımlanmaz — dosyaya yazdığınız an kullanılabilir hale gelir.
                         </p>
 
                         <div class="row g-5 mb-5">
@@ -134,7 +137,7 @@ $lang = new Language(Languages::EN); // İngilizce yükle
 
                         <div class="alert bg-light-warning border border-warning d-flex align-items-center p-4">
                             <i class="ki-duotone ki-information-5 fs-2 text-warning me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Tüm dil dosyalarındaki anahtarlar birbiriyle eşleşmelidir. Bir dosyada eksik anahtar varsa o dilde hata mesajı boş görünür. Eşleşmeyen anahtarlar sistemi durdurmaz; ayrıntı için <a href="#" class="fw-bold">9. bölüme</a> bakın.</span>
+                            <span class="text-gray-800 fs-6">Bir anahtar ikinci dilde eksikse metin <strong>temel dilden</strong> karşılanır ve durum hata günlüğüne yazılır — boş metin görünmez. Ayrıntı için 9. bölüme bakın.</span>
                         </div>
                     </div>
                     <!--end::Section 3-->
@@ -143,35 +146,47 @@ $lang = new Language(Languages::EN); // İngilizce yükle
 
                     <!--begin::Section 4-->
                     <div class="mb-10">
-                        <h3 class="fw-bolder text-dark mb-4">4. <code>Language</code> Sınıfı Kullanımı</h3>
+                        <h3 class="fw-bolder text-dark mb-4">4. Dil Anahtarlarına Erişim</h3>
                         <p class="fs-5 text-gray-700 mb-4">
-                            Dil anahtarları <code>Language</code> sınıfının statik özellikleri olarak erişilebilir. Parametre içeren mesajlar için PHP'nin standart <code>sprintf</code> fonksiyonu kullanılır.
+                            Ana erişim biçimi <code>lang()</code> yardımcı fonksiyonudur. Ek argümanlar <code>sprintf</code> yer tutucularını doldurur; ayrıca <code>sprintf</code> çağırmanız gerekmez.
                         </p>
 
                         <div class="bg-dark rounded p-5 mb-5">
                             <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Basit kullanım
-echo Language::$ERR_GENERAL;
+echo lang('ERR_GENERAL');
 // Türkçe: "Bir hata oluştu."
 
-echo Language::$SUCCESS;
-// Türkçe: "İşlem başarılı."
+// Parametreli mesaj — argümanlar sprintf yer tutucularına gider
+echo lang('PLEASE_FILL_IN_FIELD', 'Ad Soyad');
+// Türkçe: "Lütfen Ad Soyad alanını doldurun."
 
-// Parametreli mesaj — sprintf ile
-$mesaj = sprintf(Language::$PLEASE_FILL_THE_REQUIRED_FIELD, 'Ad Soyad');
-// Türkçe: "Ad Soyad alanını doldurunuz."
+echo lang('PLEASE_DO_NOT_PASS_X_CHAR_LIMIT_IN_FIELD', 'Açıklama', 255);
+// Türkçe: "Açıklama alanında en fazla 255 karakter girebilirsiniz."
 
 // Validator içinde kullanım
 if (empty($param)) {
     throw new StandartException(
         $region
-            ? sprintf(Language::$PLEASE_FILL_THE_REQUIRED_FIELD, $region)
-            : Language::$ERR_GENERAL
+            ? lang('PLEASE_FILL_IN_FIELD', $region)
+            : lang('PLEASE_FILL_THE_REQUIRED_FIELD')
     );
 }
 
 // returnErrorMessage ile
-returnErrorMessage(Language::$DELETE_SUCCESS);
+returnErrorMessage(lang('ERR_PERM'));
+
+// Sınıf üzerinden eşdeğer biçimler
+echo Language::get('ERR_GENERAL');
+echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
 </code></pre>
+                        </div>
+
+                        <div class="alert bg-light-primary border border-primary d-flex align-items-start p-4">
+                            <i class="ki-duotone ki-information-5 fs-2 text-primary me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                            <span class="text-gray-800 fs-6">
+                                <code>Language::$ANAHTAR</code> statik özellik söz dizimi <strong>VNL 3.0 ile kaldırılmıştır</strong>. Eski projelerde <code>Language::$X</code> → <code>lang('X')</code> ve <code>sprintf(Language::$X, $a)</code> → <code>lang('X', $a)</code> dönüşümü yapılmalıdır.
+                            </span>
+                        </div>
                         </div>
                     </div>
                     <!--end::Section 4-->
@@ -267,15 +282,15 @@ returnErrorMessage(Language::$DELETE_SUCCESS);
                     <div class="mb-10">
                         <h3 class="fw-bolder text-dark mb-4">6. Dil Değiştirme</h3>
                         <p class="fs-5 text-gray-700 mb-4">
-                            Kullanıcı dil tercihini değiştirmek için <code>new Language(Languages::EN)</code> çağrısı yapılır. Bu çağrı session'ı günceller ve belirtilen dilin JSON dosyasını yükler.
+                            Kullanıcı dil tercihini değiştirmek için <code>Language::set(Languages::EN)</code> çağrısı yapılır. Bu çağrı session'ı günceller ve belirtilen dilin JSON dosyasını yükler.
                         </p>
 
                         <div class="bg-dark rounded p-5 mb-5">
                             <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// İngilizceye geç
-$lang = new Language(Languages::EN);
+Language::set(Languages::EN);
 
 // Türkçeye geri dön
-$lang = new Language(Languages::TR);
+Language::set(Languages::TR);
 
 // Mevcut dili oku (session'dan)
 $mevcutDil = Language::GetLanguage();
@@ -288,10 +303,12 @@ public function dilDegistir(): void
     global $req;
     $dil = $req->post('dil'); // 'tr' veya 'en'
 
-    $languagesEnum = Languages::from($dil);
-    new Language($languagesEnum);
+    $secilen = Languages::tryFrom($dil);
+    if (!$secilen) throwErrorMessage(lang('ERR_INVALID_PARAMETERS_SENT'));
 
-    returnSuccessMessage('Dil değiştirildi.');
+    Language::set($secilen);
+
+    returnSuccessMessage(lang('SUC_GENERAL'));
 }
 </code></pre>
                         </div>
@@ -353,22 +370,12 @@ public function dilDegistir(): void
                     <div class="mb-0">
                         <h3 class="fw-bolder text-dark mb-4">8. Yeni Dil Anahtarı Ekleme</h3>
                         <p class="fs-5 text-gray-700 mb-4">
-                            Projenize yeni bir dil anahtarı eklemek için üç adım izleyin:
+                            VNL 3.0 ile anahtar eklemek iki adıma indi — artık <code>Language</code> sınıfına dokunulmuyor:
                         </p>
 
                         <div class="border rounded p-5 bg-light mb-5">
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">1</span>
-                                <div>
-                                    <span class="fw-bold text-gray-800"><code>Language</code> sınıfına statik özellik ekleyin</span>
-                                    <div class="bg-dark rounded p-3 mt-2">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// classes/Language.php içinde
-public static $STOCK_INSUFFICIENT = '';</code></pre>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-start mb-5">
-                                <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
                                 <div>
                                     <span class="fw-bold text-gray-800">Tüm JSON dosyalarına anahtarı ekleyin</span>
                                     <div class="bg-dark rounded p-3 mt-2">
@@ -381,11 +388,11 @@ public static $STOCK_INSUFFICIENT = '';</code></pre>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-0">
-                                <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">3</span>
+                                <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
                                 <div>
                                     <span class="fw-bold text-gray-800">Herhangi bir yerde kullanın</span>
                                     <div class="bg-dark rounded p-3 mt-2">
-                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new StandartException(Language::$STOCK_INSUFFICIENT);</code></pre>
+                                        <pre class="text-white fs-7 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>throw new StandartException(lang('STOCK_INSUFFICIENT'));</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -393,7 +400,7 @@ public static $STOCK_INSUFFICIENT = '';</code></pre>
 
                         <div class="alert bg-light-success border border-success d-flex align-items-center p-4">
                             <i class="ki-duotone ki-check-circle fs-2 text-success me-3"><span class="path1"></span><span class="path2"></span></i>
-                            <span class="text-gray-800 fs-6">LSL Language Studio kullanıyorsanız 1. adımı (statik özellik ekleme) hariç tüm JSON düzenlemelerini uygulama üzerinden yapabilirsiniz.</span>
+                            <span class="text-gray-800 fs-6">LSL Language Studio kullanıyorsanız tüm süreci uygulama üzerinden yürütebilirsiniz; kod tarafında yapılacak bir işlem kalmadı.</span>
                         </div>
                     </div>
                     <!--end::Section 8-->
@@ -402,34 +409,62 @@ public static $STOCK_INSUFFICIENT = '';</code></pre>
 
                     <!--begin::Section 9-->
                     <div class="mb-0">
-                        <h3 class="fw-bolder text-dark mb-4">9. Eksik Anahtarlar ve Güvenli Erişim</h3>
+                        <h3 class="fw-bolder text-dark mb-4">9. Eksik Anahtarlar ve Hata Dayanıklılığı</h3>
                         <p class="fs-5 text-gray-700 mb-4">
-                            1. adım atlanırsa — yani anahtar JSON'da olup <code>Language</code> sınıfında tanımlı değilse — sistem çökmez. Bu anahtarlar yedek havuza alınır, <code>Language::get()</code> ile okunabilir ve tutarsızlık PHP hata günlüğüne <code>[VNL][Language]</code> etiketiyle yazılır.
+                            Dil sistemi hiçbir koşulda isteği düşürmez. Eksik anahtar, eksik çeviri, kayıp veya bozuk dosya — hepsi kademeli olarak karşılanır ve durum PHP hata günlüğüne <code>[VNL][Language]</code> etiketiyle yazılır.
                         </p>
 
+                        <div class="table-responsive border rounded bg-light mb-5">
+                            <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
+                                <thead>
+                                <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0 border-bottom">
+                                    <th class="ps-5 min-w-300px">Durum</th>
+                                    <th class="min-w-350px">Davranış</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-gray-800 fw-semibold">
+                                <tr>
+                                    <td class="ps-5">Anahtar aktif dilde yok, temel dilde var</td>
+                                    <td>Metin temel dilden karşılanır</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Anahtar hiçbir dilde yok (yazım hatası)</td>
+                                    <td>Anahtarın kendisi döner: <code>STOCK_INSUFFICIENT</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Aktif dilin dosyası yok veya bozuk</td>
+                                    <td>Tamamen temel dile düşülür</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Hiçbir dil dosyası okunamıyor</td>
+                                    <td>Tüm anahtarlar kendi adlarını döner, istek çalışmaya devam eder</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Yer tutucu sayısı argümanlarla uyuşmuyor</td>
+                                    <td>Metin ham haliyle döner, <code>ValueError</code> fırlatılmaz</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
                         <div class="bg-dark rounded p-5 mb-5">
-                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Güvenli okuma — anahtar tanımsızsa bile fatal vermez
-echo Language::get('STOCK_INSUFFICIENT');
-// Karşılığı yoksa anahtar adının kendisi döner: "STOCK_INSUFFICIENT"
+                            <pre class="text-white fs-6 font-monospace mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Anahtar var mı?
+if (lang_has('STOCK_INSUFFICIENT')) { /* ... */ }
 
 // Kendi varsayılanınızla
-echo Language::get('STOCK_INSUFFICIENT', 'Stok yetersiz.');
+$mesaj = lang_has('STOCK_INSUFFICIENT') ? lang('STOCK_INSUFFICIENT') : 'Stok yetersiz.';
 
-// Anahtar var mı?
-if (Language::has('STOCK_INSUFFICIENT')) { /* ... */ }
+// Tüm sözlük — tanılama ve ön yüze aktarım için
+$sozluk = Language::all();
 
-// Parametreli, sprintf'siz kullanım
-echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
-// "Lütfen Ad Soyad alanını doldurun."
-
-// Yükleme sırasında tespit edilen tutarsızlıklar
+// Yükleme ve erişim sırasında tespit edilen sorunlar
 print_r(Language::issues());</code></pre>
                         </div>
 
-                        <div class="alert bg-light-danger border border-danger d-flex align-items-start p-4">
-                            <i class="ki-duotone ki-shield-tick fs-2 text-danger me-3"><span class="path1"></span><span class="path2"></span></i>
+                        <div class="alert bg-light-success border border-success d-flex align-items-start p-4">
+                            <i class="ki-duotone ki-shield-tick fs-2 text-success me-3"><span class="path1"></span><span class="path2"></span></i>
                             <span class="text-gray-800 fs-6">
-                                <strong>Dikkat:</strong> <code>Language::$TANIMSIZ_ANAHTAR</code> doğrudan statik erişimi PHP tarafında hâlâ ölümcül hatadır — dilin doğası gereği bu engellenemez. Anahtarın sınıfta tanımlı olduğundan emin olmadığınız her durumda <code>Language::get()</code> veya <code>Language::ANAHTAR()</code> kullanın.
+                                <strong>VNL 3.0 değişikliği:</strong> Anahtarlar artık statik özellik olarak tanımlanmadığı için dil dosyası ile kod arasında kayma oluşamaz. 2.4.0'a kadar tanımsız bir anahtar <code>Access to undeclared static property</code> ile isteği düşürüyordu; bu hata sınıfı tamamen ortadan kalktı.
                             </span>
                         </div>
                     </div>

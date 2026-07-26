@@ -6,7 +6,7 @@ class DefaultValidator
     static function validateEmptyString($param, $region = '')
     {
         if (empty($param)) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_FILL_THE_REQUIRED_FIELD : sprintf(Language::$PLEASE_FILL_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_FILL_THE_REQUIRED_FIELD') : lang('PLEASE_FILL_IN_FIELD', $region));
         }
     }
 
@@ -17,7 +17,7 @@ class DefaultValidator
 
         // Şifre boş mu kontrolü
         if (empty($password)) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_FILL_THE_REQUIRED_FIELD : sprintf(Language::$PLEASE_FILL_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_FILL_THE_REQUIRED_FIELD') : lang('PLEASE_FILL_IN_FIELD', $region));
         }
 
         // Şifre uzunluk kontrolü
@@ -48,14 +48,14 @@ class DefaultValidator
     static function validateEmptyOption($param, $region = '')
     {
         if (empty($param)) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_SELECT_VALID_OPTION : sprintf(Language::$PLEASE_SELECT_VALID_OPTION_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_SELECT_VALID_OPTION') : lang('PLEASE_SELECT_VALID_OPTION_IN_FIELD', $region));
         }
     }
 
     static function validateEmptyPhone($param, $region = '')
     {
         if (empty($param)) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_PHONE_NUMBER : sprintf(Language::$PLEASE_FILL_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_ENTER_VALID_PHONE_NUMBER') : lang('PLEASE_FILL_IN_FIELD', $region));
         }
         self::validatePhone($param, $region);
 
@@ -66,32 +66,32 @@ class DefaultValidator
         $param = str_replace([' ', '-', '_', '(', ')'], '', $param);
         if (empty($param)) return;
         if (!AsInt($param) || strlen($param) < 10) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_PHONE_NUMBER : sprintf(Language::$PLEASE_ENTER_VALID_PHONE_NUMBER_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_ENTER_VALID_PHONE_NUMBER') : lang('PLEASE_ENTER_VALID_PHONE_NUMBER_IN_FIELD', $region));
         }
     }
 
 
     static function validateEmptyMail($param)
     {
-        if (empty($param)) throw new StandartException(Language::$EMAIL_ADDRESS_CANNOT_BE_EMPTY);
+        if (empty($param)) throw new StandartException(lang('EMAIL_ADDRESS_CANNOT_BE_EMPTY'));
         if (!MailModule::isValidEmail($param)) {
-            throw new StandartException(Language::$EMAIL_ADDRESS_INVALID);
+            throw new StandartException(lang('EMAIL_ADDRESS_INVALID'));
         }
     }
 
     static function validateEmptyData($param, $region = '')
     {
         if (empty($param)) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_FILL_THE_REQUIRED_FIELD : sprintf(Language::$PLEASE_FILL_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_FILL_THE_REQUIRED_FIELD') : lang('PLEASE_FILL_IN_FIELD', $region));
         }
     }
 
     static function validateEmptyID($param, $region = '')
     {
         if (empty($param)) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_SELECT_VALID_OPTION : sprintf(Language::$PLEASE_SELECT_VALID_OPTION_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_SELECT_VALID_OPTION') : lang('PLEASE_SELECT_VALID_OPTION_IN_FIELD', $region));
         } else if (!is_int($param) || $param <= 0) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_SELECT_VALID_OPTION : sprintf(Language::$PLEASE_SELECT_VALID_OPTION_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_SELECT_VALID_OPTION') : lang('PLEASE_SELECT_VALID_OPTION_IN_FIELD', $region));
         }
     }
 
@@ -109,14 +109,14 @@ class DefaultValidator
     static function validateInt($param, $region = '')
     {
         if ($param != '' && !is_int($param)) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_NUMBER : sprintf(Language::$PLEASE_ENTER_VALID_NUMBER_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_ENTER_VALID_NUMBER') : lang('PLEASE_ENTER_VALID_NUMBER_IN_FIELD', $region));
         }
     }
 
     static function validateEmptyInt($param, $region = '')
     {
         if (!empty($param) && intval($param) <= 0) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_NUMBER : sprintf(Language::$PLEASE_ENTER_VALID_NUMBER_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_ENTER_VALID_NUMBER') : lang('PLEASE_ENTER_VALID_NUMBER_IN_FIELD', $region));
         }
     }
 
@@ -124,7 +124,7 @@ class DefaultValidator
     static function validateEmptyINT_ID($param, $region = '')
     {
         if ((!empty($param) && !AsInt($param, false)) || $param <= 0) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_NUMBER_BIGGER_THAN_0 : sprintf(Language::$PLEASE_ENTER_NUMBER_BIGGER_THAN_0_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_ENTER_NUMBER_BIGGER_THAN_0') : lang('PLEASE_ENTER_NUMBER_BIGGER_THAN_0_IN_FIELD', $region));
         }
     }
 
@@ -134,7 +134,7 @@ class DefaultValidator
 
         // The Y ( 4 digits year ) returns TRUE for any integer with any number of digits so changing the comparison from == to === fixes the issue.
         if (($d && $d->format($format) === $date) == false) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_DATE : sprintf(Language::$PLEASE_ENTER_VALID_DATE_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_ENTER_VALID_DATE') : lang('PLEASE_ENTER_VALID_DATE_IN_FIELD', $region));
         }
     }
 
@@ -145,32 +145,32 @@ class DefaultValidator
 
         // The Y ( 4 digits year ) returns TRUE for any integer with any number of digits so changing the comparison from == to === fixes the issue.
         if (($d && $d->format($format) === $date) == false) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_DATE : sprintf(Language::$PLEASE_ENTER_VALID_DATE_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_ENTER_VALID_DATE') : lang('PLEASE_ENTER_VALID_DATE_IN_FIELD', $region));
         } else if ($date > date('Y-m-d')) {
-            throw new StandartException(Language::$YOU_CANT_ENTER_FEATURE_DATE);
+            throw new StandartException(lang('YOU_CANT_ENTER_FEATURE_DATE'));
         }
     }
 
     static function validateEmptyDate($date, $region = '', $format = 'Y-m-d')
     {
-        if (empty($date)) throw new StandartException(Language::$PLEASE_ENTER_DATE);
+        if (empty($date)) throw new StandartException(lang('PLEASE_ENTER_DATE'));
         $d = DateTime::createFromFormat($format, $date);
 
         // The Y ( 4 digits year ) returns TRUE for any integer with any number of digits so changing the comparison from == to === fixes the issue.
         if (($d && $d->format($format) === $date) == false) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_DATE : sprintf(Language::$PLEASE_ENTER_VALID_DATE_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_ENTER_VALID_DATE') : lang('PLEASE_ENTER_VALID_DATE_IN_FIELD', $region));
         }
     }
 
     static function validateAge($dateOfBirth, $region = '', $format = 'Y-m-d')
     {
         // Doğum tarihi boş mu kontrolü
-        if (empty($dateOfBirth)) throw new StandartException(Language::$PLEASE_ENTER_DATE);
+        if (empty($dateOfBirth)) throw new StandartException(lang('PLEASE_ENTER_DATE'));
 
         // Tarih formatını kontrol et
         $d = DateTime::createFromFormat($format, $dateOfBirth);
         if (($d && $d->format($format) === $dateOfBirth) == false) {
-            throw new StandartException(empty($region) ? Language::$PLEASE_ENTER_VALID_DATE : sprintf(Language::$PLEASE_ENTER_VALID_DATE_IN_FIELD, $region));
+            throw new StandartException(empty($region) ? lang('PLEASE_ENTER_VALID_DATE') : lang('PLEASE_ENTER_VALID_DATE_IN_FIELD', $region));
         }
 
         // Yaş kontrolü: 16 yaşından küçükse hata fırlat
@@ -186,10 +186,10 @@ class DefaultValidator
     {
         $strlen = strlen($param);
         if ($strlen > $maxlength) {
-            throw new StandartException(empty($region) ? sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT, $maxlength) : sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_LIMIT_IN_FIELD, $region,$maxlength));
+            throw new StandartException(empty($region) ? lang('PLEASE_DO_NOT_PASS_X_CHAR_LIMIT', $maxlength) : lang('PLEASE_DO_NOT_PASS_X_CHAR_LIMIT_IN_FIELD', $region,$maxlength));
         }
         if ($strlen < $minlength) {
-            throw new StandartException(empty($region) ? sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT, $minlength) : sprintf(Language::$PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT_IN_FIELD, $region, $minlength));
+            throw new StandartException(empty($region) ? lang('PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT', $minlength) : lang('PLEASE_DO_NOT_PASS_X_CHAR_MIN_LIMIT_IN_FIELD', $region, $minlength));
         }
 
     }

@@ -141,18 +141,18 @@ $objWriter->save('../' . $full_file_path);
 $objPHPExcel->disconnectWorksheets();
 unset($objWriter, $objPHPExcel);
 
-$message = Language::$SUC_EXPORT;
+$message = lang('SUC_EXPORT');
 $cclass = 'success';
 $result = 'ok';
 $url = SITE_URL . $full_file_path;
 
 
 if (1) {
-    $message = Language::$SUC_GENERAL;
+    $message = lang('SUC_GENERAL');
     $cclass = 'success';
     $result = 'ok';
 } else {
-    $message = Language::$ERR_GENERAL;
+    $message = lang('ERR_GENERAL');
     $cclass = 'danger';
     $result = 'fail';
 }

@@ -21,7 +21,7 @@ if (!file_exists($action_path)) {
 
 if (!file_exists($action_path)) {
     try {
-		throwErrorMessage(Language::$FUNCTION_NOT_FOUND, 400);
+		throwErrorMessage(lang('FUNCTION_NOT_FOUND'), 400);
     }catch (Exception $e){
         echo $e->getMessage();
         die();
@@ -35,7 +35,7 @@ try {
     if (method_exists($action_class,$action)){
         call_user_func([$action_class, $action],$req);
     }else{
-        returnErrorMessage(Language::$FUNCTION_NOT_FOUND, 400);
+        returnErrorMessage(lang('FUNCTION_NOT_FOUND'), 400);
     }
 } catch (Exception $e) {
     $trace = $e->getTrace();

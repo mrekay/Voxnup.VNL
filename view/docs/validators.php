@@ -168,7 +168,7 @@ DefaultValidator::validateEmptyDate($tarih, 'Başlangıç Tarihi');
 
                         <div class="alert bg-light-info border border-info d-flex align-items-center p-4">
                             <i class="ki-duotone ki-information-5 fs-2 text-info me-3"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
-                            <span class="text-gray-800 fs-6">Hata mesajları <code>Language::$PLEASE_FILL_IN_FIELD</code> gibi dil anahtarları üzerinden gelir ve aktif dile göre dinamik olarak üretilir.</span>
+                            <span class="text-gray-800 fs-6">Hata mesajları <code>lang('PLEASE_FILL_IN_FIELD', $region)</code> gibi dil anahtarları üzerinden gelir ve aktif dile göre dinamik olarak üretilir.</span>
                         </div>
                     </div>
                     <!--end::Section 3-->
@@ -213,8 +213,8 @@ class UserValidator extends DefaultValidator
     {
         if (!preg_match('/^[1-9][0-9]{10}$/', $tckn)) {
             $msg = $region
-                ? sprintf(Language::$PLEASE_FILL_THE_REQUIRED_FIELD, $region)
-                : Language::$ERR_GENERAL;
+                ? lang('PLEASE_FILL_IN_FIELD', $region)
+                : lang('ERR_GENERAL');
             throw new StandartException($msg);
         }
     }

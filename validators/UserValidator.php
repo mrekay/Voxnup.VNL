@@ -7,7 +7,7 @@ class UserValidator extends DefaultValidator
     {
         global $CurrentUser;
         if (empty($password) || $CurrentUser->password != EncryptionModule::PasswordEncrypt($password)) {
-            throw new EmptyDataException(Language::$ERR_PASSWORD_VALIDATION);
+            throw new EmptyDataException(lang('ERR_PASSWORD_VALIDATION'));
         }
     }
 

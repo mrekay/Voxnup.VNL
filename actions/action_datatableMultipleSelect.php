@@ -14,7 +14,7 @@ class action_datatableMultipleSelect
             Session::set($tmp_session_id, $selected_list);
             $dt_data['id'] = $tmp_session_id;
 
-            $dt_message = Language::$SUC_GENERAL;
+            $dt_message = lang('SUC_GENERAL');
             returnSuccessMessage($dt_message, $dt_data);
         }
     }
@@ -153,12 +153,12 @@ class action_datatableMultipleSelect
 
             $select = array_values($select);
             $dt_data['selected_list'] = $select;
-            $dt_message = Language::$SUC_GENERAL;
+            $dt_message = lang('SUC_GENERAL');
             $json_data = array('table_id' => $req->post('table_id'),'message' => $dt_message, 'select_result' => "ok", 'data' => $dt_data);
             echo json_encode($json_data);
             die;
         } else {
-            returnErrorMessage(Language::$ERR_GENERAL);
+            returnErrorMessage(lang('ERR_GENERAL'));
         }
     }
 

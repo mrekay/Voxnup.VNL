@@ -72,7 +72,7 @@ if (getDocumentRoot() != '')
 
 
 $req = new Request();
-$lang = new Language(Language::GetLanguage());
+Language::set(Language::GetLanguage());
 
 $PdfPrintEnabled = true;
 

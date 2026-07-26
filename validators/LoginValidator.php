@@ -6,19 +6,19 @@ class LoginValidator
 	static function validateUsername($username)
 	{
 		if (empty($username)) {
-			throw new EmptyDataException(Language::$ERR_LOGIN_EXCEPTION);
+			throw new EmptyDataException(lang('ERR_LOGIN_EXCEPTION'));
 		}
 	}
 
     static function validateLoginData($loginData,$redirect_page = false){
         global $CurrentUser;
         if (empty($loginData)) {
-            if (!$redirect_page)throw new EmptyDataException(Language::$ERR_LOGIN_EXCEPTION);
+            if (!$redirect_page)throw new EmptyDataException(lang('ERR_LOGIN_EXCEPTION'));
             else return false;
         }
 
         if (empty($loginData)) {
-            if (!$redirect_page) throw new EmptyDataException(Language::$ERR_LOGIN_EXCEPTION);
+            if (!$redirect_page) throw new EmptyDataException(lang('ERR_LOGIN_EXCEPTION'));
             else return false;
         }
 
@@ -28,7 +28,7 @@ class LoginValidator
                 || $loginData['user_agent'] != \UserModule::CurrentBrowser()
                 || $loginData['ip_adress'] != \UserModule::CurrentIp()
             )) {
-            if (!$redirect_page) throw new StandartException(Language::$ERR_LOGIN_EXCEPTION);
+            if (!$redirect_page) throw new StandartException(lang('ERR_LOGIN_EXCEPTION'));
             else return false;
         }
         return true;
@@ -37,13 +37,13 @@ class LoginValidator
 	static function validatePassword($password)
 	{
 		if (empty($password)) {
-			 throw new EmptyDataException(Language::$ERR_LOGIN_EXCEPTION);
+			 throw new EmptyDataException(lang('ERR_LOGIN_EXCEPTION'));
 		}
 	}
 
 	static function validateUser($user){
         if (!isset($user->id) && empty($user->id) && $user->id > 0){
-			throw new StandartException(Language::$ERR_LOGIN_EXCEPTION);
+			throw new StandartException(lang('ERR_LOGIN_EXCEPTION'));
 
 		}
 	}
@@ -51,13 +51,13 @@ class LoginValidator
 	static function validateActive($is_active){
 		if ($is_active == 2){
 			LogOut(false);
-			throw new StandartException(Language::$ERR_LOGIN_PASSIVE);
+			throw new StandartException(lang('ERR_LOGIN_PASSIVE'));
 		}
 	}
 
 	static function validateSession($sesion){
 		if ($sesion != 1){
-			throw new StandartException(Language::$ERR_LOGIN_EXCEPTION);
+			throw new StandartException(lang('ERR_LOGIN_EXCEPTION'));
 		}
 	}
 

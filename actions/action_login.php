@@ -32,7 +32,7 @@ class action_login
         }
 
 //        LoginValidator::validateActive($CurrentUser->is_active);
-        returnSuccessMessage(Language::$SUC_LOGIN, $data);
+        returnSuccessMessage(lang('SUC_LOGIN'), $data);
 
     }
 

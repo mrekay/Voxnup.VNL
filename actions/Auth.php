@@ -19,7 +19,7 @@ class Auth
 
     public static function CheckLogin($throwError = true){
         $isLogined = !empty(self::User());
-        if (!$isLogined && $throwError) throwErrorMessage(Language::$ERR_LOGIN_FIRST);
+        if (!$isLogined && $throwError) throwErrorMessage(lang('ERR_LOGIN_FIRST'));
         return !empty(self::User());
     }
 
@@ -27,7 +27,7 @@ class Auth
     {
         $perm_result =  in_array(self::User()->perm_id,$perms);
 
-        if (!$perm_result && $throwError) throwErrorMessage(Language::$ERR_PERM);
+        if (!$perm_result && $throwError) throwErrorMessage(lang('ERR_PERM'));
 
         return $perm_result;
 
