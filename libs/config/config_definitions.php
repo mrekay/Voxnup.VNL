@@ -5,7 +5,6 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 class ConfigDefinitions
 {
 
-    private $testMode = false;
     private $app_name = "VNL";
     private $app_logo = "VNL.png";
     private $app_logo_path = "/assets/media/logos/";
@@ -30,58 +29,43 @@ class ConfigDefinitions
      *
      *   leftsidebar : true (tam açık) | 'mini' (sabit dar) | 'mini-hover' (dar + hover'da genişler)
      *   submenu     : 'flyout' (sağda panel) | 'accordion' (alt alta liste)
+     *   skin        : null (varsayılan kimlik) | 'dracula' | theme/scss/skins/ altındaki herhangi bir skin adı
      */
     private $theme_defaults = [
         'leftsidebar' => true,
         'submenu'     => 'flyout',
+        'skin'        => null,
     ];
     private $login_except_pages = ["app","login","register","logout","index","getting-started","routing","request-handling","docs/overview","overview","docs/getting-started","docs/theme","docs/theme-layout","docs/theme-sidebar","docs/theme-design","docs/theme-components","docs/theme-forms","docs/theme-icons","docs/theme-js","docs/theme-migration","docs/routing","docs/request-handling","docs/modals","docs/session","docs/config-definitions","docs/models","docs/validators","docs/languages","docs/sdtable","docs/excel-export","docs/modules","docs/view-includes","docs/extensions","docs/stripe"];
 
+    /**
+     * Ortama göre değişen ve gizli olan her şey .env'den gelir; kopyası
+     * .env.example'dadır. Sunucu seviyesinde tanımlı gerçek ortam
+     * değişkeni .env'i ezer, böylece konteyner/CI yapılandırması çalışır.
+     *
+     * VNL 2.x'teki $testMode anahtarı kaldırıldı: iki sabit blok arasında
+     * seçim yapmak yerine değerler doğrudan ortamdan okunuyor.
+     */
     public function __construct()
     {
-        switch ($this->testMode) {
-            case true:
-                $this->db_info = [
-                    'driver' => 'mysql',
-                    'host' => 'localhost',
-                    'database' => '',
-                    'username' => 'root',
-                    'password' => 'password',
-                    'charset' => 'utf8mb4',
-                    'collation' => 'utf8mb4_general_ci',
-                    'prefix' => '',
-                ];
+        $this->db_info = [
+            'driver'    => (string)env('DB_DRIVER', 'mysql'),
+            'host'      => (string)env('DB_HOST', 'localhost'),
+            'database'  => (string)env('DB_DATABASE', ''),
+            'username'  => (string)env('DB_USERNAME', ''),
+            'password'  => (string)env('DB_PASSWORD', ''),
+            'charset'   => (string)env('DB_CHARSET', 'utf8'),
+            'collation' => (string)env('DB_COLLATION', 'utf8_unicode_ci'),
+            'prefix'    => (string)env('DB_PREFIX', ''),
+        ];
 
-                $this->master_db = "";
-                $this->cookie_prefix = "";
-                $this->salt_text = "";
-                $this->site_url = "";
-                $this->master_site_url = "";
-                $this->assets_url = "/assets";
-                $this->product_id = "";
-                break;
-            case false:
-                $this->db_info = [
-                    'driver' => 'mysql',
-                    'host' => '',
-                    'database' => '',
-                    'username' => '',
-                    'password' => '',
-                    'charset' => 'utf8',
-                    'collation' => 'utf8_unicode_ci',
-                    'prefix' => '',
-                ];
-
-                $this->master_db = "";
-                $this->cookie_prefix = "vnl";
-                $this->salt_text = "vnl54.?**-";
-                $this->site_url = "vnl.voxnup.com";
-                $this->master_site_url = "vnl.voxnup.com";
-                $this->assets_url = "/assets";
-                $this->product_id = 0;
-
-        }
-
+        $this->master_db       = (string)env('DB_MASTER', '');
+        $this->cookie_prefix   = (string)env('APP_COOKIE_PREFIX', 'vnl');
+        $this->salt_text       = (string)env('APP_SALT', '');
+        $this->site_url        = (string)env('APP_URL', '');
+        $this->master_site_url = (string)env('APP_MASTER_URL', '');
+        $this->assets_url      = (string)env('APP_ASSETS_URL', '/assets');
+        $this->product_id      = (string)env('APP_PRODUCT_ID', '0');
     }
 
 

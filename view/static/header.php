@@ -12,7 +12,7 @@
    sitesi tam açık ister. Sayfalar $page_config ile her zaman ezebilir.
    (method_exists: eski türev projelerin config'leri metodu tanımıyor olabilir.) */
 $vnl_theme_defaults = array_merge(
-        array('leftsidebar' => true, 'submenu' => 'flyout'),
+        array('leftsidebar' => true, 'submenu' => 'flyout', 'skin' => null),
         (isset($cDefinitions) && method_exists($cDefinitions, 'themeDefaults')) ? $cDefinitions->themeDefaults() : array()
 );
 

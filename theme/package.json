@@ -7,7 +7,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "npm run build:css && npm run build:js && npm run build:assets",
+    "build": "npm run build:css && npm run build:skins && npm run build:js && npm run build:assets",
+    "build:skins": "node build.mjs skins",
     "build:css": "sass --style=compressed --no-source-map --quiet-deps --silence-deprecation=import,global-builtin,color-functions,if-function scss/vnl.scss:../assets/vnl/css/vnl.min.css scss/fa.scss:../assets/vnl/css/fa.min.css scss/bi.scss:../assets/vnl/css/bi.min.css",
     "build:js": "node build.mjs js",
     "build:assets": "node build.mjs assets",

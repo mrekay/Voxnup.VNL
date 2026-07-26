@@ -40,5 +40,12 @@ $vnl_theme_path = $assets_address . '/vnl';
 
 <link rel="icon" href="<?= $cDefinitions->appLogoPath() . 'VNL.png' ?>" type="image/png">
 <link href="<?= $vnl_theme_path ?>/css/vnl.min.css" rel="stylesheet" type="text/css"/>
+<?php
+/* Skin: vnl.min.css üstüne yüklenen hafif renk katmanı. Uygulama geneli
+   themeDefaults()['skin'] ya da sayfa bazında $page_config['skin'] ile. */
+$vnl_skin = $page_config['skin'] ?? ($vnl_theme_defaults['skin'] ?? null);
+if (!empty($vnl_skin)) { ?>
+    <link href="<?= $vnl_theme_path ?>/css/skins/<?= htmlspecialchars($vnl_skin) ?>.min.css" rel="stylesheet" type="text/css"/>
+<?php } ?>
 <link href="<?= $vnl_theme_path ?>/css/bi.min.css" rel="stylesheet" type="text/css"/>
 <link href="<?= $vnl_theme_path ?>/css/fa.min.css" rel="stylesheet" type="text/css"/>

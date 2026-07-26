@@ -10,6 +10,9 @@ require_once($_SERVER["DOCUMENT_ROOT"].'/libs/vnl_error.php');
 /* VNL Şablon Derleyicisi — view() ve modal() bunun üzerinden çalışır. */
 require_once($_SERVER["DOCUMENT_ROOT"].'/libs/vnl_template.php');
 
+/* Ortam değişkenleri — config_definitions.php env() çağırdığı için ondan önce yüklenir. */
+require_once($_SERVER["DOCUMENT_ROOT"].'/libs/vnl_env.php');
+
 /* Global exception handler — yakalanmamış tüm istisnalar VNL hata sayfasına düşer */
 set_exception_handler(function (Throwable $e) {
     vnl_render_error($e);

@@ -12,58 +12,71 @@
                 <i class="fa-solid fa-shield fs-2hx text-warning me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-body-emphasis">Güvenlik Uyarısı</h5>
-                    <span class="text-body"><code>$salt_text</code> ve veritabanı bilgilerini asla kod deposuna (<code>git</code>) gerçek değerleriyle commit etmeyin. Üretim ortamı için environment variable veya ayrı bir ignored config dosyası kullanmayı değerlendirin.</span>
+                    <span class="text-body">VNL 3.0'dan itibaren <code>$salt_text</code> ve veritabanı bilgileri <code>.env</code> dosyasından okunur; bu dosya <code>.gitignore</code>'dadır ve web sunucusu tarafından servis edilmez. Bu değerleri <code>config_definitions.php</code> içine geri yazmayın.</span>
                 </div>
             </div>
 
             <div class="card mb-10">
                 <div class="card-body p-10">
 
-                    <!--begin::Section 1 - testMode-->
+                    <!--begin::Section 1 - .env-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">1. Test Modu (<code>$testMode</code>)</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">1. Ortam Yapılandırması (<code>.env</code>)</h3>
                         <p class="fs-5 text-body mb-4">
-                            <code>ConfigDefinitions</code> sınıfı iki bağımsız yapılandırma bloğuna sahiptir: geliştirme (<code>true</code>) ve üretim (<code>false</code>). <code>$testMode</code> değeri hangi bloğun aktif olacağını belirler.
+                            Ortama göre değişen ve gizli olan her şey proje kökündeki <code>.env</code> dosyasından okunur. <code>ConfigDefinitions</code> bu değerleri <code>env()</code> ile alır; sınıfın kendisinde gizli bilgi bulunmaz.
                         </p>
 
+                        <div class="alert alert-info d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
+                            <span class="text-body fs-6">
+                                VNL 2.x'teki <code>$testMode</code> anahtarı <b>kaldırıldı</b>. İki sabit blok arasında seçim yapmak yerine her ortam kendi <code>.env</code> dosyasını taşır; böylece geliştirme ve üretim değerleri aynı dosyada yan yana durmaz.
+                            </span>
+                        </div>
+
                         <div class="row g-5 mb-5">
-                            <div class="col-md-6">
-                                <div class="border border-dashed border-success rounded p-5 h-100">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="badge badge-soft-success me-3">true</span>
-                                        <h6 class="mb-0 fw-bold">Geliştirme Ortamı</h6>
-                                    </div>
-                                    <ul class="list-unstyled fs-6 text-body mb-0">
-                                        <li class="mb-2"><i class="fa-solid fa-chevron-right fs-4 text-success me-2"></i>Genellikle <code>localhost</code> veritabanı kullanılır</li>
-                                        <li class="mb-2"><i class="fa-solid fa-chevron-right fs-4 text-success me-2"></i>Hata mesajları ekrana yansır</li>
-                                        <li class="mb-0"><i class="fa-solid fa-chevron-right fs-4 text-success me-2"></i>Test kullanıcı verisi güvenli</li>
-                                    </ul>
+                            <div class="col-md-4">
+                                <div class="border border-dashed rounded p-5 h-100 text-center">
+                                    <i class="fa-solid fa-file-shield fs-2x text-success mb-3 d-block"></i>
+                                    <h6 class="fw-bold mb-2">.env</h6>
+                                    <span class="text-muted fs-7">Gerçek değerler. <code>.gitignore</code>'dadır, commit edilmez, web sunucusu servis etmez.</span>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="border border-dashed border-primary rounded p-5 h-100">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <span class="badge badge-soft-primary me-3">false</span>
-                                        <h6 class="mb-0 fw-bold">Üretim Ortamı</h6>
-                                    </div>
-                                    <ul class="list-unstyled fs-6 text-body mb-0">
-                                        <li class="mb-2"><i class="fa-solid fa-chevron-right fs-4 text-primary me-2"></i>Canlı veritabanı bilgileri doldurulur</li>
-                                        <li class="mb-2"><i class="fa-solid fa-chevron-right fs-4 text-primary me-2"></i>Gerçek domain ve cookie ayarları</li>
-                                        <li class="mb-0"><i class="fa-solid fa-chevron-right fs-4 text-primary me-2"></i>Deploy sonrası aktif olması gereken mod</li>
-                                    </ul>
+                            <div class="col-md-4">
+                                <div class="border border-dashed rounded p-5 h-100 text-center">
+                                    <i class="fa-solid fa-file-lines fs-2x text-primary mb-3 d-block"></i>
+                                    <h6 class="fw-bold mb-2">.env.example</h6>
+                                    <span class="text-muted fs-7">Anahtar listesi ve açıklamalar. Commit edilir; kurulumda <code>.env</code> olarak kopyalanır.</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border border-dashed rounded p-5 h-100 text-center">
+                                    <i class="fa-solid fa-server fs-2x text-warning mb-3 d-block"></i>
+                                    <h6 class="fw-bold mb-2">Sunucu değişkeni</h6>
+                                    <span class="text-muted fs-7">Sunucuda tanımlı gerçek ortam değişkeni <code>.env</code>'i ezer — konteyner ve CI için.</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="vnl-code">
-                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $testMode = false; // true = geliştirme, false = üretim
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code># .env — proje kökünde
+APP_URL=ornek.com
+APP_SALT=uzun-rastgele-gizli-deger
+DB_HOST=localhost
+DB_DATABASE=ornek_db
+DB_USERNAME=ornek_user
+DB_PASSWORD="p#ss w0rd"      # boşluk veya # içeriyorsa tırnak kullanın
 
-// Constructor içinde bu anahtar seçimi yapar:
-switch ($this->testMode) {
-    case true:  /* geliştirme ayarları */ break;
-    case false: /* üretim ayarları */     break;
-}
+# Kodda okunuşu
+$host = env('DB_HOST', 'localhost');   // ikinci parametre varsayılan
+$debug = env('APP_DEBUG', false);      // true/false/null/empty çevrilir
 </code></pre>
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-start p-4">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">
+                                Kurulumda <code>.env.example</code>'ı <code>.env</code> olarak kopyalayıp <code>APP_SALT</code>'a <b>her kurulum için farklı</b> rastgele bir değer verin. Bu değer oturum çerezlerinin imzalanmasında kullanılır; değiştirilmesi mevcut "beni hatırla" çerezlerini geçersiz kılar.
+                            </span>
                         </div>
                     </div>
                     <!--end::Section 1-->

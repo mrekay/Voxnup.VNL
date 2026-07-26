@@ -63,6 +63,7 @@ $page_config = ['topbar' => true, 'leftsidebar' => true, 'contentheader' => true
 private $theme_defaults = [
     'leftsidebar' => true,       // true | 'mini' | 'mini-hover'
     'submenu'     => 'flyout',   // 'flyout' | 'accordion'
+    'skin'        => null,       // null | 'dracula' | skins/ altındaki herhangi bir ad
 ];</code></pre></div>
                         <p class="text-body-secondary mb-0 mt-4">
                             <code>app</code> preset'i sidebar durumunu bu varsayılandan alır; diğer preset'lerde
@@ -86,6 +87,7 @@ private $theme_defaults = [
                                 <tr><td><code>layout</code></td><td><code>app</code> | <code>top-nav</code> | <code>landing</code> | <code>focus</code> | <code>blank</code></td><td>İskelet preset'i (varsayılan <code>app</code>)</td></tr>
                                 <tr><td><code>leftsidebar</code></td><td><code>true</code> | <code>false</code> | <code>'mini'</code> | <code>'mini-hover'</code></td><td>Sidebar durumu; string değerler daraltılmış başlatır</td></tr>
                                 <tr><td><code>submenu</code></td><td><code>'flyout'</code> | <code>'accordion'</code></td><td>Alt menü davranışı — bkz. <a href="/docs/theme-sidebar">Sidebar ve Menü</a></td></tr>
+                                <tr><td><code>skin</code></td><td><code>null</code> | skin adı</td><td>Renk katmanı — bkz. <a href="/docs/theme-design">Renkler</a> §4 Skin Yazmak</td></tr>
                                 <tr><td><code>topbar</code></td><td><code>true</code> | <code>false</code></td><td>Üst çubuk</td></tr>
                                 <tr><td><code>contentheader</code></td><td><code>true</code> | <code>false</code></td><td>Sayfa başlığı + breadcrumb + toolbar aksiyonları bandı</td></tr>
                                 <tr><td><code>footer</code></td><td><code>true</code> | <code>false</code></td><td>Alt bilgi</td></tr>

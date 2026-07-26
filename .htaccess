@@ -1,4 +1,11 @@
 RewriteEngine on
+
+# Nokta ile başlayan her yol parçasını engelle: .env, .git, .htaccess, .idea ...
+# Yönlendirme kurallarından ÖNCE gelmeli; aksi halde var olan dosya
+# (REQUEST_FILENAME -f) doğrudan düz metin olarak servis edilir.
+# .well-known ACME/Let's Encrypt doğrulaması için açık bırakılır.
+RewriteRule (^|/)\.(?!well-known) - [F,L]
+
 RewriteCond %{HTTPS} on
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L]
 
@@ -6,3 +13,13 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^([a-zA-z0-9-_/]+)$ index.php [QSA]
 
+# mod_rewrite kapalıysa ikinci savunma hattı
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

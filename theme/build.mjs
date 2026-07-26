@@ -19,9 +19,10 @@
  */
 
 import { build, context } from 'esbuild';
-import { mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { mkdirSync, readFileSync, writeFileSync, copyFileSync, readdirSync, existsSync } from 'node:fs';
+import { dirname, join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as sass from 'sass';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const out = join(root, '..', 'assets', 'vnl');
@@ -54,9 +55,40 @@ if (task === 'js') {
     await buildThemeJs();
 } else if (task === 'assets') {
     copyAssets();
+} else if (task === 'skins') {
+    buildSkins();
 } else {
-    console.error('Kullanım: node build.mjs <js|assets> [--watch]');
+    console.error('Kullanım: node build.mjs <js|assets|skins> [--watch]');
     process.exit(1);
+}
+
+// theme/scss/skins/ altındaki her .scss dosyası (partial'lar hariç) hafif bir
+// skin katmanı olarak derlenir: dosya at → build → assets/vnl/css/skins/<ad>.min.css
+function buildSkins() {
+    const dir = join(root, 'scss', 'skins');
+    if (!existsSync(dir)) {
+        console.log('· skin yok (theme/scss/skins boş)');
+        return;
+    }
+
+    const outDir = join(out, 'css', 'skins');
+    mkdirSync(outDir, { recursive: true });
+
+    let count = 0;
+    for (const file of readdirSync(dir)) {
+        if (!file.endsWith('.scss') || file.startsWith('_')) continue;
+
+        const result = sass.compile(join(dir, file), {
+            style: 'compressed',
+            quietDeps: true,
+            silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function'],
+        });
+        const name = basename(file, '.scss');
+        writeFileSync(join(outDir, name + '.min.css'), result.css + '\n');
+        count++;
+        console.log(`✓ css/skins/${name}.min.css`);
+    }
+    if (count === 0) console.log('· skin yok (theme/scss/skins boş)');
 }
 
 async function buildVendors() {

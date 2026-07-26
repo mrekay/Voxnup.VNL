@@ -9,9 +9,9 @@
 // destekler (docs sayfalarında iki desen de yaşıyor).
 .vnl-code {
   padding: 1rem 1.25rem;
-  background: #0b0f0e;
-  color: #d5ded9;
-  border: 1px solid #1d2421;
+  background: var(--vnl-code-bg);
+  color: var(--vnl-code-color);
+  border: 1px solid var(--vnl-code-border);
   border-radius: var(--bs-border-radius-lg);
   font-family: var(--bs-font-monospace);
   font-size: .8125rem;

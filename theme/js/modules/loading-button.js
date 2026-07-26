@@ -48,7 +48,6 @@ function vnlBtnLoading(btn, text) {
 
     const label = text
         || btn.getAttribute('data-loading-text')
-        || (window.VNL_LANG && window.VNL_LANG.BTN_LOADING)
         || 'Lütfen Bekleyin';
 
     btn[RESTORE_KEY] = btn.innerHTML;

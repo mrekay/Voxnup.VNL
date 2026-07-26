@@ -97,7 +97,7 @@ document.addEventListener('vnl.theme.changed', function (e) {
 
                     <div class="separator separator-dashed my-8"></div>
 
-                    <div class="mb-0">
+                    <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">3. Tipografi ve Ölçekler</h3>
                         <p class="text-body mb-4">
                             Gövde fontu self-host <b>Inter variable</b> (Türkçe glifler için latin-ext dahil),
@@ -141,6 +141,73 @@ document.addEventListener('vnl.theme.changed', function (e) {
                             </table>
                         </div>
                     </div>
+
+                    <div class="separator separator-dashed my-8"></div>
+
+                    <div class="mb-0">
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Skin Yazmak</h3>
+                        <p class="text-body mb-4">
+                            Skin, Bootstrap'i yeniden derlemeyen <b>hafif bir renk katmanıdır</b>
+                            (Dracula örneği ~7 KB): <code>vnl.min.css</code>'in üstüne yüklenir.
+                            Yazar yalnız paleti tanımlar; <code>theme/scss/_skin-engine.scss</code>
+                            subtle/emphasis türevlerini, link/focus zincirini, dolu buton durumlarını,
+                            yüzeyleri ve sidebar/kod token'larını otomatik üretir.
+                        </p>
+                        <div class="d-flex flex-wrap align-items-center gap-3 mb-5">
+                            <button type="button" class="btn btn-soft-primary" id="vnl_skin_demo_btn"
+                                    onclick="vnlSkinDemo('dracula', this)">
+                                <i class="bi bi-magic me-2"></i>Dracula'yı canlı dene
+                            </button>
+                            <span class="text-body-secondary fs-8">(yalnız bu sekmede, geçicidir — tekrar tıklayınca döner)</span>
+                        </div>
+                        <p class="text-body fw-semibold mb-2">1. Palet dosyasını oluşturun — <code>theme/scss/skins/ornekskin.scss</code>:</p>
+                        <div class="vnl-code mb-5"><pre><code>@use "../skin-engine" as vnl;
+
+@include vnl.skin((
+    primary: #bd93f9,          // marka rengi — link, focus, dolu/soft butonlar otomatik
+    success: #50fa7b,
+    info:    #8be9fd,
+    warning: #ffb86c,
+    danger:  #ff5555,
+
+    sidebar: ( bg: #191a21, active: #bd93f9 ),          // koyu şerit (iki modda da)
+
+    dark:  ( body-bg: #21222c, surface: #282a36, surface-raised: #343746,
+             body-color: #f8f8f2, border: #44475a, code-bg: #282a36 ),
+    light: ( body-bg: #f5f4fa, surface: #ffffff ),      // açık mod karşılıkları
+));</code></pre></div>
+                        <p class="text-body fw-semibold mb-2">2. Derleyin ve etkinleştirin:</p>
+                        <div class="vnl-code"><pre><code>cd theme && npm run build      # skins/ altındaki her dosya → assets/vnl/css/skins/&lt;ad&gt;.min.css
+
+// libs/config/config_definitions.php — uygulama geneli:
+private $theme_defaults = [ ..., 'skin' => 'ornekskin' ];
+
+// ya da sayfa bazlı:
+$page_config = ['skin' => 'ornekskin'];</code></pre></div>
+                        <p class="text-body-secondary mb-0 mt-4">
+                            Her anahtar opsiyoneldir — verilmeyen değer varsayılan kimlikten kalır.
+                            Hazır örnek: <code>theme/scss/skins/dracula.scss</code> (resmî Dracula paleti).
+                            Radius/font gibi yapısal değişiklikler skin kapsamı dışındadır — onlar için
+                            <code>_variables.scss</code> ile kendi build'inizi alın.
+                        </p>
+                    </div>
+
+                    <script>
+                        function vnlSkinDemo(name, btn) {
+                            var existing = document.getElementById('vnl_skin_demo_css');
+                            if (existing) {
+                                existing.remove();
+                                btn.innerHTML = '<i class="bi bi-magic me-2"></i>' + name.charAt(0).toUpperCase() + name.slice(1) + "'yı canlı dene";
+                                return;
+                            }
+                            var link = document.createElement('link');
+                            link.id = 'vnl_skin_demo_css';
+                            link.rel = 'stylesheet';
+                            link.href = '<?= $assets_address ?>/vnl/css/skins/' + name + '.min.css';
+                            document.head.appendChild(link);
+                            btn.innerHTML = '<i class="bi bi-arrow-counterclockwise me-2"></i>Varsayılana dön';
+                        }
+                    </script>
 
                 </div>
             </div>

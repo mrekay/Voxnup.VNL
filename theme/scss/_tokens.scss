@@ -28,6 +28,12 @@
   --vnl-sidebar-color-hover: #e7ece9;
   --vnl-sidebar-active-color: #45c583;
   --vnl-sidebar-active-bg: rgba(23, 166, 92, .12);
+
+  // Kod bloğu ve flyout paneli (iki modda da koyu; skin'ler override eder)
+  --vnl-code-bg: #0b0f0e;
+  --vnl-code-color: #d5ded9;
+  --vnl-code-border: #1d2421;
+  --vnl-flyout-bg: #121816;
 }
 
 [data-bs-theme="dark"] {

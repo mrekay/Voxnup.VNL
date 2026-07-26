@@ -95,7 +95,7 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: .5rem;
-    background: #121816; // sidebar'dan bir tık açık koyu panel (iki temada da)
+    background: var(--vnl-flyout-bg); // sidebar'dan bir tık açık koyu panel (iki temada da)
     border-radius: var(--bs-border-radius-lg);
     box-shadow: var(--vnl-raised-shadow), 0 0 0 1px rgba(255, 255, 255, .05);
     scrollbar-width: thin;
