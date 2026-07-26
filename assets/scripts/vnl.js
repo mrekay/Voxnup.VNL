@@ -14,7 +14,8 @@ $(document).ready(function () {
     select2Reload($('select.select2[action]'));
     // $('.fixed-panel-title').fixedPanelTitle();
 
-    InitalizeDatatableFilters();
+    // DataTables vendor'u VNL Theme 1.0 ile söküldü; datatable.js yüklü olmayan sayfalarda sessizce atla.
+    if (typeof InitalizeDatatableFilters === 'function') InitalizeDatatableFilters();
 });
 
 function replaceAll(text, old_text, new_text) {
@@ -48,7 +49,10 @@ function url_encode(text) {
 }
 
 // 2021/07/08 ***************
-var dateRangePickerSettings = {
+// ÖLÜ BÖLGE — moment/daterangepicker vendor'u VNL Theme 1.0 ile söküldü (VNL 3.0 madde 3'te kaldırılacak).
+// Initializer top-level moment() çağırıyor; guard'sız bırakılırsa moment yokken ReferenceError
+// fırlar ve dosyanın bu satırdan sonraki tamamı (spinner, ajaxComplete, 401 yönetimi) ölür.
+var dateRangePickerSettings = (typeof moment === 'undefined') ? null : {
     autoUpdateInput: false,
     ranges: {
         'Bugün': [moment(), moment()],
@@ -72,7 +76,7 @@ var dateRangePickerSettings = {
     }
 };
 
-var dateRangePickerSettings2 = {
+var dateRangePickerSettings2 = (typeof moment === 'undefined') ? null : {
     autoUpdateInput: false,
     "locale": {
         "format": "DD/MM/YYYY",
@@ -167,14 +171,17 @@ $(document).ajaxComplete(function (event, request, settings) {
         customErrMessage: true
     };
     if (request.status == 200) {
+        // datatableExcel*/datatableSelect* fonksiyonları ölü datatable.js'te tanımlı; yüklü değilse atla.
         if (typeof (request.responseJSON) != 'undefined' && typeof (request.responseJSON.excel_result) != 'undefined') {
-            if (request.responseJSON.excel_result === 'ok' && !(request.responseJSON.excel_url === '')) {
+            if (typeof datatableExcelSuccess !== 'function') { /* DataTables söküldü */ }
+            else if (request.responseJSON.excel_result === 'ok' && !(request.responseJSON.excel_url === '')) {
                 datatableExcelSuccess(request.responseJSON);
             } else {
                 datatableExcelError((request.responseJSON.excel_message ? request.responseJSON.excel_message : 'Excel Response Error'));
             }
         } else if (typeof (request.responseJSON) != 'undefined' && typeof (request.responseJSON.select_result) != 'undefined') {
-            datatableSelectAjaxResponse(request.responseJSON.table_id, request.responseJSON.select_result, request.responseJSON.message, request.responseJSON);
+            if (typeof datatableSelectAjaxResponse === 'function')
+                datatableSelectAjaxResponse(request.responseJSON.table_id, request.responseJSON.select_result, request.responseJSON.message, request.responseJSON);
             //datatableSelectAjaxResponseError
         }
     }else if (request.status == 406) {
