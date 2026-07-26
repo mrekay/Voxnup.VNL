@@ -6,118 +6,15 @@
  *  Authors: Voxnup Authors
  * ============================================================
  */
-var expo_token = '';
-
-$(document).ready(function () {
-    // elementReady()/select başlatma ve show-password kurulumu VNL Theme'e
-    // taşındı (assets/vnl/js/vnl.min.js — theme/js/modules/select.js, password.js).
-    $('input.dt-filter-td:not(.no-clear)').val('');
-    // $('.fixed-panel-title').fixedPanelTitle();
-
-    // DataTables vendor'u VNL Theme 1.0 ile söküldü; datatable.js yüklü olmayan sayfalarda sessizce atla.
-    if (typeof InitalizeDatatableFilters === 'function') InitalizeDatatableFilters();
-});
-
-function replaceAll(text, old_text, new_text) {
-    return text.split(old_text).join(new_text);
-}
-
-function htmlspecialchars(text) {
-    var map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-
-    return text.replace(/[&<>"']/g, function (m) {
-        return map[m];
-    });
-}
-
-function url_encode(text) {
-    var map = {
-        '/': '&slash;',
-        '\\': '&rslash;',
-        '=': '&equal;',
-    };
-
-    return text.replace(/[/\\=]/g, function (m) {
-        return map[m];
-    });
-}
-
-// 2021/07/08 ***************
-// ÖLÜ BÖLGE — moment/daterangepicker vendor'u VNL Theme 1.0 ile söküldü (VNL 3.0 madde 3'te kaldırılacak).
-// Initializer top-level moment() çağırıyor; guard'sız bırakılırsa moment yokken ReferenceError
-// fırlar ve dosyanın bu satırdan sonraki tamamı (spinner, ajaxComplete, 401 yönetimi) ölür.
-var dateRangePickerSettings = (typeof moment === 'undefined') ? null : {
-    autoUpdateInput: false,
-    ranges: {
-        'Bugün': [moment(), moment()],
-        'Dün': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-        'Son 7 gün': [moment().subtract(6, 'days'), moment()],
-        'Son 30 gün': [moment().subtract(29, 'days'), moment()],
-        'Bu Ay': [moment().startOf('month'), moment().endOf('month')],
-        'Geçen Ay': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-    },
-    "locale": {
-        "format": "DD/MM/YYYY",
-        "separator": " - ",
-        "applyLabel": "Uygula",
-        "cancelLabel": "Vazgeç",
-        "fromLabel": "Dan",
-        "toLabel": "a",
-        "customRangeLabel": "Gün Aralığı Seç",
-        "daysOfWeek": ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
-        "monthNames": ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
-        "firstDay": 1
-    }
-};
-
-var dateRangePickerSettings2 = (typeof moment === 'undefined') ? null : {
-    autoUpdateInput: false,
-    "locale": {
-        "format": "DD/MM/YYYY",
-        "separator": " - ",
-        "applyLabel": "Uygula",
-        "cancelLabel": "Vazgeç",
-        "fromLabel": "Dan",
-        "toLabel": "a",
-        "customRangeLabel": "Gün Aralığı Seç",
-        "daysOfWeek": ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
-        "monthNames": ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
-        "firstDay": 1
-    }
-};
-
 /*
- * Select altyapısı (vnlSelectInit / select2Reload / selectReload /
- * elementReady + ajaxStop tazelemesi) ve tooltip tıklama davranışı
- * VNL Theme'e taşındı: theme/js/modules/select.js ve tooltips.js
- * (derlenmiş hali assets/vnl/js/vnl.min.js). Global isimler aynı kaldı.
+ * Select altyapısı (vnlSelectInit / selectReload / elementReady + ajaxStop
+ * tazelemesi), tooltip tıklama davranışı ve parola göster/gizle VNL Theme'e
+ * taşındı: theme/js/modules/select.js, tooltips.js, password.js (derlenmiş
+ * hali assets/vnl/js/vnl.min.js). VNL 3.0: select2Reload adı kaldırıldı.
  */
 
 $(document).ajaxComplete(function (event, request, settings) {
-    const default_settings={
-        customErrMessage: true
-    };
-    if (request.status == 200) {
-        // datatableExcel*/datatableSelect* fonksiyonları ölü datatable.js'te tanımlı; yüklü değilse atla.
-        if (typeof (request.responseJSON) != 'undefined' && typeof (request.responseJSON.excel_result) != 'undefined') {
-            if (typeof datatableExcelSuccess !== 'function') { /* DataTables söküldü */ }
-            else if (request.responseJSON.excel_result === 'ok' && !(request.responseJSON.excel_url === '')) {
-                datatableExcelSuccess(request.responseJSON);
-            } else {
-                datatableExcelError((request.responseJSON.excel_message ? request.responseJSON.excel_message : 'Excel Response Error'));
-            }
-        } else if (typeof (request.responseJSON) != 'undefined' && typeof (request.responseJSON.select_result) != 'undefined') {
-            if (typeof datatableSelectAjaxResponse === 'function')
-                datatableSelectAjaxResponse(request.responseJSON.table_id, request.responseJSON.select_result, request.responseJSON.message, request.responseJSON);
-            //datatableSelectAjaxResponseError
-        }
-    }else if (request.status == 406) {
+    if (request.status == 406) {
         showModalMessage(request.responseJSON.message, 2);
         return;
     }else if (request.status == 410) {
@@ -170,10 +67,6 @@ function convertFileSize(size) {
     else return (size / 1073741824).toFixed(2) + ' GB';
 }
 
-
-function isMobileScreen() {
-    return $(window).width() < 992;
-}
 
 function ClearForm($form) {
     $form.find("input[type!='checkbox'], textarea").not('.no-clear').val("");
@@ -235,40 +128,8 @@ function ErrorMessage(msg) {
     TopMessageShow(true, msg);
 }
 
-// ÖLÜ BÖLGE — .preloader markup'ı Metronic öncesi temanın kalıntısı; VNL
-// Theme'de karşılığı yok (VNL 3.0 madde 3'te kaldırılacak).
-function preloaderShow() {
-    $('.preloader img').show();
-    $('.preloader').css('height', '100%');
-
-}
-
-function preloaderHide() {
-
-    $('.preloader .fa-cog').hide().parent().removeClass('rotate');
-    $('.preloader .fa-tools').fadeIn();
-
-    setTimeout(function () {
-        $('.preloader img').hide();
-        $('.preloader').css('height', '0');
-        $('.preloader .fa-tools').hide();
-
-        setTimeout(function () {
-            $('.preloader').hide();
-        }, 200);
-    }, 250);
-
-
-}
-
 /* spinnerShow()/spinnerHide() VNL Theme'e taşındı (theme/js/modules/spinner.js);
    showSpinner()/hideSpinner() takma adlarıyla birlikte global olarak oradan gelir. */
-
-function AjaxError() {
-    TopMessageShow(true, 'Bir hata oluştu, lütfen daha sonra tekrar deneyin.');
-    spinnerHide()
-}
-
 
 function copyToClipboard(text, showMessage = true) {
     var $temp = $("<textarea>");
@@ -294,89 +155,6 @@ function openLink(url, target) {
     }
     window.open(url, target);
 }
-
-$(document).on("touchstart", '*', function () {
-});
-
-function searchOnFocusOut() {
-    setTimeout(function () {
-        $('#searchStudent').val('');
-        $('#searchStudent').closest('.search-topbar').find('.AutoCompleteContent').html('').hide();
-    }, 500);
-}
-
-function loadingButton($showText, $item) {
-    $showText = $showText || 0;
-    $item = $item || $("body");
-    $item.find('.loadingbutton').each(function () {
-        var istyle = $(this).find('i').attr('style');
-        var fa4x = '';
-        if ($(this).find('i').hasClass('fa-4x')) {
-            fa4x = ' fa-4x'
-        }
-        $text = '';
-        if ($showText)
-            $text = '<span>Lütfen Bekleyin</span>';
-        $(this).html('<i style="' + istyle + '" class="fa fa-spinner fa-spin' + fa4x + '"></i>' + $text).attr('disabled', 'disabled');
-    });
-}
-
-function loadingButtonDisable($item) {
-    $item = $item || $("body");
-    $item.find('.loadingbutton').each(function () {
-        var istyle = $(this).find('i').attr('style');
-        var fa4x = '';
-        if ($(this).find('i').hasClass('fa-4x')) {
-            fa4x = ' fa-4x'
-        }
-        $(this).html('<i style="' + istyle + '" class="' + $(this).attr('data-icon') + fa4x + '"></i><span>' + $(this).attr('data-text') + '</span>').removeAttr('disabled');
-    });
-}
-
-function IsNumeric(number) {
-    if (number === parseInt(number, 10))
-        return true;
-    else
-        return false;
-}
-
-function clearFileInput(fileElement) {
-    //klon oluşturarak file inputu sıfırlar.
-    fileElement.val('');
-    var FileElementClone = fileElement.clone();
-    fileElement.after(FileElementClone);
-    fileElement.remove();
-    fileElement = FileElementClone;
-    fileElement.change(function () {
-        var files = $(this)[0].files;
-        var filenames = "";
-        $.each(files, function (key, val) {
-            filenames += val.name;
-            if ((key + 1) < files.length)
-                filenames += ",";
-        });
-        $(this).parent().find('label[for="' + $(this).attr('id') + '"]').html(filenames);
-    });
-    fileElement.change();
-    fileElement.parent().find('label').text('Dosya Seçiniz...');
-    return fileElement;
-}
-
-// $(document).on('change', '.custom-file-input');
-
-
-function sleep(milliseconds) {
-    var start = new Date().getTime();
-    for (var i = 0; i < 1e7; i++) {
-        if ((new Date().getTime() - start) > milliseconds) {
-            break;
-        }
-    }
-}
-
-
-/* Parola göster/gizle (.show-password) VNL Theme'e taşındı
-   (theme/js/modules/password.js) — markup sözleşmesi aynı. */
 
 $(document).on('click', 'a', function (e) {
     if (typeof $(this).attr('download') == 'undefined') {

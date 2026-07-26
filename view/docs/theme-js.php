@@ -56,7 +56,7 @@
                                 <tr><td><code>vnlLightbox(src, altyazı)</code></td><td>Tam ekran görsel; bir <code>&lt;img&gt;</code>'e <code>.modal-image</code> vermek de yeterli</td></tr>
                                 <tr><td><code>vnlTooltips(kapsam)</code></td><td>Tooltip'leri başlatır (<code>data-bs-toggle</code> ve eski <code>data-toggle</code>); AJAX sonrası otomatik çağrılır</td></tr>
                                 <tr><td><code>vnlLang('ANAHTAR')</code> / <code>VNL_LANG</code></td><td>Sunucudan <code>lang()</code> ile beslenen JS dil köprüsü</td></tr>
-                                <tr><td><code>select2Reload($(…))</code></td><td>AJAX select doldurma — bkz. <a href="/docs/theme-forms">Form ve Select</a></td></tr>
+                                <tr><td><code>selectReload($(…))</code></td><td>AJAX select doldurma — bkz. <a href="/docs/theme-forms">Form ve Select</a></td></tr>
                                 <tr><td><code>ClearForm($form)</code> / <code>checkValidity($form)</code></td><td>Form temizleme (SlimSelect dahil) ve basit doğrulama</td></tr>
                                 </tbody>
                             </table>

@@ -31,7 +31,7 @@
                                 <tr><td><code>text-gray-800</code> vb. sabit griler</td><td><code>text-body*</code> adaptif aile</td></tr>
                                 <tr><td>KTMenu / KTDrawer / KTScroll runtime'ı</td><td>Bootstrap Collapse / Offcanvas / Dropdown + ~4 KB tema JS'i</td></tr>
                                 <tr><td>DataTables + SDTable</td><td>Söküldü — <code>vnltable</code> (VNL 3.0 yol haritası) gelene dek ölü kod</td></tr>
-                                <tr><td>Select2 (<code>theme: bootstrap4</code>)</td><td>SlimSelect (aynı <code>select2Reload()</code> sözleşmesi)</td></tr>
+                                <tr><td>Select2 (<code>theme: bootstrap4</code>, <code>select2Reload()</code>)</td><td>SlimSelect — <code>selectReload()</code> (aynı sözleşme; <code>select2Reload</code> adı kaldırıldı, <code>.select2</code> sınıfı hâlâ tanınır)</td></tr>
                                 <tr><td>SweetAlert2 (eski, <code>swal.mixin</code>)</td><td>SweetAlert2 v11 (<code>Swal.mixin</code> + <code>didOpen</code>; <code>showMessage</code> API'si aynı)</td></tr>
                                 <tr><td>Google Fonts CDN (Inter)</td><td>Self-host Inter variable + JetBrains Mono (latin-ext dahil)</td></tr>
                                 <tr><td>moment + daterangepicker + noUiSlider + draggable</td><td>Söküldü (DataTables filtreleriyle birlikte ölü kod)</td></tr>

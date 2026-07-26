@@ -8,7 +8,8 @@
                 <div class="vnl-lead">
                     Form kontrolleri Bootstrap'tir; tema dolgun ölçüler, solid varyant ve parola
                     göster/gizle ekler. Select tarafında Select2'nin yerini SlimSelect aldı —
-                    <b>VNL 2.x sözleşmesi değişmeden</b>.
+                    davranış sözleşmesi aynı, adlar modernleşti: <code>.vnl-select</code> +
+                    <code>selectReload()</code>.
                 </div>
             </div>
 
@@ -51,14 +52,14 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">2. SlimSelect Köprüsü</h3>
                         <p class="text-body mb-4">
-                            <code>select.select2</code> sınıflı öğeler otomatik SlimSelect'e dönüşür
-                            (isim tarihseldir — dış projelerdeki çağrılar kırılmasın diye korunur).
+                            <code>select.vnl-select</code> sınıflı öğeler otomatik SlimSelect'e dönüşür
+                            (eski <code>.select2</code> sınıfı da tanınır — mevcut markup'lar kırılmaz).
                             Arama kutusu açıktır; <code>tags</code> attribute'u serbest değer eklemeyi açar.
                         </p>
                         <div class="row g-5 mb-5">
                             <div class="col-md-6">
                                 <label class="form-label fs-8 text-uppercase text-body-secondary fw-bold">Canlı örnek</label>
-                                <select class="select2 form-select">
+                                <select class="vnl-select form-select">
                                     <option value="0">Seçiniz</option>
                                     <option value="1">Voxnup İletişim</option>
                                     <option value="2">ERP</option>
@@ -67,16 +68,16 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="vnl-code"><pre><code>&lt;select class="select2"&gt;…&lt;/select&gt;                      &lt;!-- otomatik başlatılır --&gt;
-&lt;select class="select2" tags&gt;…&lt;/select&gt;                 &lt;!-- serbest değer eklenebilir --&gt;</code></pre></div>
+                        <div class="vnl-code"><pre><code>&lt;select class="vnl-select"&gt;…&lt;/select&gt;                  &lt;!-- otomatik başlatılır --&gt;
+&lt;select class="vnl-select" tags&gt;…&lt;/select&gt;             &lt;!-- serbest değer eklenebilir --&gt;</code></pre></div>
                     </div>
 
                     <div class="separator separator-dashed my-8"></div>
 
                     <div class="mb-0">
-                        <h3 class="fw-bold text-body-emphasis mb-4">3. AJAX ile Doldurma (select2Reload)</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. AJAX ile Doldurma (selectReload)</h3>
                         <p class="text-body mb-4">
-                            <code>action</code> attribute'lu select'ler <code>select2Reload()</code> ile
+                            <code>action</code> attribute'lu select'ler <code>selectReload()</code> ile
                             sunucudan doldurulur. Sözleşme VNL 2.x ile birebir aynıdır:
                         </p>
                         <div class="table-responsive mb-5">
@@ -94,10 +95,10 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="vnl-code"><pre><code>&lt;select class="select2" action="app/kullanici/listele" prm_rol="admin"&gt;&lt;/select&gt;
+                        <div class="vnl-code"><pre><code>&lt;select class="vnl-select" action="app/kullanici/listele" prm_rol="admin"&gt;&lt;/select&gt;
 
 &lt;script&gt;
-    select2Reload($('select.select2[action]'));   // VNL 2.x çağrısı aynen çalışır
+    selectReload($('select.vnl-select[action]'));   // sayfa açılışında zaten otomatik koşar
     // ClearForm($form) SlimSelect örneklerini de "Seçiniz"e sıfırlar
 &lt;/script&gt;</code></pre></div>
                     </div>

@@ -6,18 +6,19 @@
  * ============================================================
  */
 /**
- * vnl.js'ten temaya taşındı — SlimSelect temanın vendor'ıdır, köprüsü de
- * temanın parçasıdır. Tarihsel global isimler korunur: select2Reload,
- * selectReload, vnlSelectInit, elementReady.
+ * Global API: selectReload, vnlSelectInit, elementReady.
+ * (VNL 3.0: select2Reload adı kaldırıldı — çağrılar selectReload'a çevrilir.)
  *
- * Sözleşme (VNL 2.x ile aynı): `select.select2[action]` seçicisi, `prm_*`
- * attribute'ları POST parametresi olur, `no-option`/`multiple` yoksa
- * value="0" "Seçiniz" seçeneği eklenir (ClearForm .val(0) buna dayanır),
- * `async` attribute'u senkron/asenkron davranışı korur.
+ * Sözleşme: `select.vnl-select[action]` seçicisi (eski `.select2` sınıfı da
+ * tanınır), `prm_*` attribute'ları POST parametresi olur, `no-option` /
+ * `multiple` yoksa value="0" "Seçiniz" seçeneği eklenir (ClearForm .val(0)
+ * buna dayanır), `async` attribute'u senkron/asenkron davranışı korur.
  *
  * NOT: Bu modül bilinçli olarak jQuery kullanır (AJAX doldurma ve
  * ajaxStop yaşam döngüsü) — vendors.min.js her zaman önce yüklenir.
  */
+
+const SELECT_SELECTOR = 'select.vnl-select, select.select2';
 
 function vnlSelectInit(el) {
     if (typeof SlimSelect === 'undefined') return;
@@ -43,7 +44,7 @@ function vnlSelectInit(el) {
     new SlimSelect({select: el, settings: settings});
 }
 
-function select2Reload(input) {
+function selectReload(input) {
     var $ = window.jQuery;
 
     $.each(input, function () {
@@ -98,7 +99,7 @@ function elementReady() {
         window.vnlTooltips(document);
     }
 
-    document.querySelectorAll('select.select2').forEach(function (el) {
+    document.querySelectorAll(SELECT_SELECTOR).forEach(function (el) {
         if (!el.slim) {
             vnlSelectInit(el);
         }
@@ -107,15 +108,14 @@ function elementReady() {
 
 export function initSelect() {
     window.vnlSelectInit = vnlSelectInit;
-    window.select2Reload = select2Reload;
-    window.selectReload = select2Reload;
+    window.selectReload = selectReload;
     window.elementReady = elementReady;
 
     elementReady();
 
     var $ = window.jQuery;
     if ($) {
-        select2Reload($('select.select2[action]'));
+        selectReload($('select.vnl-select[action], select.select2[action]'));
         $(document).ajaxStop(function () {
             elementReady();
         });
