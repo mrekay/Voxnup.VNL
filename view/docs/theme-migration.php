@@ -34,6 +34,7 @@
                                 <tr><td>Select2 (<code>theme: bootstrap4</code>, <code>select2Reload()</code>)</td><td>SlimSelect — <code>selectReload()</code> (aynı sözleşme; <code>select2Reload</code> adı kaldırıldı, <code>.select2</code> sınıfı hâlâ tanınır)</td></tr>
                                 <tr><td>SweetAlert2 (eski, <code>swal.mixin</code>)</td><td>SweetAlert2 v11 (<code>Swal.mixin</code> + <code>didOpen</code>; <code>showMessage</code> API'si aynı)</td></tr>
                                 <tr><td>Google Fonts CDN (Inter)</td><td>Self-host Inter variable + JetBrains Mono (latin-ext dahil)</td></tr>
+                                <tr><td><code>loadingButton()</code> / <code>loadingButtonDisable()</code> (<code>.loadingbutton</code>)</td><td><code>vnlBtnLoading()</code> / <code>vnlBtnReset()</code> + deklaratif <code>data-vnl-loading</code></td></tr>
                                 <tr><td>moment + daterangepicker + noUiSlider + draggable</td><td>Söküldü (DataTables filtreleriyle birlikte ölü kod)</td></tr>
                                 </tbody>
                             </table>

@@ -95,28 +95,43 @@
                     <div class="separator separator-dashed my-8"></div>
 
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">4. Spinner, Lightbox ve Yükleniyor Deseni</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Yükleniyor: Spinner, Düğmeler ve Lightbox</h3>
+                        <p class="text-body mb-4">
+                            Yükleniyor düğmeleri için tek yapı vardır: <code>vnlBtnLoading()</code> /
+                            <code>vnlBtnReset()</code>. İçerik, genişlik sabitlenerek spinner + metinle
+                            takas edilir; düğmede <code>.indicator-*</code> span'ları varsa otomatik o desen
+                            kullanılır. <b>Deklaratif kullanımda</b> (<code>data-vnl-loading</code>) düğme
+                            tıklanınca kendini yükler, sayfadaki AJAX trafiği bitince kendini sıfırlar —
+                            "yenile" düğmeleri için sıfır kod.
+                        </p>
                         <div class="d-flex flex-wrap align-items-center gap-3 mb-5">
-                            <button type="button" class="btn btn-soft-primary" onclick="showSpinner(); setTimeout(hideSpinner, 1500);">
-                                <i class="bi bi-arrow-repeat me-2"></i>Tam sayfa spinner (1.5 sn)
+                            <button type="button" class="btn btn-soft-primary"
+                                    onclick="vnlBtnLoading(this, 'Yenileniyor…'); var b=this; setTimeout(function(){ vnlBtnReset(b); }, 1500);">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Yenile (içerik takası)
                             </button>
-                            <button type="button" class="btn btn-soft-primary" onclick="vnlLightbox('<?= $cDefinitions->appLogoPath() ?>VNLBIG.png', 'VNL maskotu — vnlLightbox() örneği')">
-                                <i class="bi bi-image me-2"></i>Lightbox örneği
-                            </button>
-                            <button type="button" class="btn btn-primary" id="vnl_demo_indicator"
-                                    onclick="this.setAttribute('data-vnl-indicator','on'); var b=this; setTimeout(function(){ b.removeAttribute('data-vnl-indicator'); }, 1500);">
-                                <span class="indicator-label">Kaydet</span>
+                            <button type="button" class="btn btn-primary"
+                                    onclick="vnlBtnLoading(this); var b=this; setTimeout(function(){ vnlBtnReset(b); }, 1500);">
+                                <span class="indicator-label">Kaydet (indicator deseni)</span>
                                 <span class="indicator-progress"><?= lang('BTN_LOADING') ?>
                                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                             </button>
+                            <button type="button" class="btn btn-soft-primary" onclick="showSpinner(); setTimeout(hideSpinner, 1500);">
+                                <i class="bi bi-arrow-repeat me-2"></i>Tam sayfa spinner
+                            </button>
+                            <button type="button" class="btn btn-soft-primary" onclick="vnlLightbox('<?= $cDefinitions->appLogoPath() ?>VNLBIG.png', 'VNL maskotu — vnlLightbox() örneği')">
+                                <i class="bi bi-image me-2"></i>Lightbox
+                            </button>
                         </div>
-                        <div class="vnl-code"><pre><code>showSpinner();  hideSpinner();          // #loadingSpinner katmanı (saf CSS)
-vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="modal-image"&gt; de yeterli
+                        <div class="vnl-code"><pre><code>&lt;!-- Deklaratif: tıklanınca yüklenir, AJAX bitince kendini sıfırlar --&gt;
+&lt;button class="btn btn-soft-primary" data-vnl-loading data-loading-text="Yenileniyor…"
+        onclick="listeyiYenile()"&gt;Yenile&lt;/button&gt;
 
-&lt;button data-vnl-indicator="off"&gt;       // yükleniyor deseni (eski data-kt-indicator da çalışır)
-    &lt;span class="indicator-label"&gt;Kaydet&lt;/span&gt;
-    &lt;span class="indicator-progress"&gt;Lütfen bekleyin…&lt;/span&gt;
-&lt;/button&gt;</code></pre></div>
+// Programatik:
+vnlBtnLoading(btn);          // Element, jQuery ya da seçici; opsiyonel 2. argüman: metin
+vnlBtnReset(btn);
+
+showSpinner();  hideSpinner();          // #loadingSpinner katmanı (saf CSS)
+vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="modal-image"&gt; de yeterli</code></pre></div>
                     </div>
 
                     <div class="separator separator-dashed my-8"></div>

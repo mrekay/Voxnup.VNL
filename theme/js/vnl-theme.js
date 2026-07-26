@@ -15,6 +15,7 @@ import { initLightbox } from './modules/lightbox.js';
 import { initSpinner } from './modules/spinner.js';
 import { initPassword } from './modules/password.js';
 import { initSelect } from './modules/select.js';
+import { initLoadingButton } from './modules/loading-button.js';
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
@@ -31,4 +32,5 @@ function boot() {
     initSpinner();
     initPassword();
     initSelect();
+    initLoadingButton();
 }

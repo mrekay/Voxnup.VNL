@@ -33,6 +33,7 @@
                                 <tbody class="text-body fw-semibold">
                                 <tr><td><code>showMessage(mesaj, hataMi)</code></td><td>Sağ altta toast (SweetAlert2)</td></tr>
                                 <tr><td><code>showModalMessage(mesaj, mod)</code></td><td>Modal; mod: <code>0/false</code> başarı · <code>1/true</code> hata · <code>2</code> uyarı · <code>3</code> bilgi</td></tr>
+                                <tr><td><code>vnlBtnLoading(btn, metin?)</code> / <code>vnlBtnReset(btn)</code></td><td>Yükleniyor düğmeleri; deklaratif <code>data-vnl-loading</code> AJAX bitince kendini sıfırlar — bkz. <a href="/docs/theme-components">Bileşenler</a></td></tr>
                                 <tr><td><code>showSpinner()</code> / <code>hideSpinner()</code></td><td>Tam sayfa yükleniyor katmanı (<code>#loadingSpinner</code>)</td></tr>
                                 <tr><td><code>deleteItemFromDB({url, data, …})</code></td><td>Onaylı silme akışı (Swal onayı + AJAX)</td></tr>
                                 <tr><td><code>copyToClipboard(metin)</code></td><td>Panoya kopyala + <code>LBL_COPIED</code> bildirimi</td></tr>
