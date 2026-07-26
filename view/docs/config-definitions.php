@@ -2,11 +2,10 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
 
-            <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Config Definitions</h1>
-                <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    <code>libs/config/config_definitions.php</code> dosyası, VNL uygulamasının tüm temel yapılandırmasını barındırır. Her yeni projede ilk doldurulması gereken dosyadır.
-                </div>
+            <div class="vnl-page-hero mb-12 mt-6">
+                <div class="vnl-overline mb-3">// docs/config-definitions</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Config Definitions</h1>
+                <div class="vnl-lead"><code>libs/config/config_definitions.php</code> dosyası, VNL uygulamasının tüm temel yapılandırmasını barındırır. Her yeni projede ilk doldurulması gereken dosyadır.</div>
             </div>
 
             <div class="alert bg-warning-subtle border border-warning d-flex align-items-center p-5 mb-10">

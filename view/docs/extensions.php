@@ -2,11 +2,10 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
 
-            <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Extension Sistemi</h1>
-                <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    VNL, <code>extensions/</code> klasörü altında bağımsız eklentiler destekler. Her eklenti kendi controller, action, view ve kaynak dosyalarını barındırır; VNL core'una tek satır dokunmadan çalışır.
-                </div>
+            <div class="vnl-page-hero mb-12 mt-6">
+                <div class="vnl-overline mb-3">// docs/extensions</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Extension Sistemi</h1>
+                <div class="vnl-lead">VNL, <code>extensions/</code> klasörü altında bağımsız eklentiler destekler. Her eklenti kendi controller, action, view ve kaynak dosyalarını barındırır; VNL core'una tek satır dokunmadan çalışır.</div>
             </div>
 
             <!--begin::Nasıl Çalışır-->

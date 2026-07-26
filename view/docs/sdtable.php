@@ -2,11 +2,10 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
 
-            <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">SDTable — Sunucu Taraflı DataTables</h1>
-                <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    <code>SDTable</code> sınıfı, jQuery DataTables için sunucu taraflı işleme (server-side processing) desteğiyle HTML tablo yapısını PHP tarafında üretir. View'da tek satır çağrısıyla tam işlevsel, AJAX destekli, filtrelenebilir ve sıralanabilir bir tablo oluşturursunuz.
-                </div>
+            <div class="vnl-page-hero mb-12 mt-6">
+                <div class="vnl-overline mb-3">// docs/sdtable</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">SDTable — Sunucu Taraflı DataTables</h1>
+                <div class="vnl-lead"><code>SDTable</code> sınıfı, jQuery DataTables için sunucu taraflı işleme (server-side processing) desteğiyle HTML tablo yapısını PHP tarafında üretir. View'da tek satır çağrısıyla tam işlevsel, AJAX destekli, filtrelenebilir ve sıralanabilir bir tablo oluşturursunuz.</div>
             </div>
 
             <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">

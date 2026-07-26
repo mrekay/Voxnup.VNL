@@ -2,11 +2,10 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
 
-            <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Dil ve Çoklu Dil Desteği (i18n)</h1>
-                <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>libs/languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong>; aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.
-                </div>
+            <div class="vnl-page-hero mb-12 mt-6">
+                <div class="vnl-overline mb-3">// docs/languages</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Dil ve Çoklu Dil Desteği (i18n)</h1>
+                <div class="vnl-lead">VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>libs/languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong>; aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.</div>
             </div>
 
             <div class="alert bg-info-subtle border border-info d-flex flex-column flex-sm-row p-5 mb-10">

@@ -2,12 +2,11 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
 
-            <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Hoş Geldiniz</h1>
-                <div class="fs-5 text-muted fw-semibold">
-                    VNL projesi başarıyla çalışıyor. Bu sayfa sistemin düzgün yapılandırıldığını doğrulamak için oluşturulmuştur.<br/>
-                    Daha fazla bilgi için <a href="#" class="link-primary fw-bold">VNL dokümantasyonunu</a> inceleyebilirsiniz.
-                </div>
+            <div class="vnl-page-hero mb-12 mt-6">
+                <div class="vnl-overline mb-3">// index</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Hoş Geldiniz</h1>
+                <div class="vnl-lead">VNL projesi başarıyla çalışıyor. Bu sayfa sistemin düzgün yapılandırıldığını doğrulamak için oluşturulmuştur.<br/>
+                    Daha fazla bilgi için <a href="#" class="link-primary fw-bold">VNL dokümantasyonunu</a> inceleyebilirsiniz.</div>
             </div>
 
             <div class="row g-5 g-xl-10">

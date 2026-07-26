@@ -29,6 +29,8 @@ const VENDORS = [
 const FONTS = [
     ['node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2', 'fonts/inter/inter-latin-wght-normal.woff2'],
     ['node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2', 'fonts/inter/inter-latin-ext-wght-normal.woff2'],
+    ['node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2', 'fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2'],
+    ['node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-ext-wght-normal.woff2', 'fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2'],
     ['node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2', 'fonts/fa/fa-solid-900.woff2'],
     ['node_modules/@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2', 'fonts/fa/fa-regular-400.woff2'],
     ['node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2', 'fonts/fa/fa-brands-400.woff2'],

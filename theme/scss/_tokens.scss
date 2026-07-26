@@ -15,6 +15,16 @@
   --vnl-surface-raised: #ffffff;
   --vnl-border: var(--bs-border-color);
 
+  // Katman cilası: açık temada yumuşak gölge, koyu temada ince ışık halkası.
+  // Ring box-shadow ile verilir — markup'taki border-0 kartları etkilemez.
+  --vnl-card-shadow: 0 .35rem 1.35rem rgba(16, 36, 26, .05), 0 .1rem .35rem rgba(16, 36, 26, .04);
+  --vnl-card-ring: transparent;
+  --vnl-raised-shadow: 0 .75rem 2.25rem rgba(16, 36, 26, .12), 0 .15rem .5rem rgba(16, 36, 26, .06);
+  --vnl-raised-ring: transparent;
+
+  // Zemindeki mühendislik-kağıdı dokusu
+  --vnl-grid-line: rgba(23, 89, 54, .045);
+
   --vnl-sidebar-bg: #0b0f0e;
   --vnl-sidebar-border: #1d2421;
   --vnl-sidebar-color: #97a39c;
@@ -28,15 +38,25 @@
 
   --vnl-surface: #161c19;
   --vnl-surface-raised: #1c2320;
+
+  --vnl-card-shadow: 0 .35rem 1.25rem rgba(0, 0, 0, .28);
+  --vnl-card-ring: rgba(255, 255, 255, .055);
+  --vnl-raised-shadow: 0 .85rem 2.5rem rgba(0, 0, 0, .5);
+  --vnl-raised-ring: rgba(255, 255, 255, .07);
+
+  --vnl-grid-line: rgba(134, 255, 187, .02);
 }
 
 // ---- Yüzey köprüleri: BS bileşen değişkenleri token'lara bağlanır ----------
 .card {
   --bs-card-bg: var(--vnl-surface);
+  --bs-card-border-color: var(--vnl-border);
+  box-shadow: var(--vnl-card-shadow), 0 0 0 1px var(--vnl-card-ring);
 }
 
 .modal {
   --bs-modal-bg: var(--vnl-surface);
+  --bs-modal-box-shadow: var(--vnl-raised-shadow), 0 0 0 1px var(--vnl-raised-ring);
 }
 
 .offcanvas,
@@ -46,17 +66,20 @@
 
 .dropdown-menu {
   --bs-dropdown-bg: var(--vnl-surface-raised);
+  --bs-dropdown-border-color: var(--vnl-border);
+  box-shadow: var(--vnl-raised-shadow), 0 0 0 1px var(--vnl-raised-ring);
 }
 
 .toast {
   --bs-toast-bg: var(--vnl-surface-raised);
+  box-shadow: var(--vnl-raised-shadow), 0 0 0 1px var(--vnl-raised-ring);
 }
 
 .popover {
   --bs-popover-bg: var(--vnl-surface-raised);
 }
 
-// Koyu temada kartlar zeminden kenarlıkla da ayrışsın (gölge koyuda okunmaz)
-[data-bs-theme="dark"] .card {
-  --bs-card-border-color: var(--bs-border-color);
+// SweetAlert2 popup'ı da yükselen yüzey cilasını alır
+.swal2-popup {
+  box-shadow: var(--vnl-raised-shadow), 0 0 0 1px var(--vnl-raised-ring);
 }

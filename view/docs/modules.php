@@ -2,11 +2,10 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
 
-            <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Modüller (libs/modules)</h1>
-                <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    VNL, tekrar kullanılabilir yardımcı işlemleri <code>libs/modules/</code> dizinindeki statik sınıflar aracılığıyla sunar. Tüm modüller uygulama başlangıcında otomatik yüklenir; herhangi bir yerden <code>ModulAdi::Metot()</code> biçiminde statik olarak çağrılır.
-                </div>
+            <div class="vnl-page-hero mb-12 mt-6">
+                <div class="vnl-overline mb-3">// docs/modules</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Modüller (libs/modules)</h1>
+                <div class="vnl-lead">VNL, tekrar kullanılabilir yardımcı işlemleri <code>libs/modules/</code> dizinindeki statik sınıflar aracılığıyla sunar. Tüm modüller uygulama başlangıcında otomatik yüklenir; herhangi bir yerden <code>ModulAdi::Metot()</code> biçiminde statik olarak çağrılır.</div>
             </div>
 
             <div class="alert bg-primary-subtle border border-primary d-flex align-items-center p-5 mb-10">

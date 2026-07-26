@@ -21,9 +21,13 @@
     }
   }
 
+  // Breadcrumb dosya yolu gibi dizilir: VNL / docs / routing
   .breadcrumb {
     margin: 0;
-    font-size: .75rem;
+    font-family: var(--bs-font-monospace);
+    font-size: .6875rem;
+    letter-spacing: .02em;
+    --bs-breadcrumb-divider: "/";
     --bs-breadcrumb-divider-color: var(--bs-tertiary-color);
     --bs-breadcrumb-item-active-color: var(--bs-secondary-color);
   }

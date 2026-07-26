@@ -3,7 +3,8 @@
 
         <div class="text-center mb-10">
             <img src="<?= $cDefinitions->appLogoPath() . 'VNLBIG.png' ?>" alt="<?= $cDefinitions->appName() ?>"
-                 class="h-45px mb-5"/>
+                 class="h-45px mb-6"/>
+            <div class="vnl-overline mb-2">// login</div>
             <h1 class="fs-2x fw-bold mb-2"><?= lang('LOGIN_TITLE') ?></h1>
             <div class="text-body-secondary"><?= lang('LOGIN_SUBTITLE') ?></div>
         </div>

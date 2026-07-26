@@ -2,13 +2,12 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
 
-            <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Stripe Extension</h1>
-                <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    VNL için Stripe ödeme eklentisi. Tek seferlik ödeme (<code>one-time payment</code>) ve
+            <div class="vnl-page-hero mb-12 mt-6">
+                <div class="vnl-overline mb-3">// docs/stripe</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Stripe Extension</h1>
+                <div class="vnl-lead">VNL için Stripe ödeme eklentisi. Tek seferlik ödeme (<code>one-time payment</code>) ve
                     tekrarlayan abonelik (<code>subscription</code>) modellerini destekler.
-                    Tüm dosyalar <code>extensions/stripe/</code> altında bağımsız yaşar.
-                </div>
+                    Tüm dosyalar <code>extensions/stripe/</code> altında bağımsız yaşar.</div>
             </div>
 
             <!--begin::Kurulum-->

@@ -2,11 +2,10 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
 
-            <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Excel Export</h1>
-                <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    VNL, Excel dosyası oluşturmak için <b>PhpSpreadsheet</b> kütüphanesini kullanır. İki farklı yaklaşım mevcuttur: SDTable'ın yerleşik export mekanizması ve doğrudan action içinde özel Excel oluşturma.
-                </div>
+            <div class="vnl-page-hero mb-12 mt-6">
+                <div class="vnl-overline mb-3">// docs/excel-export</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Excel Export</h1>
+                <div class="vnl-lead">VNL, Excel dosyası oluşturmak için <b>PhpSpreadsheet</b> kütüphanesini kullanır. İki farklı yaklaşım mevcuttur: SDTable'ın yerleşik export mekanizması ve doğrudan action içinde özel Excel oluşturma.</div>
             </div>
 
             <div class="row g-5 mb-10">

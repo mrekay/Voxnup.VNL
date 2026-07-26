@@ -2,11 +2,10 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
 
-            <div class="text-center mb-15 mt-10">
-                <h1 class="fs-2hx fw-bold mb-5 text-body-emphasis">Oturum Yönetimi ve Kimlik Doğrulama</h1>
-                <div class="fs-5 text-muted fw-semibold w-lg-75 mx-auto">
-                    VNL, oturum açma/kapama işlemlerini <code>Session</code> sınıfı ve <code>UserModule</code> modülü aracılığıyla yönetir. Her istekte kullanıcı kimliği doğrulanır; korunan sayfalara giriş yapılmadan erişim engellenir.
-                </div>
+            <div class="vnl-page-hero mb-12 mt-6">
+                <div class="vnl-overline mb-3">// docs/session</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Oturum Yönetimi ve Kimlik Doğrulama</h1>
+                <div class="vnl-lead">VNL, oturum açma/kapama işlemlerini <code>Session</code> sınıfı ve <code>UserModule</code> modülü aracılığıyla yönetir. Her istekte kullanıcı kimliği doğrulanır; korunan sayfalara giriş yapılmadan erişim engellenir.</div>
             </div>
 
             <div class="card shadow-sm border-0 mb-10">

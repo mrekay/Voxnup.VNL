@@ -27,10 +27,6 @@
   background-color: var(--bs-primary);
 }
 
-[data-bs-theme="dark"] .swal2-popup {
-  box-shadow: 0 .5rem 2rem rgba(0, 0, 0, .55);
-}
-
 // Toast konumu (bottom-end) VNL'in mesaj sistemi tarafından kullanılıyor
 .swal2-container.swal2-bottom-end > .swal2-popup {
   border: 1px solid var(--vnl-border);

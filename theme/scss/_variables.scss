@@ -51,7 +51,10 @@ $border-color-dark:         #242b28;
 // ---- Tipografi -------------------------------------------------------------
 // Kök 16px kalır; base 14px — araç/ERP yoğunluğu için. Ölçek ekleri
 // (fs-7/8/9, fs-2x/2hx/3x) _utilities üzerinden $font-sizes ile gelir.
+// Mono, kimliğin aksan sesidir: breadcrumb path'i, overline'lar, version
+// chip'i, kod blokları ve veri etiketleri JetBrains Mono ile dizilir.
 $font-family-sans-serif: "InterVariable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", sans-serif;
+$font-family-monospace:  "JetBrainsMonoVariable", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 $font-size-base:         .875rem;
 $headings-font-weight:   600;
 $font-sizes: (
@@ -101,7 +104,45 @@ $spacers: (
 );
 $enable-negative-margins: true;
 
+// ---- Biçim dili ------------------------------------------------------------
+// Metronic'in yumuşak-profesyonel ergonomisi: dolgun kontroller, .475rem
+// bandında köşeler, katmanlı ama abartısız derinlik.
+$border-radius-sm: .3rem;
+$border-radius:    .475rem;
+$border-radius-lg: .625rem;
+$border-radius-xl: .75rem;
+
+$input-btn-padding-y:    .55rem;
+$input-btn-padding-x:    1rem;
+$input-btn-padding-y-sm: .375rem;
+$input-btn-padding-x-sm: .75rem;
+$input-btn-padding-y-lg: .75rem;
+$input-btn-padding-x-lg: 1.25rem;
+$btn-font-weight:        500;
+
+$input-focus-border-color: rgba($primary, .55);
+$focus-ring-opacity:       .2;
+
+$box-shadow:    0 .5rem 1.5rem rgba($black, .1);
+$box-shadow-sm: 0 .1rem .5rem rgba($black, .06);
+$box-shadow-lg: 0 1rem 3rem rgba($black, .14);
+
+$badge-font-weight:   600;
+$badge-padding-y:     .4em;
+$badge-padding-x:     .65em;
+
+$dropdown-padding-y:        .5rem;
+$dropdown-item-padding-y:   .45rem;
+$dropdown-item-padding-x:   1rem;
+$dropdown-border-radius:    $border-radius-lg;
+
+$modal-content-border-radius: $border-radius-lg;
+
+$table-cell-padding-y: .65rem;
+$table-cell-padding-x: .75rem;
+
 // ---- Davranış/görünüm ayarları ---------------------------------------------
 $link-decoration:       none;
 $link-hover-decoration: underline;
 $card-cap-bg:           transparent;
+$card-border-radius:    $border-radius-lg;
