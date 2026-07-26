@@ -161,7 +161,7 @@ require view('static/footer');
 &lt;script&gt;
 $('#btn_kullanici_kaydet').on('click', function () {
     var btn = $(this);
-    btn.attr('data-kt-indicator', 'on');
+    btn.attr('data-vnl-indicator', 'on');
 
     $.ajax({
         type: 'POST',
@@ -171,13 +171,13 @@ $('#btn_kullanici_kaydet').on('click', function () {
             email: $('#inp_kullanici_email').val(),
         },
         success: function (response) {
-            btn.removeAttr('data-kt-indicator');
+            btn.removeAttr('data-vnl-indicator');
             $('#modal_kullanici_ekle').modal('hide');
             // Sayfayı yenile veya tabloyu güncelle
             location.reload();
         },
         error: function (xhr) {
-            btn.removeAttr('data-kt-indicator');
+            btn.removeAttr('data-vnl-indicator');
             // Hata mesajını göster
             alert(xhr.responseJSON?.message ?? 'Bir hata oluştu.');
         }
