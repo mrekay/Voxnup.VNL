@@ -1,3 +1,10 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Sidebar daraltma modlari ve offcanvas davranisi
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 /**
  * Sidebar davranışları.
  *

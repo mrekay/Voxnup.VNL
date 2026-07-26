@@ -1,3 +1,10 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Build gorevleri: vendor concat + esbuild + font kopyalama
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 /**
  * VNL Theme build görevleri (CSS hariç — o sass CLI ile derlenir).
  *

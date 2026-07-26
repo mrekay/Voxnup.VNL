@@ -1,3 +1,10 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Tam ekran gorsel onizleme (vnlLightbox)
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 /**
  * Görsel lightbox.
  *

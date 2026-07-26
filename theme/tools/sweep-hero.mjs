@@ -1,3 +1,10 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Migrasyon codemod'u: sayfa hero duzeni
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 /**
  * Sayfa hero'larını VNL Theme kimliğine çevirir (tek seferlik codemod).
  *

@@ -1,3 +1,12 @@
+<?php
+/*
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Standart script seti: dil koprusu + vendor/tema/cekirdek JS
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
+?>
 <script>
     $SITE_URL = '<?php echo SITE_URL; ?>';
     // vnl.js 401 yanıtında yalnızca oturumu düşmüş kullanıcıyı yeniden yükler; girişsizde 0 kalır.

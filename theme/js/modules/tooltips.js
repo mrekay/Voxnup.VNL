@@ -1,3 +1,10 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Tooltip baslatma koprusu
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 /**
  * Tooltip init.
  *

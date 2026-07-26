@@ -1,3 +1,10 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Sidebar alt menuleri: saga acilan flyout paneller
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 /**
  * Sidebar alt menüleri: sağa açılan flyout paneller.
  *

@@ -1,4 +1,12 @@
 <?php
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) 3.0.0 — Hata Sayfası
+ *  Yakalanmamış istisnaları ve ölümcül hataları karşılar;
+ *  sayfa isteğinde HTML, AJAX/API isteğinde JSON döner.
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 
 /**
  * İsteğin HTML hata sayfası mı yoksa JSON mı beklediğini belirler.

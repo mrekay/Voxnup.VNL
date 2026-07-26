@@ -1,3 +1,10 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Migrasyon codemod'u: Metronic utility siniflari
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 /**
  * Metronic utility sınıfı sweep'i.
  *

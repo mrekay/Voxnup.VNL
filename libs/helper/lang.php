@@ -1,4 +1,11 @@
 <?php
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) 3.0.0 — Dil Yardımcıları
+ *  Dil anahtarlarına kısa erişim: lang() ve lang_has().
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 
 /**
  * Dil anahtarını okur.

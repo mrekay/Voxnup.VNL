@@ -1,4 +1,11 @@
 <?php
+/*
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Yerel gelistirme/smoke-test router'i (php -S icin)
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 /**
  * Yerel geliştirme/smoke-test router'ı (php -S için).
  *

@@ -1,3 +1,10 @@
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Tema modu (light/dark/system) davranisi
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 /**
  * Tema modu (light / dark / system).
  *

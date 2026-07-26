@@ -1,4 +1,11 @@
 <?php
+/*
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Standart <head>: pre-paint tema kurulumu + tema CSS'leri
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 $vnl_theme_path = $assets_address . '/vnl';
 ?>
 <!-- Pre-paint tema kurulumu: CSS'ten ÖNCE, senkron. localStorage anahtarı

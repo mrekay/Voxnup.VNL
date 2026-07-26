@@ -37,15 +37,6 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
-                                "text" => "VNL Theme",
-                                'url' => 'docs/theme',
-                                'page_name' => 'theme.php',
-                                'permission' => '',
-                                'icon' => 'clock',
-                                'showmenu' => 1,
-                                "child" => []
-                        ],
-                        [
                                 "text" => "Yönlendirme (Routing) ve Controller",
                                 'url' => 'docs/routing',
                                 'page_name' => 'routing.php',
@@ -172,6 +163,22 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
 
+                ]
+        ],
+        [
+                "text" => "VNL Theme El Kitabı",
+                'icon' => 'bi bi-palette2', // boşluklu tam class: ikon passthrough örneği
+                'showmenu' => 1,
+                "child" => [
+                        ["text" => "Genel Bakış", 'url' => 'docs/theme', 'page_name' => 'theme.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "Layout ve Preset'ler", 'url' => 'docs/theme-layout', 'page_name' => 'theme-layout.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "Sidebar ve Menü", 'url' => 'docs/theme-sidebar', 'page_name' => 'theme-sidebar.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "Renkler, Tema Modu ve Tipografi", 'url' => 'docs/theme-design', 'page_name' => 'theme-design.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "Bileşenler", 'url' => 'docs/theme-components', 'page_name' => 'theme-components.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "Form ve Select", 'url' => 'docs/theme-forms', 'page_name' => 'theme-forms.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "İkonlar", 'url' => 'docs/theme-icons', 'page_name' => 'theme-icons.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "JavaScript API", 'url' => 'docs/theme-js', 'page_name' => 'theme-js.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "Metronic'ten Geçiş", 'url' => 'docs/theme-migration', 'page_name' => 'theme-migration.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
                 ]
         ],
         [

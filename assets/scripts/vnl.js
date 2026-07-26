@@ -1,6 +1,6 @@
 /*!
  * ============================================================
- *  Voxnup Not Laravel (VNL) 2.4.0 — Standart Script Dosyası
+ *  Voxnup Not Laravel (VNL) 3.0.0 — Standart Script Dosyası
  *  Global AJAX yanıt yönetimi, toast/modal yardımcıları ve
  *  ortak istemci fonksiyonları.
  *  Authors: Voxnup Authors

@@ -1,4 +1,12 @@
 <?php
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) 3.0.0 — Dil Sistemi
+ *  JSON dil dosyalarını sözlük olarak yükler; eksik anahtar
+ *  ve eksik çeviri durumlarını isteği düşürmeden karşılar.
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 
 /**
  * VNL dil sistemi.

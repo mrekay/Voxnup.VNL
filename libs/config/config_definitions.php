@@ -20,9 +20,22 @@ class ConfigDefinitions
     private $cdn_url;
     private $cdn_path;
     private $product_id;
-    private $version = "2.4.0";
-    private $vnl_version = "2.4.0"; // burayı sisteminizde değiştirmeyin. burası vnl'in takibini yapmak için var.
-    private $login_except_pages = ["app","login","register","logout","index","getting-started","routing","request-handling","docs/overview","overview","docs/getting-started","docs/theme","docs/routing","docs/request-handling","docs/modals","docs/session","docs/config-definitions","docs/models","docs/validators","docs/languages","docs/sdtable","docs/excel-export","docs/modules","docs/view-includes","docs/extensions","docs/stripe"];
+    private $version = "3.0.0";
+    private $vnl_version = "3.0.0"; // burayı sisteminizde değiştirmeyin. burası vnl'in takibini yapmak için var.
+
+    /**
+     * VNL Theme — uygulama geneli varsayılan davranışlar.
+     * Sistemden sisteme değişir (ERP mini-hover isterken pazarlama sitesi
+     * tam açık ister); sayfalar $page_config ile her zaman ezebilir.
+     *
+     *   leftsidebar : true (tam açık) | 'mini' (sabit dar) | 'mini-hover' (dar + hover'da genişler)
+     *   submenu     : 'flyout' (sağda panel) | 'accordion' (alt alta liste)
+     */
+    private $theme_defaults = [
+        'leftsidebar' => true,
+        'submenu'     => 'flyout',
+    ];
+    private $login_except_pages = ["app","login","register","logout","index","getting-started","routing","request-handling","docs/overview","overview","docs/getting-started","docs/theme","docs/theme-layout","docs/theme-sidebar","docs/theme-design","docs/theme-components","docs/theme-forms","docs/theme-icons","docs/theme-js","docs/theme-migration","docs/routing","docs/request-handling","docs/modals","docs/session","docs/config-definitions","docs/models","docs/validators","docs/languages","docs/sdtable","docs/excel-export","docs/modules","docs/view-includes","docs/extensions","docs/stripe"];
 
     public function __construct()
     {
@@ -94,6 +107,11 @@ class ConfigDefinitions
 
     public function getLoginExceptPages() : array{
         return $this->login_except_pages;
+    }
+
+    public function themeDefaults(): array
+    {
+        return $this->theme_defaults;
     }
     public function getDBInfo(): array
     {

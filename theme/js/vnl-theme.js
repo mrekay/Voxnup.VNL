@@ -1,9 +1,10 @@
 /*!
- * VNL Theme 1.0 — davranış katmanı (vanilla JS, jQuery'siz)
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — VNL Theme 1.0
+ *  Davranış katmanı (vanilla JS, jQuery'siz)
  * Kaynak: theme/js — çıktı: assets/vnl/js/vnl.min.js (IIFE)
- * Bootstrap davranışları (dropdown/collapse/offcanvas) data API ile çalışır;
- * burada yalnız temaya özgü olanlar var: tema modu, sidebar mini,
- * tooltip init ve lightbox.
+ *  Authors: Voxnup Authors
+ * ============================================================
  */
 
 import { initThemeMode } from './modules/theme-mode.js';

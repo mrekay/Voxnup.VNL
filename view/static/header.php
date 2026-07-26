@@ -7,9 +7,19 @@
  * Merge sırası: varsayılanlar → preset → controller'ın $page_config'i.
  */
 
+/* Uygulama geneli tema varsayılanları (ConfigDefinitions::themeDefaults):
+   sistemden sisteme değişir — ERP daraltılmış sidebar isterken pazarlama
+   sitesi tam açık ister. Sayfalar $page_config ile her zaman ezebilir.
+   (method_exists: eski türev projelerin config'leri metodu tanımıyor olabilir.) */
+$vnl_theme_defaults = array_merge(
+        array('leftsidebar' => true, 'submenu' => 'flyout'),
+        (isset($cDefinitions) && method_exists($cDefinitions, 'themeDefaults')) ? $cDefinitions->themeDefaults() : array()
+);
+
 $page_config_default = array(
         'layout' => 'app',
-        'leftsidebar' => true,   // true, false, 'mini' (sabit dar), 'mini-hover' (dar + hover'da genişler)
+        'leftsidebar' => $vnl_theme_defaults['leftsidebar'],   // true, false, 'mini', 'mini-hover'
+        'submenu' => $vnl_theme_defaults['submenu'],           // 'flyout', 'accordion'
         'topbar' => true,
         'footer' => false,
         'loader' => true,
@@ -17,7 +27,7 @@ $page_config_default = array(
 );
 
 $vnl_layout_presets = array(
-        'app'     => array('leftsidebar' => true,  'topbar' => true,  'contentheader' => true,  'footer' => false),
+        'app'     => array('leftsidebar' => $vnl_theme_defaults['leftsidebar'], 'topbar' => true, 'contentheader' => true, 'footer' => false),
         'top-nav' => array('leftsidebar' => false, 'topbar' => true,  'contentheader' => true,  'footer' => true),
         'landing' => array('leftsidebar' => false, 'topbar' => true,  'contentheader' => false, 'footer' => true),
         'focus'   => array('leftsidebar' => false, 'topbar' => false, 'contentheader' => false, 'footer' => false),
