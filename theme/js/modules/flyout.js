@@ -27,6 +27,26 @@ function btnOf(item) {
     return item.querySelector(':scope > .vnl-menu-link');
 }
 
+// CSS uzunluk değişkenini px'e çevirir ("16.25rem" | "260px")
+function cssLength(el, name) {
+    const raw = getComputedStyle(el).getPropertyValue(name).trim();
+    const value = parseFloat(raw) || 0;
+    return raw.endsWith('rem')
+        ? value * parseFloat(getComputedStyle(document.documentElement).fontSize)
+        : value;
+}
+
+// Panelin yaslanacağı kenar. Hover-genişleme modunda sidebar'ın O ANKİ
+// genişliği güvenilmez (transition sürüyor olabilir; panel açıkken ray
+// genişlemiş olacak) — hedef genişlikten hesaplanır.
+function sidebarRightEdge(sidebar) {
+    const rect = sidebar.getBoundingClientRect();
+    if (document.documentElement.getAttribute('data-vnl-sidebar') === 'hover') {
+        return rect.left + cssLength(sidebar, '--vnl-sidebar-width');
+    }
+    return rect.right;
+}
+
 function open(item) {
     const sub = subOf(item);
     if (!sub) return;
@@ -34,7 +54,6 @@ function open(item) {
     clearTimeout(closeTimer);
     if (openSub && openSub !== sub) close();
 
-    sub.classList.add(OPEN_CLASS);
     btnOf(item)?.setAttribute('aria-expanded', 'true');
     openSub = sub;
 
@@ -42,13 +61,19 @@ function open(item) {
         const sidebar = item.closest('.vnl-sidebar');
         const btnRect = btnOf(item).getBoundingClientRect();
 
-        sub.style.left = Math.round(sidebar.getBoundingClientRect().right) + 'px';
+        // Görünmez aç → ölç → hizala → göster: panel hiçbir karede yanlış
+        // konumda boyanmaz, animasyon doğru yerde başlar.
+        sub.style.visibility = 'hidden';
+        sub.style.left = Math.round(sidebarRightEdge(sidebar)) + 'px';
         sub.style.top = '0px';
+        sub.classList.add(OPEN_CLASS);
 
-        // Panel yüksekliği belli olduktan sonra dikey hizala ve ekrana sığdır
         const height = sub.offsetHeight;
         const top = Math.max(8, Math.min(btnRect.top, window.innerHeight - height - 8));
         sub.style.top = Math.round(top) + 'px';
+        sub.style.visibility = '';
+    } else {
+        sub.classList.add(OPEN_CLASS);
     }
 }
 
@@ -94,8 +119,12 @@ export function initFlyout() {
         if (openSub && !e.target.closest('.vnl-has-sub')) close();
     });
 
-    // Menü kaydırılırsa fixed konum bozulur — kapat
+    // Menü kaydırılır ya da pencere boyutlanırsa fixed konum bozulur — kapat
     document.querySelector('.vnl-sidebar-nav')?.addEventListener('scroll', function () {
+        if (isDesktop()) close();
+    }, { passive: true });
+
+    window.addEventListener('resize', function () {
         if (isDesktop()) close();
     }, { passive: true });
 }

@@ -100,16 +100,20 @@
   }
 
   // Daralmış görünüm: mini'de her zaman; hover modunda yalnız üzerinde
-  // değilken. (Alt menüler gizlenMEZ — flyout mini'de de çalışır.)
+  // değilken. Gizleme SADECE ray'daki üst seviye linklere uygulanır —
+  // `>` zinciri şart: aksi halde açık flyout panelinin içindeki başlıklar da
+  // gizlenir ve kapanma gecikmesi sırasında panel boş bir kutuya döner.
   html[data-vnl-sidebar="mini"] .vnl-sidebar,
   html[data-vnl-sidebar="hover"] .vnl-sidebar:not(:hover):not(:has(:focus-visible)) {
     .vnl-sidebar-brand { justify-content: center; padding-inline: .5rem; }
     .vnl-brand-text { display: none; }
 
-    .vnl-menu-title,
-    .vnl-menu-arrow { display: none; }
+    .vnl-menu > .vnl-menu-item > .vnl-menu-link {
+      justify-content: center;
 
-    .vnl-menu-link { justify-content: center; }
+      .vnl-menu-title,
+      .vnl-menu-arrow { display: none; }
+    }
 
     // Daraltma düğmesi ikonunu ters çevir
     [data-vnl-toggle="sidebar-mini"] .bi-chevron-double-left,
