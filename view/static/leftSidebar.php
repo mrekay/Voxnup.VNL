@@ -109,6 +109,15 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
+                                "text" => "VNL Table",
+                                'url' => 'docs/vnltable',
+                                'page_name' => 'vnltable.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
                                 "text" => "SDTable — DataTables",
                                 'url' => 'docs/sdtable',
                                 'page_name' => 'sdtable.php',

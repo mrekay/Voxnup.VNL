@@ -61,9 +61,21 @@ class VnlTable
         return new self($id);
     }
 
-    /** Verinin çekileceği action. getList sözleşmesi için VnlTableRequest'e bakın. */
+    /**
+     * Verinin çekileceği action. getList sözleşmesi için VnlTableRequest'e bakın.
+     *
+     * 'app/kayit/getList' gibi göreli bir yol köke sabitlenir: tablo
+     * /docs/vnltable gibi alt bir yolda çizildiğinde tarayıcı aksi halde
+     * /docs/app/kayit/getList adresini isterdi.
+     */
     public function url(string $url): self
     {
+        $url = trim($url);
+
+        if ($url !== '' && !preg_match('~^(https?:)?//~i', $url)) {
+            $url = '/' . ltrim($url, '/');
+        }
+
         $this->url = $url;
 
         return $this;
