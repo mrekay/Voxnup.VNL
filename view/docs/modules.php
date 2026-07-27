@@ -51,11 +51,11 @@
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>EncryptionModule::safeEncrypt($data)</code></td>
-                                    <td>Veriyi AES-128-CBC ile şifreler; URL güvenli string döndürür. <b>Anahtarı kaynak kodda sabittir ve IV kullanmaz</b> — gizli veri için uygun değildir.</td>
+                                    <td>Veriyi AES-256-GCM ile şifreler; URL güvenli string döndürür. Anahtar <code>.env</code>'deki <code>APP_ENCRYPTION_KEY</code>'den gelir, her çağrıda yeni nonce üretilir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>EncryptionModule::safeDecrypt($encrypted)</code></td>
-                                    <td>Şifreli metni çözer ve orijinal veriyi döndürür. Başarısız olursa <code>false</code> döner.</td>
+                                    <td>Şifreli metni çözer. Anahtar yanlışsa, <b>veri kurcalanmışsa</b> ya da biçim tanınmıyorsa <code>false</code> döner.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -76,6 +76,12 @@ if (EncryptionModule::PasswordNeedsRehash($kullanici->storedPassword())) {
     $kullanici->setStoredPassword(EncryptionModule::PasswordHash($password));
     $kullanici->save();
 }
+
+// Genel amaçlı şifreleme — .env'deki APP_ENCRYPTION_KEY kullanılır
+$jeton = EncryptionModule::safeEncrypt(['user_id' => $user->Id, 'time' => time()]);
+
+$veri = EncryptionModule::safeDecrypt($jeton);
+if ($veri === false) { /* kurcalanmış, anahtar değişmiş veya geçersiz */ }
 </code></pre>
                         </div>
                     </div>
