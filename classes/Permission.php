@@ -17,8 +17,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * SelectList()'teki leftJoin'de ona bağlıydı — yani her User::Select()
  * çağrısı "Class Permission not found" ile düşüyordu.
  *
- * Sütun adları User::SelectList'in join'inden ve UserPermissions'ın
- * sorgularından türetilmiştir: tbl_permissions(id, name, code).
+ * Sütun sözleşmesi: tbl_permissions(id, name, code, deleted_at).
+ * UserPermissions bu tabloya HasPermissionByCode içinde Id/Code/DeleteDate
+ * diye erişiyordu; o yazım hiç doğru olmadı, düzeltildi.
  */
 class Permission extends TableModel
 {

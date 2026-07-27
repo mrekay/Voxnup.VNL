@@ -1,7 +1,10 @@
 -- =============================================================================
--- VNL 3.0 — Veritabanı Kurulumu
--- Bu dosyayı yükseltme sırasında bir kez çalıştırın.
+-- 0001 — VNL 3.0 Yükseltmesi
+--
+-- İlk çalıştırılacak migration. VNL 2.x'ten gelen kurulumlarda da,
+-- sıfırdan kurulumda da bir kez çalıştırın.
 -- =============================================================================
+
 
 -- -----------------------------------------------------------------------------
 -- 1) Parola sütununu genişlet
@@ -42,10 +45,28 @@ CREATE TABLE IF NOT EXISTS `tbl_remember_tokens` (
 
 
 -- -----------------------------------------------------------------------------
--- 3) Eski çerezler
+-- 3) Yetki tablosu — yalnızca sıfırdan kurulumlar için
+--
+-- Mevcut kurulumlarda bu tablo zaten vardır; IF NOT EXISTS sayesinde
+-- dokunulmaz. Sütun sözleşmesi: id, name, code, deleted_at.
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tbl_permissions` (
+    `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name`       VARCHAR(255) NOT NULL,
+    `code`       VARCHAR(100) NOT NULL,
+    `deleted_at` DATETIME     DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_permission_code` (`code`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------------------------------
+-- 4) Eski çerezler — sunucuda yapılacak bir şey yok
 --
 -- VNL 2.x'in {prefix}auth çerezi kullanıcı adını ve DÜZ PAROLAYI taşıyordu.
--- Kod artık o çerezi her istekte siliyor; sunucu tarafında yapılacak bir şey
--- yok. Ancak o parolalar tarayıcılarda dolaştığı için, sızma ihtimalini
--- ciddiye alıyorsanız kullanıcılara parola değiştirtmek doğru olur.
+-- Kod artık o çerezi her istekte siliyor. Ancak o parolalar tarayıcılarda
+-- dolaştığı için, sızma ihtimalini ciddiye alıyorsanız kullanıcılara parola
+-- değiştirtmek doğru olur.
 -- -----------------------------------------------------------------------------

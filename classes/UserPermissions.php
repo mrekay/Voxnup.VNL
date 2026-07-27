@@ -53,10 +53,10 @@ class UserPermissions extends TableModel
             return self::$permissionCache[$cacheKey];
         }
 
-        $permission = self::join('tbl_permissions', 'tbl_permissions.Id', '=', 'tbl_user_permissions.PermissionId')
-            ->where('tbl_user_permissions.UserId', $userId)
-            ->where('tbl_permissions.Code', $permissionCode)
-            ->whereNull('tbl_permissions.DeleteDate')
+        $permission = self::join('tbl_permissions', 'tbl_permissions.id', '=', 'tbl_user_permissions.permission_id')
+            ->where('tbl_user_permissions.user_id', $userId)
+            ->where('tbl_permissions.code', $permissionCode)
+            ->whereNull('tbl_permissions.deleted_at')
             ->select('tbl_user_permissions.*')
             ->first();
 
@@ -92,7 +92,7 @@ class UserPermissions extends TableModel
             ->first();
 
         return self::$permissionCache[$cacheKey] =
-            $permission ? (bool) $permission->CanView : false;
+            $permission ? (bool) $permission->can_view : false;
     }
 
 
