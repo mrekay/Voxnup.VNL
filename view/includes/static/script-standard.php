@@ -19,5 +19,6 @@
 <script src="<?= $assets_address ?>/vnl/js/vendors.min.js"></script>
 <script src="<?= $assets_address ?>/vnl/js/vnl.min.js"></script>
 <script src="<?= $assets_address ?>/scripts/vnl.js"></script>
+<script src="<?= $assets_address ?>/scripts/vnltable.js"></script>
 
 

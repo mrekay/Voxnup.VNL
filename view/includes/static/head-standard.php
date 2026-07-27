@@ -49,3 +49,5 @@ if (!empty($vnl_skin)) { ?>
 <?php } ?>
 <link href="<?= $vnl_theme_path ?>/css/bi.min.css" rel="stylesheet" type="text/css"/>
 <link href="<?= $vnl_theme_path ?>/css/fa.min.css" rel="stylesheet" type="text/css"/>
+<!-- VNL Table: renklerini tema değişkenlerinden alır, skin sonrası yüklenir. -->
+<link href="<?= $assets_address ?>/styles/vnltable.css" rel="stylesheet" type="text/css"/>
