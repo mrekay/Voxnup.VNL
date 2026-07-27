@@ -4,8 +4,6 @@ class action_login
 
     public function login($req)
     {
-        global $cDefinitions;
-
         $data = [];
 
         $username = $req->post('email');
@@ -13,11 +11,6 @@ class action_login
 
         LoginValidator::validateUsername($username);
         LoginValidator::validatePassword($password);
-
-        $sessionId = "";
-        if (!empty($req->post('rememberMe'))) {
-            $sessionId = md5($username . $cDefinitions->getSaltText() . $password . time());
-        }
 
         /* password_hash her çağrıda farklı tuz ürettiği için hash ile
            sorgulanamaz: önce kullanıcı çekilir, sonra doğrulanır. */
@@ -54,8 +47,11 @@ class action_login
         LoginValidator::validateSession(Session::checkSession());
         UserModule::SetCurrentUserInfo();
 
-        if ($req->postHas('rememberMe') && !empty($req->post('rememberMe'))) {
-            setcookie($cDefinitions->getCookiePrefix() . 'sessionId', $sessionId, time() + 3600 * 24 * 30, '/');
+        /* Kalıcı giriş: rastgele jeton üretilip çereze yazılır, veritabanında
+           yalnızca özeti saklanır. 2.x burada md5(kullanıcıadı+salt+parola+time)
+           yazıyordu ve o çerezi okuyan hiçbir kod yoktu. */
+        if (!empty($req->post('rememberMe'))) {
+            UserModule::RememberMe($user_data);
         }
 
 //        LoginValidator::validateActive($CurrentUser->is_active);

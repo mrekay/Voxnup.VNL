@@ -23,34 +23,132 @@ class UserModule
         }
     }
 
+    /** "Beni hatırla" jetonunun geçerlilik süresi (gün). */
+    const REMEMBER_DAYS = 30;
+
     /**
-     * "Beni hatırla" çerezi.
+     * Kalıcı giriş çerezini kontrol eder ve geçerliyse oturumu açar.
      *
-     * VNL 3.0'da devre dışı: eski uygulama kullanıcı adı ve DÜZ PAROLAYI
-     * {prefix}auth çerezine yazıyor, her istekte çözüp yeniden giriş
-     * yaptırıyordu. Çerez EncryptionModule::safeEncrypt ile korunuyordu
-     * ama o fonksiyonun anahtarı kaynak kodda sabit ve IV kullanılmıyor —
-     * yani şablona erişen herkes çerezleri çözebiliyordu. password_hash'e
-     * geçilen bir sistemde parolanın çerezde taşınması anlamsız.
-     *
-     * Ayrıca çağırdığı User::Login() metodu hiçbir zaman var olmadı;
-     * {prefix}auth çerezi bir kez yazılsaydı bu satır fatal verecekti.
-     *
-     * Doğru çözüm rastgele bir hatırlama jetonu: jetonun hash'i kullanıcı
-     * kaydında saklanır, çerezde yalnızca jeton taşınır ve her kullanımda
-     * yenilenir. Bunun için bir sütun/tablo gerektiğinden ayrı ele alınacak.
+     * Çerezde jetonun kendisi, veritabanında yalnızca SHA-256 özeti durur.
+     * Her başarılı kullanımda jeton yenilenir: çalınan bir çerez, meşru
+     * kullanıcı siteye girdiği anda geçersiz kalır.
      */
     static function CheckCookieAuth()
     {
         global $cDefinitions;
 
-        $cookie = $cDefinitions->getCookiePrefix() . 'auth';
-
-        /* Eski çerez düz parola taşıyor; tarayıcıdan sil. */
-        if (!empty($_COOKIE[$cookie])) {
-            setcookie($cookie, '', time() - 3600, '/');
-            unset($_COOKIE[$cookie]);
+        /* VNL 2.x'in {prefix}auth çerezi kullanıcı adı ve DÜZ PAROLA
+           taşıyordu; karşılaşıldığı yerde tarayıcıdan silinir. */
+        $legacy = $cDefinitions->getCookiePrefix() . 'auth';
+        if (!empty($_COOKIE[$legacy])) {
+            setcookie($legacy, '', time() - 3600, '/');
+            unset($_COOKIE[$legacy]);
         }
+
+        if (!empty(Session::get('login'))) {
+            return;
+        }
+
+        $raw = $_COOKIE[self::rememberCookieName()] ?? '';
+        if ($raw === '') {
+            return;
+        }
+
+        $token = RememberToken::where('token_hash', RememberToken::hashOf($raw))->first();
+
+        /* Tanınmayan jeton: çerez eski, iptal edilmiş ya da uydurma. */
+        if (empty($token)) {
+            self::clearRememberCookie();
+
+            return;
+        }
+
+        if (strtotime((string)$token->expires_at) < time()) {
+            $token->delete();
+            self::clearRememberCookie();
+
+            return;
+        }
+
+        $user = User::Select(['id' => $token->user_id]);
+        if (empty($user) || empty($user->id)) {
+            $token->delete();
+            self::clearRememberCookie();
+
+            return;
+        }
+
+        self::SetUser($user);
+
+        /* Jeton döndürülür: aynı çerez ikinci kez kullanılamaz. */
+        $token->delete();
+        self::RememberMe($user);
+    }
+
+    /**
+     * Bu cihaz için kalıcı giriş jetonu üretir ve çereze yazar.
+     * Başarılı girişten sonra, kullanıcı "beni hatırla" seçtiyse çağrılır.
+     */
+    static function RememberMe($user): void
+    {
+        if (empty($user->id)) {
+            return;
+        }
+
+        $raw     = bin2hex(random_bytes(32));
+        $expires = time() + self::REMEMBER_DAYS * 86400;
+
+        RememberToken::create([
+            'user_id'    => $user->id,
+            'token_hash' => RememberToken::hashOf($raw),
+            'expires_at' => date('Y-m-d H:i:s', $expires),
+            'user_agent' => mb_substr(self::CurrentBrowser(), 0, 255),
+            'ip_address' => mb_substr(self::CurrentIp(), 0, 45),
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        setcookie(self::rememberCookieName(), $raw, [
+            'expires'  => $expires,
+            'path'     => '/',
+            'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'httponly' => true,   // JavaScript okuyamaz
+            'samesite' => 'Lax',
+        ]);
+    }
+
+    /** Yalnızca bu cihazın jetonunu iptal eder. */
+    static function ForgetMe(): void
+    {
+        $raw = $_COOKIE[self::rememberCookieName()] ?? '';
+
+        if ($raw !== '') {
+            RememberToken::where('token_hash', RememberToken::hashOf($raw))->delete();
+        }
+
+        self::clearRememberCookie();
+    }
+
+    /** Kullanıcının tüm cihazlardaki jetonlarını iptal eder. */
+    static function ForgetAllDevices($userId): void
+    {
+        if (!empty($userId)) {
+            RememberToken::where('user_id', $userId)->delete();
+        }
+    }
+
+    private static function rememberCookieName(): string
+    {
+        global $cDefinitions;
+
+        return $cDefinitions->getCookiePrefix() . 'remember';
+    }
+
+    private static function clearRememberCookie(): void
+    {
+        $name = self::rememberCookieName();
+
+        setcookie($name, '', time() - 3600, '/');
+        unset($_COOKIE[$name]);
     }
 
     /**
@@ -73,6 +171,8 @@ class UserModule
 
     static function LogOut()
     {
+        /* Çerezi silmek yetmez; jeton satırı da iptal edilmeli. */
+        self::ForgetMe();
 
         foreach ($_COOKIE as $key => $value) {
             setcookie($key, "", time() - 3600, "/");

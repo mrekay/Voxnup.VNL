@@ -65,7 +65,7 @@ class DefaultValidator
     {
         $param = str_replace([' ', '-', '_', '(', ')'], '', $param);
         if (empty($param)) return;
-        if (!AsInt($param) || strlen($param) < 10) {
+        if (!TextGeneralModule::AsInt($param) || strlen($param) < 10) {
             throw new StandartException(empty($region) ? lang('PLEASE_ENTER_VALID_PHONE_NUMBER') : lang('PLEASE_ENTER_VALID_PHONE_NUMBER_IN_FIELD', $region));
         }
     }
@@ -123,7 +123,7 @@ class DefaultValidator
     /* EMPTYID OLMAMASININ SEBEBİ VERDİĞİ HATA MESAJININ FARKLI OLMASIDIR */
     static function validateEmptyINT_ID($param, $region = '')
     {
-        if ((!empty($param) && !AsInt($param, false)) || $param <= 0) {
+        if ((!empty($param) && !TextGeneralModule::AsInt($param, false)) || $param <= 0) {
             throw new StandartException(empty($region) ? lang('PLEASE_ENTER_NUMBER_BIGGER_THAN_0') : lang('PLEASE_ENTER_NUMBER_BIGGER_THAN_0_IN_FIELD', $region));
         }
     }

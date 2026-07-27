@@ -23,3 +23,15 @@ RewriteRule ^([a-zA-z0-9-_/]+)$ index.php [QSA]
         Deny from all
     </IfModule>
 </FilesMatch>
+
+# Sunucuda durup tarayıcıya gitmemesi gereken dosyalar. PHP yorumlanır,
+# ama .sql/.log/.lock düz metin olarak servis edilirdi.
+<FilesMatch "\.(sql|log|lock|ini|sh|bak|yml|yaml)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
