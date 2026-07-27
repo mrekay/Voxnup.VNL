@@ -11,11 +11,12 @@ $CurrentUser = new User();
 /* AUTO LOGIN END */
 
 
-/* COOKIE ILE OTURUM AÇMA*/
+/* "Beni hatırla" çerezi + oturum */
 UserModule::CheckCookieAuth();
 UserModule::SetCurrentUserInfo();
 UserModule::CheckUser();
 
-if ($CurrentUser->id > 0)
-UserFriends::ReloadFriends($CurrentUser->id);
+/* Not: burada UserFriends::ReloadFriends() çağrılıyordu. Öyle bir sınıf
+   hiç olmadı — VNL'in türetildiği eski uygulamadan kalmış bir satırdı ve
+   girişli her istekte fatal veriyordu. VNL 3.0'da kaldırıldı. */
 

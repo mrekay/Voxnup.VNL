@@ -163,7 +163,7 @@ class EncryptionModule
         }
 
         $howTo = 'Üretmek için: php -r "echo base64_encode(random_bytes(' . self::KEY_BYTES . '));"';
-        $raw   = (string)env('APP_ENCRYPTION_KEY', '');
+        $raw   = (string)VnlEnv::get('APP_ENCRYPTION_KEY', '');
 
         if ($raw === '') {
             throw new RuntimeException('APP_ENCRYPTION_KEY tanımlı değil. .env dosyanıza ekleyin. ' . $howTo);

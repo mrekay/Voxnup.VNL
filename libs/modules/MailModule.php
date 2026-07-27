@@ -1,4 +1,11 @@
 <?php
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) 3.0.0 — Mail Modülü
+ *  SMTP üzerinden mail gönderimi; ayarlar .env'den okunur.
+ *  Authors: Voxnup Authors
+ * ============================================================
+ */
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
@@ -6,148 +13,91 @@ use PHPMailer\PHPMailer\Exception;
 
 class MailModule
 {
-    static function SendMail(MailObject $mailObject, $isCron = false)
+    /**
+     * Maili gönderir. Başarılıysa true, aksi halde false döner ve hata
+     * error_log'a yazılır.
+     *
+     * VNL 2.x burada SMTP bilgilerini boş string olarak sabit tutuyordu
+     * (Host, Username, Password hepsi ""), yani hiçbir mail gidemezdi.
+     * Ayrıca hata durumunda mesajı doğrudan ekrana echo ediyordu — AJAX
+     * yanıtının ortasına düşüp JSON'u bozuyordu.
+     */
+    static function SendMail(MailObject $mailObject): bool
     {
-//        ini_set('display_errors',1);
-        $smtpssl = 1;
-        $smtpNeeded = $smtpssl == 1 ? true : false;
+        if (empty($mailObject->to)) {
+            return false;
+        }
+
+        $host = (string)VnlEnv::get('MAIL_HOST', '');
+        if ($host === '') {
+            error_log('[VNL][Mail] MAIL_HOST tanımlı değil; mail gönderilmedi.');
+
+            return false;
+        }
 
         $mail = new PHPMailer(true);
 
-//        $sender_address = $BrandParameters->Get('smtp_address');
-//        $sender_password = $BrandParameters->Get('smtp_password');
-//        $sender_name = $BrandParameters->Get('smtp_name');
-//        $sender_host = $BrandParameters->Get('smtp_host');
-//        $sender_smtp_port = $BrandParameters->Get('smtp_port');
-        $mail_title = $mailObject->title;
+        try {
+            $mail->isSMTP();
+            $mail->SMTPDebug  = SMTP::DEBUG_OFF;
+            $mail->Host       = $host;
+            $mail->Port       = (int)VnlEnv::get('MAIL_PORT', 465);
+            $mail->CharSet    = 'UTF-8';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = (string)VnlEnv::get('MAIL_USERNAME', '');
+            $mail->Password   = (string)VnlEnv::get('MAIL_PASSWORD', '');
 
-//        echo $sender_address.'<br />';
-//        echo $sender_password.'<br />';
-//        echo $sender_name.'<br />';
-//        echo $sender_host.'<br />';
-//        echo $sender_smtp_port.'<br />';
-//        echo $mail_title.'<br />';
-        //Gönderilecek Kisi
-        $sending_address = $mailObject->to;//$BrandParameters->Get('smtp_default_address');
-        if (empty($sending_address)) return;
-
-        //Mailimizin gövdesi: (HTML ile)
-        $body = $mailObject->content;
-
-        // HTML okuyamayan mail okuyucularda görünecek düz metin:
-        $textBody = str_replace('<br />', ' | ', $mailObject->content);
-
-        if (true || (isLocalHost() && !$isCron)) {
-            $mail->IsSMTP();
-        }
-        $mail->SMTPDebug = 0;
-        $mail->SMTPAuth = true;
-        if ($smtpNeeded) {
-            $mail->SMTPSecure = "ssl";
-        } else {
-//		$mail->SMTPSecure = "tls";
-        }
-        $mail->SMTPOptions = array(
-            'ssl' => array(
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-                'allow_self_signed' => true
-            )
-        );
-        $mail->Host = "";
-        $mail->Port = "465";
-        $mail->IsHTML(true);
-        $mail->SetLanguage("tr", "phpmailer/language");
-        $mail->CharSet = 'utf-8';
-        $mail->Username = "";
-        $mail->Password = '';
-        $mail->SetFrom("", "");
-        $mail->AddAddress($sending_address, $sending_address);
-        $mail->Subject = $mail_title;
-        $mail->Body = $body;
-        $mail->AltBody = $textBody;
-
-        if (!empty($mailObject->media_data)){
-            foreach ($mailObject->media_data as $key=>$media_datum) {
-
-                /* name kısmı boş çünkü eklere ekliyor onu yazınca*/
-                $mail->addEmbeddedImage($media_datum["path"],$key,"","base64",$media_datum["content_type"],"inline");
-
+            $encryption = strtolower((string)VnlEnv::get('MAIL_ENCRYPTION', 'ssl'));
+            if ($encryption === 'tls') {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            } elseif ($encryption === 'ssl') {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            } else {
+                $mail->SMTPSecure = false;
+                $mail->SMTPAutoTLS = false;
             }
-        }
 
-        if (!$mail->Send()) {
-            //$mail->ClearAddresses();
-            //$mail->ClearAttachments();
-            echo 'Mailer Error: ' . $mail->ErrorInfo;
+            /* Sertifika doğrulaması varsayılan olarak AÇIK. 2.x bunu koşulsuz
+               kapatıyordu, bu da SMTP bağlantısını ortadaki adama açıyordu.
+               Kendi imzalı sertifikalı sunucular için .env'den gevşetilebilir. */
+            if (VnlEnv::get('MAIL_VERIFY_PEER', true) === false) {
+                $mail->SMTPOptions = ['ssl' => [
+                    'verify_peer'       => false,
+                    'verify_peer_name'  => false,
+                    'allow_self_signed' => true,
+                ]];
+            }
+
+            $mail->setFrom(
+                (string)VnlEnv::get('MAIL_FROM_ADDRESS', $mail->Username),
+                (string)VnlEnv::get('MAIL_FROM_NAME', '')
+            );
+            $mail->addAddress($mailObject->to, $mailObject->toName ?: $mailObject->to);
+
+            $mail->isHTML(true);
+            $mail->Subject = $mailObject->title;
+            $mail->Body    = $mailObject->content;
+            $mail->AltBody = trim(strip_tags(str_replace(['<br>', '<br />', '</p>'], "\n", $mailObject->content)));
+
+            foreach ($mailObject->media as $cid => $item) {
+                if (empty($item['path']) || !is_file($item['path'])) {
+                    continue;
+                }
+
+                /* Ad boş bırakılır; doldurulursa PHPMailer görseli ek olarak da listeler. */
+                $mail->addEmbeddedImage($item['path'], (string)$cid, '', 'base64', $item['content_type'] ?? '', 'inline');
+            }
+
+            return $mail->send();
+        } catch (Throwable $e) {
+            error_log('[VNL][Mail] Gönderilemedi: ' . ($mail->ErrorInfo ?: $e->getMessage()));
 
             return false;
-        } else {
-            //$mail->ClearAddresses();
-            //$mail->ClearAttachments();
-
-            return true;
         }
     }
 
-    static function PrepareMail($mail_id, $email): MailObject
+    static function isValidEmail($email): bool
     {
-        global $cDefinitions;
-        $mail = Mail::Select(["id" => $mail_id]);
-        $mail_template = MailTemplate::Select(["id" => $mail->template_id]);
-
-        $medias_raw = !empty($mail_template->static_media) ? json_decode($mail_template->static_media, true) : [];
-        $medias = []; // json
-        if (!empty($medias_raw)) {
-
-            foreach ($medias_raw as $key => $raw_media) {
-                $media_data = StaticMedia::Select(["unique_code"=>$raw_media]);
-
-                $media_name = $media_data["original_name"].".".$media_data["type"];
-                $medias[$key] = ["path" => $cDefinitions->getCdnPath()."/assets/".$media_data["assets_path"].'/'.$media_name,"name"=>$media_name,"content_type"=>$media_data["content_type"]];
-            }
-
-        }
-
-        $datas = json_decode($mail->data, true);
-        $datas["key"] = $mail->unique_code;
-
-        /* başlık replace'i*/
-        $title = $mail_template->title;
-        preg_match_all('/\{(.*?)\}/', $title, $eslesmeler);
-
-        /* sadece başlıklar */
-        foreach ($eslesmeler[1] as $eslesme) {
-            if (isset($datas[$eslesme])) {
-                $title = str_replace("{" . $eslesme . "}", $datas[$eslesme], $title);
-            }
-        }
-
-        /* aşağıda tekrar kullanılacak sıfırla*/
-        $eslesmeler = [];
-
-        /* içerik replace'i */
-        $content = $mail_template->content;
-        preg_match_all('/\{(.*?)\}/', $content, $eslesmeler);
-
-        /* sadece başlıklar */
-        foreach ($eslesmeler[1] as $eslesme) {
-            if (isset($datas[$eslesme])) {
-                $content = str_replace("{" . $eslesme . "}", $datas[$eslesme], $content);
-            }
-        }
-
-        $mail_object = new MailObject($mail->id, $mail->unique_code, $title, $content, $email,$medias);
-
-        return $mail_object;
-
-    }
-
-    static function isValidEmail($email, $region = ''): bool
-    {
-
-        // E-posta adresinin geçerli olup olmadığını kontrol et
-        return filter_var($email, FILTER_VALIDATE_EMAIL);
-
+        return filter_var((string)$email, FILTER_VALIDATE_EMAIL) !== false;
     }
 }

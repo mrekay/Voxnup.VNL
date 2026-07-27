@@ -3,11 +3,25 @@
 class DefaultValidator
 {
 
-    static function validateEmptyString($param, $region = '')
+    /**
+     * Değerin boş olmadığını doğrular.
+     *
+     * VNL 3.0'a kadar bu ad yoktu; action_users ve stripe eklentisi
+     * validateEmpty() çağırıyor ama sınıfta yalnızca validateEmptyString /
+     * validateEmptyData vardı — yani o çağrıların hepsi fatal veriyordu.
+     * İki eski ad birebir aynı gövdeye sahipti; ikisi de buraya bağlandı.
+     */
+    static function validateEmpty($param, $region = '')
     {
         if (empty($param)) {
             throw new StandartException(empty($region) ? lang('PLEASE_FILL_THE_REQUIRED_FIELD') : lang('PLEASE_FILL_IN_FIELD', $region));
         }
+    }
+
+    /** @see validateEmpty() */
+    static function validateEmptyString($param, $region = '')
+    {
+        self::validateEmpty($param, $region);
     }
 
     static function validateValidPassword($password, $region = '')
@@ -79,11 +93,10 @@ class DefaultValidator
         }
     }
 
+    /** @see validateEmpty() */
     static function validateEmptyData($param, $region = '')
     {
-        if (empty($param)) {
-            throw new StandartException(empty($region) ? lang('PLEASE_FILL_THE_REQUIRED_FIELD') : lang('PLEASE_FILL_IN_FIELD', $region));
-        }
+        self::validateEmpty($param, $region);
     }
 
     static function validateEmptyID($param, $region = '')

@@ -49,23 +49,23 @@ class ConfigDefinitions
     public function __construct()
     {
         $this->db_info = [
-            'driver'    => (string)env('DB_DRIVER', 'mysql'),
-            'host'      => (string)env('DB_HOST', 'localhost'),
-            'database'  => (string)env('DB_DATABASE', ''),
-            'username'  => (string)env('DB_USERNAME', ''),
-            'password'  => (string)env('DB_PASSWORD', ''),
-            'charset'   => (string)env('DB_CHARSET', 'utf8'),
-            'collation' => (string)env('DB_COLLATION', 'utf8_unicode_ci'),
-            'prefix'    => (string)env('DB_PREFIX', ''),
+            'driver'    => (string)VnlEnv::get('DB_DRIVER', 'mysql'),
+            'host'      => (string)VnlEnv::get('DB_HOST', 'localhost'),
+            'database'  => (string)VnlEnv::get('DB_DATABASE', ''),
+            'username'  => (string)VnlEnv::get('DB_USERNAME', ''),
+            'password'  => (string)VnlEnv::get('DB_PASSWORD', ''),
+            'charset'   => (string)VnlEnv::get('DB_CHARSET', 'utf8'),
+            'collation' => (string)VnlEnv::get('DB_COLLATION', 'utf8_unicode_ci'),
+            'prefix'    => (string)VnlEnv::get('DB_PREFIX', ''),
         ];
 
-        $this->master_db       = (string)env('DB_MASTER', '');
-        $this->cookie_prefix   = (string)env('APP_COOKIE_PREFIX', 'vnl');
-        $this->salt_text       = (string)env('APP_SALT', '');
-        $this->site_url        = (string)env('APP_URL', '');
-        $this->master_site_url = (string)env('APP_MASTER_URL', '');
-        $this->assets_url      = (string)env('APP_ASSETS_URL', '/assets');
-        $this->product_id      = (string)env('APP_PRODUCT_ID', '0');
+        $this->master_db       = (string)VnlEnv::get('DB_MASTER', '');
+        $this->cookie_prefix   = (string)VnlEnv::get('APP_COOKIE_PREFIX', 'vnl');
+        $this->salt_text       = (string)VnlEnv::get('APP_SALT', '');
+        $this->site_url        = (string)VnlEnv::get('APP_URL', '');
+        $this->master_site_url = (string)VnlEnv::get('APP_MASTER_URL', '');
+        $this->assets_url      = (string)VnlEnv::get('APP_ASSETS_URL', '/assets');
+        $this->product_id      = (string)VnlEnv::get('APP_PRODUCT_ID', '0');
     }
 
 

@@ -180,8 +180,22 @@ class VnlEnv
  *
  *   env('DB_HOST', 'localhost')
  *   env('APP_DEBUG', false)
+ *
+ * illuminate/support da aynı adda bir fonksiyon tanımlar ve onu
+ * function_exists ile korur. VNL bu dosyayı vendor/autoload.php'den önce
+ * yüklediği için normalde bu tanım kazanır. Ama vendor'ı önce yükleyen bir
+ * betikte Illuminate'inki devreye girer; o sürüm .env dosyasını değil
+ * yalnızca $_ENV/$_SERVER'ı okur, yani ayarlar sessizce kaybolurdu.
+ *
+ * Bu yüzden VNL çekirdeği env() değil doğrudan VnlEnv::get() kullanır;
+ * buradaki tanım proje kodu için kolaylıktır ve çakışmada devralınmaz.
  */
-function env(string $key, $default = null)
-{
-    return VnlEnv::get($key, $default);
+if (!function_exists('env')) {
+    function env(string $key, $default = null)
+    {
+        return VnlEnv::get($key, $default);
+    }
+} else {
+    error_log('[VNL][Env] Global env() başka bir kütüphane tarafından tanımlanmış; '
+        . 'proje kodunda .env değerleri için VnlEnv::get() kullanın.');
 }
