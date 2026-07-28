@@ -665,10 +665,13 @@
     VnlTable.prototype.exportExcel = function (button) {
         var self = this;
         var label = button.textContent;
+        var fileName = self.config.id + '.xlsx';
         button.disabled = true;
         button.textContent = this.lang.loading || label;
 
-        fetch(this.config.url, {
+        /* exportUrl verilmişse istek oraya gider: rapor şablonu doldurmak
+           gibi durumlarda geliştirici çıktıyı kendi sayfasında üretir. */
+        fetch(this.config.exportUrl || this.config.url, {
             method:      'POST',
             headers:     { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             body:        JSON.stringify(this.payload('export')),
@@ -676,13 +679,18 @@
         })
             .then(function (r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
+                /* Dosya adını sunucu belirler; özel export sayfaları kendi
+                   adlarını verebilsin diye Content-Disposition okunur. */
+                var cd = r.headers.get('Content-Disposition') || '';
+                var m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(cd);
+                fileName = m ? decodeURIComponent(m[1]) : self.config.id + '.xlsx';
                 return r.blob();
             })
             .then(function (blob) {
                 var url = URL.createObjectURL(blob);
                 var a = document.createElement('a');
                 a.href = url;
-                a.download = self.config.id + '.csv';
+                a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);

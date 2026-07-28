@@ -39,7 +39,8 @@ class VnlTable
     const EXPERT_PLUS = 'expert_plus';
 
     private string $id;
-    private string $url     = '';
+    private string $url       = '';
+    private string $exportUrl = '';
     private string $mode    = self::BASIC;
     private string $key     = 'id';
     private array  $columns = [];
@@ -90,6 +91,30 @@ class VnlTable
         }
 
         $this->mode = $mode;
+
+        return $this;
+    }
+
+    /**
+     * Excel çıktısını başka bir action'a yönlendirir.
+     *
+     * Verilmezse çıktı asıl url()'e op="export" ile gider ve
+     * VnlTableRequest::exportXlsx() ile üretilir. Şablon doldurmak,
+     * birden çok sayfa yazmak ya da rapor biçimlendirmek gibi durumlarda
+     * kendi sayfanızı verin; istek aynı gövdeyle (filtre, sıralama, arama,
+     * context) oraya düşer.
+     *
+     *   ->exportUrl('app/rapor/aylikSatis')
+     */
+    public function exportUrl(string $url): self
+    {
+        $url = trim($url);
+
+        if ($url !== '' && !preg_match('~^(https?:)?//~i', $url)) {
+            $url = '/' . ltrim($url, '/');
+        }
+
+        $this->exportUrl = $url;
 
         return $this;
     }
@@ -169,6 +194,7 @@ class VnlTable
         return [
             'id'      => $this->id,
             'url'     => $this->url,
+            'exportUrl' => $this->exportUrl,
             'mode'    => $this->mode,
             'key'     => $this->key,
             'columns' => $this->columns,

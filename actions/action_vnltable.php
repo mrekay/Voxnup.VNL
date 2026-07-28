@@ -65,7 +65,7 @@ class action_vnltable
         /* Excel çıktısı sayfalamadan önce alınır: kullanıcı gördüğü sayfayı
            değil, filtrenin tamamını indirir. */
         if ($t->op === VnlTableRequest::OP_EXPORT) {
-            $t->exportCsv($rows, self::COLUMNS, 'vnltable-demo');
+            $t->exportXlsx($rows, self::COLUMNS, 'vnltable-demo');
         }
 
         $t->respond(array_slice($rows, $t->offset(), $t->size), $total, $filtered);

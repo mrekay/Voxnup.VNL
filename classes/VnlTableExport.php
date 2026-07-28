@@ -254,6 +254,9 @@ class VnlTableExport
             . '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
             . '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
             . '</cellXfs>'
+            /* Normal stil kaydı olmadan bazı okuyucular "varsayılan stil yok"
+               uyarısı verip kendi varsayılanını uyduruyor. */
+            . '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
             . '</styleSheet>';
     }
 

@@ -1,0 +1,9 @@
+{
+    "description": "VNL Stripe eklentisi — kendi bağımlılığını taşır.",
+    "require": {
+        "stripe/stripe-php": "^13.0"
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    }
+}

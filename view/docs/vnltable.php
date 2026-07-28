@@ -255,7 +255,7 @@
     $rows   = Kayit::SelectList($t-&gt;modelFilters(), $extras)-&gt;get();
 
     if ($t-&gt;op === VnlTableRequest::OP_EXPORT) {
-        $t-&gt;exportCsv($tumSatirlar, ['id' =&gt; 'No', 'ad' =&gt; 'Ad'], 'kayit');
+        $t-&gt;exportXlsx($tumSatirlar, ['id' =&gt; 'No', 'ad' =&gt; 'Ad'], 'kayit');
     }
 
     $t-&gt;respond(
@@ -301,9 +301,58 @@
 
                     <div class="separator separator-dashed my-8"></div>
 
+                    <!--begin::Excel-->
+                    <div class="mb-10">
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. Excel Çıktısı</h3>
+                        <p class="fs-5 text-body mb-4">
+                            Çıktı <b>xlsx</b>'tir. <code>VnlTableExport</code> dosyayı bağımlılıksız üretir:
+                            PhpSpreadsheet ve eski PHPExcel, xlsx için <code>ext-zip</code> ister; bu sınıf
+                            eklenti yoksa sıkıştırmasız zip kabını kendisi yazar. Başlık satırı kalın ve
+                            donuk, sütunlara süzme okları eklenir, genişlikler içeriğe göre ayarlanır.
+                        </p>
+
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Varsayilan: getList icinde uret
+if ($t-&gt;op === VnlTableRequest::OP_EXPORT) {
+    // Sayfalamadan ONCE cagirin: kullanici gordugu sayfayi degil,
+    // filtrenin tamamini indirsin.
+    $t-&gt;exportXlsx($tumSatirlar, ['id' =&gt; 'No', 'ad' =&gt; 'Ad'], 'kayit');
+}
+
+// Dosyayi diske yazmak / maile eklemek icin
+$binary = VnlTableExport::build($satirlar, ['id' =&gt; 'No', 'ad' =&gt; 'Ad']);</code></pre>
+                        </div>
+
+                        <h6 class="fw-bold mb-3">Kendi çıktı sayfanız</h6>
+                        <p class="fs-6 text-body mb-4">
+                            Rapor şablonu doldurmak, birden çok sayfa yazmak ya da özel biçimlendirme
+                            gerekiyorsa <code>exportUrl()</code> ile kendi action'ınızı verin. İstek aynı
+                            gövdeyle — filtre, sıralama, arama, <code>context</code> — oraya düşer;
+                            <code>getList</code> hiç çağrılmaz.
+                        </p>
+
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>VnlTable::make('satislar')
+    -&gt;url('app/satis/getList')
+    -&gt;exportUrl('app/rapor/aylikSatis')   // Excel dugmesi buraya gider
+    -&gt;columns([...])
+    -&gt;render();
+
+// actions/action_rapor.php
+public function aylikSatis($req)
+{
+    $t = VnlTableRequest::from($req);     // ayni sozlesme
+    // ... sablonu doldur, istediginiz dosyayi akitin ...
+}</code></pre>
+                        </div>
+                    </div>
+                    <!--end::Excel-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
                     <!--begin::Seçenekler-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">6. Tablo Seçenekleri</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. Tablo Seçenekleri</h3>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">

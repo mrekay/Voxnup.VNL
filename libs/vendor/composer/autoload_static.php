@@ -8,60 +8,38 @@ class ComposerStaticInit610948341ccfc207c790e8b29c136d67
 {
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
-        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         '60799491728b879e74601d83e38b2cad' => __DIR__ . '/..' . '/illuminate/collections/helpers.php',
-        'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
+        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         'a1105708a18b76903365ca1c4aa61b02' => __DIR__ . '/..' . '/symfony/translation/Resources/functions.php',
         '72579e7bd17821bb1321b87411366eae' => __DIR__ . '/..' . '/illuminate/support/helpers.php',
-        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
-        '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
         'ef65a1626449d89d0811cf9befce46f0' => __DIR__ . '/..' . '/illuminate/events/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'v' => 
+        'v' =>
         array (
             'voku\\' => 5,
         ),
-        'S' => 
+        'S' =>
         array (
-            'Symfony\\Polyfill\\Php83\\' => 23,
             'Symfony\\Polyfill\\Php80\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Contracts\\Translation\\' => 30,
             'Symfony\\Component\\Translation\\' => 30,
-            'Symfony\\Component\\Routing\\' => 26,
-            'Symfony\\Component\\HttpFoundation\\' => 33,
         ),
-        'R' => 
-        array (
-            'React\\Stream\\' => 13,
-            'React\\Socket\\' => 13,
-            'React\\Promise\\' => 14,
-            'React\\EventLoop\\' => 16,
-            'React\\Dns\\' => 10,
-            'React\\Cache\\' => 12,
-            'Ratchet\\RFC6455\\' => 16,
-            'Ratchet\\' => 8,
-        ),
-        'P' => 
+        'P' =>
         array (
             'Psr\\SimpleCache\\' => 16,
-            'Psr\\Http\\Message\\' => 17,
             'Psr\\Container\\' => 14,
             'Psr\\Clock\\' => 10,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
-        'O' => 
-        array (
-            'Octha\\Obfuscator\\' => 17,
-        ),
-        'M' => 
+        'M' =>
         array (
             'MyApp\\' => 6,
         ),
-        'I' => 
+        'I' =>
         array (
             'Illuminate\\Support\\' => 19,
             'Illuminate\\Pipeline\\' => 20,
@@ -71,205 +49,115 @@ class ComposerStaticInit610948341ccfc207c790e8b29c136d67
             'Illuminate\\Container\\' => 21,
             'Illuminate\\Bus\\' => 15,
         ),
-        'G' => 
-        array (
-            'GuzzleHttp\\Psr7\\' => 16,
-        ),
-        'E' => 
-        array (
-            'Evenement\\' => 10,
-        ),
-        'D' => 
+        'D' =>
         array (
             'Doctrine\\Inflector\\' => 19,
         ),
-        'C' => 
+        'C' =>
         array (
             'Carbon\\Doctrine\\' => 16,
             'Carbon\\' => 7,
         ),
-        'B' => 
+        'B' =>
         array (
             'Brick\\Math\\' => 11,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'voku\\' => 
+        'voku\\' =>
         array (
             0 => __DIR__ . '/..' . '/voku/portable-ascii/src/voku',
         ),
-        'Symfony\\Polyfill\\Php83\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-php83',
-        ),
-        'Symfony\\Polyfill\\Php80\\' => 
+        'Symfony\\Polyfill\\Php80\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
         ),
-        'Symfony\\Polyfill\\Mbstring\\' => 
+        'Symfony\\Polyfill\\Mbstring\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
-        'Symfony\\Contracts\\Translation\\' => 
+        'Symfony\\Contracts\\Translation\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/translation-contracts',
         ),
-        'Symfony\\Component\\Translation\\' => 
+        'Symfony\\Component\\Translation\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/translation',
         ),
-        'Symfony\\Component\\Routing\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/routing',
-        ),
-        'Symfony\\Component\\HttpFoundation\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/http-foundation',
-        ),
-        'React\\Stream\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/stream/src',
-        ),
-        'React\\Socket\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/socket/src',
-        ),
-        'React\\Promise\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/promise/src',
-        ),
-        'React\\EventLoop\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/event-loop/src',
-        ),
-        'React\\Dns\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/dns/src',
-        ),
-        'React\\Cache\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/react/cache/src',
-        ),
-        'Ratchet\\RFC6455\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/ratchet/rfc6455/src',
-        ),
-        'Ratchet\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/cboden/ratchet/src/Ratchet',
-        ),
-        'Psr\\SimpleCache\\' => 
+        'Psr\\SimpleCache\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/simple-cache/src',
         ),
-        'Psr\\Http\\Message\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/http-factory/src',
-            1 => __DIR__ . '/..' . '/psr/http-message/src',
-        ),
-        'Psr\\Container\\' => 
+        'Psr\\Container\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
-        'Psr\\Clock\\' => 
+        'Psr\\Clock\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/clock/src',
         ),
-        'PHPMailer\\PHPMailer\\' => 
+        'PHPMailer\\PHPMailer\\' =>
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
-        'Octha\\Obfuscator\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/octha/obfuscator/src',
-        ),
-        'MyApp\\' => 
+        'MyApp\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
-        'Illuminate\\Support\\' => 
+        'Illuminate\\Support\\' =>
         array (
-            0 => __DIR__ . '/..' . '/illuminate/macroable',
-            1 => __DIR__ . '/..' . '/illuminate/conditionable',
-            2 => __DIR__ . '/..' . '/illuminate/collections',
-            3 => __DIR__ . '/..' . '/illuminate/support',
+            0 => __DIR__ . '/..' . '/illuminate/support',
+            1 => __DIR__ . '/..' . '/illuminate/collections',
+            2 => __DIR__ . '/..' . '/illuminate/conditionable',
+            3 => __DIR__ . '/..' . '/illuminate/macroable',
         ),
-        'Illuminate\\Pipeline\\' => 
+        'Illuminate\\Pipeline\\' =>
         array (
             0 => __DIR__ . '/..' . '/illuminate/pipeline',
         ),
-        'Illuminate\\Events\\' => 
+        'Illuminate\\Events\\' =>
         array (
             0 => __DIR__ . '/..' . '/illuminate/events',
         ),
-        'Illuminate\\Database\\' => 
+        'Illuminate\\Database\\' =>
         array (
             0 => __DIR__ . '/..' . '/illuminate/database',
         ),
-        'Illuminate\\Contracts\\' => 
+        'Illuminate\\Contracts\\' =>
         array (
             0 => __DIR__ . '/..' . '/illuminate/contracts',
         ),
-        'Illuminate\\Container\\' => 
+        'Illuminate\\Container\\' =>
         array (
             0 => __DIR__ . '/..' . '/illuminate/container',
         ),
-        'Illuminate\\Bus\\' => 
+        'Illuminate\\Bus\\' =>
         array (
             0 => __DIR__ . '/..' . '/illuminate/bus',
         ),
-        'GuzzleHttp\\Psr7\\' => 
+        'Doctrine\\Inflector\\' =>
         array (
-            0 => __DIR__ . '/..' . '/guzzlehttp/psr7/src',
+            0 => __DIR__ . '/..' . '/doctrine/inflector/src',
         ),
-        'Evenement\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/evenement/evenement/src',
-        ),
-        'Doctrine\\Inflector\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/doctrine/inflector/lib/Doctrine/Inflector',
-        ),
-        'Carbon\\Doctrine\\' => 
+        'Carbon\\Doctrine\\' =>
         array (
             0 => __DIR__ . '/..' . '/carbonphp/carbon-doctrine-types/src/Carbon/Doctrine',
         ),
-        'Carbon\\' => 
+        'Carbon\\' =>
         array (
             0 => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon',
         ),
-        'Brick\\Math\\' => 
+        'Brick\\Math\\' =>
         array (
             0 => __DIR__ . '/..' . '/brick/math/src',
-        ),
-    );
-
-    public static $prefixesPsr0 = array (
-        'J' => 
-        array (
-            'JShrink' => 
-            array (
-                0 => __DIR__ . '/..' . '/tedivm/jshrink/src',
-            ),
         ),
     );
 
     public static $classMap = array (
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'DateError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateError.php',
-        'DateException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateException.php',
-        'DateInvalidOperationException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateInvalidOperationException.php',
-        'DateInvalidTimeZoneException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateInvalidTimeZoneException.php',
-        'DateMalformedIntervalStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedIntervalStringException.php',
-        'DateMalformedPeriodStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedPeriodStringException.php',
-        'DateMalformedStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedStringException.php',
-        'DateObjectError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateObjectError.php',
-        'DateRangeError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateRangeError.php',
-        'Override' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/Override.php',
         'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
-        'SQLite3Exception' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/SQLite3Exception.php',
         'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
         'UnhandledMatchError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
         'ValueError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
@@ -280,7 +168,6 @@ class ComposerStaticInit610948341ccfc207c790e8b29c136d67
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit610948341ccfc207c790e8b29c136d67::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit610948341ccfc207c790e8b29c136d67::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit610948341ccfc207c790e8b29c136d67::$prefixesPsr0;
             $loader->classMap = ComposerStaticInit610948341ccfc207c790e8b29c136d67::$classMap;
 
         }, null, ClassLoader::class);

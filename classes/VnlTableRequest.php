@@ -121,40 +121,13 @@ class VnlTableRequest
     }
 
     /**
-     * Excel çıktısı — CSV olarak akıtılır.
-     *
-     * UTF-8 BOM ve noktalı virgül ayracı ile Türkçe Excel dosyayı doğrudan
-     * doğru açar. İstemci yanıtı blob olarak alıp indirmeyi tetikler.
+     * Excel çıktısı — xlsx olarak akıtılır ve script biter.
      *
      * @param array $columns ['name' => 'Başlık', ...] sırası çıktıyı belirler
      */
-    public function exportCsv(array $rows, array $columns, string $fileName = 'export'): void
+    public function exportXlsx(array $rows, array $columns, string $fileName = 'export'): void
     {
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $fileName . '-' . date('Ymd-His') . '.csv"');
-
-        $out = fopen('php://output', 'w');
-
-        /* BOM olmadan Excel dosyayı Windows-1254 sanıp Türkçe harfleri bozar. */
-        fwrite($out, "\xEF\xBB\xBF");
-
-        fputcsv($out, array_values($columns), ';');
-
-        foreach ($rows as $row) {
-            $line = [];
-            foreach (array_keys($columns) as $name) {
-                $value = $row[$name] ?? '';
-                $line[] = is_scalar($value) ? (string)$value : json_encode($value, JSON_UNESCAPED_UNICODE);
-            }
-            fputcsv($out, $line, ';');
-        }
-
-        fclose($out);
-        exit;
+        VnlTableExport::stream($rows, $columns, $fileName);
     }
 
     /* ---------------------------------------------------------------- */

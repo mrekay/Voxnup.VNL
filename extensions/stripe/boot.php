@@ -9,12 +9,22 @@
 
 defined('STRIPE_EXT_PATH') || define('STRIPE_EXT_PATH', __DIR__);
 
-// ─── 1. Stripe PHP SDK kontrolü ───────────────────────────────────────────────
+// ─── 1. Stripe PHP SDK ────────────────────────────────────────────────────────
+// VNL 3.0: SDK çekirdek vendor'dan çıkarıldı, eklenti kendi bağımlılığını
+// taşıyor. Eklenti kapalıyken bu dosya hiç yüklenmediği için 2.4 MB'lık
+// paket, Stripe kullanmayan projelere de girmiyor.
 if (!class_exists(\Stripe\Stripe::class)) {
-    throw new RuntimeException(
-        '[Stripe Extension] stripe/stripe-php paketi bulunamadı. ' .
-        'libs/ klasöründe `composer require stripe/stripe-php` komutunu çalıştırın.'
-    );
+    $_stripeAutoload = STRIPE_EXT_PATH . '/vendor/autoload.php';
+
+    if (!is_file($_stripeAutoload)) {
+        throw new RuntimeException(
+            '[Stripe Extension] Bağımlılıklar kurulmamış. ' .
+            'extensions/stripe/ dizininde `composer install` çalıştırın.'
+        );
+    }
+
+    require_once $_stripeAutoload;
+    unset($_stripeAutoload);
 }
 
 // ─── 2. Config yükle ──────────────────────────────────────────────────────────
