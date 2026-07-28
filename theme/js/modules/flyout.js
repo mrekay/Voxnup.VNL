@@ -104,12 +104,36 @@ function open(item) {
     sub.style.top = '0px';
     sub.classList.add(OPEN_CLASS);
 
+    layoutColumns(sub);
+
     const height = sub.offsetHeight;
     const top = Math.max(8, Math.min(btnRect.top, window.innerHeight - height - 8));
     sub.style.top = Math.round(top) + 'px';
     sub.style.visibility = '';
 
     startTracking();
+}
+
+/**
+ * Uzun menüler kaydırılmaz: dikey dolar, yükseklik sınırına gelince yana
+ * yeni sütun açar. Satır sayısı görünür yüksekliğe göre hesaplanır ve
+ * sütunlar dengeli dağıtılır (13 öğe → 7+6; 10+3 değil).
+ */
+function layoutColumns(sub) {
+    const items = sub.querySelectorAll(':scope > .vnl-menu-item');
+    const first = items[0];
+    if (!first) return;
+
+    const rowGap = 2;
+    const maxHeight = Math.min(window.innerHeight * .78, 560) - 16; // panel padding payı
+    const rowHeight = first.offsetHeight + rowGap;
+    const capacity = Math.max(1, Math.floor(maxHeight / rowHeight));
+
+    let rows = Math.min(items.length, capacity);
+    const cols = Math.ceil(items.length / rows);
+    rows = Math.ceil(items.length / cols);
+
+    sub.style.gridTemplateRows = 'repeat(' + rows + ', auto)';
 }
 
 function close() {

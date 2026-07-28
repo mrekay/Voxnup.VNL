@@ -94,9 +94,7 @@
     // kenarından, hangi genişlik modunda olursa olsun.
     position: fixed;
     z-index: 1080;
-    min-width: 230px;
-    max-width: 300px;
-    max-height: min(72vh, 480px);
+    max-height: min(78vh, 560px); // emniyet; normalde sütun kırılımı scroll'u önler
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: .5rem;
@@ -106,8 +104,16 @@
     scrollbar-width: thin;
     scrollbar-color: #2a332f transparent;
 
+    // Uzun menüler kaydırmak yerine yana kırılır: dikey dolar, taşınca
+    // yeni sütun açılır. Satır sayısını (grid-template-rows) flyout.js
+    // panel açılırken hesaplayıp yazar; tek sütunda klasik görünümdür.
     &.show {
-      display: flex;
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(190px, 230px);
+      column-gap: .75rem;
+      row-gap: 2px;
+      align-content: start;
       animation: vnl-flyout-in .16s ease both;
     }
   }
@@ -139,7 +145,10 @@
     border-radius: 0;
     box-shadow: none;
 
-    &.show { animation: none; }
+    &.show {
+      display: flex; // yerinde açılım: sütun kırılımı yok
+      animation: none;
+    }
   }
 }
 

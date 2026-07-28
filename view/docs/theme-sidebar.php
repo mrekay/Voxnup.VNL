@@ -103,7 +103,7 @@
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td><code>flyout</code> <span class="badge badge-soft-primary ms-1">varsayılan</span></td>
-                                    <td>Üzerine gelince ya da tıklayınca alt menü <b>sağda panel</b> olarak açılır; panel açıkken sidebar'ın kenarını canlı izler (daraltma/genişleme animasyonlarında birlikte kayar). ESC, dış tıklama ve fare ayrılması kapatır.</td>
+                                    <td>Üzerine gelince ya da tıklayınca alt menü <b>sağda panel</b> olarak açılır; panel açıkken sidebar'ın kenarını canlı izler (daraltma/genişleme animasyonlarında birlikte kayar). <b>Uzun menüler kaydırılmaz</b> — dikey dolup yana yeni sütuna kırılır, sütunlar dengeli dağıtılır. ESC, dış tıklama ve fare ayrılması kapatır.</td>
                                 </tr>
                                 <tr>
                                     <td><code>accordion</code></td>
