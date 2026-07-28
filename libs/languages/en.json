@@ -109,6 +109,10 @@
     "VNLTABLE_GROUP_COUNT": "_N_ records",
     "VNLTABLE_GROUP_MORE": "Load more",
     "VNLTABLE_GROUP_EMPTY": "(Empty)",
-    "VNLTABLE_INFO_GROUPS": "_GROUPS_ groups · _TOTAL_ records"
+    "VNLTABLE_INFO_GROUPS": "_GROUPS_ groups · _TOTAL_ records",
+    "VNLTABLE_GROUP_DROP": "Drag a column header here to group",
+    "VNLTABLE_EDIT_HINT": "Double-click to edit",
+    "VNLTABLE_EDIT_SAVED": "Saved",
+    "VNLTABLE_EDIT_FAILED": "Could not save"
   }
 ]

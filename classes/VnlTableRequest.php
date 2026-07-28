@@ -43,6 +43,9 @@ class VnlTableRequest
     /** Satır gruplaması: grup listesi, sayıları ve alt toplamları. */
     const OP_GROUP = 'group';
 
+    /** Hücre düzenleme: tek satırın tek sütununu yazar. */
+    const OP_SAVE = 'save';
+
     /**
      * Filtre türü → kullanılabilir koşullar.
      *
@@ -87,14 +90,19 @@ class VnlTableRequest
     /** OP_GROUP: satırların hangi sütuna göre kümeleneceği. */
     public string $groupBy = '';
 
+    /** OP_SAVE: düzenlenen satırın kimliği (tanımdaki key sütunu). */
+    public string $rowKey = '';
+
+    /** OP_SAVE: hücrenin yeni değeri. Ham gelir; doğrulaması sizde. */
+    public $value = null;
+
     public static function from($req): self
     {
         $self = new self();
 
         $op = (string)$req->post('op', self::OP_LIST);
-        $self->op = in_array($op, [self::OP_LIST, self::OP_DISTINCT, self::OP_EXPORT, self::OP_GROUP], true)
-            ? $op
-            : self::OP_LIST;
+        $ops = [self::OP_LIST, self::OP_DISTINCT, self::OP_EXPORT, self::OP_GROUP, self::OP_SAVE];
+        $self->op = in_array($op, $ops, true) ? $op : self::OP_LIST;
 
         $self->page = max(1, (int)$req->post('page', 1));
 
@@ -106,6 +114,8 @@ class VnlTableRequest
         $self->column  = (string)$req->post('col', '');
         $self->query   = trim((string)$req->post('q', ''));
         $self->groupBy = (string)$req->post('by', '');
+        $self->rowKey  = (string)$req->post('key', '');
+        $self->value   = $req->post('value');
         $self->context = self::asArray($req->post('context'));
         $self->filters = self::normalizeFilters($req->post('filters'));
         $self->sort    = self::normalizeSort($req->post('sort'));
@@ -518,6 +528,55 @@ class VnlTableRequest
         }
 
         $this->respondGroups($groups);
+    }
+
+    /* ================================================================
+       Hücre düzenleme
+       ================================================================ */
+
+    /**
+     * Yazılacak sütunun gerçek adı.
+     *
+     * $columns applyFilters()'takiyle aynı biçimdedir ve aynı sebeple
+     * zorunludur: sütun adı istemciden gelir. Burada dahası var — filtrede
+     * en kötü ihtimalle yanlış satır listelenir, burada YANLIŞ SÜTUNA YAZILIR.
+     * Listede olmayan ad sessizce atlanmaz, istek hatayla biter.
+     *
+     *   $sutun = $t->editColumn(['ad' => 'name', 'sehir' => 'city']);
+     *   Kayit::where('id', $t->rowKey)->update([$sutun => $t->value]);
+     *   $t->respondSaved();
+     */
+    public function editColumn(array $columns): string
+    {
+        $map = self::columnMap($columns);
+
+        if ($this->column === '' || !isset($map[$this->column])) {
+            throwErrorMessage('VnlTable: "' . $this->column . '" sütunu düzenlenebilir değil.');
+        }
+
+        if ($this->rowKey === '') {
+            throwErrorMessage('VnlTable: düzenlenecek satırın kimliği gelmedi.');
+        }
+
+        return $map[$this->column];
+    }
+
+    /**
+     * Kayıt yanıtı.
+     *
+     * Değer verirseniz istemci hücreyi onunla tazeler — sunucu değeri
+     * normalleştiriyorsa (kırpma, biçimleme, büyük harfe çevirme) kullanıcı
+     * yazdığını değil kaydedileni görsün diye. Vermezseniz hücrede yazdığı
+     * değer kalır.
+     */
+    public function respondSaved($value = null): void
+    {
+        self::emit([
+            'saved' => true,
+            'key'   => $this->rowKey,
+            'col'   => $this->column,
+            'value' => $value,
+        ]);
     }
 
     /**

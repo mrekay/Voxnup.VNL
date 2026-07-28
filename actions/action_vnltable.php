@@ -29,9 +29,21 @@ class action_vnltable
         'tarih'  => 'Tarih',
     ];
 
+    /** Düzenlenebilir sütunlar. Gerçek bir tabloda burası DB sütun eşlemesidir. */
+    private const EDITABLE = ['ad', 'sehir', 'durum', 'tutar'];
+
+    /** Demo düzenlemelerinin tutulduğu oturum anahtarı. */
+    private const EDIT_KEY = 'vnltable_demo_edits';
+
     public function getList($req)
     {
         $t = VnlTableRequest::from($req);
+
+        /* Hücre düzenleme. Sütun adı istemciden geldiği için editColumn()
+           beyaz listeye bakar; listede yoksa istek hatayla biter. */
+        if ($t->op === VnlTableRequest::OP_SAVE) {
+            $this->save($t);
+        }
 
         $rows  = $this->rows();
         $total = count($rows);
@@ -86,6 +98,39 @@ class action_vnltable
         $t->respond(array_slice($rows, $t->offset(), $t->size), $total, $filtered, $totals);
     }
 
+    /**
+     * Demo kaydı.
+     *
+     * Veritabanı yok: satırlar her istekte yeniden üretiliyor, o yüzden
+     * düzenlemeler oturumda saklanır ve rows() içinde satırların üzerine
+     * bindirilir. Gerçek bir tabloda burada tek bir UPDATE olurdu.
+     */
+    private function save(VnlTableRequest $t): void
+    {
+        $column = $t->editColumn(self::EDITABLE);
+        $value  = trim((string)$t->value);
+
+        if ($value === '') {
+            throwErrorMessage('Boş bırakılamaz.');
+        }
+
+        if ($column === 'tutar') {
+            if (!is_numeric($value)) {
+                throwErrorMessage('Tutar sayı olmalı.');
+            }
+
+            $value = (string)(int)$value;
+        }
+
+        $edits = Session::get(self::EDIT_KEY) ?: [];
+        $edits[$t->rowKey][$column] = $value;
+        Session::set(self::EDIT_KEY, $edits);
+
+        /* Normalleştirilmiş değeri geri veriyoruz: kullanıcı "  1500 "
+           yazdıysa hücrede kırpılmış hâlini görsün. */
+        $t->respondSaved($value);
+    }
+
     /** Düz arama — yalnız metin sütunlarında. */
     private function applySearch(array $rows, string $search): array
     {
@@ -109,10 +154,11 @@ class action_vnltable
     /** Sabit tohumla üretilir; sayfalar arasında satırlar değişmez. */
     private function rows(): array
     {
-        $rows = [];
+        $edits = Session::get(self::EDIT_KEY) ?: [];
+        $rows  = [];
 
         for ($i = 1; $i <= 213; $i++) {
-            $rows[] = [
+            $row = [
                 'id'    => $i,
                 'ad'    => 'Örnek Kayıt ' . str_pad((string)$i, 3, '0', STR_PAD_LEFT),
                 'sehir' => self::SEHIRLER[$i % count(self::SEHIRLER)],
@@ -120,6 +166,13 @@ class action_vnltable
                 'tutar' => ($i * 3779) % 48500 + 1500,
                 'tarih' => date('Y-m-d', strtotime('2026-01-01 +' . ($i * 3) . ' days')),
             ];
+
+            /* Oturumdaki düzenlemeler üretilen satırın üzerine biner. */
+            foreach ($edits[$i] ?? [] as $column => $value) {
+                $row[$column] = ($column === 'tutar') ? (int)$value : $value;
+            }
+
+            $rows[] = $row;
         }
 
         return $rows;

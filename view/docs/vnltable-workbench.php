@@ -30,10 +30,11 @@
                 <div class="card-body p-10">
                     <h3 class="fw-bold text-body-emphasis mb-4">1. Canlı Örnek</h3>
                     <p class="fs-5 text-body mb-6">
-                        <b>No</b> ve <b>Ad Soyad</b> sola sabit, <b>Tarih</b> sağa. Tabloyu yatay
-                        kaydırın: sabit sütunlar yerinde kalır ve dikişte gölge belirir. Araç
-                        çubuğundaki gruplama düğmesinden bir sütun seçin — gruplar sayı ve alt
-                        toplamla gelir, üzerine tıklayınca açılır.
+                        Üç şeyi birden deneyin: <b>başlığın yazısını</b> üstteki kesik çizgili alana
+                        sürükleyin — tablo o sütuna göre gruplanır. <b>Ad Soyad</b>, <b>Şehir</b>,
+                        <b>Durum</b> ve <b>Tutar</b> hücrelerine <b>çift tıklayın</b> — yerinde
+                        düzenlenir ve kaydedilir. Tabloyu yatay kaydırın — <b>No</b> ile
+                        <b>Ad Soyad</b> solda, <b>Tarih</b> sağda kalır.
                     </p>
 
                     <?= VnlTable::make('demoWorkbench')
@@ -43,11 +44,13 @@
                         ->columns([
                             ['name' => 'id',    'title' => 'No',       'type' => 'number', 'width' => '90px',
                              'pin' => 'left', 'filter' => false, 'groupable' => false],
-                            ['name' => 'ad',    'title' => 'Ad Soyad', 'width' => '220px',
+                            ['name' => 'ad',    'title' => 'Ad Soyad', 'width' => '220px', 'editable' => true,
                              'pin' => 'left', 'filter' => ['values' => false], 'groupable' => false],
-                            ['name' => 'sehir', 'title' => 'Şehir',    'width' => '260px'],
-                            ['name' => 'durum', 'title' => 'Durum',    'width' => '260px', 'filter' => 'set'],
-                            ['name' => 'tutar', 'title' => 'Tutar',    'type' => 'number', 'width' => '260px', 'agg' => 'sum'],
+                            ['name' => 'sehir', 'title' => 'Şehir',    'width' => '260px', 'editable' => true],
+                            ['name' => 'durum', 'title' => 'Durum',    'width' => '260px', 'filter' => 'set',
+                             'editable' => true, 'editOptions' => ['Onaylandı', 'Beklemede', 'İptal']],
+                            ['name' => 'tutar', 'title' => 'Tutar',    'type' => 'number', 'width' => '260px',
+                             'agg' => 'sum', 'editable' => true],
                             ['name' => 'tarih', 'title' => 'Tarih',    'type' => 'date',   'width' => '160px',
                              'pin' => 'right', 'groupable' => false],
                         ])

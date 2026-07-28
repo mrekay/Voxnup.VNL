@@ -294,6 +294,7 @@
         /* Görünüm sınıfları: skin bir CSS katmanı, şerit ondan bağımsız
            bir anahtar — hangi skin seçilirse seçilsin çalışır. */
         this.root.classList.add('vnl-skin-' + (this.opt.skin || 'default'));
+        this.root.classList.add('vnl-mode-' + (this.config.mode || 'list'));
         if (this.opt.striped) this.root.classList.add('vnl-striped');
 
         /* ---- Araç çubuğu ---- */
@@ -344,6 +345,13 @@
         bar.appendChild(actions);
         this.root.appendChild(bar);
 
+        /* ---- Gruplama bırakma alanı ----
+           Menüden önce gelir: sürükle-bırak keşfedilebilir olan, menü ise
+           dokunmatikte ve klavyeyle çalışan yol. İkisi aynı duruma yazar. */
+        if (this.opt.group && this.opt.group.zone) {
+            this.buildDropZone();
+        }
+
         /* ---- Aktif filtre çipleri ----
            Hangi sütunun filtreli olduğunu görmek için başlıkları tek tek
            gezmek gerekiyordu; çipler bunu tek bakışa indirir. Filtre
@@ -381,7 +389,14 @@
                etiketin peşinde kalsın. th'nin kendisi flex yapılamaz —
                tablo sütun genişliği hesabı bozuluyor. */
             var inner = el('span', 'vnl-th-inner');
-            inner.appendChild(el('span', 'vnl-th-label', col.title));
+            var label = el('span', 'vnl-th-label', col.title);
+            inner.appendChild(label);
+
+            /* Sürüklenebilir olan başlığın YAZISI, hücrenin tamamı değil:
+               hücre sıralamayı tıklıyor, huni kendi panelini açıyor. */
+            if (self.dropZone && col.groupable !== false) {
+                self.makeDraggable(label, col);
+            }
 
             if (col.sortable) {
                 th.classList.add('vnl-sortable');
@@ -395,6 +410,11 @@
                 }
 
                 th.addEventListener('click', function (e) {
+                    /* Sürükleme bittikten sonra bazı tarayıcılar click de
+                       gönderiyor; başlığı gruplamaya sürükleyen kullanıcı
+                       sıralamayı değiştirmiş olmasın. */
+                    if (self.dragging) return;
+
                     self.toggleSort(col.name, self.opt.multiSort && e.shiftKey);
                 });
             }
@@ -1282,6 +1302,98 @@
     /* Satır gruplama (workbench)                                        */
     /* ---------------------------------------------------------------- */
 
+    /**
+     * Başlığın sürüklenip bırakıldığı alan.
+     *
+     * Gruplama açıkken seçili sütunu bir rozet olarak gösterir; boşken
+     * ne yapılacağını söyleyen kesik çizgili bir şerittir.
+     */
+    VnlTable.prototype.buildDropZone = function () {
+        var self = this;
+        var zone = el('div', 'vnl-group-zone');
+
+        zone.addEventListener('dragover', function (e) {
+            /* preventDefault olmadan tarayıcı bırakmaya izin vermez. */
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            zone.classList.add('vnl-group-zone-over');
+        });
+
+        zone.addEventListener('dragleave', function () {
+            zone.classList.remove('vnl-group-zone-over');
+        });
+
+        zone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            zone.classList.remove('vnl-group-zone-over');
+
+            var name = e.dataTransfer.getData('text/vnl-column');
+            if (name) self.setGroup(name);
+        });
+
+        this.dropZone = zone;
+        this.root.appendChild(zone);
+        this.paintDropZone();
+    };
+
+    VnlTable.prototype.paintDropZone = function () {
+        var self = this;
+        var zone = this.dropZone;
+        if (!zone) return;
+
+        zone.innerHTML = '';
+
+        var col = this.state.groupBy && this.columns.filter(function (c) {
+            return c.name === self.state.groupBy;
+        })[0];
+
+        if (!col) {
+            zone.classList.remove('vnl-group-zone-on');
+            zone.appendChild(el('span', 'vnl-group-zone-hint', this.lang.groupDrop || ''));
+
+            return;
+        }
+
+        zone.classList.add('vnl-group-zone-on');
+
+        var chip = el('span', 'vnl-chip');
+        chip.appendChild(el('span', 'vnl-chip-text', (this.lang.group || '') + ': ' + col.title));
+
+        var x = el('button', 'vnl-chip-x', '×');
+        x.type = 'button';
+        x.setAttribute('aria-label', (this.lang.groupNone || ''));
+        x.addEventListener('click', function () { self.setGroup(''); });
+
+        chip.appendChild(x);
+        zone.appendChild(chip);
+    };
+
+    /** Başlık yazısını sürüklenebilir yapar. */
+    VnlTable.prototype.makeDraggable = function (label, col) {
+        var self = this;
+
+        label.setAttribute('draggable', 'true');
+        label.classList.add('vnl-th-drag');
+
+        label.addEventListener('dragstart', function (e) {
+            self.dragging = true;
+            self.root.classList.add('vnl-dragging');
+
+            /* Firefox setData olmadan sürüklemeyi hiç başlatmıyor. */
+            e.dataTransfer.setData('text/vnl-column', col.name);
+            e.dataTransfer.setData('text/plain', col.title);
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        label.addEventListener('dragend', function () {
+            self.root.classList.remove('vnl-dragging');
+
+            /* Bayrak bir tur sonra düşer: dragend'den sonra gelen click
+               sıralamayı tetiklemesin. */
+            setTimeout(function () { self.dragging = false; }, 0);
+        });
+    };
+
     VnlTable.prototype.buildGroupMenu = function () {
         var self = this;
         var wrap = el('div', 'dropdown vnl-table-group');
@@ -1326,6 +1438,8 @@
         });
 
         if (this.groupBtn) this.groupBtn.classList.toggle('vnl-group-on', !!this.state.groupBy);
+
+        this.paintDropZone();
     };
 
     VnlTable.prototype.setGroup = function (name) {
@@ -1796,10 +1910,140 @@
                 td.textContent = asText(row[col.name]);
             }
 
+            /* Düzenlenebilir hücre satır kimliğini kendi üstünde taşır:
+               satır yeniden çizilse de kaydetme isteği doğru kaydı bulur. */
+            if (col.editable && self.rowKey(row) !== null) {
+                td.classList.add('vnl-editable');
+                td.title = self.lang.editHint || '';
+                td.addEventListener('dblclick', function () { self.editCell(td, col, row); });
+            }
+
             tr.appendChild(td);
         });
 
         return tr;
+    };
+
+    VnlTable.prototype.rowKey = function (row) {
+        var key = this.config.key;
+
+        return (key && row[key] !== undefined && row[key] !== null) ? String(row[key]) : null;
+    };
+
+    /* ---------------------------------------------------------------- */
+    /* Hücre düzenleme (workbench)                                       */
+    /* ---------------------------------------------------------------- */
+
+    /**
+     * Hücreyi düzenlemeye açar.
+     *
+     * Tek hücre, tek istek — toplu "kirli satır" tutmuyoruz. Yarım kalmış
+     * bir düzenleme sayfa yenilenince sessizce kaybolmasın diye: yazılan
+     * ya kaydedilir ya da eski değere döner.
+     */
+    VnlTable.prototype.editCell = function (td, col, row) {
+        if (td.classList.contains('vnl-editing')) return;
+
+        var self     = this;
+        var original = asText(row[col.name]);
+        var input    = col.editOptions ? el('select', 'form-select form-select-sm') : el('input', 'form-control form-control-sm');
+
+        if (col.editOptions) {
+            col.editOptions.forEach(function (option) {
+                var node = el('option', null, option.l);
+                node.value = option.v;
+                if (option.v === original) node.selected = true;
+                input.appendChild(node);
+            });
+        } else {
+            input.type = col.type === 'number' ? 'number' : (col.type === 'date' ? 'date' : 'text');
+            input.value = original;
+        }
+
+        td.classList.add('vnl-editing');
+        td.textContent = '';
+        td.appendChild(input);
+        input.focus();
+        if (input.select) input.select();
+
+        var settled = false;
+
+        function done(value) {
+            if (settled) return;
+            settled = true;
+
+            td.classList.remove('vnl-editing');
+            td.textContent = value;
+        }
+
+        function commit() {
+            if (settled) return;
+
+            var value = input.value;
+
+            if (value === original) {
+                done(original);
+
+                return;
+            }
+
+            done(value);
+            self.saveCell(td, col, row, value, original);
+        }
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                commit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                done(original);
+            }
+        });
+
+        /* Select'te seçim yapmak blur üretmiyor; change ile de bağlanır. */
+        input.addEventListener('blur', commit);
+        if (col.editOptions) input.addEventListener('change', commit);
+    };
+
+    VnlTable.prototype.saveCell = function (td, col, row, value, original) {
+        var self = this;
+
+        td.classList.add('vnl-saving');
+
+        this.post(this.config.saveUrl || this.config.url, this.payload('save', {
+            key:   this.rowKey(row),
+            col:   col.name,
+            value: value
+        }))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                td.classList.remove('vnl-saving');
+
+                if (!data || data.saved !== true) throw new Error('reddedildi');
+
+                /* Sunucu değeri normalleştirmiş olabilir: kullanıcı yazdığını
+                   değil kaydedileni görsün. */
+                var saved = (data.value === null || data.value === undefined) ? value : asText(data.value);
+
+                row[col.name] = saved;
+                td.textContent = saved;
+
+                td.classList.add('vnl-saved');
+                setTimeout(function () { td.classList.remove('vnl-saved'); }, 900);
+            })
+            .catch(function (err) {
+                td.classList.remove('vnl-saving');
+                td.textContent = original;
+                td.classList.add('vnl-save-failed');
+                setTimeout(function () { td.classList.remove('vnl-save-failed'); }, 1500);
+
+                console.error('[VNL Table] ' + self.config.id + ' save:', err);
+
+                if (typeof showModalMessage === 'function') {
+                    showModalMessage(self.lang.editFailed || '', true);
+                }
+            });
     };
 
     /* ---------------------------------------------------------------- */

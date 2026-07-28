@@ -109,6 +109,10 @@
     "VNLTABLE_GROUP_COUNT": "_N_ kayıt",
     "VNLTABLE_GROUP_MORE": "Daha fazla yükle",
     "VNLTABLE_GROUP_EMPTY": "(Boş)",
-    "VNLTABLE_INFO_GROUPS": "_GROUPS_ grup · _TOTAL_ kayıt"
+    "VNLTABLE_INFO_GROUPS": "_GROUPS_ grup · _TOTAL_ kayıt",
+    "VNLTABLE_GROUP_DROP": "Gruplamak için sütun başlığını buraya sürükleyin",
+    "VNLTABLE_EDIT_HINT": "Düzenlemek için çift tıklayın",
+    "VNLTABLE_EDIT_SAVED": "Kaydedildi",
+    "VNLTABLE_EDIT_FAILED": "Kaydedilemedi"
   }
 ]

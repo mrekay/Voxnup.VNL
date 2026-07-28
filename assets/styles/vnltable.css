@@ -757,6 +757,142 @@ i.vnl-icon {
 }
 
 /* ================================================================
+   Mod: workbench
+
+   Başlık şeridi mavileşir. Skin'den BAĞIMSIZDIR: hangi skin seçilirse
+   seçilsin workbench başka bir alet olduğunu ilk bakışta söylesin.
+   Renk zemine karıştırılarak üretiliyor, o yüzden koyu temada da
+   kendiliğinden oturur — sabit bir mavi orada parlıyordu.
+
+   Vurgu rengi (yeşil) yerinde kalır: çip, sayfalama ve huni onu
+   kullanmayı sürdürür, mavi yalnız başlık şeridinin işaretidir.
+   ================================================================ */
+
+.vnl-table.vnl-mode-workbench {
+    --vnl-bench: var(--vnl-bench-accent, #2f6fed);
+
+    --vnl-table-head-bg:     color-mix(in srgb, var(--vnl-bench) 12%, var(--vnl-surface, var(--bs-body-bg)));
+    --vnl-table-head-color:  color-mix(in srgb, var(--vnl-bench) 55%, var(--bs-body-color));
+    --vnl-table-head-weight: 600;
+}
+
+.vnl-table.vnl-mode-workbench .vnl-table-el thead th {
+    border-bottom-color: color-mix(in srgb, var(--vnl-bench) 35%, transparent);
+}
+
+/* Başlık içindeki işaretler de şeride uyar; huni ve sıralama oku
+   yeşil kalsaydı mavi zeminde yamalı duruyordu. */
+.vnl-table.vnl-mode-workbench .vnl-th.vnl-sort-asc .vnl-sort-mark,
+.vnl-table.vnl-mode-workbench .vnl-th.vnl-sort-desc .vnl-sort-mark,
+.vnl-table.vnl-mode-workbench .vnl-th.vnl-filter-on .vnl-th-filter {
+    color: var(--vnl-bench);
+}
+
+.vnl-table.vnl-mode-workbench .vnl-sort-order:not(:empty) {
+    background: color-mix(in srgb, var(--vnl-bench) 22%, transparent);
+    color: color-mix(in srgb, var(--vnl-bench) 70%, var(--bs-body-color));
+}
+
+/* Grup satırı ve toplam satırı da başlık zeminini kullanıyor. */
+.vnl-table.vnl-mode-workbench .vnl-group-total {
+    background: color-mix(in srgb, var(--vnl-bench) 14%, transparent);
+}
+
+.vnl-table.vnl-mode-workbench .vnl-group-caret {
+    color: var(--vnl-bench);
+}
+
+/* ── Gruplama bırakma alanı ── */
+
+.vnl-group-zone {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-height: 2.5rem;
+    margin: .5rem .75rem;
+    padding: .35rem .6rem;
+    border: 1px dashed color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 40%, transparent);
+    border-radius: var(--vnl-table-radius);
+    transition: background-color .15s, border-color .15s;
+}
+
+.vnl-group-zone-hint {
+    color: var(--bs-secondary-color);
+    font-size: .8125rem;
+}
+
+/* Sürükleme başlayınca alan belirginleşir: nereye bırakılacağı belli olsun. */
+.vnl-table.vnl-dragging .vnl-group-zone {
+    border-color: var(--vnl-bench, var(--vnl-table-accent));
+    background: color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 6%, transparent);
+}
+
+.vnl-group-zone-over {
+    border-style: solid;
+    background: color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 14%, transparent) !important;
+}
+
+/* Gruplama açıkken kesik çizgiye gerek yok, rozet zaten anlatıyor. */
+.vnl-group-zone-on {
+    border-style: solid;
+    border-color: var(--vnl-table-border);
+}
+
+.vnl-group-zone .vnl-chip {
+    background: color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 14%, transparent);
+}
+
+/* Sürüklenebilir başlık yazısı */
+.vnl-th-drag {
+    cursor: grab;
+}
+
+.vnl-th-drag:active {
+    cursor: grabbing;
+}
+
+/* ── Hücre düzenleme ──
+   Düzenlenebilir hücre kendini belli eder ama bağırmaz: alt kenarda
+   kesik bir çizgi, üzerine gelince zemin. */
+
+.vnl-editable {
+    cursor: text;
+    box-shadow: inset 0 -1px 0 0 color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.vnl-editable:hover {
+    background: color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 8%, transparent);
+}
+
+.vnl-editable.vnl-editing {
+    padding: 0;
+    box-shadow: none;
+}
+
+.vnl-editing :is(input, select) {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    font-size: inherit;
+}
+
+/* Kaydederken hücre bekleme durumuna geçer; başarıda kısa bir onay,
+   hatada eski değere dönüş. */
+.vnl-saving {
+    opacity: .5;
+}
+
+.vnl-saved {
+    background: color-mix(in srgb, var(--bs-success, #04ab61) 22%, transparent);
+    transition: background-color .6s;
+}
+
+.vnl-save-failed {
+    background: color-mix(in srgb, var(--bs-danger) 22%, transparent);
+    transition: background-color .8s;
+}
+
+/* ================================================================
    Skin: modern
 
    Ayrım çizgiden değil boşluktan gelir. Başlık kendi zeminini bırakır,

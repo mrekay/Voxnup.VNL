@@ -1,0 +1,60 @@
+// ============================================================
+// VNL Theme — sekmeler
+// Önerilen sekme .nav-underline'dır (cilası burada: aktif emerald alt
+// çizgi + emphasis metin). .vnl-tabs-solid, araç panellerine uygun
+// segmented-control varyantıdır: kapsül zemin, aktif sekme yüzeyde yüzer.
+// .nav-tabs ve .nav-pills tema token'larıyla zaten uyumludur.
+// ============================================================
+
+// ---- Alt çizgili sekmeler (önerilen) ---------------------------------------
+.nav-underline {
+  gap: 1.25rem;
+
+  .nav-link {
+    padding-bottom: .6rem;
+    color: var(--bs-secondary-color);
+    font-weight: 500;
+
+    &:hover:not(.active) {
+      color: var(--bs-body-color);
+      border-bottom-color: var(--bs-border-color);
+    }
+
+    &.active {
+      color: var(--bs-emphasis-color);
+      border-bottom-color: var(--bs-primary);
+    }
+  }
+}
+
+// ---- Segmented (kapsül) sekmeler -------------------------------------------
+// <ul class="nav vnl-tabs-solid"> — data-bs-toggle="tab" ile çalışır.
+.vnl-tabs-solid {
+  display: inline-flex;
+  gap: .25rem;
+  padding: .25rem;
+  background: var(--bs-tertiary-bg);
+  border-radius: var(--bs-border-radius);
+
+  .nav-link {
+    padding: .4rem .9rem;
+    border-radius: calc(var(--bs-border-radius) - .125rem);
+    color: var(--bs-secondary-color);
+    font-weight: 500;
+    transition: color .15s ease, background-color .15s ease;
+
+    &:hover:not(.active) {
+      color: var(--bs-body-color);
+    }
+
+    &.active {
+      background: var(--vnl-surface);
+      color: var(--bs-emphasis-color);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .12), 0 0 0 1px var(--vnl-card-ring);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-link { transition: none; }
+  }
+}

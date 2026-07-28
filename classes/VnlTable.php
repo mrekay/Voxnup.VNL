@@ -49,6 +49,7 @@ class VnlTable
     private string $id;
     private string $url       = '';
     private string $exportUrl = '';
+    private string $saveUrl   = '';
     private string $mode    = self::LIST;
     private string $key     = 'id';
     private array  $columns = [];
@@ -123,6 +124,26 @@ class VnlTable
         }
 
         $this->exportUrl = $url;
+
+        return $this;
+    }
+
+    /**
+     * Hücre düzenlemesini başka bir action'a yönlendirir.
+     *
+     * Verilmezse kaydetme asıl url()'e op="save" ile gider. Yazma işini
+     * okuma action'ından ayırmak istiyorsanız — yetki, kayıt tutma, doğrulama
+     * genelde ayrı yerde durur — burayı kullanın.
+     */
+    public function saveUrl(string $url): self
+    {
+        $url = trim($url);
+
+        if ($url !== '' && !preg_match('~^(https?:)?//~i', $url)) {
+            $url = '/' . ltrim($url, '/');
+        }
+
+        $this->saveUrl = $url;
 
         return $this;
     }
@@ -224,6 +245,7 @@ class VnlTable
             'id'      => $this->id,
             'url'     => $this->url,
             'exportUrl' => $this->exportUrl,
+            'saveUrl' => $this->saveUrl,
             'mode'    => $this->mode,
             'key'     => $this->key,
             'columns' => array_map([$this, 'resolveFilter'], $this->columns),
@@ -273,6 +295,11 @@ class VnlTable
      *   pin      left | right — sütunu kenara yapıştırır, yatay kaydırmada
      *            yerinde kalır. Sunum özelliğidir, her modda geçerlidir.
      *   groupable  workbench'te gruplama menüsünde listelensin mi
+     *   editable   hücre çift tıkla düzenlensin mi (workbench). Kaydetme
+     *              op = save ile url()'e gider; sunucuda editColumn() ile
+     *              yazılabilir sütunları BEYAZ LİSTEYE almak zorunludur.
+     *   editOptions  açılır liste seçenekleri: ['Onaylandı', 'İptal'] ya da
+     *              ['a' => 'Etiket']. Verilirse serbest metin yerine select.
      *
      * filter burada ham bırakılır: mod() sütunlardan sonra çağrılabildiği
      * için çözümleme config()'e ertelenir.
@@ -307,6 +334,8 @@ class VnlTable
             'agg'      => $agg,
             'pin'      => in_array($column['pin'] ?? null, ['left', 'right'], true) ? $column['pin'] : null,
             'groupable' => (bool)($column['groupable'] ?? true),
+            'editable'  => (bool)($column['editable'] ?? false),
+            'editOptions' => self::editOptions($column['editOptions'] ?? null),
         ];
     }
 
@@ -418,6 +447,7 @@ class VnlTable
             'mode'  => $mode,
             'limit' => max(1, (int)($spec['limit'] ?? 5000)),
             'menu'  => (bool)($spec['menu'] ?? true),
+            'zone'  => (bool)($spec['zone'] ?? true),
         ];
     }
 
@@ -430,6 +460,29 @@ class VnlTable
         }
 
         return false;
+    }
+
+    /**
+     * Açılır liste seçenekleri tek biçime indirilir: [['v' => .., 'l' => ..]]
+     *
+     * Düz liste verildiğinde değer etiketin kendisidir; ilişkisel dizide
+     * anahtar kaydedilen, değer gösterilendir.
+     */
+    private static function editOptions($options): ?array
+    {
+        if (!is_array($options) || !$options) {
+            return null;
+        }
+
+        $out = [];
+
+        foreach ($options as $key => $label) {
+            $out[] = is_int($key)
+                ? ['v' => (string)$label, 'l' => (string)$label]
+                : ['v' => (string)$key, 'l' => (string)$label];
+        }
+
+        return $out;
     }
 
     private static function kindFromType(string $type): string
@@ -494,7 +547,13 @@ class VnlTable
             'groupCount'    => lang('VNLTABLE_GROUP_COUNT'),
             'groupMore'     => lang('VNLTABLE_GROUP_MORE'),
             'groupEmpty'    => lang('VNLTABLE_GROUP_EMPTY'),
+            'groupDrop'     => lang('VNLTABLE_GROUP_DROP'),
             'infoGroups'    => lang('VNLTABLE_INFO_GROUPS'),
+
+            /* Hücre düzenleme */
+            'editHint'      => lang('VNLTABLE_EDIT_HINT'),
+            'editSaved'     => lang('VNLTABLE_EDIT_SAVED'),
+            'editFailed'    => lang('VNLTABLE_EDIT_FAILED'),
         ];
     }
 

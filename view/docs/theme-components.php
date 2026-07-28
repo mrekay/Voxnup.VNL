@@ -136,8 +136,104 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
 
                     <div class="separator separator-dashed my-8"></div>
 
+                    <div class="mb-10">
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Accordion ve Sekmeler</h3>
+                        <p class="text-body mb-4">
+                            İkisi de Bootstrap davranışıyla çalışır (<code>data-bs-toggle</code>), görünüm VNL'indir.
+                            Accordion'da aktif başlık sol emerald rail alır (sidebar'ın aktif diliyle akraba);
+                            <code>.vnl-accordion</code> varyantı maddeleri ayrık kartlara çevirir.
+                            Sekmelerde önerilen biçim <code>.nav-underline</code>'dır; <code>.vnl-tabs-solid</code>
+                            ise araç panelleri için segmented-control varyantıdır.
+                        </p>
+
+                        <div class="row g-8 mb-6">
+                            <div class="col-lg-6">
+                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">Accordion (base)</div>
+                                <div class="accordion" id="vnl_demo_acc1">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#vnl_acc1_a">Kurulum</button>
+                                        </h2>
+                                        <div id="vnl_acc1_a" class="accordion-collapse collapse show" data-bs-parent="#vnl_demo_acc1">
+                                            <div class="accordion-body text-body-secondary">Projeyi klonlayın, config tanımlarını doldurun — build gerekmez.</div>
+                                        </div>
+                                    </div>
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vnl_acc1_b">Yapılandırma</button>
+                                        </h2>
+                                        <div id="vnl_acc1_b" class="accordion-collapse collapse" data-bs-parent="#vnl_demo_acc1">
+                                            <div class="accordion-body text-body-secondary">Sistem geneli varsayılanlar <code>themeDefaults()</code> içindedir.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.vnl-accordion (ayrık kartlar)</div>
+                                <div class="accordion vnl-accordion" id="vnl_demo_acc2">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#vnl_acc2_a">Sık sorulan</button>
+                                        </h2>
+                                        <div id="vnl_acc2_a" class="accordion-collapse collapse show" data-bs-parent="#vnl_demo_acc2">
+                                            <div class="accordion-body text-body-secondary">Her madde kendi yüzeyinde, gölgeyle yüzer — kart diliyle aynı.</div>
+                                        </div>
+                                    </div>
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vnl_acc2_b">Bir madde daha</button>
+                                        </h2>
+                                        <div id="vnl_acc2_b" class="accordion-collapse collapse" data-bs-parent="#vnl_demo_acc2">
+                                            <div class="accordion-body text-body-secondary">Ayrık görünüm SSS ve ayar gruplarında iyi durur.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-8 mb-6">
+                            <div class="col-lg-6">
+                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.nav-underline (önerilen sekme)</div>
+                                <ul class="nav nav-underline mb-4" role="tablist">
+                                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vnl_tab_u1" type="button" role="tab">Genel</button></li>
+                                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_u2" type="button" role="tab">Yetkiler</button></li>
+                                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_u3" type="button" role="tab">Geçmiş</button></li>
+                                </ul>
+                                <div class="tab-content text-body-secondary">
+                                    <div class="tab-pane fade show active" id="vnl_tab_u1" role="tabpanel">Aktif sekme emerald alt çizgi + emphasis metin alır.</div>
+                                    <div class="tab-pane fade" id="vnl_tab_u2" role="tabpanel">Sekme davranışı Bootstrap'in tab API'sidir.</div>
+                                    <div class="tab-pane fade" id="vnl_tab_u3" role="tabpanel">Üçüncü panel içeriği.</div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.vnl-tabs-solid (segmented)</div>
+                                <ul class="nav vnl-tabs-solid mb-4" role="tablist">
+                                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vnl_tab_s1" type="button" role="tab">Günlük</button></li>
+                                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_s2" type="button" role="tab">Haftalık</button></li>
+                                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_s3" type="button" role="tab">Aylık</button></li>
+                                </ul>
+                                <div class="tab-content text-body-secondary">
+                                    <div class="tab-pane fade show active" id="vnl_tab_s1" role="tabpanel">Kapsül zemin üzerinde aktif sekme yüzeyde yüzer.</div>
+                                    <div class="tab-pane fade" id="vnl_tab_s2" role="tabpanel">Rapor aralığı seçimleri gibi araçlara uygundur.</div>
+                                    <div class="tab-pane fade" id="vnl_tab_s3" role="tabpanel">Üçüncü panel içeriği.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="vnl-code"><pre><code>&lt;!-- Ayrık kart accordion --&gt;
+&lt;div class="accordion vnl-accordion" id="sss"&gt;…&lt;/div&gt;
+
+&lt;!-- Önerilen sekme --&gt;
+&lt;ul class="nav nav-underline" role="tablist"&gt;…&lt;/ul&gt;
+
+&lt;!-- Segmented sekme --&gt;
+&lt;ul class="nav vnl-tabs-solid" role="tablist"&gt;…&lt;/ul&gt;</code></pre></div>
+                    </div>
+
+                    <div class="separator separator-dashed my-8"></div>
+
                     <div class="mb-0">
-                        <h3 class="fw-bold text-body-emphasis mb-4">5. Küçük Yardımcılar</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. Küçük Yardımcılar</h3>
                         <div class="table-responsive">
                             <table class="table table-row-dashed align-middle fs-7 gy-4">
                                 <thead>
