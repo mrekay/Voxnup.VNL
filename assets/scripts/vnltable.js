@@ -91,7 +91,8 @@
             search:  'bi bi-search',
             filter:  'bi bi-funnel',
             filterOn: 'bi bi-funnel-fill',
-            group:   'bi bi-diagram-2'
+            group:   'bi bi-diagram-2',
+            pivot:   'bi bi-grid-3x3'
         },
         fa: {
             probe:   'fa-solid fa-angle-left',
@@ -106,12 +107,13 @@
             /* Font Awesome Free'de anahat huni yok; aktiflik renkle ayrılır. */
             filter:  'fa-solid fa-filter',
             filterOn: 'fa-solid fa-filter',
-            group:   'fa-solid fa-layer-group'
+            group:   'fa-solid fa-layer-group',
+            pivot:   'fa-solid fa-table-cells'
         },
         emoji: {
             first: '«', prev: '‹', next: '›', last: '»',
             columns: '▦', clear: '✕', excel: '▤', search: '⌕',
-            filter: '▽', filterOn: '▼', group: '☰'
+            filter: '▽', filterOn: '▼', group: '☰', pivot: '▦'
         }
     };
 
@@ -231,7 +233,11 @@
         var lead = [];
         if (this.opt.selection) lead.push(systemColumn('__select'));
         if (this.opt.detail)    lead.push(systemColumn('__detail'));
-        this.columns = lead.concat(this.columns);
+
+        this.lead  = lead;
+        this.data  = this.columns;
+        this.order = this.restoreOrder();
+        this.columns = lead.concat(this.orderData());
         this.lang    = config.lang || {};
 
         /* Kullanıcının gizlediği sütunlar (name → true); tercih tarayıcıda
@@ -254,6 +260,7 @@
             search:  '',
             filters: {},
             groupBy: ((this.opt.group && this.opt.group.by) || []).slice(),
+            pivot:   pivotState(this.opt.pivot),
             total:   0,
             filtered: 0,
             rows:    [],
@@ -319,6 +326,7 @@
            bir anahtar — hangi skin seçilirse seçilsin çalışır. */
         this.root.classList.add('vnl-skin-' + (this.opt.skin || 'default'));
         this.root.classList.add('vnl-mode-' + (this.config.mode || 'list'));
+        this.root.classList.toggle('vnl-pivot-view', this.state.pivot.on);
         if (this.opt.striped) this.root.classList.add('vnl-striped');
 
         /* ---- Araç çubuğu ---- */
@@ -346,6 +354,13 @@
 
         var actions = el('div', 'vnl-table-actions');
 
+        if (this.opt.pivot) {
+            var pivotBtn = iconButton('pivot', this.lang.pivot || '', 'btn-outline-secondary');
+            pivotBtn.classList.toggle('vnl-pivot-on', this.state.pivot.on);
+            pivotBtn.addEventListener('click', function () { self.togglePivot(); });
+            actions.appendChild(pivotBtn);
+        }
+
         if (this.opt.group && this.opt.group.menu) {
             actions.appendChild(this.buildGroupMenu());
         }
@@ -368,6 +383,11 @@
 
         bar.appendChild(actions);
         this.root.appendChild(bar);
+
+        /* ---- Pivot eksenleri ----
+           Görünüm açıkken beliren şerit: hangi kırılım satıra, hangisi
+           sütuna, hangi alan ölçülüyor. */
+        if (this.opt.pivot && this.state.pivot.on) this.buildPivotBar();
 
         /* ---- Gruplama bırakma alanı ----
            Menüden önce gelir: sürükle-bırak keşfedilebilir olan, menü ise
@@ -432,10 +452,14 @@
             inner.appendChild(label);
 
             /* Sürüklenebilir olan başlığın YAZISI, hücrenin tamamı değil:
-               hücre sıralamayı tıklıyor, huni kendi panelini açıyor. */
-            if (self.dropZone && col.groupable !== false) {
+               hücre sıralamayı tıklıyor, huni kendi panelini açıyor.
+               Aynı sürükleme iki şey yapabilir: gruplama alanına bırakılırsa
+               gruplar, başka bir başlığa bırakılırsa sırayı değiştirir. */
+            if (self.dropZone || self.opt.reorder) {
                 self.makeDraggable(label, col);
             }
+
+            if (self.opt.reorder) self.makeDropTarget(th, col);
 
             if (col.sortable) {
                 th.classList.add('vnl-sortable');
@@ -603,6 +627,7 @@
 
     VnlTable.prototype.paintSort = function () {
         var self  = this;
+        if (this.state.pivot.on) return;
         var many  = this.state.sort.length > 1;
         var index = {};
 
@@ -630,6 +655,130 @@
 
     VnlTable.prototype.storageKey = function () {
         return 'vnltable-cols-' + this.config.id;
+    };
+
+    /**
+     * Kullanicinin verdigi sutun sirasi.
+     *
+     * Gizleme tercihiyle ayni yerde durur: tarayicida, tablo kimligiyle.
+     * Adrese yazilmaz — paylasilan bir baglantinin karsi tarafin sutun
+     * duzenini degistirmesi istenmez, bu kisisel bir tercih.
+     */
+    VnlTable.prototype.orderKey = function () {
+        return 'vnltable-order-' + this.config.id;
+    };
+
+    VnlTable.prototype.restoreOrder = function () {
+        try {
+            var saved = JSON.parse(localStorage.getItem(this.orderKey()) || '[]');
+
+            return Array.isArray(saved) ? saved : [];
+        } catch (e) {
+            return [];   /* bozuk kayit yok sayilir */
+        }
+    };
+
+    VnlTable.prototype.persistOrder = function () {
+        try {
+            if (this.order.length) localStorage.setItem(this.orderKey(), JSON.stringify(this.order));
+            else localStorage.removeItem(this.orderKey());
+        } catch (e) { /* localStorage kapaliysa tercih oturumluk kalir */ }
+    };
+
+    /**
+     * Veri sutunlarini kullanicinin sirasina gore dizer.
+     *
+     * Sabitleme kumeleri korunur: sola sabitler basta, sagdakiler sonda.
+     * Bir sutunu kendi kumesinin disina birakmak duzeni bozardi, o yuzden
+     * kabul edilmez degil, sessizce kumesine geri cekilir.
+     *
+     * Tanimdaki yeni sutunlar (kayitli sirada olmayanlar) sona eklenir:
+     * eski bir tercih yeni bir sutunu gizlememeli.
+     */
+    VnlTable.prototype.orderData = function () {
+        var byName = {};
+        var out    = [];
+
+        this.data.forEach(function (col) { byName[col.name] = col; });
+
+        this.order.forEach(function (name) {
+            if (byName[name]) {
+                out.push(byName[name]);
+                delete byName[name];
+            }
+        });
+
+        this.data.forEach(function (col) {
+            if (byName[col.name]) out.push(col);
+        });
+
+        var rank = function (col) {
+            return col.pin === 'left' ? 0 : (col.pin === 'right' ? 2 : 1);
+        };
+
+        /* Array.sort kararli: kume ici sira kullanicinin verdigi gibi kalir. */
+        return out.sort(function (a, b) { return rank(a) - rank(b); });
+    };
+
+    /** Sutunu baska bir sutunun onune ya da arkasina tasir. */
+    VnlTable.prototype.moveColumn = function (from, to, after) {
+        if (from === to) return;
+
+        var names = this.orderData().map(function (col) { return col.name; });
+        var at    = names.indexOf(from);
+
+        if (at === -1) return;
+        names.splice(at, 1);
+
+        var target = names.indexOf(to);
+        if (target === -1) return;
+
+        names.splice(after ? target + 1 : target, 0, from);
+
+        this.order = names;
+        this.persistOrder();
+        this.rebuild();
+    };
+
+    VnlTable.prototype.resetOrder = function () {
+        if (!this.order.length) return;
+
+        this.order = [];
+        this.persistOrder();
+        this.rebuild();
+    };
+
+    /**
+     * Tabloyu bastan kurar ve eldeki veriyi yeniden basar.
+     *
+     * Sutun sirasi degisince baslik, govde ve toplam satiri birlikte
+     * degismek zorunda; parca parca yamamak yerine tumu yeniden kurulur.
+     * Veri, filtreler ve secim state'te durdugu icin kaybolmaz.
+     */
+    VnlTable.prototype.rebuild = function () {
+        disposeTooltips(this.root);
+        this.closeFilter();
+
+        /* build() yeni bir dinleyici takacak; eskisi birakilmazsa her
+           yeniden kurulusta bir tane daha birikirdi. */
+        if (this.onResize) {
+            window.removeEventListener('resize', this.onResize);
+            this.onResize = null;
+        }
+
+        this.ths        = {};
+        this.filterBtns = {};
+        this.tfootCells = null;
+        this.totalCells = null;
+        this.columns    = this.lead.concat(this.orderData());
+
+        this.build();
+
+        if (this.state.groupBy.length) this.renderGroups();
+        else this.renderRows();
+
+        this.renderTotals(this.lastTotals);
+        this.renderFooter();
     };
 
     VnlTable.prototype.restoreHidden = function () {
@@ -697,6 +846,13 @@
             menu.appendChild(item);
             self.checkboxes[col.name] = box;
         });
+
+        if (this.opt.reorder) {
+            var reset = el('button', 'dropdown-item vnl-columns-reset', this.lang.orderReset || '');
+            reset.type = 'button';
+            reset.addEventListener('click', function () { self.resetOrder(); });
+            menu.appendChild(reset);
+        }
 
         wrap.appendChild(menu);
         this.refreshColumnMenu();
@@ -778,6 +934,7 @@
     /** Filtresi olan sütunun hunisi dolu ve vurgulu görünür. */
     VnlTable.prototype.paintFilters = function () {
         var self = this;
+        if (this.state.pivot.on) return;
 
         this.columns.forEach(function (col) {
             var btn = self.filterBtns[col.name];
@@ -1397,7 +1554,11 @@
             zone.classList.remove('vnl-group-zone-over');
 
             var name = e.dataTransfer.getData('text/vnl-column');
-            if (name) self.addGroup(name);
+            var col   = name && self.column(name);
+
+            /* Gruplanamayan sutun buraya birakilabilir ama gruplanamaz;
+               sessizce yutmak yerine hicbir sey yapilmaz. */
+            if (col && col.groupable !== false) self.addGroup(name);
         });
 
         this.dropZone = zone;
@@ -1448,20 +1609,71 @@
 
         label.addEventListener('dragstart', function (e) {
             self.dragging = true;
+            self.dragCol  = col;
             self.root.classList.add('vnl-dragging');
+            self.root.classList.toggle('vnl-dragging-groupable', col.groupable !== false);
 
             /* Firefox setData olmadan suruklemeyi hic baslatmiyor. */
             e.dataTransfer.setData('text/vnl-column', col.name);
             e.dataTransfer.setData('text/plain', col.title);
-            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.effectAllowed = 'copyMove';
         });
 
         label.addEventListener('dragend', function () {
-            self.root.classList.remove('vnl-dragging');
+            self.dragCol = null;
+            self.root.classList.remove('vnl-dragging', 'vnl-dragging-groupable');
+            self.clearDropMarks();
 
             /* Bayrak bir tur sonra duser: dragend'den sonra gelen click
                siralamayi tetiklemesin. */
             setTimeout(function () { self.dragging = false; }, 0);
+        });
+    };
+
+    /**
+     * Baslik hucresini birakma hedefi yapar.
+     *
+     * Imlecin hucrenin hangi yarisinda oldugu, sutunun oncesine mi
+     * sonrasina mi girecegini belirler; kenarda beliren cizgi de bunu
+     * gosterir. Isaret olmadan kullanici nereye birakacagini bilemiyordu.
+     */
+    VnlTable.prototype.makeDropTarget = function (th, col) {
+        var self = this;
+
+        th.addEventListener('dragover', function (e) {
+            if (!self.dragCol || self.dragCol.name === col.name) return;
+
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+
+            var box   = th.getBoundingClientRect();
+            var after = (e.clientX - box.left) > box.width / 2;
+
+            self.clearDropMarks();
+            th.classList.add(after ? 'vnl-drop-after' : 'vnl-drop-before');
+        });
+
+        th.addEventListener('dragleave', function () {
+            th.classList.remove('vnl-drop-before', 'vnl-drop-after');
+        });
+
+        th.addEventListener('drop', function (e) {
+            if (!self.dragCol) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var after = th.classList.contains('vnl-drop-after');
+            var from  = self.dragCol.name;
+
+            self.clearDropMarks();
+            self.moveColumn(from, col.name, after);
+        });
+    };
+
+    VnlTable.prototype.clearDropMarks = function () {
+        this.root.querySelectorAll('.vnl-drop-before, .vnl-drop-after').forEach(function (node) {
+            node.classList.remove('vnl-drop-before', 'vnl-drop-after');
         });
     };
 
@@ -2183,6 +2395,7 @@
 
     VnlTable.prototype.paintSelection = function () {
         var self  = this;
+        if (this.state.pivot.on) return;
         var count = this.selectionCount();
 
         /* Satır kutuları ve sayfa kutusu her çizimden sonra tazelenir. */
@@ -2306,6 +2519,235 @@
                 btn.disabled = false;
                 btn.textContent = label;
             });
+    };
+
+    /* ---------------------------------------------------------------- */
+    /* Çapraz tablo (workbench)                                          */
+    /* ---------------------------------------------------------------- */
+
+    VnlTable.prototype.togglePivot = function () {
+        this.state.pivot.on = !this.state.pivot.on;
+
+        /* İlk açılışta eksenler boşsa makul bir başlangıç seçilir:
+           boş bir matris kullanıcıya hiçbir şey anlatmıyordu. */
+        if (this.state.pivot.on) this.guessAxes();
+
+        this.state.page = 1;
+        this.closeFilter();
+        this.rebuild();
+        this.load();
+    };
+
+    /** Eksen verilmediyse ilk iki kırılabilir sütun ve ilk sayısal alan. */
+    VnlTable.prototype.guessAxes = function () {
+        var pivot = this.state.pivot;
+        var keys  = this.axisColumns();
+
+        if (!pivot.rows && keys[0]) pivot.rows = keys[0].name;
+        if (!pivot.cols) {
+            var other = keys.filter(function (c) { return c.name !== pivot.rows; })[0];
+            if (other) pivot.cols = other.name;
+        }
+
+        if (!pivot.col) {
+            var measure = this.measureColumns()[0];
+            if (measure) pivot.col = measure.name;
+            else pivot.fn = 'count';
+        }
+    };
+
+    /** Kırılım ekseni olabilecek sütunlar. */
+    VnlTable.prototype.axisColumns = function () {
+        return this.columns.filter(function (col) {
+            return !col.system && col.type !== 'number';
+        });
+    };
+
+    /**
+     * Ölçülebilecek sütunlar.
+     *
+     * agg tanımlı olanlar başa alınır: geliştirici o sütun için zaten
+     * "bunun toplamı anlamlıdır" demiş. Aksi halde kendiliğinden seçim
+     * ilk sayısal sütuna, çoğu tabloda da kimliğe düşüyordu — kimlikleri
+     * toplamak hiçbir şey anlatmaz.
+     */
+    VnlTable.prototype.measureColumns = function () {
+        var numeric = this.columns.filter(function (col) {
+            return !col.system && col.type === 'number';
+        });
+
+        /* Array.sort kararlı: küme içinde tanım sırası korunur. */
+        return numeric.sort(function (a, b) {
+            return (b.agg ? 1 : 0) - (a.agg ? 1 : 0);
+        });
+    };
+
+    VnlTable.prototype.buildPivotBar = function () {
+        var self = this;
+        var bar  = el('div', 'vnl-pivot-bar');
+
+        function select(label, options, value, onChange) {
+            var wrap = el('label', 'vnl-pivot-field');
+            wrap.appendChild(el('span', 'vnl-pivot-label', label));
+
+            var node = el('select', 'form-select form-select-sm');
+            options.forEach(function (option) {
+                var o = el('option', null, option.title);
+                o.value = option.name;
+                if (option.name === value) o.selected = true;
+                node.appendChild(o);
+            });
+
+            node.addEventListener('change', function () { onChange(node.value); });
+            wrap.appendChild(node);
+            bar.appendChild(wrap);
+
+            return node;
+        }
+
+        var axes = this.axisColumns().map(function (col) {
+            return { name: col.name, title: col.title };
+        });
+
+        select(this.lang.pivotRows || '', axes, this.state.pivot.rows, function (value) {
+            self.state.pivot.rows = value;
+            self.load();
+        });
+
+        select(this.lang.pivotCols || '', axes, this.state.pivot.cols, function (value) {
+            self.state.pivot.cols = value;
+            self.load();
+        });
+
+        /* Ölçü boş bırakılabilir: o zaman ölçülen şey kayıt SAYISIDIR. */
+        var measures = [{ name: '', title: this.lang.pivotCount || '' }].concat(
+            this.measureColumns().map(function (col) {
+                return { name: col.name, title: col.title };
+            })
+        );
+
+        var fnNode;
+
+        select(this.lang.pivotValue || '', measures, this.state.pivot.col, function (value) {
+            self.state.pivot.col = value;
+
+            /* Ölçü yokken tek anlamlı işlev saymaktır. */
+            if (!value) {
+                self.state.pivot.fn = 'count';
+                if (fnNode) { fnNode.value = 'count'; fnNode.disabled = true; }
+            } else if (fnNode) {
+                fnNode.disabled = false;
+            }
+
+            self.load();
+        });
+
+        var fns = ['sum', 'avg', 'min', 'max', 'count'].map(function (fn) {
+            return { name: fn, title: (self.lang.aggs || {})[fn] || fn };
+        });
+
+        fnNode = select(this.lang.pivotFn || '', fns, this.state.pivot.fn, function (value) {
+            self.state.pivot.fn = value;
+            self.load();
+        });
+
+        fnNode.disabled = !this.state.pivot.col;
+
+        this.pivotBar = bar;
+        this.root.appendChild(bar);
+    };
+
+    VnlTable.prototype.loadPivot = function () {
+        var self = this;
+
+        this.post(this.config.url, this.payload('pivot', { pivot: this.state.pivot }))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                self.state.loading = false;
+                self.setBusy(false);
+                self.renderPivot(data);
+            })
+            .catch(function (err) { self.failed(err, 'pivot'); });
+    };
+
+    /**
+     * Matrisi basar.
+     *
+     * Tablonun gövdesi tamamen değiştirilir: pivotta sütunlar tanımdan
+     * değil VERİDEN gelir, sıralama/filtre/seçim makinesinin tutunacağı
+     * bir sütun kalmaz. Pivot kapatıldığında rebuild() her şeyi geri kurar.
+     */
+    VnlTable.prototype.renderPivot = function (data) {
+        var self    = this;
+        var cols    = data.cols || [];
+        var rows    = data.rows || [];
+        var totals  = data.totals || {};
+        var rowsCol = this.column(this.state.pivot.rows);
+
+        var thead = el('thead');
+        var head  = el('tr');
+
+        var corner = el('th', 'vnl-th vnl-pivot-corner');
+        corner.appendChild(el('span', 'vnl-th-label', rowsCol ? rowsCol.title : ''));
+        head.appendChild(corner);
+
+        cols.forEach(function (name) {
+            head.appendChild(el('th', 'vnl-th vnl-align-right', name));
+        });
+
+        head.appendChild(el('th', 'vnl-th vnl-align-right vnl-pivot-sum', this.lang.pivotTotal || ''));
+        thead.appendChild(head);
+
+        var tbody = el('tbody');
+
+        if (!rows.length) {
+            var empty = el('tr');
+            var cell  = el('td', 'vnl-table-message', this.lang.empty || '');
+            cell.colSpan = cols.length + 2;
+            empty.appendChild(cell);
+            tbody.appendChild(empty);
+        }
+
+        rows.forEach(function (row) {
+            var tr = el('tr');
+            tr.appendChild(el('td', 'vnl-pivot-key', row.k === '' ? (self.lang.groupEmpty || '') : row.k));
+
+            cols.forEach(function (name) {
+                var value = row.cells ? row.cells[name] : null;
+
+                /* Boş hücre sıfır değildir: o kırılımda hiç kayıt yok. */
+                tr.appendChild(el('td', 'vnl-align-right', (value === null || value === undefined) ? '' : asText(value)));
+            });
+
+            tr.appendChild(el('td', 'vnl-align-right vnl-pivot-sum', asText(row.total)));
+            tbody.appendChild(tr);
+        });
+
+        var tfoot = el('tfoot');
+        var foot  = el('tr');
+        foot.appendChild(el('th', 'vnl-tf vnl-tf-label', this.lang.pivotTotal || ''));
+
+        cols.forEach(function (name) {
+            var value = totals[name];
+            foot.appendChild(el('th', 'vnl-tf vnl-align-right', (value === null || value === undefined) ? '' : asText(value)));
+        });
+
+        foot.appendChild(el('th', 'vnl-tf vnl-align-right vnl-pivot-sum', asText(data.grand)));
+        tfoot.appendChild(foot);
+
+        this.table.innerHTML = '';
+        this.table.appendChild(thead);
+        this.table.appendChild(tbody);
+        this.table.appendChild(tfoot);
+        this.tbody = tbody;
+
+        /* Taban genişlik veri sütunlarının bildirdiklerinden hesaplanmıştı;
+           pivotta sütunlar bambaşka olduğu için matrisi boşuna geriyor ve
+           son sütunu kabın dışına itiyordu. */
+        this.table.style.minWidth = '';
+
+        this.info.textContent = fill(this.lang.pivotInfo, { rows: rows.length, cols: cols.length });
+        this.pager.innerHTML = '';
     };
 
     /* ---------------------------------------------------------------- */
@@ -2460,6 +2902,14 @@
             }
         }
 
+        /* Çapraz tablo bambaşka bir yanıt biçimi: satır listesi değil
+           matris. Gruplama, seçim ve sıralama orada geçerli değil. */
+        if (this.state.pivot.on) {
+            this.loadPivot();
+
+            return;
+        }
+
         /* Gruplu görünümde satırlar doğrudan değil, grup listesi üzerinden
            gelir; akış tamamen ayrı. */
         if (this.state.groupBy.length) {
@@ -2487,7 +2937,8 @@
                 self.state.total    = data.total || 0;
                 self.state.filtered = (data.filtered !== undefined) ? data.filtered : self.state.total;
                 self.renderRows();
-                self.renderTotals(data.totals);
+                self.lastTotals = data.totals || null;
+                self.renderTotals(self.lastTotals);
                 self.renderFooter();
             })
             .catch(function (err) { self.failed(err, ''); });
@@ -2722,7 +3173,7 @@
      */
     VnlTable.prototype.layoutPins = function () {
         var self = this;
-        if (!this.pinned) return;
+        if (!this.pinned || this.state.pivot.on) return;
 
         var visible = this.columns.filter(function (c) { return !self.hiddenCols[c.name]; });
         var offsets = {};
@@ -2799,6 +3250,19 @@
 
         return any ? total + 'px' : null;
     };
+
+    /** Tanımdan gelen başlangıç eksenleri; on false ise düğme var, görünüm kapalı. */
+    function pivotState(spec) {
+        var axes = (spec && typeof spec === 'object') ? spec : {};
+
+        return {
+            on:   !!axes.on,
+            rows: axes.rows || '',
+            cols: axes.cols || '',
+            col:  axes.col || '',
+            fn:   axes.fn || 'sum'
+        };
+    }
 
     /**
      * Seçim ve detay sütunları.

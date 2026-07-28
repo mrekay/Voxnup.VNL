@@ -81,6 +81,10 @@ class action_vnltable
             $t->groupFrom($rows, ['tutar' => 'sum', 'id' => 'count']);
         }
 
+        if ($t->op === VnlTableRequest::OP_PIVOT) {
+            $t->pivotFrom($rows);
+        }
+
         $sort = $t->sort[0] ?? ['col' => 'id', 'dir' => 'asc'];
         if (array_key_exists($sort['col'], self::COLUMNS)) {
             usort($rows, function ($a, $b) use ($sort) {

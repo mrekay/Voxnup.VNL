@@ -16,11 +16,11 @@
             <div class="alert alert-secondary d-flex flex-column flex-sm-row p-5 mb-10">
                 <i class="fa-solid fa-hammer fs-2hx text-body-tertiary me-4 mb-5 mb-sm-0"></i>
                 <div class="d-flex flex-column pe-0 pe-sm-10">
-                    <h5 class="mb-1">Yapım hâlinde</h5>
+                    <h5 class="mb-1">Workbench tamam</h5>
                     <span>
-                        <b>Sütun sabitleme</b>, <b>çok seviyeli satır gruplama</b>,
-                        <b>hücre düzenleme</b>, <b>detay satırı</b> ile <b>seçim ve toplu işlem</b>
-                        hazır. Sırada sütun sürükleyip yeniden sıralama ve pivot.
+                        Sütun sabitleme ve <b>sürükleyip yeniden sıralama</b>, çok seviyeli satır
+                        gruplama, hücre düzenleme, detay satırı, seçim ve toplu işlem,
+                        <b>çapraz tablo</b>. Hepsi aşağıdaki canlı örnekte denenebilir.
                     </span>
                 </div>
             </div>
@@ -504,9 +504,128 @@ public function detay($req)
 
                     <div class="separator separator-dashed my-8"></div>
 
+                    <!--begin::Sira-->
+                    <div class="mb-10">
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. Sütun Sırası</h3>
+                        <p class="fs-5 text-body mb-4">
+                            Başlığın yazısını <b>başka bir başlığın üzerine</b> sürüklemek sütunun
+                            yerini değiştirir. Aynı sürükleme gruplama alanına bırakılırsa gruplar;
+                            hedef neyse o olur. İmleç başlığın hangi yarısındaysa çizgi o kenara
+                            düşer, yani sütunun öncesine mi sonrasına mı gireceği bırakmadan önce
+                            görünür.
+                        </p>
+
+                        <div class="table-responsive border rounded bg-body-tertiary mb-0">
+                            <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
+                                <thead>
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
+                                    <th class="ps-5 min-w-200px">Davranış</th>
+                                    <th class="min-w-350px">Ayrıntı</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-body fw-semibold">
+                                <tr>
+                                    <td class="ps-5">Sabitleme kümeleri</td>
+                                    <td>Sola sabit sütunlar başta, sağa sabitler sonda kalır. Bir sütunu kendi kümesinin dışına bırakmak düzeni bozardı; reddedilmez, sessizce kümesine çekilir.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Kalıcılık</td>
+                                    <td>Tercih tarayıcıda, tablo kimliğiyle saklanır — gizleme tercihiyle aynı yerde. <b>Adrese yazılmaz:</b> paylaşılan bir bağlantının karşı tarafın sütun düzenini değiştirmesi istenmez.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Yeni sütunlar</td>
+                                    <td>Tanıma sonradan eklenen sütun, kayıtlı sırada olmadığı için sona gelir. Eski bir tercih yeni bir sütunu gizlemez.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Sıfırlama</td>
+                                    <td>Sütun menüsünün altındaki <b>Sütun sırasını sıfırla</b>.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Kapatmak</td>
+                                    <td><code>'reorder' =&gt; false</code>. Grid ve list'te zaten kapalıdır.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!--end::Sira-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
+                    <!--begin::Pivot-->
+                    <div class="mb-10">
+                        <h3 class="fw-bold text-body-emphasis mb-4">8. Çapraz Tablo</h3>
+                        <p class="fs-5 text-body mb-4">
+                            Araç çubuğundaki ızgara düğmesi tabloyu çapraz görünüme çevirir:
+                            bir kırılım satırlara, bir kırılım sütunlara, aralarındaki hücrelerde
+                            tek bir ölçü. Eksenler üstteki şeritten değiştirilir.
+                        </p>
+
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>-&gt;options(['pivot' =&gt; [
+    'rows' =&gt; 'sehir',   // satir kirilimi
+    'cols' =&gt; 'durum',   // sutun kirilimi
+    'col'  =&gt; 'tutar',   // olculen alan; bos birakilirsa kayit SAYISI
+    'fn'   =&gt; 'sum',     // sum | avg | min | max | count
+    'on'   =&gt; false,     // true ise tablo dogrudan pivot acilir
+]])
+
+// sadece dugme yeter, eksenleri kullanici secsin:
+-&gt;options(['pivot' =&gt; true])</code></pre>
+                        </div>
+
+                        <h6 class="fw-bold mb-3"><code>getList</code> tarafı</h6>
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>if ($t-&gt;op === VnlTableRequest::OP_PIVOT) {
+    // Bellekteki veriyle (filtrelerden gecmis satirlar):
+    $t-&gt;pivotFrom($satirlar);
+
+    // Matrisi kendiniz kullanmak isterseniz (ornegin Excel'e):
+    $matris = $t-&gt;pivot($satirlar);
+    // ['cols' =&gt; [...], 'rows' =&gt; [...], 'totals' =&gt; [...], 'grand' =&gt; ...]
+}</code></pre>
+                        </div>
+
+                        <div class="table-responsive border rounded bg-body-tertiary mb-0">
+                            <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
+                                <thead>
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
+                                    <th class="ps-5 min-w-200px">Davranış</th>
+                                    <th class="min-w-350px">Ayrıntı</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-body fw-semibold">
+                                <tr>
+                                    <td class="ps-5">Sütunlar veriden gelir</td>
+                                    <td>Tanımdan değil. Sıralama, sütun filtreleri, seçim, gruplama ve düzenleme çapraz görünümde <b>kapalıdır</b> — tutunacakları bir sütun tanımı yok. Denetimleri de gizlenir, yanlış bir şey vaat etmesinler.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Filtreler geçerli</td>
+                                    <td>Düz arama ve sütun filtreleri matrise <b>uygulanır</b>; yalnız görünüm değişir, veri kümesi değişmez.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Boş hücre</td>
+                                    <td>Sıfır değil, <b>yok</b> demektir: o kırılımda hiç kayıt bulunmuyor. Sıfır basmak "0 TL satış" gibi okunurdu.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Ölçü seçilmezse</td>
+                                    <td>Ölçülen şey <b>kayıt sayısıdır</b> ve işlev <code>count</code>'a kilitlenir; sayarken toplam ya da ortalamanın anlamı yok.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Kendiliğinden seçim</td>
+                                    <td>Eksen verilmediyse ilk iki kırılabilir sütun ve <b><code>agg</code> tanımlı</b> ilk sayısal alan seçilir. <code>agg</code> olmasaydı ölçü çoğu tabloda kimlik sütununa düşer, kimlikleri toplamak hiçbir şey anlatmazdı.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!--end::Pivot-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
                     <!--begin::Gorunum-->
                     <div class="mb-0">
-                        <h3 class="fw-bold text-body-emphasis mb-4">7. Görünüm</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">9. Görünüm</h3>
                         <p class="fs-5 text-body mb-4">
                             Workbench'in başlık şeridi <b>mavidir</b> ve bu <code>skin</code>'den
                             bağımsızdır: hangi skin seçilirse seçilsin, workbench başka bir alet

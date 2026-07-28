@@ -290,8 +290,15 @@ class VnlTable
             /* Toplu işlem tanımlandıysa seçim kutusuna gerek var demektir;
                yalnız listelemek için de açılabilir. */
             'selection' => $this->actions !== [],
+            /* Sütunu başka bir başlığın üzerine sürükleyip sırasını
+               değiştirme; tercih tarayıcıda kalıcıdır. */
+            'reorder'   => $this->mode === self::WORKBENCH,
+            /* Çapraz tablo düğmesi. Dizi verilirse başlangıç eksenleri
+               olur; 'on' => true ile tablo doğrudan pivot açılır. */
+            'pivot'     => $this->mode === self::WORKBENCH,
         ], $this->options);
 
+        $options['pivot']     = $this->resolvePivot($options['pivot']);
         $options['group']     = $this->resolveGroup($options['group']);
         $options['selection'] = (bool)$options['selection'];
         $options['detail']    = $this->detailUrl !== '';
@@ -527,6 +534,50 @@ class VnlTable
         ];
     }
 
+    /**
+     * Çapraz tablo.
+     *
+     *   'pivot' => false                      düğme çıkmaz
+     *   'pivot' => true                       düğme çıkar, eksenler seçilince kurulur
+     *   'pivot' => ['rows' => 'sehir',        başlangıç eksenleri
+     *               'cols' => 'durum',
+     *               'col'  => 'tutar',        boş bırakılırsa kayıt sayısı
+     *               'fn'   => 'sum',
+     *               'on'   => true]           tablo doğrudan pivot açılır
+     */
+    private function resolvePivot($spec): ?array
+    {
+        if ($this->mode !== self::WORKBENCH || $spec === null || $spec === false) {
+            return null;
+        }
+
+        $spec = is_array($spec) ? $spec : [];
+        $fn   = (string)($spec['fn'] ?? 'sum');
+
+        if (!in_array($fn, VnlTableRequest::AGGS, true)) {
+            throwErrorMessage(
+                'VnlTable "' . $this->id . '": geçersiz pivot işlevi "' . $fn
+                . '". Beklenen: ' . implode(', ', VnlTableRequest::AGGS)
+            );
+        }
+
+        foreach (['rows', 'cols', 'col'] as $axis) {
+            $name = (string)($spec[$axis] ?? '');
+
+            if ($name !== '' && !$this->hasColumn($name)) {
+                throwErrorMessage('VnlTable "' . $this->id . '": pivot sütunu "' . $name . '" tanımlı değil.');
+            }
+        }
+
+        return [
+            'on'   => (bool)($spec['on'] ?? false),
+            'rows' => (string)($spec['rows'] ?? ''),
+            'cols' => (string)($spec['cols'] ?? ''),
+            'col'  => (string)($spec['col'] ?? ''),
+            'fn'   => $fn,
+        ];
+    }
+
     private function hasColumn(string $name): bool
     {
         foreach ($this->columns as $column) {
@@ -599,6 +650,7 @@ class VnlTable
             'columns'       => lang('VNLTABLE_COLUMNS'),
             'sortAsc'       => lang('VNLTABLE_SORT_ASC'),
             'sortDesc'      => lang('VNLTABLE_SORT_DESC'),
+            'orderReset'    => lang('VNLTABLE_ORDER_RESET'),
 
             /* Sütun filtre paneli */
             'filter'        => lang('VNLTABLE_FILTER'),
@@ -641,6 +693,16 @@ class VnlTable
             'selectMatching' => lang('VNLTABLE_SELECT_MATCHING'),
             'selectClear'   => lang('VNLTABLE_SELECT_CLEAR'),
             'bulkFailed'    => lang('VNLTABLE_BULK_FAILED'),
+
+            /* Çapraz tablo */
+            'pivot'         => lang('VNLTABLE_PIVOT'),
+            'pivotRows'     => lang('VNLTABLE_PIVOT_ROWS'),
+            'pivotCols'     => lang('VNLTABLE_PIVOT_COLS'),
+            'pivotValue'    => lang('VNLTABLE_PIVOT_VALUE'),
+            'pivotFn'       => lang('VNLTABLE_PIVOT_FN'),
+            'pivotCount'    => lang('VNLTABLE_PIVOT_COUNT'),
+            'pivotTotal'    => lang('VNLTABLE_PIVOT_TOTAL'),
+            'pivotInfo'     => lang('VNLTABLE_PIVOT_INFO'),
         ];
     }
 

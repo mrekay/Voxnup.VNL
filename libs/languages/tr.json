@@ -72,6 +72,7 @@
     "VNLTABLE_ALL": "Tümü",
     "VNLTABLE_SORT_ASC": "Artan sırala",
     "VNLTABLE_SORT_DESC": "Azalan sırala",
+    "VNLTABLE_ORDER_RESET": "Sütun sırasını sıfırla",
     "VNLTABLE_COLUMNS": "Sütunlar",
     "VNLTABLE_FILTER_SEARCH": "Değer ara",
     "VNLTABLE_FILTER_ALL": "(Tümü)",
@@ -122,6 +123,14 @@
     "VNLTABLE_SELECTED_ALL": "Filtreye uyan _N_ kaydın tümü seçili",
     "VNLTABLE_SELECT_MATCHING": "Filtreye uyan _N_ kaydın tümünü seç",
     "VNLTABLE_SELECT_CLEAR": "Seçimi temizle",
-    "VNLTABLE_BULK_FAILED": "İşlem tamamlanamadı."
+    "VNLTABLE_BULK_FAILED": "İşlem tamamlanamadı.",
+    "VNLTABLE_PIVOT": "Çapraz tablo",
+    "VNLTABLE_PIVOT_ROWS": "Satır",
+    "VNLTABLE_PIVOT_COLS": "Sütun",
+    "VNLTABLE_PIVOT_VALUE": "Ölçü",
+    "VNLTABLE_PIVOT_FN": "İşlev",
+    "VNLTABLE_PIVOT_COUNT": "(Kayıt sayısı)",
+    "VNLTABLE_PIVOT_TOTAL": "Toplam",
+    "VNLTABLE_PIVOT_INFO": "_ROWS_ satır × _COLS_ sütun"
   }
 ]

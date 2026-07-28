@@ -72,6 +72,7 @@
     "VNLTABLE_ALL": "All",
     "VNLTABLE_SORT_ASC": "Sort ascending",
     "VNLTABLE_SORT_DESC": "Sort descending",
+    "VNLTABLE_ORDER_RESET": "Reset column order",
     "VNLTABLE_COLUMNS": "Columns",
     "VNLTABLE_FILTER_SEARCH": "Search values",
     "VNLTABLE_FILTER_ALL": "(All)",
@@ -122,6 +123,14 @@
     "VNLTABLE_SELECTED_ALL": "All _N_ matching records selected",
     "VNLTABLE_SELECT_MATCHING": "Select all _N_ matching records",
     "VNLTABLE_SELECT_CLEAR": "Clear selection",
-    "VNLTABLE_BULK_FAILED": "The operation could not be completed."
+    "VNLTABLE_BULK_FAILED": "The operation could not be completed.",
+    "VNLTABLE_PIVOT": "Pivot table",
+    "VNLTABLE_PIVOT_ROWS": "Rows",
+    "VNLTABLE_PIVOT_COLS": "Columns",
+    "VNLTABLE_PIVOT_VALUE": "Measure",
+    "VNLTABLE_PIVOT_FN": "Function",
+    "VNLTABLE_PIVOT_COUNT": "(Record count)",
+    "VNLTABLE_PIVOT_TOTAL": "Total",
+    "VNLTABLE_PIVOT_INFO": "_ROWS_ rows × _COLS_ columns"
   }
 ]

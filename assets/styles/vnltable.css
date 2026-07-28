@@ -1023,6 +1023,109 @@ i.vnl-icon {
     cursor: grabbing;
 }
 
+/* Gruplanamayan bir sütun sürüklenirken bırakma alanı sessiz kalır:
+   oraya bırakmanın bir işe yaramayacağı önceden görünsün. */
+.vnl-table.vnl-dragging:not(.vnl-dragging-groupable) .vnl-group-zone {
+    opacity: .45;
+    border-color: var(--vnl-table-border);
+    background: transparent;
+}
+
+/* ── Sütun sırası ──
+   İmleç başlığın hangi yarısındaysa çizgi o kenara düşer: sütunun
+   öncesine mi sonrasına mı gireceği bırakmadan önce belli olsun. */
+
+.vnl-drop-before,
+.vnl-drop-after {
+    position: relative;
+}
+
+.vnl-drop-before::after,
+.vnl-drop-after::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--vnl-bench, var(--vnl-table-accent));
+}
+
+.vnl-drop-before::after { left: 0; }
+.vnl-drop-after::after  { right: 0; }
+
+/* ── Çapraz tablo ── */
+
+.vnl-pivot-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: .75rem;
+    flex-wrap: wrap;
+    padding: .5rem .75rem;
+    border-bottom: 1px solid var(--vnl-table-border);
+    background: color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 6%, transparent);
+}
+
+.vnl-pivot-field {
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+    margin: 0;
+}
+
+.vnl-pivot-label {
+    color: var(--bs-secondary-color);
+    font-size: .75rem;
+}
+
+.vnl-pivot-field select {
+    min-width: 8rem;
+    font-size: .8125rem;
+}
+
+.vnl-table-actions .btn.vnl-pivot-on {
+    color: var(--vnl-bench, var(--vnl-table-accent));
+    background: color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 14%, transparent);
+}
+
+/* Satır ekseninin anahtarı sol sütunda ve yapışkan: geniş bir matriste
+   sağa kayınca hangi satırda olduğun kaybolmasın. */
+.vnl-pivot-key,
+.vnl-pivot-corner {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--vnl-surface, var(--bs-body-bg));
+    font-weight: 600;
+}
+
+.vnl-pivot-corner {
+    z-index: 4;
+    background: var(--vnl-table-head-bg);
+}
+
+/* Toplam satırı ve sütunu ölçülerden ayrılır. */
+.vnl-pivot-sum {
+    font-weight: 700;
+    background: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+/* Pivot görünümünde satır makinesi yok: seçim, gruplama ve detay
+   denetimleri gizlenir, yanlış bir şey vaat etmesinler. */
+.vnl-pivot-view .vnl-group-zone,
+.vnl-pivot-view .vnl-table-selection,
+.vnl-pivot-view .vnl-table-chips {
+    display: none;
+}
+
+.vnl-columns-reset {
+    margin-top: .25rem;
+    border-top: 1px solid var(--vnl-table-border);
+    border-radius: 0;
+    padding-top: .45rem;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+}
+
 /* ── Hücre düzenleme ──
    Düzenlenebilir hücre kendini belli eder ama bağırmaz: alt kenarda
    kesik bir çizgi, üzerine gelince zemin. */

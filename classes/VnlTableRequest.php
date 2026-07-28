@@ -52,6 +52,9 @@ class VnlTableRequest
     /** Toplu işlem: seçili kayıtlar üzerinde çalışır. */
     const OP_BULK = 'bulk';
 
+    /** Çapraz tablo: satır × sütun kırılımında tek bir ölçü. */
+    const OP_PIVOT = 'pivot';
+
     /** Seçim biçimleri. */
     const SELECT_SOME = 'some';
     const SELECT_ALL  = 'all';
@@ -110,6 +113,16 @@ class VnlTableRequest
     public string $action = '';
 
     /**
+     * OP_PIVOT: çapraz tablonun eksenleri.
+     *
+     *   ['rows' => 'sehir', 'cols' => 'durum', 'col' => 'tutar', 'fn' => 'sum']
+     *
+     * rows satır kırılımı, cols sütun kırılımı, col ölçülen alan,
+     * fn de ona uygulanan toplama.
+     */
+    public array $pivot = ['rows' => '', 'cols' => '', 'col' => '', 'fn' => 'sum'];
+
+    /**
      * OP_BULK: seçim.
      *
      *   ['mode' => 'some', 'ids' => ['3','7']]        yalnız bu kayıtlar
@@ -127,8 +140,8 @@ class VnlTableRequest
 
         $op = (string)$req->post('op', self::OP_LIST);
         $ops = [
-            self::OP_LIST, self::OP_DISTINCT, self::OP_EXPORT,
-            self::OP_GROUP, self::OP_SAVE, self::OP_DETAIL, self::OP_BULK,
+            self::OP_LIST, self::OP_DISTINCT, self::OP_EXPORT, self::OP_GROUP,
+            self::OP_SAVE, self::OP_DETAIL, self::OP_BULK, self::OP_PIVOT,
         ];
         $self->op = in_array($op, $ops, true) ? $op : self::OP_LIST;
 
@@ -145,6 +158,7 @@ class VnlTableRequest
         $self->rowKey  = (string)$req->post('key', '');
         $self->value   = $req->post('value');
         $self->action  = (string)$req->post('action', '');
+        $self->pivot   = self::normalizePivot($req->post('pivot'));
         $self->selection = self::normalizeSelection($req->post('selection'));
         $self->context = self::asArray($req->post('context'));
         $self->filters = self::normalizeFilters($req->post('filters'));
@@ -715,6 +729,136 @@ class VnlTableRequest
         ]);
     }
 
+    /* ================================================================
+       Çapraz tablo (pivot)
+       ================================================================ */
+
+    /**
+     * Bellekteki satırlardan çapraz tabloyu hesaplar.
+     *
+     * Satırların filtreden geçmiş hâlini verin — respond()'a verdiğinizin
+     * aynısını. Dönen yapı:
+     *
+     *   cols   ['Beklemede', 'İptal', 'Onaylandı']    sütun başlıkları
+     *   rows   [['k' => 'Ankara',                     satır kırılımı
+     *            'cells' => ['Beklemede' => 356610],  hücreler (boş olabilir)
+     *            'total' => 1090182]]                 satır toplamı
+     *   totals ['Beklemede' => 1743210, ...]          sütun toplamları
+     *   grand  5451689                                genel toplam
+     *
+     * count dışındaki toplamalarda sayısal olmayan hücreler atlanır.
+     */
+    public function pivot(array $rows): array
+    {
+        $rowKey = $this->pivot['rows'];
+        $colKey = $this->pivot['cols'];
+        $valKey = $this->pivot['col'];
+        $fn     = $this->pivot['fn'];
+
+        if ($rowKey === '' || $colKey === '') {
+            return ['cols' => [], 'rows' => [], 'totals' => [], 'grand' => null];
+        }
+
+        /* Önce ham değerler toplanır: ortalama ve adet ancak hepsi
+           elde olunca doğru hesaplanabilir. */
+        $buckets = [];
+        $colSeen = [];
+        $rowSeen = [];
+
+        foreach ($rows as $row) {
+            $flat = self::rowToArray($row);
+
+            if (!array_key_exists($rowKey, $flat) || !array_key_exists($colKey, $flat)) {
+                continue;
+            }
+
+            $r = self::text($flat[$rowKey]);
+            $c = self::text($flat[$colKey]);
+
+            $rowSeen[$r] = true;
+            $colSeen[$c] = true;
+
+            $cell = $valKey === '' ? 1 : ($flat[$valKey] ?? null);
+
+            if ($fn === 'count') {
+                if (self::text($cell) !== '') {
+                    $buckets[$r][$c][] = 1;
+                }
+            } elseif (is_numeric($cell)) {
+                $buckets[$r][$c][] = (float)$cell;
+            }
+        }
+
+        $sorter = function ($a, $b) {
+            return strnatcasecmp(
+                TextGeneralModule::trToLower((string)$a),
+                TextGeneralModule::trToLower((string)$b)
+            );
+        };
+
+        $rowKeys = array_keys($rowSeen);
+        $colKeys = array_keys($colSeen);
+        usort($rowKeys, $sorter);
+        usort($colKeys, $sorter);
+
+        $out    = [];
+        $totals = [];
+        $all    = [];
+
+        foreach ($rowKeys as $r) {
+            $cells = [];
+            $line  = [];
+
+            foreach ($colKeys as $c) {
+                $values = $buckets[$r][$c] ?? [];
+
+                if (!$values) {
+                    continue;   /* boş hücre: sıfır değil, yok */
+                }
+
+                $cells[$c] = self::apply($fn, $values);
+                $line = array_merge($line, $values);
+                $totals[$c] = array_merge($totals[$c] ?? [], $values);
+            }
+
+            $out[] = [
+                'k'     => (string)$r,
+                'cells' => $cells,
+                'total' => $line ? self::apply($fn, $line) : null,
+            ];
+
+            $all = array_merge($all, $line);
+        }
+
+        foreach ($totals as $c => $values) {
+            $totals[$c] = self::apply($fn, $values);
+        }
+
+        return [
+            'cols'   => array_values(array_map('strval', $colKeys)),
+            'rows'   => $out,
+            'totals' => $totals,
+            'grand'  => $all ? self::apply($fn, $all) : null,
+        ];
+    }
+
+    /** Çapraz tabloyu hesaplar ve yanıtı basar. */
+    public function pivotFrom(array $rows): void
+    {
+        $this->respondPivot($this->pivot($rows));
+    }
+
+    public function respondPivot(array $pivot): void
+    {
+        self::emit([
+            'cols'   => $pivot['cols'] ?? [],
+            'rows'   => $pivot['rows'] ?? [],
+            'totals' => (object)($pivot['totals'] ?? []),
+            'grand'  => $pivot['grand'] ?? null,
+            'axes'   => $this->pivot,
+        ]);
+    }
+
     /**
      * Excel çıktısı — xlsx olarak akıtılır ve script biter.
      *
@@ -882,6 +1026,37 @@ class VnlTableRequest
             'ids'    => $mode === self::SELECT_SOME ? self::keyList($raw['ids'] ?? null) : [],
             'except' => $mode === self::SELECT_ALL ? self::keyList($raw['except'] ?? null) : [],
         ];
+    }
+
+    /** Çapraz tablo ekseni; tanınmayan toplama sum'a düşer. */
+    private static function normalizePivot($raw): array
+    {
+        $raw = self::asArray($raw);
+        $fn  = (string)($raw['fn'] ?? 'sum');
+
+        return [
+            'rows' => (string)($raw['rows'] ?? ''),
+            'cols' => (string)($raw['cols'] ?? ''),
+            'col'  => (string)($raw['col'] ?? ''),
+            'fn'   => in_array($fn, self::AGGS, true) ? $fn : 'sum',
+        ];
+    }
+
+    /** Toplama işlevi — totals() ve pivot() aynı kuralları kullanır. */
+    private static function apply(string $fn, array $values)
+    {
+        if (!$values) {
+            return null;
+        }
+
+        switch ($fn) {
+            case 'count': return count($values);
+            case 'min':   return min($values);
+            case 'max':   return max($values);
+            case 'avg':   return round(array_sum($values) / count($values), 2);
+        }
+
+        return array_sum($values);
     }
 
     /** Kimlik listesi metne indirgenir; JSON'da sayı gelmesi olağan. */
