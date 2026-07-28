@@ -18,9 +18,9 @@
                 <div class="d-flex flex-column pe-0 pe-sm-10">
                     <h5 class="mb-1">Yapım hâlinde</h5>
                     <span>
-                        <b>Sütun sabitleme</b>, <b>çok seviyeli satır gruplama</b> ve
-                        <b>hücre düzenleme</b> hazır. Sırada detay satırı (accordion), seçim ve
-                        toplu işlem; sonra sütun sürükleyip yeniden sıralama, pivot.
+                        <b>Sütun sabitleme</b>, <b>çok seviyeli satır gruplama</b>,
+                        <b>hücre düzenleme</b>, <b>detay satırı</b> ile <b>seçim ve toplu işlem</b>
+                        hazır. Sırada sütun sürükleyip yeniden sıralama ve pivot.
                     </span>
                 </div>
             </div>
@@ -30,11 +30,14 @@
                 <div class="card-body p-10">
                     <h3 class="fw-bold text-body-emphasis mb-4">1. Canlı Örnek</h3>
                     <p class="fs-5 text-body mb-6">
-                        Üç şeyi birden deneyin. <b>Başlığın yazısını</b> üstteki kesik çizgili alana
-                        sürükleyin — tablo o sütuna göre gruplanır; bir tane daha sürükleyin, iç içe
-                        iki seviye olur. <b>Şehir</b>, <b>Durum</b> ve <b>Tutar</b> hücrelerine
-                        <b>çift tıklayın</b> — yerinde düzenlenip kaydedilir. Tabloyu yatay
-                        kaydırın — <b>No</b> ile <b>Ad Soyad</b> solda, <b>Tarih</b> sağda kalır.
+                        <b>Başlığın yazısını</b> üstteki kesik çizgili alana sürükleyin — tablo o
+                        sütuna göre gruplanır; bir tane daha sürükleyin, iç içe iki seviye olur.
+                        <b>Şehir</b>, <b>Durum</b> ve <b>Tutar</b> hücrelerine <b>çift tıklayın</b> —
+                        yerinde düzenlenip kaydedilir. Soldaki <b>oka</b> basın — satırın altında
+                        detayı açılır. <b>Onay kutularından</b> birkaç satır seçin, sonra sayfanın
+                        tamamını seçip beliren "filtreye uyan 213 kaydın tümünü seç"e basın.
+                        Tabloyu yatay kaydırın — seçim, ok, <b>No</b> ve <b>Ad Soyad</b> solda,
+                        <b>Tarih</b> sağda kalır.
                     </p>
 
                     <?= VnlTable::make('demoWorkbench')
@@ -327,9 +330,183 @@
 
                     <div class="separator separator-dashed my-8"></div>
 
+                    <!--begin::Detay-->
+                    <div class="mb-10">
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Detay Satırı</h3>
+                        <p class="fs-5 text-body mb-4">
+                            <code>detailUrl()</code> verildiğinde satırların soluna bir açma oku
+                            gelir. Ok tıklanınca o action'a <code>op = detail</code> ve satırın
+                            kimliği gider; yanıt <b>JSON değil HTML'dir</b> ve satırın hemen altına
+                            basılır. Birden çok satır aynı anda açık kalabilir; kapatıp açmak
+                            sunucuya yeniden gitmez, gövde bellekte durur.
+                        </p>
+
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>VnlTable::make('satislar')
+    -&gt;url('app/satis/getList')
+    -&gt;detailUrl('app/satis/detay')   // ayni action da olabilir
+    -&gt;key('id')
+
+// actions/action_satis.php
+public function detay($req)
+{
+    Auth::CheckLogin();
+    $t = VnlTableRequest::from($req);
+
+    $satis = Satis::find($t-&gt;rowKey);
+    if (!$satis) throwErrorMessage('Kayit bulunamadi.');
+
+    $t-&gt;respondDetail(render('parts/satis-detay', ['satis' =&gt; $satis]));
+}</code></pre>
+                        </div>
+
+                        <div class="alert alert-danger d-flex align-items-start p-4 mb-0">
+                            <i class="fa-solid fa-shield fs-2 text-danger me-3"></i>
+                            <span class="text-body fs-6">
+                                Detay gövdesi <code>innerHTML</code> ile basılır — kaçış
+                                <b>sizdedir</b>, sütunlardaki <code>'render' =&gt; 'html'</code> ile
+                                aynı sözleşme. Kullanıcı girdisini <code>htmlspecialchars()</code>
+                                olmadan buraya koymayın. Satır kimliği de istemciden gelir: yetki
+                                kontrolünü <code>detay</code> içinde yapın, listede olması yetmez.
+                            </span>
+                        </div>
+                    </div>
+                    <!--end::Detay-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
+                    <!--begin::Secim-->
+                    <div class="mb-10">
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. Seçim ve Toplu İşlem</h3>
+                        <p class="fs-5 text-body mb-4">
+                            <code>actions()</code> tanımlandığında onay kutusu sütunu ve seçim
+                            çubuğu kendiliğinden gelir. Yalnız seçim isteyip işlem istemiyorsanız
+                            <code>'selection' =&gt; true</code> verin.
+                        </p>
+
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>-&gt;actions([
+    ['name' =&gt; 'sil', 'title' =&gt; 'Sil', 'variant' =&gt; 'danger',
+     'confirm' =&gt; 'Secili kayitlar silinecek. Emin misiniz?'],
+    ['name' =&gt; 'onayla', 'title' =&gt; 'Onayla', 'variant' =&gt; 'primary'],
+])</code></pre>
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">
+                                <b>"Tümünü seç" bir kimlik listesi değildir.</b> Kullanıcı 4200
+                                kaydı seçerken tarayıcıya 25 tanesi inmiş oluyor; kimlikleri
+                                toplamaya kalkmak ya eksik bir liste ya da 4200 satırlık gereksiz
+                                bir indirme demekti. Bunun yerine istemci
+                                <code>mode: "all"</code> gönderir ve yalnız <b>neyi dışarıda
+                                bıraktığını</b> söyler; kümeyi filtrelerden sunucu çözer.
+                            </span>
+                        </div>
+
+                        <div class="row g-5 mb-6">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3"><span class="badge badge-soft-primary me-2">bulk</span> istek</h6>
+                                <div class="vnl-code">
+                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>{
+  "op": "bulk",
+  "action": "onayla",
+  "selection": {
+    "mode": "all",
+    "except": ["1", "7"]
+  },
+  "filters": { ... },
+  "search": "",
+  "context": {}
+}
+
+// ya da tek tek secilmisse
+"selection": {"mode":"some","ids":["3","9"]}</code></pre>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3"><span class="badge badge-soft-success me-2">getList</span> tarafı</h6>
+                                <div class="vnl-code">
+                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>if ($t-&gt;op === VnlTableRequest::OP_BULK) {
+    Auth::CheckPermission('KayitSil');
+
+    if (!$t-&gt;hasSelection()) {
+        throwErrorMessage('Hicbir kayit secilmedi.');
+    }
+
+    $q = Kayit::query();
+    $t-&gt;applyFilters($q, $alanlar);   // ONCE filtreler
+    $t-&gt;applySelection($q, 'id');     // SONRA secim
+
+    $adet = $q-&gt;count();
+    $q-&gt;delete();
+
+    $t-&gt;respondBulk($adet . ' kayit silindi.');
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
+                            <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
+                                <thead>
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
+                                    <th class="ps-5 min-w-250px">Üye</th>
+                                    <th class="min-w-350px">İş</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-body fw-semibold">
+                                <tr><td class="ps-5"><code>$t-&gt;hasSelection()</code></td><td>Hiçbir şey seçilmemişse toplu işlem çalışmamalı.</td></tr>
+                                <tr><td class="ps-5"><code>$t-&gt;selectedAll()</code></td><td>Kullanıcı "filtreye uyan hepsi"ni mi seçti.</td></tr>
+                                <tr><td class="ps-5"><code>$t-&gt;selectedIds()</code></td><td>Tek tek seçilmiş kimlikler ("all" modunda boş).</td></tr>
+                                <tr><td class="ps-5"><code>$t-&gt;excludedIds()</code></td><td>"all" modunda kullanıcının çıkardıkları.</td></tr>
+                                <tr><td class="ps-5"><code>$t-&gt;applySelection($q, 'id')</code></td><td>Seçimi sorguya uygular. <b>applyFilters()'tan sonra</b> çağırın — "hepsi" zaten filtrelenmiş kümeyi kasteder.</td></tr>
+                                <tr><td class="ps-5"><code>$t-&gt;isSelected($row, 'id')</code></td><td>Bellekteki satır için aynı sınama.</td></tr>
+                                <tr><td class="ps-5"><code>$t-&gt;respondBulk($mesaj, $reload)</code></td><td><code>$reload = false</code> verirseniz tablo yenilenmez ve seçim korunur — listeyi değiştirmeyen işlemler (rapor, toplam alma) için.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-responsive border rounded bg-body-tertiary mb-0">
+                            <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
+                                <thead>
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
+                                    <th class="ps-5 min-w-200px">Davranış</th>
+                                    <th class="min-w-350px">Ayrıntı</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-body fw-semibold">
+                                <tr>
+                                    <td class="ps-5">Başlıktaki kutu</td>
+                                    <td><b>Görünen sayfayı</b> seçer, tabloyu değil. Sayfanın tamamı seçildiğinde ve filtrede daha fazlası olduğunda çubukta "filtreye uyan N kaydın tümünü seç" belirir.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Sayfa değişimi</td>
+                                    <td>Seçim korunur — sayfalama ve sıralama onu bozmaz.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Filtre değişimi</td>
+                                    <td>Seçim <b>düşer</b>. "Filtreye uyan hepsi" artık başka bir kümeyi kastediyor olurdu; sessizce başka kayıtlara işlem yapmaktansa seçimi sıfırlamak doğru.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Kimliksiz satır</td>
+                                    <td>Kutusu kapalı gelir. <code>key()</code> ile bildirdiğiniz sütun olmadan hangi kaydın seçildiği söylenemez.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Gruplu görünüm</td>
+                                    <td>Kutular veri satırlarındadır; grup satırının kendi kutusu <b>henüz yok</b>. Sunucu stratejisinde grubun bütün üyeleri yüklenmiş olmayabiliyor.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!--end::Secim-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
                     <!--begin::Gorunum-->
                     <div class="mb-0">
-                        <h3 class="fw-bold text-body-emphasis mb-4">5. Görünüm</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. Görünüm</h3>
                         <p class="fs-5 text-body mb-4">
                             Workbench'in başlık şeridi <b>mavidir</b> ve bu <code>skin</code>'den
                             bağımsızdır: hangi skin seçilirse seçilsin, workbench başka bir alet

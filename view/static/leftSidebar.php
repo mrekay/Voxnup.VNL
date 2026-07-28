@@ -18,13 +18,13 @@ $SidebarMenu = array(
                 'url' => 'index',
                 'page_name' => 'index.php',
                 'permission' => 'WebDashboard',
-                'icon' => 'home',
+                'icon' => 'bi bi-house',
                 'showmenu' => 1,
                 "child" => []
         ],
         [
                 "text" => "Dokümantasyon",
-                'icon' => 'tasks',
+                'icon' => 'bi bi-journal-text',
                 'showmenu' => 1,
                 "child" => [
                         [
@@ -32,7 +32,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/getting-started',
                                 'page_name' => 'getting-started.php',
                                 'permission' => '',
-                                'icon' => 'clock', // Zaman / bekleyen
+                                'icon' => 'bi bi-rocket-takeoff',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -41,7 +41,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/routing',
                                 'page_name' => 'routing.php',
                                 'permission' => '',
-                                'icon' => 'clock', // Zaman / bekleyen
+                                'icon' => 'bi bi-diagram-3',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -50,7 +50,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/templating',
                                 'page_name' => 'templating.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-braces-asterisk',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -59,7 +59,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/request-handling',
                                 'page_name' => 'request-handling.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-arrow-left-right',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -68,7 +68,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/errors',
                                 'page_name' => 'errors.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-bug',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -77,7 +77,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/modals',
                                 'page_name' => 'modals.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-window',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -86,7 +86,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/session',
                                 'page_name' => 'session.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-key',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -95,7 +95,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/config-definitions',
                                 'page_name' => 'config-definitions.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-sliders',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -104,7 +104,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/environment',
                                 'page_name' => 'environment.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-hdd-stack',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -113,7 +113,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/models',
                                 'page_name' => 'models.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-database',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -122,7 +122,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/validators',
                                 'page_name' => 'validators.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-clipboard-check',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -131,7 +131,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/languages',
                                 'page_name' => 'languages.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-translate',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -140,7 +140,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/vnltable',
                                 'page_name' => 'vnltable.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-table',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -149,7 +149,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/vnltable-grid',
                                 'page_name' => 'vnltable-grid.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-grid-3x3',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -158,7 +158,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/vnltable-workbench',
                                 'page_name' => 'vnltable-workbench.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-tools',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -167,7 +167,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/modules',
                                 'page_name' => 'modules.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-box-seam',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -176,7 +176,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/view-includes',
                                 'page_name' => 'view-includes.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-files',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -185,7 +185,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/extensions',
                                 'page_name' => 'extensions.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-plug',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -194,7 +194,7 @@ $SidebarMenu = array(
                                 'url' => 'docs/stripe',
                                 'page_name' => 'stripe.php',
                                 'permission' => '',
-                                'icon' => 'clock',
+                                'icon' => 'bi bi-credit-card',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -206,21 +206,21 @@ $SidebarMenu = array(
                 'icon' => 'bi bi-palette2', // boşluklu tam class: ikon passthrough örneği
                 'showmenu' => 1,
                 "child" => [
-                        ["text" => "Genel Bakış", 'url' => 'docs/theme', 'page_name' => 'theme.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
-                        ["text" => "Layout ve Preset'ler", 'url' => 'docs/theme-layout', 'page_name' => 'theme-layout.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
-                        ["text" => "Sidebar ve Menü", 'url' => 'docs/theme-sidebar', 'page_name' => 'theme-sidebar.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
-                        ["text" => "Renkler, Tema Modu ve Tipografi", 'url' => 'docs/theme-design', 'page_name' => 'theme-design.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
-                        ["text" => "Bileşenler", 'url' => 'docs/theme-components', 'page_name' => 'theme-components.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
-                        ["text" => "Form ve Select", 'url' => 'docs/theme-forms', 'page_name' => 'theme-forms.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
-                        ["text" => "İkonlar", 'url' => 'docs/theme-icons', 'page_name' => 'theme-icons.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
-                        ["text" => "Modallar", 'url' => 'docs/theme-modals', 'page_name' => 'theme-modals.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
-                        ["text" => "JavaScript API", 'url' => 'docs/theme-js', 'page_name' => 'theme-js.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
-                        ["text" => "Metronic'ten Geçiş", 'url' => 'docs/theme-migration', 'page_name' => 'theme-migration.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "Genel Bakış", 'url' => 'docs/theme', 'page_name' => 'theme.php', 'permission' => '', 'icon' => 'bi bi-compass', 'showmenu' => 1, "child" => []],
+                        ["text" => "Layout ve Preset'ler", 'url' => 'docs/theme-layout', 'page_name' => 'theme-layout.php', 'permission' => '', 'icon' => 'bi bi-columns-gap', 'showmenu' => 1, "child" => []],
+                        ["text" => "Sidebar ve Menü", 'url' => 'docs/theme-sidebar', 'page_name' => 'theme-sidebar.php', 'permission' => '', 'icon' => 'bi bi-layout-sidebar', 'showmenu' => 1, "child" => []],
+                        ["text" => "Renkler, Tema Modu ve Tipografi", 'url' => 'docs/theme-design', 'page_name' => 'theme-design.php', 'permission' => '', 'icon' => 'bi bi-palette', 'showmenu' => 1, "child" => []],
+                        ["text" => "Bileşenler", 'url' => 'docs/theme-components', 'page_name' => 'theme-components.php', 'permission' => '', 'icon' => 'bi bi-grid-1x2', 'showmenu' => 1, "child" => []],
+                        ["text" => "Form ve Select", 'url' => 'docs/theme-forms', 'page_name' => 'theme-forms.php', 'permission' => '', 'icon' => 'bi bi-input-cursor-text', 'showmenu' => 1, "child" => []],
+                        ["text" => "İkonlar", 'url' => 'docs/theme-icons', 'page_name' => 'theme-icons.php', 'permission' => '', 'icon' => 'bi bi-stars', 'showmenu' => 1, "child" => []],
+                        ["text" => "Modallar", 'url' => 'docs/theme-modals', 'page_name' => 'theme-modals.php', 'permission' => '', 'icon' => 'bi bi-window-stack', 'showmenu' => 1, "child" => []],
+                        ["text" => "JavaScript API", 'url' => 'docs/theme-js', 'page_name' => 'theme-js.php', 'permission' => '', 'icon' => 'bi bi-braces', 'showmenu' => 1, "child" => []],
+                        ["text" => "Metronic'ten Geçiş", 'url' => 'docs/theme-migration', 'page_name' => 'theme-migration.php', 'permission' => '', 'icon' => 'bi bi-signpost-split', 'showmenu' => 1, "child" => []],
                 ]
         ],
         [
                 "text" => "Örnek Sayfa",
-                'icon' => 'tasks',
+                'icon' => 'bi bi-collection',
                 'showmenu' => 1,
                 "child" => [
                         [
@@ -228,7 +228,7 @@ $SidebarMenu = array(
                                 'url' => 'example-1',
                                 'page_name' => 'example-1.php',
                                 'permission' => 'ExamplePermPage1',
-                                'icon' => 'clock', // Zaman / bekleyen
+                                'icon' => 'bi bi-file-earmark',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -237,7 +237,7 @@ $SidebarMenu = array(
                                 'url' => 'example-2',
                                 'page_name' => 'example-2.php',
                                 'permission' => 'ExamplePermPage2',
-                                'icon' => 'clock', // Zaman / bekleyen
+                                'icon' => 'bi bi-file-earmark',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -246,7 +246,7 @@ $SidebarMenu = array(
                                 'url' => 'example-1',
                                 'page_name' => 'example-1.php',
                                 'permission' => 'ExamplePermPage1',
-                                'icon' => 'clock', // Zaman / bekleyen
+                                'icon' => 'bi bi-file-earmark',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -255,7 +255,7 @@ $SidebarMenu = array(
                                 'url' => 'example-1',
                                 'page_name' => 'example-1.php',
                                 'permission' => 'ExamplePermPage1',
-                                'icon' => 'clock', // Zaman / bekleyen
+                                'icon' => 'bi bi-file-earmark',
                                 'showmenu' => 1,
                                 "child" => []
                         ],
@@ -267,7 +267,7 @@ $SidebarMenu = array(
                 'url' => 'example-login-page',
                 'page_name' => 'Example-Login-Page',
                 'permission' => 'ExampleLoginPage',
-                'icon' => 'home',
+                'icon' => 'bi bi-person-check',
                 'showmenu' => 2,
                 "child" => []
         ],
@@ -276,7 +276,7 @@ $SidebarMenu = array(
                 'url' => 'example-hidden',
                 'page_name' => 'example-hidden.php',
                 'permission' => 'ExampleHidden',
-                'icon' => 'home',
+                'icon' => 'bi bi-eye-slash',
                 'showmenu' => 0,
                 "child" => []
         ],
