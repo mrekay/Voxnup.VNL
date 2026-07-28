@@ -365,8 +365,12 @@ i.vnl-icon {
     color: var(--vnl-table-accent);
 }
 
+/* Hover zemini NÖTR olmalı: vurgu tonlu zemin, vurgu renkli glifle
+   birleşince yeşil üstüne yeşil oluyor ve ikon kayboluyordu.
+   --vnl-table-hover-bg burada kullanılamaz — currentColor'dan türüyor ve
+   bu düğmede currentColor zaten vurgu rengi. */
 .vnl-table.vnl-skin-modern .vnl-table-actions .btn-success:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--vnl-table-accent) 12%, transparent);
+    background: color-mix(in srgb, var(--bs-body-color) 8%, transparent);
     color: var(--vnl-table-accent);
 }
 
