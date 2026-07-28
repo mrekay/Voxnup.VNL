@@ -4,13 +4,25 @@ error_reporting(E_ALL ^ E_WARNING);
 ini_set('session.gc_maxlifetime', 3600);
 set_time_limit(20);
 
+/**
+ * Oturum çerezi.
+ *
+ * secure ve samesite SABİT olamaz: SameSite=None, Secure'u zorunlu kılar
+ * ve Secure çerez HTTP üzerinde tarayıcı tarafından hiç saklanmaz. İkisi
+ * birden açıkken yerel http geliştirmede oturum hiç kurulmuyordu — giriş
+ * dahil. Bağlantı gerçekten TLS ise eski davranış aynen sürer.
+ */
+$isSecure = (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off')
+    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443);
+
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
     'domain' => '', // Gerekirse belirtebilirsiniz
-    'secure' => true,
+    'secure' => $isSecure,
     'httponly' => true,
-    'samesite' => 'None' // 'None', 'Lax' veya 'Strict'
+    'samesite' => $isSecure ? 'None' : 'Lax',
 ]);
 
 $cDefinitions = new ConfigDefinitions();

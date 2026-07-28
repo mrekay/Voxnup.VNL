@@ -148,7 +148,8 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
 
                         <div class="row g-8 mb-6">
                             <div class="col-lg-6">
-                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">Accordion (base)</div>
+                                <div class="vnl-demo">
+                                <div class="vnl-demo-label">Accordion (base)</div>
                                 <div class="accordion" id="vnl_demo_acc1">
                                     <div class="accordion-item">
                                         <h2 class="accordion-header">
@@ -168,8 +169,10 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
                                     </div>
                                 </div>
                             </div>
+                            </div>
                             <div class="col-lg-6">
-                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.vnl-accordion (ayrık kartlar)</div>
+                                <div class="vnl-demo">
+                                <div class="vnl-demo-label">.vnl-accordion (ayrık kartlar)</div>
                                 <div class="accordion vnl-accordion" id="vnl_demo_acc2">
                                     <div class="accordion-item">
                                         <h2 class="accordion-header">
@@ -189,11 +192,13 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
                                     </div>
                                 </div>
                             </div>
+                            </div>
                         </div>
 
                         <div class="row g-8 mb-6">
                             <div class="col-lg-6">
-                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.nav-underline (önerilen sekme)</div>
+                                <div class="vnl-demo">
+                                <div class="vnl-demo-label">.nav-underline (önerilen sekme)</div>
                                 <ul class="nav nav-underline mb-4" role="tablist">
                                     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vnl_tab_u1" type="button" role="tab">Genel</button></li>
                                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_u2" type="button" role="tab">Yetkiler</button></li>
@@ -205,8 +210,10 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
                                     <div class="tab-pane fade" id="vnl_tab_u3" role="tabpanel">Üçüncü panel içeriği.</div>
                                 </div>
                             </div>
+                            </div>
                             <div class="col-lg-6">
-                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.vnl-tabs-solid (segmented)</div>
+                                <div class="vnl-demo">
+                                <div class="vnl-demo-label">.vnl-tabs-solid (segmented)</div>
                                 <ul class="nav vnl-tabs-solid mb-4" role="tablist">
                                     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vnl_tab_s1" type="button" role="tab">Günlük</button></li>
                                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_s2" type="button" role="tab">Haftalık</button></li>
@@ -218,11 +225,13 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
                                     <div class="tab-pane fade" id="vnl_tab_s3" role="tabpanel">Üçüncü panel içeriği.</div>
                                 </div>
                             </div>
+                            </div>
                         </div>
 
                         <div class="row g-8 mb-6">
                             <div class="col-lg-6">
-                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.vnl-tabs-vertical (ayar sayfaları)</div>
+                                <div class="vnl-demo">
+                                <div class="vnl-demo-label">.vnl-tabs-vertical (ayar sayfaları)</div>
                                 <div class="d-flex gap-6">
                                     <ul class="nav vnl-tabs-vertical" role="tablist">
                                         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vnl_tab_v1" type="button" role="tab"><i class="bi bi-person"></i>Profil</button></li>
@@ -236,8 +245,10 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
                                     </div>
                                 </div>
                             </div>
+                            </div>
                             <div class="col-lg-6">
-                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.nav-pills + rozet/ikon kompozisyonları</div>
+                                <div class="vnl-demo">
+                                <div class="vnl-demo-label">.nav-pills + rozet/ikon kompozisyonları</div>
                                 <ul class="nav nav-pills gap-1 mb-4" role="tablist">
                                     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vnl_tab_p1" type="button" role="tab">Gelen Kutusu <span class="badge badge-soft-primary ms-1">12</span></button></li>
                                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_p2" type="button" role="tab"><i class="bi bi-send me-1"></i>Giden</button></li>
@@ -248,6 +259,7 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
                                     <div class="tab-pane fade" id="vnl_tab_p2" role="tabpanel">İkonlu sekme örneği.</div>
                                     <div class="tab-pane fade" id="vnl_tab_p3" role="tabpanel">Üçüncü panel içeriği.</div>
                                 </div>
+                            </div>
                             </div>
                         </div>
 

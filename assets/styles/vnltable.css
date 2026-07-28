@@ -1110,9 +1110,25 @@ i.vnl-icon {
     }
 }
 
-/* Hareket azaltma tercihi */
+/* Hareket azaltma tercihi — tablonun bütün geçişleri birlikte susar,
+   yarısı animasyonlu yarısı ani kalmaz. */
 @media (prefers-reduced-motion: reduce) {
-    .vnl-table.vnl-is-loading .vnl-table-el tbody {
+    .vnl-table.vnl-is-loading .vnl-table-el tbody,
+    .vnl-th-filter,
+    .vnl-sort-mark,
+    .vnl-group-caret,
+    .vnl-group-zone,
+    .vnl-saved,
+    .vnl-save-failed {
         transition: none;
+    }
+
+    /* Ok yine de yönünü gösterir, sadece dönerek gitmez. */
+    .vnl-group-open .vnl-group-caret {
+        transform: none;
+    }
+
+    .vnl-group-open .vnl-group-caret::after {
+        content: "▾";
     }
 }

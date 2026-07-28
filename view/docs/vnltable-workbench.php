@@ -18,9 +18,9 @@
                 <div class="d-flex flex-column pe-0 pe-sm-10">
                     <h5 class="mb-1">Yapım hâlinde</h5>
                     <span>
-                        <b>Sütun sabitleme</b> ve <b>satır gruplama</b> hazır. Sırada detay satırı
-                        (accordion), seçim ve toplu işlem; sonra hücre içi düzenleme, sütun sürükleyip
-                        yeniden sıralama, pivot.
+                        <b>Sütun sabitleme</b>, <b>çok seviyeli satır gruplama</b> ve
+                        <b>hücre düzenleme</b> hazır. Sırada detay satırı (accordion), seçim ve
+                        toplu işlem; sonra sütun sürükleyip yeniden sıralama, pivot.
                     </span>
                 </div>
             </div>
@@ -133,6 +133,16 @@
 -&gt;options(['group' =&gt; 'sehir'])   // ya da sadece true</code></pre>
                         </div>
 
+                        <h6 class="fw-bold mb-3">Sürükleyerek gruplama</h6>
+                        <p class="fs-6 text-body mb-4">
+                            Başlığın <b>yazısı</b> sürüklenebilir, hücrenin tamamı değil — hücre
+                            sıralamayı tıklıyor, huni kendi panelini açıyor. Bırakma alanına atılan
+                            her başlık <b>sona bir seviye ekler</b>; rozetlerdeki numara sırayı
+                            gösterir. Sıra önemlidir: Şehir → Durum ile Durum → Şehir bambaşka iki
+                            ağaçtır. Araç çubuğundaki menü aynı işi yapar ve dokunmatikte de
+                            çalışır (sürükle-bırak orada yoktur).
+                        </p>
+
                         <h6 class="fw-bold mb-3">Grup listesi her zaman sunucudan</h6>
                         <p class="fs-6 text-body mb-4">
                             Sunucu sayfalı veri döndürdüğü için istemcide gruplamak işe yaramaz:
@@ -218,11 +228,123 @@
                                 kendi filtresini <b>dışarıda bırakır</b> (kullanıcı kapattığı değeri geri
                                 açabilsin diye). <code>op = group</code> ise <b>tüm filtreleri</b>
                                 uygular — gruplar, kullanıcının süzdüğü kümenin özetidir.
-                                Gruplu görünümde sayfalanan birim de satır değil <b>gruptur</b>.
+                                Gruplu görünümde sayfalanan birim de satır değil <b>üst seviyedeki
+                                gruplardır</b>; alt seviyeler ve satırlar kendi içinde açılır.
                             </span>
                         </div>
                     </div>
                     <!--end::Gruplama-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
+                    <!--begin::Duzenleme-->
+                    <div class="mb-10">
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Hücre Düzenleme</h3>
+                        <p class="fs-5 text-body mb-4">
+                            <code>'editable' =&gt; true</code> verilen hücre çift tıkla açılır.
+                            <b>Enter</b> kaydeder, <b>Escape</b> eski değere döner.
+                            <code>editOptions</code> verilirse serbest metin yerine açılır liste
+                            gelir; kutu türü sütunun <code>type</code>'ından çıkar (sayıda sayı,
+                            tarihte takvim).
+                        </p>
+
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>['name' =&gt; 'sehir', 'title' =&gt; 'Şehir', 'editable' =&gt; true],
+['name' =&gt; 'durum', 'title' =&gt; 'Durum', 'editable' =&gt; true,
+ 'editOptions' =&gt; ['Onaylandı', 'Beklemede', 'İptal']],
+// ilişkisel dizide anahtar kaydedilen, değer gösterilendir
+['name' =&gt; 'tip', 'editable' =&gt; true, 'editOptions' =&gt; ['A' =&gt; 'Bireysel', 'K' =&gt; 'Kurumsal']],</code></pre>
+                        </div>
+
+                        <h6 class="fw-bold mb-3"><code>getList</code> tarafı</h6>
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>if ($t-&gt;op === VnlTableRequest::OP_SAVE) {
+    Auth::CheckPermission('KayitDuzenle');
+
+    // Yazilabilir sutunlarin BEYAZ LISTESI. Listede olmayan ad
+    // sessizce atlanmaz, istek hatayla biter.
+    $sutun = $t-&gt;editColumn(['ad' =&gt; 'name', 'sehir' =&gt; 'city', 'durum' =&gt; 'status']);
+
+    $deger = trim((string)$t-&gt;value);
+    if ($deger === '') throwErrorMessage('Bos birakilamaz.');
+
+    Kayit::where('id', $t-&gt;rowKey)-&gt;update([$sutun =&gt; $deger]);
+
+    // Deger dondurursen istemci hucreyi onunla tazeler: kirpilmis,
+    // bicimlenmis ya da buyuk harfe cevrilmis hali gorunsun.
+    $t-&gt;respondSaved($deger);
+}</code></pre>
+                        </div>
+
+                        <div class="alert alert-danger d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-shield fs-2 text-danger me-3"></i>
+                            <span class="text-body fs-6">
+                                <code>editColumn()</code>'un listesi <b>zorunludur</b> ve filtredekinden
+                                daha kritiktir: filtrede en kötü ihtimalle yanlış satır listelenir,
+                                burada <b>yanlış sütuna yazılır</b>. Sütun adı da satır kimliği de
+                                istemciden gelir — yetki kontrolünü ve doğrulamayı burada yapın.
+                                <code>'editable' =&gt; true</code> yalnız arayüzü açar, sunucuda
+                                hiçbir şeyi yetkilendirmez.
+                            </span>
+                        </div>
+
+                        <div class="table-responsive border rounded bg-body-tertiary mb-0">
+                            <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
+                                <thead>
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
+                                    <th class="ps-5 min-w-200px">Davranış</th>
+                                    <th class="min-w-350px">Ayrıntı</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-body fw-semibold">
+                                <tr>
+                                    <td class="ps-5">Tek hücre, tek istek</td>
+                                    <td>Kirli satır biriktirilmez. Yazılan ya kaydedilir ya eski değerine döner — yarım kalmış bir düzenleme sayfa yenilenince sessizce kaybolmaz.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Hata</td>
+                                    <td>Sunucu reddederse hücre eski değerine döner, kırmızı yanıp söner ve mesaj gösterilir. İyimser güncelleme geri alınır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Satır kimliği</td>
+                                    <td><code>key()</code> ile bildirdiğiniz sütundan gelir. Kimliği olmayan satırın hücresi düzenlenebilir olsa da açılmaz.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>saveUrl()</code></td>
+                                    <td>Yazmayı okuma action'ından ayırır — yetki, kayıt tutma ve doğrulama genelde ayrı yerde durur. Verilmezse <code>url()</code>'e <code>op = save</code> ile gider.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!--end::Duzenleme-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
+                    <!--begin::Gorunum-->
+                    <div class="mb-0">
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Görünüm</h3>
+                        <p class="fs-5 text-body mb-4">
+                            Workbench'in başlık şeridi <b>mavidir</b> ve bu <code>skin</code>'den
+                            bağımsızdır: hangi skin seçilirse seçilsin, workbench başka bir alet
+                            olduğunu ilk bakışta söyler. Renk zemine karıştırılarak üretilir, o
+                            yüzden koyu temada da kendiliğinden oturur — sabit bir mavi orada
+                            parlıyordu.
+                        </p>
+
+                        <div class="vnl-code mb-4">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>/* Kendi maviniz: tablonun kapsayicisina yazin */
+.benim-sayfam { --vnl-bench-accent: #7c3aed; }</code></pre>
+                        </div>
+
+                        <p class="fs-6 text-body mb-0">
+                            Vurgu rengi (yeşil) yerinde kalır — filtre çipleri, sayfalama ve
+                            <code>--vnl-table-accent</code> kullanan her şey onu kullanmayı sürdürür.
+                            Mavi yalnız başlık şeridinin, grup okunun ve gruplama denetimlerinin
+                            işaretidir.
+                        </p>
+                    </div>
+                    <!--end::Gorunum-->
 
                 </div>
             </div>
