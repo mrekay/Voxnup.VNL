@@ -9,9 +9,15 @@
 
 /* ================================================================
    Temel — tüm skin'ler bu değişkenleri ezerek çalışır
+
+   Filtre paneli <body>'ye takılır (tablo overflow:hidden taşıdığı için
+   içeride kalsa kırpılırdı), yani tablonun değişkenleri ona akmaz.
+   Bu yüzden token blokları ikisini birden hedefler; panel açılırken
+   skin sınıfını da kendi üzerine alır.
    ================================================================ */
 
-.vnl-table {
+.vnl-table,
+.vnl-filter-panel {
     --vnl-table-border:      var(--vnl-border, var(--bs-border-color));
     --vnl-table-head-bg:     var(--vnl-surface-raised, var(--bs-tertiary-bg));
     --vnl-table-head-color:  var(--bs-body-color);
@@ -27,7 +33,9 @@
     --vnl-table-font-size:   .875rem;
     --vnl-table-radius:      var(--bs-border-radius, .5rem);
     --vnl-table-accent:      var(--bs-primary, #04ab61);
+}
 
+.vnl-table {
     display: block;
     background: var(--vnl-surface, var(--bs-body-bg));
     border: 1px solid var(--vnl-table-border);
@@ -203,6 +211,220 @@ i.vnl-icon {
 .vnl-th.vnl-sort-asc .vnl-sort-mark::after  { content: "↑"; }
 .vnl-th.vnl-sort-desc .vnl-sort-mark::after { content: "↓"; }
 
+/* ── Başlık iç düzeni ──
+   Huni, hizalama ne olursa olsun etiketin peşinde kalsın diye başlık
+   içeriği bir flex satırıdır. th'nin kendisi flex yapılamaz: tarayıcı
+   sütun genişliğini hesaplarken flex kutusunu başka ölçüyor ve
+   sütunlar veri geldikçe zıplıyordu. */
+
+.vnl-th-inner {
+    display: flex;
+    align-items: center;
+    gap: .1rem;
+    min-width: 0;
+}
+
+.vnl-align-center .vnl-th-inner { justify-content: center; }
+.vnl-align-right  .vnl-th-inner { justify-content: flex-end; }
+
+.vnl-th-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Sütun filtresi: başlıktaki huni ── */
+
+.vnl-th-filter {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    margin-left: .15rem;
+    padding: 0;
+    border: 0;
+    border-radius: .25rem;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+
+    /* Sıralama okuyla aynı davranış: başlığı kalabalıklaştırmasın, üzerine
+       gelince belirsin. Filtre uygulanmışsa kalıcı — bilgi kaybolmaz. */
+    opacity: 0;
+    transition: opacity .15s, background-color .15s;
+}
+
+.vnl-th:hover .vnl-th-filter,
+.vnl-th-filter:focus-visible,
+.vnl-th.vnl-filter-on .vnl-th-filter {
+    opacity: 1;
+}
+
+.vnl-th-filter:hover {
+    background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.vnl-th.vnl-filter-on .vnl-th-filter {
+    color: var(--vnl-table-accent);
+}
+
+.vnl-th-filter .vnl-icon {
+    font-size: .8rem;
+}
+
+/* Dokunmatikte hover yok: huni sürekli ama soluk durur. */
+@media (hover: none) {
+    .vnl-th-filter { opacity: .5; }
+}
+
+/* ── Filtre paneli ──
+   <body>'de ve position:fixed: tablonun kaydırma kabı onu kırpmasın.
+   z-index Bootstrap modalinin (1055) üstünde — modal içindeki bir
+   tablonun paneli arkada kalmasın. */
+
+.vnl-filter-panel {
+    position: fixed;
+    z-index: 1080;
+    display: flex;
+    flex-direction: column;
+    width: 15rem;
+    max-width: calc(100vw - 1rem);
+    background: var(--vnl-surface, var(--bs-body-bg));
+    border: 1px solid var(--vnl-table-border);
+    border-radius: var(--vnl-table-radius);
+    box-shadow: var(--vnl-raised-shadow, 0 10px 30px rgba(0, 0, 0, .18));
+    color: var(--bs-body-color);
+    font-size: .8125rem;
+}
+
+/* .form-control display:block, [hidden]'ı özgüllükle yener; koşul
+   kutuları gizlenemiyordu. */
+.vnl-filter-panel [hidden] {
+    display: none;
+}
+
+.vnl-filter-panel > * + * {
+    border-top: 1px solid var(--vnl-table-border);
+}
+
+.vnl-filter-values,
+.vnl-filter-cond,
+.vnl-filter-actions {
+    padding: .5rem;
+}
+
+.vnl-filter-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: .35rem;
+}
+
+.vnl-filter-search .vnl-icon {
+    position: absolute;
+    left: .55rem;
+    color: var(--bs-secondary-color);
+    font-size: .8rem;
+    pointer-events: none;
+}
+
+.vnl-filter-search input {
+    width: 100%;
+    padding-left: 1.9rem;
+    font-size: .8125rem;
+}
+
+.vnl-filter-list {
+    max-height: 13rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;   /* liste bitince sayfa kaymasın */
+}
+
+.vnl-filter-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin: 0;
+    padding: .25rem .35rem;
+    border-radius: .25rem;
+    cursor: pointer;
+}
+
+.vnl-filter-item:hover {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.vnl-filter-item .form-check-input {
+    flex: none;
+    margin: 0;
+}
+
+.vnl-filter-item-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.vnl-filter-all .vnl-filter-item-label {
+    font-weight: 600;
+}
+
+/* Kayıt sayısı ikincil: göz değeri okurken ona takılmasın. */
+.vnl-filter-item-count {
+    flex: none;
+    color: var(--bs-secondary-color);
+    font-size: .75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.vnl-filter-empty {
+    padding: .75rem .35rem;
+    color: var(--bs-secondary-color);
+    font-size: .75rem;
+    text-align: center;
+}
+
+.vnl-filter-empty.vnl-table-error {
+    color: var(--bs-danger);
+}
+
+.vnl-filter-note {
+    padding: .4rem .35rem 0;
+    color: var(--bs-secondary-color);
+    font-size: .75rem;
+}
+
+.vnl-filter-title {
+    margin-bottom: .35rem;
+    color: var(--bs-secondary-color);
+    font-size: .75rem;
+    font-weight: 600;
+}
+
+.vnl-filter-cond select,
+.vnl-filter-cond input {
+    width: 100%;
+    font-size: .8125rem;
+}
+
+.vnl-filter-cond select + input,
+.vnl-filter-cond input + input {
+    margin-top: .35rem;
+}
+
+.vnl-filter-actions {
+    display: flex;
+    gap: .5rem;
+}
+
+.vnl-filter-actions .btn {
+    flex: 1 1 0;
+    font-size: .8125rem;
+}
+
 /* ── Sütun göster/gizle menüsü ── */
 
 .vnl-table-columns-menu {
@@ -306,7 +528,8 @@ i.vnl-icon {
    satırlar "seçilmiş" gibi okunuyordu.
    ================================================================ */
 
-.vnl-table.vnl-skin-modern {
+.vnl-table.vnl-skin-modern,
+.vnl-filter-panel.vnl-skin-modern {
     --vnl-table-head-bg:        var(--vnl-surface, var(--bs-body-bg));
     --vnl-table-head-color:     var(--bs-secondary-color);
     --vnl-table-head-size:      .8125rem;
@@ -419,7 +642,8 @@ i.vnl-icon {
    Yoğun ERP listeleri için; ekrana daha çok satır sığar.
    ================================================================ */
 
-.vnl-table.vnl-skin-compact {
+.vnl-table.vnl-skin-compact,
+.vnl-filter-panel.vnl-skin-compact {
     --vnl-table-cell-y:    .25rem;
     --vnl-table-cell-x:    .5rem;
     --vnl-table-font-size: .8125rem;

@@ -36,18 +36,20 @@ class action_vnltable
         $rows  = $this->rows();
         $total = count($rows);
 
-        if ($t->search !== '') {
-            $needle = TextGeneralModule::trToLower($t->search);
-            $rows = array_values(array_filter($rows, function ($row) use ($needle) {
-                foreach (['ad', 'sehir', 'durum'] as $field) {
-                    if (str_contains(TextGeneralModule::trToLower((string)$row[$field]), $needle)) {
-                        return true;
-                    }
-                }
+        /* Düz arama önce uygulanır: sütun filtre panelindeki değer listesi
+           de arama kutusunun daralttığı kümeden çıksın. */
+        $rows = $this->applySearch($rows, $t->search);
 
-                return false;
-            }));
+        /* Değer listesi. distinctFrom() daraltmayı kendisi yapar: hedef
+           sütunun KENDİ seçimi sayılmaz, diğer sütunların filtreleri
+           sayılır — Excel'in davranışı. */
+        if ($t->op === VnlTableRequest::OP_DISTINCT) {
+            $t->distinctFrom($rows);
         }
+
+        /* Sütun filtreleri. Gerçek bir tabloda bunun yerine
+           $t->applyFilters($query, ['id','ad','sehir',...]) çağrılır. */
+        $rows = $t->filterRows($rows);
 
         $filtered = count($rows);
 
@@ -69,6 +71,26 @@ class action_vnltable
         }
 
         $t->respond(array_slice($rows, $t->offset(), $t->size), $total, $filtered);
+    }
+
+    /** Düz arama — yalnız metin sütunlarında. */
+    private function applySearch(array $rows, string $search): array
+    {
+        if ($search === '') {
+            return $rows;
+        }
+
+        $needle = TextGeneralModule::trToLower($search);
+
+        return array_values(array_filter($rows, function ($row) use ($needle) {
+            foreach (['ad', 'sehir', 'durum'] as $field) {
+                if (str_contains(TextGeneralModule::trToLower((string)$row[$field]), $needle)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }));
     }
 
     /** Sabit tohumla üretilir; sayfalar arasında satırlar değişmez. */

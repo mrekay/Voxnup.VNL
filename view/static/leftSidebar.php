@@ -118,6 +118,15 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
+                                "text" => "VNL Table — Expert",
+                                'url' => 'docs/vnltable-expert',
+                                'page_name' => 'vnltable-expert.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
                                 "text" => "Modüller",
                                 'url' => 'docs/modules',
                                 'page_name' => 'modules.php',

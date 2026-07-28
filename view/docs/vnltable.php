@@ -17,11 +17,13 @@
             <div class="alert alert-info d-flex flex-column flex-sm-row p-5 mb-10">
                 <i class="fa-solid fa-circle-info fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                 <div class="d-flex flex-column pe-0 pe-sm-10">
-                    <h5 class="mb-1">Şu an yalnızca <code>basic</code> hazır</h5>
+                    <h5 class="mb-1">Bu sayfa <code>basic</code>'i anlatır</h5>
                     <span>
-                        Sıralama, sayfalama, düz arama, filtre temizleme ve Excel çıktısı çalışır.
-                        <code>expert</code> (sütun filtre panelleri, Excel tarzı değer seçimi) ve
-                        <code>expert_plus</code> (accordion, pivot, hücre düzenleme) sırada.
+                        Sıralama, sayfalama, düz arama, filtre temizleme ve Excel çıktısı. Sütun filtre
+                        panelleri (başlıktaki huni, Excel tarzı değer seçimi) <code>expert</code> ile
+                        gelir ve <a href="/docs/vnltable-expert" class="fw-bold">VNL Table — Expert</a>
+                        sayfasında anlatılır. <code>expert_plus</code> (accordion, pivot, hücre
+                        düzenleme) sırada.
                     </span>
                 </div>
             </div>

@@ -2,7 +2,8 @@
  * ============================================================
  *  Voxnup Not Laravel (VNL) 3.0.0 — VNL Table
  *  Sunucudan gelen tanımı okur, tabloyu çizer ve yönetir.
- *  Aşama 1: basic — sıralama, sayfalama, düz arama, Excel.
+ *  basic  — sıralama, sayfalama, düz arama, Excel.
+ *  expert — başlıktaki huniden açılan sütun filtre panelleri.
  *  Authors: Voxnup Authors
  * ============================================================
  */
@@ -10,6 +11,10 @@
     'use strict';
 
     var instances = {};
+
+    /* Sunucudaki VnlTableRequest::OPS_NO_VALUE ve OPS_RANGE ile aynı. */
+    var OPS_NO_VALUE = ['empty', 'notEmpty'];
+    var OPS_RANGE    = ['between'];
 
     /* ---------------------------------------------------------------- */
     /* Yardımcılar                                                       */
@@ -38,6 +43,20 @@
         return out;
     }
 
+    /**
+     * Türkçe küçültme.
+     *
+     * toLowerCase() 'I' harfini 'i' yapar; Türkçe'de karşılığı 'ı'dır ve
+     * "İZMİR" araması "izmir" ile eşleşmez. Sunucudaki
+     * TextGeneralModule::trToLower ile aynı eşlemeyi yapar.
+     */
+    function trLower(text) {
+        return String(text === null || text === undefined ? '' : text)
+            .replace(/I/g, 'ı')
+            .replace(/İ/g, 'i')
+            .toLowerCase();
+    }
+
     function debounce(fn, wait) {
         var timer = null;
         return function () {
@@ -61,7 +80,9 @@
             columns: 'bi bi-layout-three-columns',
             clear:   'bi bi-x-circle',
             excel:   'bi bi-file-earmark-spreadsheet',
-            search:  'bi bi-search'
+            search:  'bi bi-search',
+            filter:  'bi bi-funnel',
+            filterOn: 'bi bi-funnel-fill'
         },
         fa: {
             probe:   'fa-solid fa-angle-left',
@@ -72,11 +93,15 @@
             columns: 'fa-solid fa-table-columns',
             clear:   'fa-solid fa-circle-xmark',
             excel:   'fa-solid fa-file-excel',
-            search:  'fa-solid fa-magnifying-glass'
+            search:  'fa-solid fa-magnifying-glass',
+            /* Font Awesome Free'de anahat huni yok; aktiflik renkle ayrılır. */
+            filter:  'fa-solid fa-filter',
+            filterOn: 'fa-solid fa-filter'
         },
         emoji: {
             first: '«', prev: '‹', next: '›', last: '»',
-            columns: '▦', clear: '✕', excel: '▤', search: '⌕'
+            columns: '▦', clear: '✕', excel: '▤', search: '⌕',
+            filter: '▽', filterOn: '▼'
         }
     };
 
@@ -143,6 +168,14 @@
         }
     }
 
+    /** Panel açılırken düğmenin balonu ekranda kalmasın. */
+    function hideTooltip(node) {
+        if (!window.bootstrap || !window.bootstrap.Tooltip) return;
+
+        var tip = window.bootstrap.Tooltip.getInstance(node);
+        if (tip) tip.hide();
+    }
+
     /**
      * Kaldırılacak düğmelerin tooltip örneklerini serbest bırakır.
      * Sayfalama her yüklemede yeniden kurulduğu için gerekli: aksi halde
@@ -187,12 +220,18 @@
            durur ve sütun menüsünden geri açılabilir. */
         this.hiddenCols = this.restoreHidden();
         this.ths = {};
+        this.filterBtns = {};
+
+        /* Açık filtre paneli. Panel body'ye takılır — tablo overflow:hidden
+           taşıdığı için içeride kalsaydı kırpılırdı. */
+        this.panel = null;
 
         this.state = {
             page:    1,
             size:    this.opt.pageSize || 25,
             sort:    (this.opt.order || []).slice(),
             search:  '',
+            filters: {},
             total:   0,
             filtered: 0,
             rows:    [],
@@ -271,14 +310,23 @@
             var th = el('th', 'vnl-th vnl-align-' + col.align);
             if (col.width) th.style.width = col.width;
 
-            var label = el('span', 'vnl-th-label', col.title);
-            th.appendChild(label);
+            /* Başlık içeriği bir flex satırı: huni, hizalama ne olursa olsun
+               etiketin peşinde kalsın. th'nin kendisi flex yapılamaz —
+               tablo sütun genişliği hesabı bozuluyor. */
+            var inner = el('span', 'vnl-th-inner');
+            inner.appendChild(el('span', 'vnl-th-label', col.title));
 
             if (col.sortable) {
                 th.classList.add('vnl-sortable');
-                th.appendChild(el('span', 'vnl-sort-mark'));
+                inner.appendChild(el('span', 'vnl-sort-mark'));
                 th.addEventListener('click', function () { self.toggleSort(col.name); });
             }
+
+            if (col.filter) {
+                inner.appendChild(self.buildFilterButton(col));
+            }
+
+            th.appendChild(inner);
 
             if (self.hiddenCols[col.name]) th.hidden = true;
             self.ths[col.name] = th;
@@ -330,6 +378,7 @@
         this.table = table;
 
         this.paintSort();
+        this.paintFilters();
         initTooltips(this.root);
     };
 
@@ -477,25 +526,538 @@
         else this.renderMessage(this.lang.empty || '');
     };
 
+    /* ---------------------------------------------------------------- */
+    /* Sütun filtreleri (expert)                                         */
+    /* ---------------------------------------------------------------- */
+
+    VnlTable.prototype.buildFilterButton = function (col) {
+        var self = this;
+
+        var b = el('button', 'vnl-th-filter');
+        b.type = 'button';
+        b.title = this.lang.filter || '';
+        b.setAttribute('aria-label', (this.lang.filter || '') + ': ' + col.title);
+        b.setAttribute('data-bs-toggle', 'tooltip');
+        b.appendChild(icon('filter'));
+
+        b.addEventListener('click', function (e) {
+            /* Başlığın sıralama dinleyicisine ulaşmasın. */
+            e.stopPropagation();
+            e.preventDefault();
+            hideTooltip(b);
+            self.openFilter(col, b);
+        });
+
+        this.filterBtns[col.name] = b;
+
+        return b;
+    };
+
+    /** Filtresi olan sütunun hunisi dolu ve vurgulu görünür. */
+    VnlTable.prototype.paintFilters = function () {
+        var self = this;
+
+        this.columns.forEach(function (col) {
+            var btn = self.filterBtns[col.name];
+            if (!btn) return;
+
+            var on = !!self.state.filters[col.name];
+            var th = self.ths[col.name];
+            if (th) th.classList.toggle('vnl-filter-on', on);
+
+            /* Tooltip düğmenin kendisinde durur; yalnız glif değişir. */
+            btn.innerHTML = '';
+            btn.appendChild(icon(on ? 'filterOn' : 'filter'));
+        });
+    };
+
+    /** Hedef sütunun kendi filtresi hariç hepsi — değer listesi bununla daralır. */
+    VnlTable.prototype.filtersExcept = function (name) {
+        var filters = this.state.filters;
+        var out = {};
+
+        Object.keys(filters).forEach(function (key) {
+            if (key !== name) out[key] = filters[key];
+        });
+
+        return out;
+    };
+
+    VnlTable.prototype.openFilter = function (col, anchor) {
+        var reopen = this.panel && this.panel.col.name === col.name;
+        this.closeFilter();
+
+        /* Aynı huniye ikinci tıklama kapatır. */
+        if (reopen) return;
+
+        var self    = this;
+        var current = this.state.filters[col.name] || {};
+
+        var panel = el('div', 'vnl-filter-panel vnl-skin-' + (this.opt.skin || 'default'));
+        panel.setAttribute('role', 'dialog');
+        panel.setAttribute('aria-label', col.title);
+
+        /* Taslak: panel kendi kopyası üzerinde çalışır, tablo ancak
+           Uygula'ya basılınca değişir. checked null ise "hepsi seçili"
+           demektir; ilk dokunuşta somut listeye dönüşür. */
+        var draft = {
+            col:       col,
+            anchor:    anchor,
+            node:      panel,
+            values:    [],
+            shown:     [],
+            truncated: false,
+            checked:   null,
+            query:     '',
+            token:     0
+        };
+
+        if (col.filter.values) this.buildValueList(draft, current);
+        if (col.filter.ops && col.filter.ops.length) this.buildCondition(draft, current);
+
+        this.buildFilterActions(draft);
+
+        draft.outside = function (e) {
+            if (panel.contains(e.target) || anchor.contains(e.target)) return;
+            self.closeFilter();
+        };
+
+        draft.keys = function (e) {
+            if (e.key === 'Escape') {
+                self.closeFilter();
+                anchor.focus();
+            } else if (e.key === 'Enter' && panel.contains(e.target)) {
+                e.preventDefault();
+                self.applyFilter(draft);
+            }
+        };
+
+        draft.reflow = function () { self.place(draft); };
+
+        this.panel = draft;
+        document.body.appendChild(panel);
+        this.place(draft);
+
+        /* Kaydırma yakalama evresinde dinlenir: paneli açan tablo kendi
+           kaydırma kabında oturuyor olabilir, pencere olayı gelmez. */
+        document.addEventListener('mousedown', draft.outside, true);
+        document.addEventListener('keydown', draft.keys, true);
+        window.addEventListener('scroll', draft.reflow, true);
+        window.addEventListener('resize', draft.reflow);
+
+        if (col.filter.values) this.loadDistinct(draft);
+        else if (draft.v1 && !draft.v1.hidden) draft.v1.focus();
+        else if (draft.op) draft.op.focus();
+    };
+
+    VnlTable.prototype.closeFilter = function () {
+        var draft = this.panel;
+        if (!draft) return;
+
+        this.panel = null;
+
+        document.removeEventListener('mousedown', draft.outside, true);
+        document.removeEventListener('keydown', draft.keys, true);
+        window.removeEventListener('scroll', draft.reflow, true);
+        window.removeEventListener('resize', draft.reflow);
+
+        if (draft.node.parentNode) draft.node.parentNode.removeChild(draft.node);
+    };
+
+    /** Panel çapaya göre yerleşir; sığmıyorsa başlığın üstüne çıkar. */
+    VnlTable.prototype.place = function (draft) {
+        var rect = draft.anchor.getBoundingClientRect();
+
+        /* Çapa kaydırmayla görünürden çıktıysa panel havada kalmasın. */
+        if (rect.bottom < 0 || rect.top > window.innerHeight) {
+            this.closeFilter();
+            return;
+        }
+
+        var panel = draft.node;
+        var w = panel.offsetWidth;
+        var h = panel.offsetHeight;
+
+        var left = Math.min(rect.left, window.innerWidth - w - 8);
+        var top  = rect.bottom + 4;
+
+        if (top + h > window.innerHeight - 8 && rect.top - h - 4 > 8) {
+            top = rect.top - h - 4;
+        }
+
+        panel.style.left = Math.max(8, left) + 'px';
+        panel.style.top  = Math.max(8, top) + 'px';
+    };
+
+    /* ---- Değer listesi ---- */
+
+    VnlTable.prototype.buildValueList = function (draft, current) {
+        var self = this;
+        var box  = el('div', 'vnl-filter-values');
+
+        var wrap = el('div', 'vnl-filter-search');
+        wrap.appendChild(icon('search'));
+
+        var q = el('input', 'form-control form-control-sm');
+        q.type = 'search';
+        q.placeholder = this.lang.filterSearch || '';
+        wrap.appendChild(q);
+        box.appendChild(wrap);
+
+        draft.list = el('div', 'vnl-filter-list');
+        box.appendChild(draft.list);
+
+        draft.note = el('div', 'vnl-filter-note');
+        draft.note.hidden = true;
+        box.appendChild(draft.note);
+
+        q.addEventListener('input', debounce(function () {
+            draft.query = q.value.trim();
+
+            /* Liste kesilmediyse daraltma istemcide yapılır. Kesildiyse
+               listeye hiç girmemiş bir değer ancak sunucuya sorarak
+               bulunabilir. */
+            if (draft.truncated) self.loadDistinct(draft);
+            else self.renderValues(draft);
+        }, 250));
+
+        /* Açılışta uygulanmış seçim varsa taslak ondan başlar; listede
+           görünmeyen (başka filtrenin sakladığı) değerler de korunur. */
+        if (current.set) {
+            draft.checked = {};
+            current.set.forEach(function (value) { draft.checked[value] = true; });
+        }
+
+        draft.node.appendChild(box);
+    };
+
+    VnlTable.prototype.renderValues = function (draft) {
+        var self = this;
+        var list = draft.list;
+
+        list.innerHTML = '';
+
+        var needle = trLower(draft.query);
+        draft.shown = draft.values.filter(function (item) {
+            return !needle || trLower(item.v).indexOf(needle) !== -1;
+        });
+
+        draft.note.hidden = !draft.truncated;
+        if (draft.truncated) {
+            draft.note.textContent = fill(this.lang.filterMore, { max: draft.values.length });
+        }
+
+        if (!draft.shown.length) {
+            draft.allBox = null;
+            list.appendChild(el('div', 'vnl-filter-empty', this.lang.filterNone || ''));
+            return;
+        }
+
+        /* (Tümü) üç durumludur: hiçbiri, bir kısmı (kararsız), hepsi. */
+        var allItem = el('label', 'vnl-filter-item vnl-filter-all');
+        var allBox  = el('input', 'form-check-input');
+        allBox.type = 'checkbox';
+        allItem.appendChild(allBox);
+        allItem.appendChild(el('span', 'vnl-filter-item-label', this.lang.filterAll || ''));
+        list.appendChild(allItem);
+
+        draft.allBox = allBox;
+        draft.boxes  = {};
+
+        draft.shown.forEach(function (item) {
+            var row = el('label', 'vnl-filter-item');
+
+            var cb = el('input', 'form-check-input');
+            cb.type = 'checkbox';
+            cb.checked = self.isChecked(draft, item.v);
+            cb.addEventListener('change', function () {
+                self.setChecked(draft, item.v, cb.checked);
+                self.paintAllBox(draft);
+            });
+
+            row.appendChild(cb);
+            row.appendChild(el('span', 'vnl-filter-item-label', item.v));
+
+            /* Sayı isteğe bağlı: geliştirici saymadıysa yalnız değer görünür. */
+            if (item.n !== null && item.n !== undefined) {
+                row.appendChild(el('span', 'vnl-filter-item-count', item.n));
+            }
+
+            list.appendChild(row);
+            draft.boxes[item.v] = cb;
+        });
+
+        allBox.addEventListener('change', function () {
+            var on = allBox.checked;
+
+            draft.shown.forEach(function (item) {
+                self.setChecked(draft, item.v, on);
+                if (draft.boxes[item.v]) draft.boxes[item.v].checked = on;
+            });
+
+            self.paintAllBox(draft);
+        });
+
+        this.paintAllBox(draft);
+    };
+
+    VnlTable.prototype.isChecked = function (draft, value) {
+        return draft.checked ? !!draft.checked[value] : true;
+    };
+
+    VnlTable.prototype.setChecked = function (draft, value, on) {
+        /* "hepsi" durumu ancak ilk dokunuşta somut listeye dönüşür. */
+        if (!draft.checked) {
+            draft.checked = {};
+            draft.values.forEach(function (item) { draft.checked[item.v] = true; });
+        }
+
+        if (on) draft.checked[value] = true;
+        else delete draft.checked[value];
+    };
+
+    VnlTable.prototype.paintAllBox = function (draft) {
+        var self = this;
+
+        if (draft.allBox) {
+            var on = 0;
+            draft.shown.forEach(function (item) { if (self.isChecked(draft, item.v)) on++; });
+
+            draft.allBox.checked = on > 0 && on === draft.shown.length;
+            draft.allBox.indeterminate = on > 0 && on < draft.shown.length;
+        }
+
+        /* Hiçbir değer seçili değilken uygulanacak bir şey yok. */
+        if (draft.apply) {
+            draft.apply.disabled = !!draft.checked && Object.keys(draft.checked).length === 0;
+        }
+    };
+
+    /** Seçim filtre midir: listenin tamamı işaretliyse değildir. */
+    VnlTable.prototype.collectSet = function (draft) {
+        if (!draft.checked) return null;
+
+        var keys = Object.keys(draft.checked);
+        if (!keys.length) return null;
+
+        var coversAll = keys.length === draft.values.length && draft.values.every(function (item) {
+            return draft.checked[item.v];
+        });
+
+        return coversAll ? null : keys;
+    };
+
+    VnlTable.prototype.loadDistinct = function (draft) {
+        var self = this;
+
+        draft.list.innerHTML = '';
+        draft.list.appendChild(el('div', 'vnl-filter-empty', this.lang.loading || ''));
+
+        /* Yalnız en son istek işlenir: hızlı yazan kullanıcıda geciken bir
+           yanıt yeni listeyi ezmesin. */
+        var token = ++draft.token;
+
+        this.post(this.config.url, this.payload('distinct', {
+            col:     draft.col.name,
+            q:       draft.query,
+            filters: this.filtersExcept(draft.col.name)
+        }))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (self.panel !== draft || draft.token !== token) return;
+
+                draft.values    = data.values || [];
+                draft.truncated = !!data.truncated;
+                self.renderValues(draft);
+                self.place(draft);
+            })
+            .catch(function (err) {
+                if (self.panel !== draft || draft.token !== token) return;
+
+                console.error('[VNL Table] ' + self.config.id + ' distinct:', err);
+                draft.list.innerHTML = '';
+                draft.list.appendChild(el('div', 'vnl-filter-empty vnl-table-error', self.lang.error || ''));
+            });
+    };
+
+    /* ---- Koşul ---- */
+
+    VnlTable.prototype.buildCondition = function (draft, current) {
+        var self = this;
+        var kind = draft.col.filter.kind;
+        var box  = el('div', 'vnl-filter-cond');
+
+        /* Başlık yalnız değer listesiyle birlikteyken gerekli: koşul tek
+           başınaysa panelde başka bir şey yok, ne olduğu zaten belli. */
+        if (draft.col.filter.values) {
+            box.appendChild(el('div', 'vnl-filter-title', this.lang.filterCond || ''));
+        }
+
+        var op = el('select', 'form-select form-select-sm');
+        var none = el('option', null, this.lang.filterNoCond || '');
+        none.value = '';
+        op.appendChild(none);
+
+        draft.col.filter.ops.forEach(function (name) {
+            var o = el('option', null, (self.lang.ops || {})[name] || name);
+            o.value = name;
+            op.appendChild(o);
+        });
+
+        /* Tarih ve sayıda tarayıcının kendi denetimi kullanılır: takvim ve
+           artırma okları bedavaya gelir. */
+        var type = kind === 'number' ? 'number' : (kind === 'date' ? 'date' : 'text');
+
+        var v1 = el('input', 'form-control form-control-sm');
+        var v2 = el('input', 'form-control form-control-sm');
+        v1.type = type;
+        v2.type = type;
+
+        box.appendChild(op);
+        box.appendChild(v1);
+        box.appendChild(v2);
+
+        if (current.cond) {
+            op.value = current.cond.op;
+            v1.value = current.cond.value || '';
+            v2.value = current.cond.value2 || '';
+        } else if (!draft.col.filter.values) {
+            /* Değer listesi olmayan sütunda "Koşul yok" ile açmak paneli boş
+               gösteriyordu: ortada yapılacak bir şey yokmuş gibi duruyordu.
+               İlk koşul seçili gelir, kutu hazır bekler. */
+            op.value = draft.col.filter.ops[0];
+        }
+
+        function sync() {
+            var name = op.value;
+            v1.hidden = name === '' || OPS_NO_VALUE.indexOf(name) !== -1;
+            v2.hidden = OPS_RANGE.indexOf(name) === -1;
+        }
+
+        op.addEventListener('change', function () {
+            sync();
+            v1.classList.remove('is-invalid');
+            v2.classList.remove('is-invalid');
+            self.place(draft);
+        });
+
+        sync();
+
+        draft.op = op;
+        draft.v1 = v1;
+        draft.v2 = v2;
+        draft.node.appendChild(box);
+    };
+
+    VnlTable.prototype.buildFilterActions = function (draft) {
+        var self = this;
+        var box  = el('div', 'vnl-filter-actions');
+
+        var reset = el('button', 'btn btn-sm btn-outline-secondary', this.lang.filterClear || '');
+        reset.type = 'button';
+        reset.addEventListener('click', function () {
+            delete self.state.filters[draft.col.name];
+            self.state.page = 1;
+            self.closeFilter();
+            self.paintFilters();
+            self.load();
+        });
+
+        var apply = el('button', 'btn btn-sm btn-primary', this.lang.apply || '');
+        apply.type = 'button';
+        apply.addEventListener('click', function () { self.applyFilter(draft); });
+
+        box.appendChild(reset);
+        box.appendChild(apply);
+
+        draft.apply = apply;
+        draft.node.appendChild(box);
+    };
+
+    /** Taslağı tabloya işler. Küme ve koşul birlikte gelebilir; VE ile bağlanır. */
+    VnlTable.prototype.applyFilter = function (draft) {
+        var col   = draft.col;
+        var entry = { kind: col.filter.kind };
+
+        var set = this.collectSet(draft);
+        if (set) entry.set = set;
+
+        if (draft.op && draft.op.value) {
+            var name = draft.op.value;
+            var cond = { op: name };
+
+            if (OPS_NO_VALUE.indexOf(name) === -1) {
+                if (!filled(draft.v1)) return;
+                cond.value = draft.v1.value;
+
+                if (OPS_RANGE.indexOf(name) !== -1) {
+                    if (!filled(draft.v2)) return;
+                    cond.value2 = draft.v2.value;
+                }
+            }
+
+            entry.cond = cond;
+        }
+
+        if (entry.set || entry.cond) this.state.filters[col.name] = entry;
+        else delete this.state.filters[col.name];
+
+        this.state.page = 1;
+        this.closeFilter();
+        this.paintFilters();
+        this.load();
+
+        /** Değersiz koşul filtre değildir; kutu işaretlenir ve odak oraya gider. */
+        function filled(input) {
+            var ok = input.value !== '';
+            input.classList.toggle('is-invalid', !ok);
+            if (!ok) input.focus();
+
+            return ok;
+        }
+    };
+
     VnlTable.prototype.clear = function () {
-        this.state.search = '';
-        this.state.sort   = (this.opt.order || []).slice();
-        this.state.page   = 1;
+        this.closeFilter();
+        this.state.search  = '';
+        this.state.sort    = (this.opt.order || []).slice();
+        this.state.filters = {};
+        this.state.page    = 1;
         if (this.searchInput) this.searchInput.value = '';
         this.paintSort();
+        this.paintFilters();
         this.load();
     };
 
-    VnlTable.prototype.payload = function (op) {
-        return {
+    VnlTable.prototype.payload = function (op, extra) {
+        var body = {
             op:      op || 'list',
             page:    this.state.page,
             size:    this.state.size,
             search:  this.state.search,
             sort:    this.state.sort,
-            filters: {},
+            filters: this.state.filters,
             context: this.config.context || {}
         };
+
+        if (extra) {
+            Object.keys(extra).forEach(function (k) { body[k] = extra[k]; });
+        }
+
+        return body;
+    };
+
+    /** Ortak POST: tablonun tüm istekleri aynı başlıklar ve gövdeyle gider. */
+    VnlTable.prototype.post = function (url, body) {
+        return fetch(url, {
+            method:      'POST',
+            headers:     { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body:        JSON.stringify(body),
+            credentials: 'same-origin'
+        }).then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r;
+        });
     };
 
     /** Yükleme durumu: satırlar yerinde kalır, bulanıklaşır ve üstüne katman gelir. */
@@ -520,16 +1082,8 @@
 
         /* fetch kullanılıyor: jQuery'nin global ajaxComplete akışına girmesin,
            tablo kendi hata durumunu kendi gösterebilsin. */
-        fetch(this.config.url, {
-            method:      'POST',
-            headers:     { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-            body:        JSON.stringify(this.payload('list')),
-            credentials: 'same-origin'
-        })
-            .then(function (r) {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.json();
-            })
+        this.post(this.config.url, this.payload('list'))
+            .then(function (r) { return r.json(); })
             .then(function (data) {
                 self.state.loading = false;
                 self.setBusy(false);
@@ -671,14 +1225,8 @@
 
         /* exportUrl verilmişse istek oraya gider: rapor şablonu doldurmak
            gibi durumlarda geliştirici çıktıyı kendi sayfasında üretir. */
-        fetch(this.config.exportUrl || this.config.url, {
-            method:      'POST',
-            headers:     { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-            body:        JSON.stringify(this.payload('export')),
-            credentials: 'same-origin'
-        })
+        this.post(this.config.exportUrl || this.config.url, this.payload('export'))
             .then(function (r) {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
                 /* Dosya adını sunucu belirler; özel export sayfaları kendi
                    adlarını verebilsin diye Content-Disposition okunur. */
                 var cd = r.headers.get('Content-Disposition') || '';

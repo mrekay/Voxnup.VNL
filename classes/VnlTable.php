@@ -197,7 +197,7 @@ class VnlTable
             'exportUrl' => $this->exportUrl,
             'mode'    => $this->mode,
             'key'     => $this->key,
-            'columns' => $this->columns,
+            'columns' => array_map([$this, 'resolveFilter'], $this->columns),
             'context' => (object)$this->context,
             'options' => $options,
             'lang'    => self::lang(),
@@ -237,7 +237,10 @@ class VnlTable
      *   hideable kullanıcı sütun menüsünden gizleyebilir mi
      *   width    '120px' gibi
      *   align    left | center | right; verilmezse type'tan türetilir
-     *   filter   (aşama 2) text | set | number | date
+     *   filter   sütun filtresi — bkz. resolveFilter()
+     *
+     * filter burada ham bırakılır: mod() sütunlardan sonra çağrılabildiği
+     * için çözümleme config()'e ertelenir.
      */
     private function normalizeColumn($column): array
     {
@@ -259,6 +262,76 @@ class VnlTable
             'align'    => $column['align'] ?? ($type === 'number' ? 'right' : ($type === 'bool' ? 'center' : 'left')),
             'filter'   => $column['filter'] ?? null,
         ];
+    }
+
+    /**
+     * Sütun filtresini moda göre çözer.
+     *
+     * basic'te filtre yoktur: tanımda ne yazarsa yazsın kapalı döner.
+     * expert ve expert_plus'ta verilmediyse sütun tipinden türetilir —
+     * sütun başına filtre yazmak zorunda kalmayın diye.
+     *
+     *   'filter' => false                       kapalı
+     *   'filter' => 'set'                       yalnız değer listesi
+     *   'filter' => 'number'                    türü elle ver
+     *   'filter' => ['kind' => 'text',          değer listesi kapalı
+     *                'values' => false]
+     *   'filter' => ['ops' => ['equals']]       koşulları daralt
+     *
+     * values, sütunun benzersiz değerlerinin (op = distinct) panelde
+     * listelenip listelenmeyeceğidir. Metin, bool ve set'te açıktır;
+     * sayı ve tarihte kapalıdır — her satırın ayrı bir değer taşıdığı
+     * sütunda 500 satırlık bir onay kutusu listesi işe yaramaz.
+     */
+    private function resolveFilter(array $column): array
+    {
+        $spec = $column['filter'];
+
+        if (!in_array($this->mode, [self::EXPERT, self::EXPERT_PLUS], true) || $spec === false || $spec === 'none') {
+            $column['filter'] = null;
+
+            return $column;
+        }
+
+        if (is_string($spec)) {
+            $spec = ['kind' => $spec];
+        } elseif (!is_array($spec)) {
+            $spec = [];
+        }
+
+        $kind = (string)($spec['kind'] ?? self::kindFromType($column['type']));
+
+        if (!isset(VnlTableRequest::FILTER_OPS[$kind])) {
+            throwErrorMessage(
+                'VnlTable "' . $this->id . '": sütun "' . $column['name'] . '" için geçersiz filtre türü "' . $kind
+                . '". Beklenen: ' . implode(', ', array_keys(VnlTableRequest::FILTER_OPS))
+            );
+        }
+
+        $ops = VnlTableRequest::FILTER_OPS[$kind];
+
+        if (isset($spec['ops']) && is_array($spec['ops'])) {
+            $ops = array_values(array_intersect($ops, $spec['ops']));
+        }
+
+        $column['filter'] = [
+            'kind'   => $kind,
+            'values' => (bool)($spec['values'] ?? in_array($kind, ['text', 'bool', 'set'], true)),
+            'ops'    => $ops,
+        ];
+
+        return $column;
+    }
+
+    private static function kindFromType(string $type): string
+    {
+        switch ($type) {
+            case 'number':   return 'number';
+            case 'date':
+            case 'datetime': return 'date';
+            case 'bool':     return 'bool';
+            default:         return 'text';
+        }
     }
 
     /**
@@ -288,6 +361,39 @@ class VnlTable
             'columns'       => lang('VNLTABLE_COLUMNS'),
             'sortAsc'       => lang('VNLTABLE_SORT_ASC'),
             'sortDesc'      => lang('VNLTABLE_SORT_DESC'),
+
+            /* Sütun filtre paneli */
+            'filter'        => lang('VNLTABLE_FILTER'),
+            'filterSearch'  => lang('VNLTABLE_FILTER_SEARCH'),
+            'filterAll'     => lang('VNLTABLE_FILTER_ALL'),
+            'filterNone'    => lang('VNLTABLE_FILTER_NONE'),
+            'filterMore'    => lang('VNLTABLE_FILTER_MORE'),
+            'filterCond'    => lang('VNLTABLE_FILTER_COND'),
+            'filterNoCond'  => lang('VNLTABLE_FILTER_NO_COND'),
+            'filterClear'   => lang('VNLTABLE_FILTER_CLEAR'),
+            'apply'         => lang('VNLTABLE_APPLY'),
+            'ops'           => self::opLabels(),
         ];
+    }
+
+    /**
+     * Koşul adları.
+     *
+     * Anahtarlar VnlTableRequest::FILTER_OPS'tan gelir; buradan üretilir ki
+     * yeni bir koşul eklendiğinde karşılığı olmayan anahtar sessizce
+     * kaybolmasın — lang() bulunamayan anahtarın kendisini döndürür,
+     * eksiklik listede görünür.
+     */
+    private static function opLabels(): array
+    {
+        $ops = [];
+
+        foreach (VnlTableRequest::FILTER_OPS as $list) {
+            foreach ($list as $op) {
+                $ops[$op] = lang('VNLTABLE_OP_' . strtoupper(preg_replace('/([a-z])([A-Z])/', '$1_$2', $op)));
+            }
+        }
+
+        return $ops;
     }
 }

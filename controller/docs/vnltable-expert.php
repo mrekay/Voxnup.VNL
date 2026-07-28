@@ -1,0 +1,18 @@
+<?php
+$meta = [
+    'title'       => 'VNL Table — Expert',
+    'upper_title' => 'Dökümantasyon',
+    'description' => '',
+    'keywords'    => '',
+];
+
+$page_config = [
+    'topbar'        => true,
+    'leftsidebar'   => true,
+    'contentheader' => true,
+    'public'        => true,
+];
+
+require view('static/header');
+require view('docs/vnltable-expert');
+require view('static/footer');
