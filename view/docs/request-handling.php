@@ -12,7 +12,7 @@
                 <i class="fa-solid fa-shield-halved fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column text-primary">
                     <h4 class="mb-1 text-primary">Otomatik Güvenlik ve İzolasyon</h4>
-                    <span><b>VNL 3.0 değişikliği:</b> gelen veri artık girişte kaçışlanmaz; ne gönderildiyse o okunur ve o saklanır. XSS koruması çıkış katmanına taşındı — şablonda <code>{{ }}</code>, düz PHP'de <code>vnl_e()</code>. JSON body (<code>application/json</code>) da dahil olmak üzere geleneksel <code class="text-body-emphasis">$_POST</code> yerine sadece <code>$req</code> nesnesi, dosyalar için ise <code>FileRequest</code> sınıfı kullanılır.</span>
+                    <span><b>VNL 3.0 değişikliği:</b> gelen veri artık girişte kaçışlanmaz; ne gönderildiyse o okunur ve o saklanır. XSS koruması çıkış katmanına taşındı — şablonda <code>@{{ }}</code>, düz PHP'de <code>vnl_e()</code>. JSON body (<code>application/json</code>) da dahil olmak üzere geleneksel <code class="text-body-emphasis">$_POST</code> yerine sadece <code>$req</code> nesnesi, dosyalar için ise <code>FileRequest</code> sınıfı kullanılır.</span>
                 </div>
             </div>
 
@@ -104,7 +104,7 @@ class action_kullanici
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">3. Gelen Verileri Okuma (<code>Request</code>)</h3>
                         <p class="fs-5 text-body mb-4">
-                            Global <code>$req</code> nesnesi sistem başlangıcında otomatik oluşturulur. POST, GET ve JSON body verilerini destekler. Veri ham gelir: <code>"0"</code> ve boş string korunur, JSON'daki sayı ve boolean tipleri bozulmaz. Ekrana basarken <code>{{ }}</code> kullanın.
+                            Global <code>$req</code> nesnesi sistem başlangıcında otomatik oluşturulur. POST, GET ve JSON body verilerini destekler. Veri ham gelir: <code>"0"</code> ve boş string korunur, JSON'daki sayı ve boolean tipleri bozulmaz. Ekrana basarken <code>@{{ }}</code> kullanın.
                         </p>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
@@ -350,7 +350,7 @@ class action_profil
         // 1. Login ve yetki kontrolü
         Auth::CheckLogin();
 
-        // 2. POST verilerini al (ham gelir; ekrana basarken {{ }} kaçışlar)
+        // 2. POST verilerini al (ham gelir; ekrana basarken @{{ }} kaçışlar)
         $kullanici_id = $req->post('user_id');
         $biyografi    = $req->post('bio');
 
