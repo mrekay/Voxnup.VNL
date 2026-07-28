@@ -2,8 +2,9 @@
  * ============================================================
  *  Voxnup Not Laravel (VNL) 3.0.0 — VNL Table
  *  Sunucudan gelen tanımı okur, tabloyu çizer ve yönetir.
- *  basic  — sıralama, sayfalama, düz arama, Excel.
- *  expert — başlıktaki huniden açılan sütun filtre panelleri.
+ *  list  — sıralama, sayfalama, düz arama, Excel.
+ *  grid  — başlıktaki huniden açılan sütun filtre panelleri, çipler,
+ *          çoklu sıralama, alt toplamlar, URL senkronu.
  *  Authors: Voxnup Authors
  * ============================================================
  */
@@ -15,6 +16,13 @@
     /* Sunucudaki VnlTableRequest::OPS_NO_VALUE ve OPS_RANGE ile aynı. */
     var OPS_NO_VALUE = ['empty', 'notEmpty'];
     var OPS_RANGE    = ['between'];
+
+    /* Filtre çipinde yer kazanmak için: "Büyük veya eşittir 40000" bir
+       rozete sığmıyor, "≥ 40000" sığıyor. */
+    var OP_SHORT = {
+        equals: '=', notEquals: '≠',
+        gt: '>', gte: '≥', lt: '<', lte: '≤'
+    };
 
     /* ---------------------------------------------------------------- */
     /* Yardımcılar                                                       */
@@ -238,9 +246,33 @@
             loading: false
         };
 
+        /* Adresteki durum build()'den ÖNCE okunur: arama kutusu ve sayfa
+           boyu seçimi kurulurken doğru değeri göstersin. */
+        this.readUrl();
+
         this.build();
         this.load();
+
+        /* Başka bir geçmiş kaydına gidildiğinde (paylaşılan bir linkten
+           gelip geri dönmek gibi) durum adresten yeniden kurulur. */
+        var self = this;
+        this.onPop = function () {
+            self.closeFilter();
+            self.readUrl();
+            self.syncControls();
+            self.paintSort();
+            self.paintFilters();
+            self.load(true);
+        };
+
+        if (this.opt.urlSync) window.addEventListener('popstate', this.onPop);
     }
+
+    /** Adresten gelen durumu araç çubuğundaki denetimlere yansıtır. */
+    VnlTable.prototype.syncControls = function () {
+        if (this.searchInput) this.searchInput.value = this.state.search;
+        if (this.sizeSelect) this.sizeSelect.value = this.state.size;
+    };
 
     VnlTable.prototype.build = function () {
         var self = this;
@@ -258,6 +290,7 @@
             var search = el('input', 'form-control form-control-sm vnl-table-search');
             search.type = 'search';
             search.placeholder = this.lang.search || '';
+            search.value = this.state.search;
             search.addEventListener('input', debounce(function () {
                 self.state.search = search.value.trim();
                 self.state.page = 1;
@@ -294,6 +327,16 @@
         bar.appendChild(actions);
         this.root.appendChild(bar);
 
+        /* ---- Aktif filtre çipleri ----
+           Hangi sütunun filtreli olduğunu görmek için başlıkları tek tek
+           gezmek gerekiyordu; çipler bunu tek bakışa indirir. Filtre
+           yokken satır hiç çizilmez, yer kaplamasın. */
+        if (this.opt.chips) {
+            this.chips = el('div', 'vnl-table-chips');
+            this.chips.hidden = true;
+            this.root.appendChild(this.chips);
+        }
+
         /* ---- Tablo ----
            Kaydırma alanı ayrı bir kapsayıcıya alınır: yükleme katmanı
            kaydırmayla birlikte hareket etmesin, görünen alanda sabit kalsın. */
@@ -319,7 +362,17 @@
             if (col.sortable) {
                 th.classList.add('vnl-sortable');
                 inner.appendChild(el('span', 'vnl-sort-mark'));
-                th.addEventListener('click', function () { self.toggleSort(col.name); });
+
+                /* Numara yalnız birden çok anahtar varken dolar; tek
+                   sıralamada boş kalır ve yer kaplamaz. */
+                if (self.opt.multiSort) {
+                    inner.appendChild(el('span', 'vnl-sort-order'));
+                    th.title = self.lang.sortAdd || '';
+                }
+
+                th.addEventListener('click', function (e) {
+                    self.toggleSort(col.name, self.opt.multiSort && e.shiftKey);
+                });
             }
 
             if (col.filter) {
@@ -338,6 +391,44 @@
 
         this.tbody = el('tbody');
         table.appendChild(this.tbody);
+
+        /* ---- Alt toplam satırı ----
+           agg tanımlı sütun varsa çizilir. Değerleri sunucu verir ve
+           FİLTRENİN TAMAMINI kapsar: kullanıcı 25 satır görürken 4200
+           satırın toplamını okur. Yapışkan: gövde kaydırılınca kaybolmaz. */
+        this.aggCols = this.columns.filter(function (c) { return c.agg; });
+
+        if (this.aggCols.length) {
+            this.tfoot = el('tfoot');
+            this.totalCells = {};
+
+            var totalRow = el('tr');
+            var labelled = false;
+
+            this.columns.forEach(function (col) {
+                var cell = el('th', 'vnl-tf vnl-align-' + col.align);
+
+                if (col.agg) {
+                    cell.title = (self.lang.aggs || {})[col.agg] || col.agg;
+                    self.totalCells[col.name] = cell;
+                } else if (!labelled) {
+                    /* İlk toplamsız sütun satırı adlandırır — hesap
+                       tablolarındaki alışkanlık. */
+                    cell.textContent = self.lang.totals || '';
+                    cell.classList.add('vnl-tf-label');
+                    labelled = true;
+                }
+
+                if (self.hiddenCols[col.name]) cell.hidden = true;
+                self.tfootCells = self.tfootCells || {};
+                self.tfootCells[col.name] = cell;
+                totalRow.appendChild(cell);
+            });
+
+            this.tfoot.appendChild(totalRow);
+            table.appendChild(this.tfoot);
+        }
+
         wrap.appendChild(table);
         body.appendChild(wrap);
 
@@ -367,6 +458,7 @@
         });
         sizeWrap.appendChild(sizeSelect);
         foot.appendChild(sizeWrap);
+        this.sizeSelect = sizeSelect;
 
         this.info = el('div', 'vnl-table-info');
         foot.appendChild(this.info);
@@ -382,33 +474,59 @@
         initTooltips(this.root);
     };
 
-    VnlTable.prototype.toggleSort = function (name) {
-        var current = this.state.sort[0];
+    /**
+     * Sıralama: artan → azalan → yok.
+     *
+     * additive (shift) anahtarı listeye EKLER, öncekileri korur; shift'siz
+     * tık listeyi tek anahtara indirir. Ekleme sırası öncelik sırasıdır ve
+     * başlıkta numarayla görünür.
+     */
+    VnlTable.prototype.toggleSort = function (name, additive) {
+        var at = -1;
+        this.state.sort.forEach(function (s, i) { if (s.col === name) at = i; });
 
-        if (!current || current.col !== name) {
-            this.state.sort = [{ col: name, dir: 'asc' }];
-        } else if (current.dir === 'asc') {
-            this.state.sort = [{ col: name, dir: 'desc' }];
+        var sort;
+
+        if (!additive) {
+            var current = (at === -1) ? null : this.state.sort[at];
+
+            if (!current) sort = [{ col: name, dir: 'asc' }];
+            else if (current.dir === 'asc') sort = [{ col: name, dir: 'desc' }];
+            else sort = [];
         } else {
-            this.state.sort = [];
+            sort = this.state.sort.slice();
+
+            if (at === -1) sort.push({ col: name, dir: 'asc' });
+            else if (sort[at].dir === 'asc') sort[at] = { col: name, dir: 'desc' };
+            else sort.splice(at, 1);
         }
 
+        this.state.sort = sort;
         this.state.page = 1;
         this.paintSort();
         this.load();
     };
 
     VnlTable.prototype.paintSort = function () {
-        var current = this.state.sort[0];
-        var ths = this.table.querySelectorAll('thead th');
+        var self  = this;
+        var many  = this.state.sort.length > 1;
+        var index = {};
 
-        this.columns.forEach(function (col, i) {
-            var th = ths[i];
+        this.state.sort.forEach(function (s, i) { index[s.col] = { dir: s.dir, n: i + 1 }; });
+
+        this.columns.forEach(function (col) {
+            var th = self.ths[col.name];
             if (!th) return;
+
+            var hit = index[col.name];
+
             th.classList.remove('vnl-sort-asc', 'vnl-sort-desc');
-            if (current && current.col === col.name) {
-                th.classList.add(current.dir === 'desc' ? 'vnl-sort-desc' : 'vnl-sort-asc');
-            }
+            if (hit) th.classList.add(hit.dir === 'desc' ? 'vnl-sort-desc' : 'vnl-sort-asc');
+
+            /* Numara tek anahtarlı sıralamada gürültü; yalnız birden
+               çoğunda doldurulur. */
+            var order = th.querySelector('.vnl-sort-order');
+            if (order) order.textContent = (hit && many) ? hit.n : '';
         });
     };
 
@@ -517,8 +635,15 @@
         var self = this;
 
         this.columns.forEach(function (col) {
+            var hidden = !!self.hiddenCols[col.name];
+
             var th = self.ths[col.name];
-            if (th) th.hidden = !!self.hiddenCols[col.name];
+            if (th) th.hidden = hidden;
+
+            /* Alt toplam satırı da aynı sütunları gizler; aksi halde
+               hücreler başlıklardan kayardı. */
+            var tf = self.tfootCells && self.tfootCells[col.name];
+            if (tf) tf.hidden = hidden;
         });
 
         /* Gövde eldeki veriyle yeniden basılır; sunucuya gidilmez. */
@@ -527,7 +652,7 @@
     };
 
     /* ---------------------------------------------------------------- */
-    /* Sütun filtreleri (expert)                                         */
+    /* Sütun filtreleri (grid)                                           */
     /* ---------------------------------------------------------------- */
 
     VnlTable.prototype.buildFilterButton = function (col) {
@@ -569,6 +694,74 @@
             btn.innerHTML = '';
             btn.appendChild(icon(on ? 'filterOn' : 'filter'));
         });
+
+        this.paintChips();
+    };
+
+    /** Aktif filtreler rozet olarak; × ile tek tıkta kalkar. */
+    VnlTable.prototype.paintChips = function () {
+        var self = this;
+        if (!this.chips) return;
+
+        var names = this.columns
+            .filter(function (col) { return self.state.filters[col.name]; })
+            .map(function (col) { return col; });
+
+        this.chips.innerHTML = '';
+        this.chips.hidden = !names.length;
+
+        names.forEach(function (col) {
+            var chip = el('span', 'vnl-chip');
+            chip.appendChild(el('span', 'vnl-chip-text', self.chipText(col)));
+
+            var x = el('button', 'vnl-chip-x', '×');
+            x.type = 'button';
+            x.setAttribute('aria-label', (self.lang.filterClear || '') + ': ' + col.title);
+            x.addEventListener('click', function () {
+                delete self.state.filters[col.name];
+                self.state.page = 1;
+                self.paintFilters();
+                self.load();
+            });
+
+            chip.appendChild(x);
+            self.chips.appendChild(chip);
+        });
+    };
+
+    /**
+     * Çipin metni: "Şehir: Ankara", "Tutar: ≥ 40000", "Tarih: 01.01 – 31.03".
+     *
+     * Karşılaştırma koşulları sembolle kısalır; kelimeyle yazılınca
+     * ("Büyük veya eşittir") çip satırı okunmaz hâle geliyordu.
+     */
+    VnlTable.prototype.chipText = function (col) {
+        var entry = this.state.filters[col.name];
+        var lang  = this.lang;
+        var parts = [];
+
+        if (entry.set) {
+            parts.push(entry.set.length <= 2
+                ? entry.set.join(', ')
+                : fill(lang.filterCount, { n: entry.set.length }));
+        }
+
+        if (entry.cond) {
+            var cond  = entry.cond;
+            var label = (lang.ops || {})[cond.op] || cond.op;
+
+            if (OPS_NO_VALUE.indexOf(cond.op) !== -1) {
+                parts.push(label.toLocaleLowerCase('tr'));
+            } else if (cond.op === 'between') {
+                parts.push(cond.value + ' – ' + cond.value2);
+            } else if (OP_SHORT[cond.op]) {
+                parts.push(OP_SHORT[cond.op] + ' ' + cond.value);
+            } else {
+                parts.push(label.toLocaleLowerCase('tr') + ' ' + cond.value);
+            }
+        }
+
+        return col.title + ': ' + parts.join(' · ');
     };
 
     /** Hedef sütunun kendi filtresi hariç hepsi — değer listesi bununla daralır. */
@@ -1047,6 +1240,108 @@
         return body;
     };
 
+    /* ---------------------------------------------------------------- */
+    /* URL senkronu                                                      */
+    /* ---------------------------------------------------------------- */
+
+    /**
+     * Adres çubuğu anahtarları tablo kimliğiyle öneklenir: bir sayfada
+     * birden çok tablo varsa durumları karışmasın.
+     *
+     *   ?kayitlar.q=ankara&kayitlar.s=tutar:desc&kayitlar.p=2
+     *   &kayitlar.f={"sehir":{"kind":"text","set":["Ankara"]}}
+     *
+     * Filtreler yapısal olduğu için JSON'la taşınır — uzun ama okunabilir
+     * ve belirsizliği yok. Sıralama ise "sütun:yön" listesiyle kısalır.
+     */
+    VnlTable.prototype.urlKey = function (suffix) {
+        return this.config.id + '.' + suffix;
+    };
+
+    VnlTable.prototype.readUrl = function () {
+        if (!this.opt.urlSync || typeof URLSearchParams === 'undefined') return;
+
+        var params = new URLSearchParams(location.search);
+        var self   = this;
+
+        var search = params.get(this.urlKey('q'));
+        if (search !== null) this.state.search = search;
+
+        var page = parseInt(params.get(this.urlKey('p')), 10);
+        if (page > 0) this.state.page = page;
+
+        /* Sayfa boyu yalnız listedeki değerlerden biri olabilir: adrese
+           elle yazılmış 37 açılır kutuda karşılığı olmadığı için seçimi
+           boş bırakırdı. */
+        var size = parseInt(params.get(this.urlKey('n')), 10);
+        if ((this.opt.pageSizes || []).indexOf(size) !== -1) this.state.size = size;
+
+        var sort = params.get(this.urlKey('s'));
+        if (sort !== null) {
+            this.state.sort = sort === '' ? [] : sort.split(',').map(function (part) {
+                var bits = part.split(':');
+
+                return { col: bits[0], dir: bits[1] === 'desc' ? 'desc' : 'asc' };
+            }).filter(function (s) { return !!s.col; });
+        }
+
+        var filters = params.get(this.urlKey('f'));
+        if (filters) {
+            try {
+                var parsed = JSON.parse(filters);
+                /* Adres çubuğu elle düzenlenebilir; bozuk gövde tabloyu
+                   çökertmesin, sunucu da zaten kendi doğrulamasını yapar. */
+                if (parsed && typeof parsed === 'object') this.state.filters = parsed;
+            } catch (e) {
+                console.warn('[VNL Table] ' + self.config.id + ': adresteki filtre okunamadı.');
+            }
+        }
+    };
+
+    VnlTable.prototype.writeUrl = function () {
+        if (!this.opt.urlSync || typeof URLSearchParams === 'undefined' || !window.history) return;
+
+        var self   = this;
+        var params = new URLSearchParams(location.search);
+        var prefix = this.config.id + '.';
+
+        /* Önce bu tablonun bıraktığı her şey silinir: kalkan bir filtre
+           adreste asılı kalmasın. */
+        var mine = [];
+        params.forEach(function (value, key) {
+            if (key.indexOf(prefix) === 0) mine.push(key);
+        });
+        mine.forEach(function (key) { params.delete(key); });
+
+        var s = this.state;
+
+        if (s.search) params.set(this.urlKey('q'), s.search);
+        if (s.page > 1) params.set(this.urlKey('p'), s.page);
+        if (s.size !== (this.opt.pageSize || 25)) params.set(this.urlKey('n'), s.size);
+
+        if (!sameSort(s.sort, this.opt.order || [])) {
+            params.set(this.urlKey('s'), s.sort.map(function (x) {
+                return x.col + ':' + x.dir;
+            }).join(','));
+        }
+
+        if (Object.keys(s.filters).length) {
+            params.set(this.urlKey('f'), JSON.stringify(s.filters));
+        }
+
+        var query = params.toString();
+
+        /* replaceState: arama kutusuna her yazışta geçmişe bir kayıt
+           eklemek geri tuşunu kullanılmaz hâle getiriyordu. */
+        history.replaceState(history.state, '', location.pathname + (query ? '?' + query : '') + location.hash);
+
+        function sameSort(a, b) {
+            if (a.length !== b.length) return false;
+
+            return a.every(function (x, i) { return x.col === b[i].col && x.dir === b[i].dir; });
+        }
+    };
+
     /** Ortak POST: tablonun tüm istekleri aynı başlıklar ve gövdeyle gider. */
     VnlTable.prototype.post = function (url, body) {
         return fetch(url, {
@@ -1067,10 +1362,13 @@
         this.table.setAttribute('aria-busy', busy ? 'true' : 'false');
     };
 
-    VnlTable.prototype.load = function () {
+    /** $silent: adres çubuğuna dokunma — durum zaten oradan geldi. */
+    VnlTable.prototype.load = function (silent) {
         var self = this;
         this.state.loading = true;
         this.setBusy(true);
+
+        if (!silent) this.writeUrl();
 
         /* İlk yüklemede gösterilecek satır yok; katmanın kaplayacağı bir
            yükseklik olsun diye mesaj satırı basılır. Sonraki yüklemelerde
@@ -1091,6 +1389,7 @@
                 self.state.total    = data.total || 0;
                 self.state.filtered = (data.filtered !== undefined) ? data.filtered : self.state.total;
                 self.renderRows();
+                self.renderTotals(data.totals);
                 self.renderFooter();
             })
             .catch(function (err) {
@@ -1150,6 +1449,25 @@
 
         this.tbody.innerHTML = '';
         this.tbody.appendChild(frag);
+    };
+
+    /**
+     * Alt toplamları basar.
+     *
+     * Sunucu totals göndermediyse hücreler boşaltılır — eski bir toplamın
+     * yeni filtrenin altında durması yanlış bilgi olurdu.
+     */
+    VnlTable.prototype.renderTotals = function (totals) {
+        var self = this;
+        if (!this.totalCells) return;
+
+        this.aggCols.forEach(function (col) {
+            var cell = self.totalCells[col.name];
+            if (!cell) return;
+
+            var value = totals ? totals[col.name] : null;
+            cell.textContent = (value === null || value === undefined) ? '' : asText(value);
+        });
     };
 
     VnlTable.prototype.renderFooter = function () {

@@ -79,6 +79,61 @@
     margin-left: auto;
 }
 
+/* ── Aktif filtre çipleri ──
+   Filtre yokken satır hiç çizilmez; [hidden] .form-control gibi bir
+   display kuralıyla yarışmadığı için burada özgüllük gerekmiyor. */
+
+.vnl-table-chips {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    flex-wrap: wrap;
+    padding: .5rem .75rem;
+    border-bottom: 1px solid var(--vnl-table-border);
+}
+
+.vnl-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .15rem;
+    max-width: 100%;
+    padding: .15rem .15rem .15rem .5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--vnl-table-accent) 12%, transparent);
+    color: var(--bs-body-color);
+    font-size: .75rem;
+    line-height: 1.5;
+}
+
+.vnl-chip-text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.vnl-chip-x {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    font-size: .9rem;
+    line-height: 1;
+    opacity: .55;
+    cursor: pointer;
+}
+
+.vnl-chip-x:hover {
+    background: color-mix(in srgb, currentColor 18%, transparent);
+    opacity: 1;
+}
+
 /* ── Gövde ──
    Kaydırma alanı ile katman ayrı: katman kaydırmayla kaymasın. */
 
@@ -125,6 +180,27 @@
 
 .vnl-table-el tbody tr:last-child td {
     border-bottom: 0;
+}
+
+/* ── Alt toplam satırı ──
+   Yapışkan: uzun listede gövde kaydırılırken toplam gözden kaybolmasın.
+   Başlığın aynası olduğu için aynı zemini alır. */
+
+.vnl-table-el tfoot th {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    background: var(--vnl-table-head-bg);
+    border-top: 1px solid var(--vnl-table-border);
+    border-bottom: 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* "Toplam" yazısı sayının kendisi kadar önemli değil. */
+.vnl-table-el tfoot th.vnl-tf-label {
+    color: var(--bs-secondary-color);
+    font-weight: 500;
 }
 
 /* Şerit — skin'den bağımsız çalışır, rengi skin sağlar.
@@ -210,6 +286,22 @@ i.vnl-icon {
 
 .vnl-th.vnl-sort-asc .vnl-sort-mark::after  { content: "↑"; }
 .vnl-th.vnl-sort-desc .vnl-sort-mark::after { content: "↓"; }
+
+/* Çoklu sıralamada öncelik numarası. Boşken hiç yer kaplamaz:
+   tek anahtarlı sıralamada başlıkta bir şey değişmez. */
+.vnl-sort-order:not(:empty) {
+    display: inline-block;
+    min-width: 1.05em;
+    margin-left: .1em;
+    padding: 0 .2em;
+    border-radius: .25rem;
+    background: color-mix(in srgb, var(--vnl-table-accent) 18%, transparent);
+    color: var(--vnl-table-accent);
+    font-size: .6875rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+}
 
 /* ── Başlık iç düzeni ──
    Huni, hizalama ne olursa olsun etiketin peşinde kalsın diye başlık
@@ -562,11 +654,23 @@ i.vnl-icon {
     color: var(--vnl-table-accent);
 }
 
-/* Araç çubuğu ve alt bilgi çizgisiz: tablo tek bir yüzey gibi okunsun. */
+/* Araç çubuğu, çipler ve alt bilgi çizgisiz: tablo tek bir yüzey gibi okunsun. */
 .vnl-table.vnl-skin-modern .vnl-table-toolbar,
+.vnl-table.vnl-skin-modern .vnl-table-chips,
 .vnl-table.vnl-skin-modern .vnl-table-footer {
     border-color: transparent;
     padding: .9rem 1rem;
+}
+
+/* Araç çubuğu çipleri hemen altında: aradaki dolgu ikiye katlanmasın. */
+.vnl-table.vnl-skin-modern .vnl-table-chips {
+    padding-top: 0;
+}
+
+/* Toplam satırı da çizgisiz; ayrım boşluktan gelir. */
+.vnl-table.vnl-skin-modern .vnl-table-el tfoot th {
+    border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+    padding-top: .7rem;
 }
 
 /* Araç çubuğu düğmeleri de kutusuz: modern'de hiçbir denetim çerçeveli
@@ -651,6 +755,7 @@ i.vnl-icon {
 }
 
 .vnl-table.vnl-skin-compact .vnl-table-toolbar,
+.vnl-table.vnl-skin-compact .vnl-table-chips,
 .vnl-table.vnl-skin-compact .vnl-table-footer {
     padding: .5rem;
 }

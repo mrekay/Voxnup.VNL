@@ -8,22 +8,22 @@
                 <div class="vnl-lead">
                     Sunucu tarafında tanımlanan, istemcide çizilen tablo sistemi. Tanım <code>VnlTable</code> ile
                     kurulur, veri <code>getList</code> action'ından gelir. Üç model vardır:
-                    <span class="badge badge-soft-primary">basic</span>
-                    <span class="badge badge-soft-secondary">expert</span>
-                    <span class="badge badge-soft-secondary">expert_plus</span>
+                    <span class="badge badge-soft-primary">list</span>
+                    <span class="badge badge-soft-primary">grid</span>
+                    <span class="badge badge-soft-secondary">workbench</span>
                 </div>
             </div>
 
             <div class="alert alert-info d-flex flex-column flex-sm-row p-5 mb-10">
                 <i class="fa-solid fa-circle-info fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                 <div class="d-flex flex-column pe-0 pe-sm-10">
-                    <h5 class="mb-1">Bu sayfa <code>basic</code>'i anlatır</h5>
+                    <h5 class="mb-1">Bu sayfa <code>list</code>'i anlatır</h5>
                     <span>
                         Sıralama, sayfalama, düz arama, filtre temizleme ve Excel çıktısı. Sütun filtre
-                        panelleri (başlıktaki huni, Excel tarzı değer seçimi) <code>expert</code> ile
-                        gelir ve <a href="/docs/vnltable-expert" class="fw-bold">VNL Table — Expert</a>
-                        sayfasında anlatılır. <code>expert_plus</code> (accordion, pivot, hücre
-                        düzenleme) sırada.
+                        panelleri (başlıktaki huni, Excel tarzı değer seçimi) <code>grid</code> ile
+                        gelir ve <a href="/docs/vnltable-grid" class="fw-bold">VNL Table — Grid</a>
+                        sayfasında anlatılır. <code>workbench</code> (sütun sabitleme, gruplama,
+                        hücre düzenleme, pivot) sırada.
                     </span>
                 </div>
             </div>

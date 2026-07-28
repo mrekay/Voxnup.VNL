@@ -64,6 +64,9 @@ class VnlTableRequest
     /** Değer listesinin tavanı; aşılırsa istemciye kesildiği bildirilir. */
     const DISTINCT_LIMIT = 500;
 
+    /** Sütun altında gösterilebilecek toplamlar. */
+    const AGGS = ['sum', 'avg', 'min', 'max', 'count'];
+
     public string $op       = self::OP_LIST;
     public int    $page     = 1;
     public int    $size     = 25;
@@ -255,16 +258,84 @@ class VnlTableRequest
        Yanıtlar
        ================================================================ */
 
-    /** Liste yanıtı. */
-    public function respond(array $rows, int $total, ?int $filtered = null): void
+    /**
+     * Liste yanıtı.
+     *
+     * $totals sütun adı → değer eşlemesidir ve tablonun altındaki toplam
+     * satırını doldurur. Sayfanın değil, FİLTRENİN TAMAMININ toplamı
+     * beklenir: kullanıcı 25 satır görürken 4200 satırın toplamını okur.
+     */
+    public function respond(array $rows, int $total, ?int $filtered = null, array $totals = []): void
     {
-        self::emit([
+        $data = [
             'rows'     => $rows,
             'total'    => $total,
             'filtered' => $filtered ?? $total,
             'page'     => $this->page,
             'size'     => $this->size,
-        ]);
+        ];
+
+        if ($totals) {
+            $data['totals'] = $totals;
+        }
+
+        self::emit($data);
+    }
+
+    /**
+     * Bellekteki satırlardan alt toplam.
+     *
+     * @param array $aggs ['tutar' => 'sum', 'id' => 'count']
+     *
+     * Sayısal olmayan hücreler sum/avg/min/max'ta atlanır; count her dolu
+     * hücreyi sayar. Biçimlendirme yapılmaz — tabloda hücreler ham değer
+     * taşıdığı için toplam da ham gider; istiyorsanız kendiniz biçimleyip
+     * metin olarak verin.
+     */
+    public static function totals(array $rows, array $aggs): array
+    {
+        $out = [];
+
+        foreach ($aggs as $column => $agg) {
+            if (!in_array($agg, self::AGGS, true)) {
+                continue;
+            }
+
+            $values = [];
+
+            foreach ($rows as $row) {
+                $row = self::rowToArray($row);
+
+                if (!array_key_exists($column, $row)) {
+                    continue;
+                }
+
+                $cell = $row[$column];
+
+                if ($agg === 'count') {
+                    if (self::text($cell) !== '') {
+                        $values[] = 1;
+                    }
+                } elseif (is_numeric($cell)) {
+                    $values[] = (float)$cell;
+                }
+            }
+
+            if (!$values) {
+                $out[$column] = null;
+                continue;
+            }
+
+            switch ($agg) {
+                case 'sum':   $out[$column] = array_sum($values); break;
+                case 'count': $out[$column] = count($values); break;
+                case 'min':   $out[$column] = min($values); break;
+                case 'max':   $out[$column] = max($values); break;
+                case 'avg':   $out[$column] = round(array_sum($values) / count($values), 2); break;
+            }
+        }
+
+        return $out;
     }
 
     /**

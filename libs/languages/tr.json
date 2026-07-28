@@ -95,6 +95,14 @@
     "VNLTABLE_OP_LTE": "Küçük veya eşittir",
     "VNLTABLE_OP_BETWEEN": "Arasındadır",
     "VNLTABLE_OP_BEFORE": "Öncesi",
-    "VNLTABLE_OP_AFTER": "Sonrası"
+    "VNLTABLE_OP_AFTER": "Sonrası",
+    "VNLTABLE_FILTER_COUNT": "_N_ değer",
+    "VNLTABLE_TOTALS": "Toplam",
+    "VNLTABLE_AGG_SUM": "Toplam",
+    "VNLTABLE_AGG_AVG": "Ortalama",
+    "VNLTABLE_AGG_MIN": "En küçük",
+    "VNLTABLE_AGG_MAX": "En büyük",
+    "VNLTABLE_AGG_COUNT": "Adet",
+    "VNLTABLE_SORT_ADD": "Shift ile ikinci sıralama"
   }
 ]

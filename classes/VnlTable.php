@@ -29,19 +29,27 @@
  */
 class VnlTable
 {
-    /** Basit sütunlar, düz arama, sayfalama, Excel. */
-    const BASIC = 'basic';
+    /**
+     * Okunan liste: sıralama, sayfalama, düz arama, Excel.
+     */
+    const LIST = 'list';
 
-    /** BASIC + sütun filtre panelleri (Excel tarzı seçim ve koşullar). */
-    const EXPERT = 'expert';
+    /**
+     * Sorgulanan tablo: LIST + sütun filtre panelleri, filtre çipleri,
+     * çoklu sıralama, alt toplamlar, URL senkronu.
+     */
+    const GRID = 'grid';
 
-    /** EXPERT + pivot, hücre düzenleme, accordion. */
-    const EXPERT_PLUS = 'expert_plus';
+    /**
+     * Üzerinde çalışılan tezgâh: GRID + sütun sabitleme, satır gruplama,
+     * detay satırı, seçim ve toplu işlem, hücre düzenleme, pivot.
+     */
+    const WORKBENCH = 'workbench';
 
     private string $id;
     private string $url       = '';
     private string $exportUrl = '';
-    private string $mode    = self::BASIC;
+    private string $mode    = self::LIST;
     private string $key     = 'id';
     private array  $columns = [];
     private array  $context = [];
@@ -84,7 +92,7 @@ class VnlTable
 
     public function mode(string $mode): self
     {
-        $allowed = [self::BASIC, self::EXPERT, self::EXPERT_PLUS];
+        $allowed = [self::LIST, self::GRID, self::WORKBENCH];
 
         if (!in_array($mode, $allowed, true)) {
             throwErrorMessage('VnlTable: geçersiz mod "' . $mode . '". Beklenen: ' . implode(', ', $allowed));
@@ -154,6 +162,9 @@ class VnlTable
      *   height (string)     gövde yüksekliği, örn '60vh'
      *   skin (string)       default | modern | compact — ya da kendi skin'iniz
      *   striped (bool)      satırları dönüşümlü renklendir; skin'den bağımsızdır
+     *   chips (bool)        aktif filtreleri araç çubuğunun altında rozet olarak göster
+     *   multiSort (bool)    shift+tık ile ikinci, üçüncü sıralama anahtarı
+     *   urlSync (bool)      durumu adres çubuğuna yaz; grid'de varsayılan açık
      */
     public function options(array $options): self
     {
@@ -173,6 +184,12 @@ class VnlTable
             throwErrorMessage('VnlTable "' . $this->id . '": columns() boş.');
         }
 
+        /* Sütun filtresi olan modlarda çip, çoklu sıralama ve URL senkronu
+           kendiliğinden açılır: grid'in varlık sebebi bunlar. list'te
+           kapalıdır — orada filtre de yoktur, adres çubuğunu kirletmenin
+           anlamı olmaz. */
+        $rich = in_array($this->mode, [self::GRID, self::WORKBENCH], true);
+
         $options = array_merge([
             'pageSize'  => 25,
             'pageSizes' => [10, 25, 50, 100],
@@ -184,6 +201,9 @@ class VnlTable
             'height'    => null,
             'skin'      => 'default',
             'striped'   => false,
+            'chips'     => $rich,
+            'multiSort' => $rich,
+            'urlSync'   => $rich,
         ], $this->options);
 
         /* Skin adı doğrudan CSS sınıfına dönüşüyor; sınıf adı olarak
@@ -238,6 +258,9 @@ class VnlTable
      *   width    '120px' gibi
      *   align    left | center | right; verilmezse type'tan türetilir
      *   filter   sütun filtresi — bkz. resolveFilter()
+     *   agg      alt toplam: sum | avg | min | max | count. Değeri sunucu
+     *            hesaplar (VnlTableRequest::totals), burası yalnız hangi
+     *            sütunda gösterileceğini söyler.
      *
      * filter burada ham bırakılır: mod() sütunlardan sonra çağrılabildiği
      * için çözümleme config()'e ertelenir.
@@ -249,6 +272,14 @@ class VnlTable
         }
 
         $type = $column['type'] ?? 'text';
+        $agg  = $column['agg'] ?? null;
+
+        if ($agg !== null && !in_array($agg, VnlTableRequest::AGGS, true)) {
+            throwErrorMessage(
+                'VnlTable: sütun "' . $column['name'] . '" için geçersiz alt toplam "' . $agg
+                . '". Beklenen: ' . implode(', ', VnlTableRequest::AGGS)
+            );
+        }
 
         return [
             'name'     => (string)$column['name'],
@@ -261,14 +292,15 @@ class VnlTable
             'width'    => $column['width'] ?? null,
             'align'    => $column['align'] ?? ($type === 'number' ? 'right' : ($type === 'bool' ? 'center' : 'left')),
             'filter'   => $column['filter'] ?? null,
+            'agg'      => $agg,
         ];
     }
 
     /**
      * Sütun filtresini moda göre çözer.
      *
-     * basic'te filtre yoktur: tanımda ne yazarsa yazsın kapalı döner.
-     * expert ve expert_plus'ta verilmediyse sütun tipinden türetilir —
+     * list'te filtre yoktur: tanımda ne yazarsa yazsın kapalı döner.
+     * grid ve workbench'te verilmediyse sütun tipinden türetilir —
      * sütun başına filtre yazmak zorunda kalmayın diye.
      *
      *   'filter' => false                       kapalı
@@ -287,7 +319,7 @@ class VnlTable
     {
         $spec = $column['filter'];
 
-        if (!in_array($this->mode, [self::EXPERT, self::EXPERT_PLUS], true) || $spec === false || $spec === 'none') {
+        if (!in_array($this->mode, [self::GRID, self::WORKBENCH], true) || $spec === false || $spec === 'none') {
             $column['filter'] = null;
 
             return $column;
@@ -371,9 +403,26 @@ class VnlTable
             'filterCond'    => lang('VNLTABLE_FILTER_COND'),
             'filterNoCond'  => lang('VNLTABLE_FILTER_NO_COND'),
             'filterClear'   => lang('VNLTABLE_FILTER_CLEAR'),
+            'filterCount'   => lang('VNLTABLE_FILTER_COUNT'),
             'apply'         => lang('VNLTABLE_APPLY'),
             'ops'           => self::opLabels(),
+
+            /* Alt toplamlar */
+            'totals'        => lang('VNLTABLE_TOTALS'),
+            'aggs'          => self::aggLabels(),
         ];
+    }
+
+    /** Alt toplam adları; footer hücresinin başlık balonunda görünür. */
+    private static function aggLabels(): array
+    {
+        $labels = [];
+
+        foreach (VnlTableRequest::AGGS as $agg) {
+            $labels[$agg] = lang('VNLTABLE_AGG_' . strtoupper($agg));
+        }
+
+        return $labels;
     }
 
     /**

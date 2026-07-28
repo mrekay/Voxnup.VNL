@@ -1,6 +1,6 @@
 <?php
 $meta = [
-    'title'       => 'VNL Table — Expert',
+    'title'       => 'VNL Table — Grid',
     'upper_title' => 'Dökümantasyon',
     'description' => '',
     'keywords'    => '',
@@ -14,5 +14,5 @@ $page_config = [
 ];
 
 require view('static/header');
-require view('docs/vnltable-expert');
+require view('docs/vnltable-grid');
 require view('static/footer');

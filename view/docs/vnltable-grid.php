@@ -3,13 +3,13 @@
         <div id="kt_app_content_container" class="app-container container-xxl">
 
             <div class="vnl-page-hero mb-12 mt-6">
-                <div class="vnl-overline mb-3">// docs/vnltable-expert</div>
-                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">VNL Table — Expert</h1>
+                <div class="vnl-overline mb-3">// docs/vnltable-grid</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">VNL Table — Grid</h1>
                 <div class="vnl-lead">
-                    <code>basic</code>'in üstüne sütun filtreleri gelir. Her başlıkta bir huni vardır;
+                    <code>list</code>'in üstüne sütun filtreleri gelir. Her başlıkta bir huni vardır;
                     açılan panelde Excel'deki gibi <b>değer listesi</b> ve bir <b>koşul</b> bulunur.
                     Temel kullanım <a href="/docs/vnltable" class="text-primary fw-bold">VNL Table</a>
-                    sayfasında anlatılır; burada yalnızca expert'e eklenenler var.
+                    sayfasında anlatılır; burada yalnızca grid'e eklenenler var.
                 </div>
             </div>
 
@@ -25,16 +25,16 @@
                         ve vurgulu kalır.
                     </p>
 
-                    <?= VnlTable::make('demoExpert')
+                    <?= VnlTable::make('demoGrid')
                         ->url('app/vnltable/getList')
-                        ->mode(VnlTable::EXPERT)
+                        ->mode(VnlTable::GRID)
                         ->key('id')
                         ->columns([
-                            ['name' => 'id',    'title' => 'No',       'type' => 'number', 'width' => '80px', 'filter' => false],
+                            ['name' => 'id',    'title' => 'No',       'type' => 'number', 'width' => '80px', 'filter' => false, 'agg' => 'count'],
                             ['name' => 'ad',    'title' => 'Ad Soyad', 'filter' => ['values' => false]],
                             ['name' => 'sehir', 'title' => 'Şehir'],
                             ['name' => 'durum', 'title' => 'Durum',    'filter' => 'set'],
-                            ['name' => 'tutar', 'title' => 'Tutar',    'type' => 'number'],
+                            ['name' => 'tutar', 'title' => 'Tutar',    'type' => 'number', 'agg' => 'sum'],
                             ['name' => 'tarih', 'title' => 'Tarih',    'type' => 'date'],
                         ])
                         ->options([
@@ -48,10 +48,12 @@
                     <div class="alert alert-info d-flex align-items-start p-4 mt-6 mb-0">
                         <i class="fa-solid fa-lightbulb fs-2 text-info me-3"></i>
                         <span class="text-body fs-6">
-                            Önce <b>Şehir</b>'den Ankara'yı seçin, sonra <b>Durum</b>'un panelini açın:
-                            listede yalnızca Ankara'da geçen durumlar ve kaç kayıtta geçtikleri görünür.
-                            Şehir panelini tekrar açtığınızda ise bütün şehirler yerinde durur —
-                            sütunun kendi seçimi listesini daraltmaz.
+                            Deneyin: <b>Şehir</b>'den Ankara'yı seçin, üstte çipin belirdiğini görün,
+                            sonra <b>Durum</b>'un panelini açın — listede yalnızca Ankara'da geçen
+                            durumlar ve kaç kayıtta geçtikleri var. Şehir panelini tekrar açtığınızda
+                            bütün şehirler yerinde durur; sütunun kendi seçimi listesini daraltmaz.
+                            Alttaki toplam sayfayı değil filtrenin tamamını sayar, adres çubuğu da
+                            durumu taşır — sayfayı yenileyin, filtre yerinde kalır.
                         </span>
                     </div>
                 </div>
@@ -63,7 +65,7 @@
 
                     <!--begin::Açma-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">2. Expert'i Açmak</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">2. Grid'i Açmak</h3>
                         <p class="fs-5 text-body mb-4">
                             Tek satır: <code>mode()</code>. Sütun başına filtre yazmak zorunda değilsiniz —
                             verilmediğinde sütunun <code>type</code>'ından türetilir.
@@ -72,7 +74,7 @@
                         <div class="vnl-code mb-5">
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>VnlTable::make('kayitlar')
     -&gt;url('app/kayit/getList')
-    -&gt;mode(VnlTable::EXPERT)        // basic | expert | expert_plus
+    -&gt;mode(VnlTable::GRID)          // list | grid | workbench
     -&gt;columns([
         ['name' =&gt; 'id',    'title' =&gt; 'No',    'type' =&gt; 'number', 'filter' =&gt; false],
         ['name' =&gt; 'ad',    'title' =&gt; 'Ad'],                        // text  → türetilir
@@ -85,7 +87,7 @@
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">
-                                <code>basic</code> modunda sütunlara yazdığınız <code>filter</code>
+                                <code>list</code> modunda sütunlara yazdığınız <code>filter</code>
                                 tanımları <b>yok sayılır</b> — panel çizilmez, istemciye de gitmez.
                                 Filtre istiyorsanız <code>mode()</code> vermeyi unutmayın.
                             </span>
@@ -95,9 +97,85 @@
 
                     <div class="separator separator-dashed my-8"></div>
 
+                    <!--begin::Diğerleri-->
+                    <div class="mb-10">
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. Filtre Dışında Gelenler</h3>
+                        <p class="fs-5 text-body mb-6">
+                            Dördü de <code>grid</code>'de kendiliğinden açıktır; <code>list</code>'te
+                            kapalıdır. Tek tek kapatılabilirler.
+                        </p>
+
+                        <div class="row g-5 mb-6">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-2"><span class="badge badge-soft-primary me-2">chips</span> Aktif filtre çipleri</h6>
+                                <p class="fs-6 text-body mb-0">
+                                    Araç çubuğunun altında <code>Şehir: Ankara</code> rozetleri; × ile tek
+                                    tıkta kalkarlar. Karşılaştırma koşulları sembolle kısalır
+                                    (<code>Tutar: ≥ 40000</code>) — kelimeyle yazılınca satır okunmuyordu.
+                                    Filtre yokken satır hiç çizilmez.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-2"><span class="badge badge-soft-primary me-2">multiSort</span> Çoklu sıralama</h6>
+                                <p class="fs-6 text-body mb-0">
+                                    <b>Shift+tık</b> ikinci, üçüncü anahtarı ekler; başlıkta öncelik
+                                    numarası çıkar. Shift'siz tık listeyi yine tek anahtara indirir.
+                                    Her anahtar artan → azalan → yok diye döner. Tel üzerindeki
+                                    <code>sort</code> zaten diziydi; sunucu tarafında değişen bir şey yok.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-2"><span class="badge badge-soft-primary me-2">agg</span> Alt toplamlar</h6>
+                                <p class="fs-6 text-body mb-3">
+                                    Sütun tanımına yazılır, değeri sunucu verir. Satır yapışkandır:
+                                    uzun listede gövde kaydırılırken toplam gözden kaybolmaz.
+                                </p>
+                                <div class="vnl-code">
+                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>['name' =&gt; 'tutar', 'agg' =&gt; 'sum']
+// sum | avg | min | max | count
+
+// getList icinde
+$totals = VnlTableRequest::totals($satirlar, [
+    'tutar' =&gt; 'sum', 'id' =&gt; 'count',
+]);
+$t-&gt;respond($sayfa, $toplam, $filtreli, $totals);</code></pre>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-2"><span class="badge badge-soft-primary me-2">urlSync</span> Adres çubuğu senkronu</h6>
+                                <p class="fs-6 text-body mb-3">
+                                    Filtre, sıralama, arama, sayfa ve sayfa boyu adrese yazılır.
+                                    Sayfa yenilense de link paylaşılsa da durum korunur.
+                                </p>
+                                <div class="vnl-code">
+                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>?demo.q=ankara
+&amp;demo.s=tutar:desc,ad:asc
+&amp;demo.p=2
+&amp;demo.f={"sehir":{"kind":"text",
+          "set":["Ankara"]}}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">
+                                Anahtarlar tablo kimliğiyle öneklenir (<code>demo.f</code>), böylece bir
+                                sayfadaki birden çok tablo birbirinin durumunu ezmez. Yazım
+                                <code>replaceState</code> iledir: arama kutusuna her harfte geçmişe bir
+                                kayıt eklemek geri tuşunu kullanılmaz hâle getiriyordu. Yani
+                                <b>geri tuşu tek tek filtreleri geri almaz</b>, sayfadan çıkar; kazanç
+                                yenilemenin ve paylaşılan linkin çalışmasıdır.
+                            </span>
+                        </div>
+                    </div>
+                    <!--end::Diğerleri-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
                     <!--begin::filter-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">3. Sütun <code>filter</code> Seçeneği</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Sütun <code>filter</code> Seçeneği</h3>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
@@ -187,7 +265,7 @@
 
                     <!--begin::getList-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">4. <code>getList</code> Tarafı</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. <code>getList</code> Tarafı</h3>
                         <p class="fs-5 text-body mb-4">
                             İki iş eklenir: filtreleri sorguya uygulamak ve panelin değer listesini
                             (<code>op = distinct</code>) döndürmek. İkisi de aynı action'da olur.
@@ -274,7 +352,7 @@ $tek      = $t-&gt;matches($satir);         // tek satır sınaması</code></pre
 
                     <!--begin::Sözleşme-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">5. Tel Üzerindeki Biçim</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. Tel Üzerindeki Biçim</h3>
 
                         <div class="row g-5 mb-6">
                             <div class="col-md-6">
@@ -353,7 +431,7 @@ $tek      = $t-&gt;matches($satir);         // tek satır sınaması</code></pre
 
                     <!--begin::Davranış-->
                     <div class="mb-0">
-                        <h3 class="fw-bold text-body-emphasis mb-4">6. Davranış Notları</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. Davranış Notları</h3>
 
                         <div class="row g-5">
                             <div class="col-md-6">
@@ -423,8 +501,9 @@ $tek      = $t-&gt;matches($satir);         // tek satır sınaması</code></pre
             <div class="alert alert-secondary d-flex flex-column flex-sm-row p-5 mb-10">
                 <i class="fa-solid fa-hourglass-half fs-2hx text-body-tertiary me-4 mb-5 mb-sm-0"></i>
                 <div class="d-flex flex-column pe-0 pe-sm-10">
-                    <h5 class="mb-1"><code>expert_plus</code> sırada</h5>
-                    <span>Accordion (satır altı detay), pivot ve hücre içi düzenleme.</span>
+                    <h5 class="mb-1"><code>workbench</code> sırada</h5>
+                    <span>Sütun sabitleme, satır gruplama ve alt toplamları, detay satırı,
+                        seçim ve toplu işlem, hücre içi düzenleme, pivot.</span>
                 </div>
             </div>
 

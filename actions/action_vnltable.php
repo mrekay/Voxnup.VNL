@@ -70,7 +70,14 @@ class action_vnltable
             $t->exportXlsx($rows, self::COLUMNS, 'vnltable-demo');
         }
 
-        $t->respond(array_slice($rows, $t->offset(), $t->size), $total, $filtered);
+        /* Alt toplamlar sayfalamadan ÖNCE hesaplanır: kullanıcı 10 satır
+           görürken filtrenin tamamının toplamını okumalı. */
+        $totals = VnlTableRequest::totals($rows, [
+            'id'    => 'count',
+            'tutar' => 'sum',
+        ]);
+
+        $t->respond(array_slice($rows, $t->offset(), $t->size), $total, $filtered, $totals);
     }
 
     /** Düz arama — yalnız metin sütunlarında. */

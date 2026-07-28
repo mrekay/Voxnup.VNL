@@ -118,9 +118,9 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
-                                "text" => "VNL Table — Expert",
-                                'url' => 'docs/vnltable-expert',
-                                'page_name' => 'vnltable-expert.php',
+                                "text" => "VNL Table — Grid",
+                                'url' => 'docs/vnltable-grid',
+                                'page_name' => 'vnltable-grid.php',
                                 'permission' => '',
                                 'icon' => 'clock',
                                 'showmenu' => 1,
