@@ -90,7 +90,6 @@
                             ->options([
                                 'pageSize' => 5, 'pageSizes' => [5, 10, 25],
                                 'skin' => 'modern', 'striped' => true,
-                                'search' => false, 'excel' => false, 'clear' => false,
                             ])
                             ->render() ?>
                     </div>

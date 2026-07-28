@@ -119,6 +119,28 @@
 .vnl-align-center { text-align: center; }
 .vnl-align-left   { text-align: left; }
 
+/* ── İkonlar ──
+   Yalnızca ikon taşıyan düğmeler kare kalsın; metin karşılığı title ve
+   aria-label'da durur. Emoji'ye düşüldüğünde de aynı ölçü korunur. */
+
+.vnl-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    line-height: 1;
+}
+
+.vnl-icon {
+    font-size: 1em;
+    line-height: 1;
+}
+
+.vnl-icon-text {
+    font-family: inherit;   /* emoji yedeği: metin olarak basılır */
+    font-size: 1.05em;
+}
+
 /* Klavyeyle gezinme görünür olsun */
 .vnl-table :is(button, input, select):focus-visible {
     outline: 2px solid var(--vnl-table-accent);
@@ -303,6 +325,44 @@
 .vnl-table.vnl-skin-modern .vnl-table-footer {
     border-color: transparent;
     padding: .9rem 1rem;
+}
+
+/* Araç çubuğu düğmeleri de kutusuz: modern'de hiçbir denetim çerçeveli
+   değil, tek başına kalan bir kutu dilin dışına düşüyordu. */
+.vnl-table.vnl-skin-modern .vnl-table-actions .btn {
+    border-color: transparent;
+    background: transparent;
+    color: var(--bs-secondary-color);
+}
+
+.vnl-table.vnl-skin-modern .vnl-table-actions .btn:hover:not(:disabled),
+.vnl-table.vnl-skin-modern .vnl-table-actions .btn.show {
+    background: var(--vnl-table-hover-bg);
+    color: var(--bs-body-color);
+}
+
+/* Excel dolu yeşil yerine vurgu renginde ikon: tek vurgulu eylem. */
+.vnl-table.vnl-skin-modern .vnl-table-actions .btn-success {
+    color: var(--vnl-table-accent);
+}
+
+.vnl-table.vnl-skin-modern .vnl-table-actions .btn-success:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--vnl-table-accent) 12%, transparent);
+    color: var(--vnl-table-accent);
+}
+
+/* Arama ve sayfa boyu: çerçeve yerine hafif zemin. */
+.vnl-table.vnl-skin-modern .vnl-table-search,
+.vnl-table.vnl-skin-modern .vnl-table-size select {
+    border-color: transparent;
+    background: var(--vnl-table-stripe-bg);
+}
+
+.vnl-table.vnl-skin-modern .vnl-table-search:focus,
+.vnl-table.vnl-skin-modern .vnl-table-size select:focus {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--vnl-table-accent) 45%, transparent);
+    box-shadow: none;
 }
 
 /* Sayfalama kutulardan çıkar; ağırlık aktif sayfada toplanır. */

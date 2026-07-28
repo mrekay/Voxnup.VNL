@@ -48,6 +48,100 @@
     }
 
     /* ---------------------------------------------------------------- */
+    /* İkonlar — Bootstrap Icons, yoksa Font Awesome, o da yoksa emoji    */
+    /* ---------------------------------------------------------------- */
+
+    var ICON_SETS = {
+        bi: {
+            probe:   'bi bi-chevron-left',
+            first:   'bi bi-chevron-double-left',
+            prev:    'bi bi-chevron-left',
+            next:    'bi bi-chevron-right',
+            last:    'bi bi-chevron-double-right',
+            columns: 'bi bi-layout-three-columns',
+            clear:   'bi bi-x-circle',
+            excel:   'bi bi-file-earmark-spreadsheet'
+        },
+        fa: {
+            probe:   'fa-solid fa-angle-left',
+            first:   'fa-solid fa-angles-left',
+            prev:    'fa-solid fa-angle-left',
+            next:    'fa-solid fa-angle-right',
+            last:    'fa-solid fa-angles-right',
+            columns: 'fa-solid fa-table-columns',
+            clear:   'fa-solid fa-circle-xmark',
+            excel:   'fa-solid fa-file-excel'
+        },
+        emoji: {
+            first: '«', prev: '‹', next: '›', last: '»',
+            columns: '▦', clear: '✕', excel: '▤'
+        }
+    };
+
+    /**
+     * İkon seti tespiti.
+     *
+     * İkon fontlarının CSS'i ::before üzerinde content tanımlar. Stil dosyası
+     * yüklenmemişse content boş kalır — font yüklenmesini beklemeye gerek
+     * kalmadan, tek ölçümle hangi setin var olduğu anlaşılır.
+     */
+    var iconSet = (function () {
+        function available(cls) {
+            var probe = document.createElement('i');
+            probe.className = cls;
+            probe.style.cssText = 'position:absolute;left:-9999px;visibility:hidden';
+            document.body.appendChild(probe);
+
+            var content = '';
+            try {
+                content = window.getComputedStyle(probe, '::before').content || '';
+            } catch (e) { /* ölçülemedi: yok say */ }
+
+            document.body.removeChild(probe);
+
+            return content !== '' && content !== 'none' && content !== 'normal' && content !== '""';
+        }
+
+        var cached = null;
+
+        return function () {
+            if (cached) return cached;
+            if (!document.body) return ICON_SETS.emoji;
+
+            cached = available(ICON_SETS.bi.probe) ? ICON_SETS.bi
+                : available(ICON_SETS.fa.probe) ? ICON_SETS.fa
+                    : ICON_SETS.emoji;
+
+            return cached;
+        };
+    })();
+
+    /** Yalnızca ikon taşıyan düğme; metin başlık ve erişilebilirlik etiketi olur. */
+    function iconButton(iconName, label, variant) {
+        var b = el('button', 'btn btn-sm vnl-icon-btn ' + (variant || 'btn-outline-secondary'));
+        b.type = 'button';
+        b.appendChild(icon(iconName));
+        b.title = label;
+        b.setAttribute('aria-label', label);
+
+        return b;
+    }
+
+    /** İkonlu düğme içeriği: font varsa <i>, yoksa emoji karakteri. */
+    function icon(name) {
+        var set = iconSet();
+
+        if (set === ICON_SETS.emoji) {
+            return el('span', 'vnl-icon vnl-icon-text', set[name] || '');
+        }
+
+        var node = el('i', 'vnl-icon ' + set[name]);
+        node.setAttribute('aria-hidden', 'true');
+
+        return node;
+    }
+
+    /* ---------------------------------------------------------------- */
     /* Tablo                                                             */
     /* ---------------------------------------------------------------- */
 
@@ -111,15 +205,13 @@
         }
 
         if (this.opt.clear !== false) {
-            var clear = el('button', 'btn btn-sm btn-outline-secondary', this.lang.clear || '');
-            clear.type = 'button';
+            var clear = iconButton('clear', this.lang.clear || '', 'btn-outline-secondary');
             clear.addEventListener('click', function () { self.clear(); });
             actions.appendChild(clear);
         }
 
         if (this.opt.excel !== false) {
-            var excel = el('button', 'btn btn-sm btn-success', this.lang.excel || '');
-            excel.type = 'button';
+            var excel = iconButton('excel', this.lang.excel || '', 'btn-success');
             excel.addEventListener('click', function () { self.exportExcel(excel); });
             actions.appendChild(excel);
         }
@@ -278,8 +370,7 @@
 
         var wrap = el('div', 'dropdown vnl-table-columns');
 
-        var btn = el('button', 'btn btn-sm btn-outline-secondary', this.lang.columns || '');
-        btn.type = 'button';
+        var btn = iconButton('columns', this.lang.columns || '', 'btn-outline-secondary');
         btn.setAttribute('data-bs-toggle', 'dropdown');
         /* İçerideki tıklamalar menüyü kapatmasın: art arda birkaç sütun
            gizlerken menü açık kalmalı. */
@@ -499,9 +590,19 @@
             return b;
         }
 
+        /* Ok tuşları ikonla; metin başlık ve ekran okuyucu etiketi olarak kalır. */
+        function arrow(iconName, label, page, disabled) {
+            var b = button('', page, disabled);
+            b.classList.add('vnl-icon-btn');
+            b.appendChild(icon(iconName));
+            b.title = label;
+            b.setAttribute('aria-label', label);
+            return b;
+        }
+
         var page = this.state.page;
-        this.pager.appendChild(button(this.lang.first || '«', 1, page <= 1));
-        this.pager.appendChild(button(this.lang.prev || '‹', page - 1, page <= 1));
+        this.pager.appendChild(arrow('first', this.lang.first || '', 1, page <= 1));
+        this.pager.appendChild(arrow('prev', this.lang.prev || '', page - 1, page <= 1));
 
         /* Geçerli sayfanın çevresinde en fazla 5 numara gösterilir. */
         var from = Math.max(1, page - 2);
@@ -512,8 +613,8 @@
             this.pager.appendChild(button(i, i, false, i === page));
         }
 
-        this.pager.appendChild(button(this.lang.next || '›', page + 1, page >= pages));
-        this.pager.appendChild(button(this.lang.last || '»', pages, page >= pages));
+        this.pager.appendChild(arrow('next', this.lang.next || '', page + 1, page >= pages));
+        this.pager.appendChild(arrow('last', this.lang.last || '', pages, page >= pages));
     };
 
     VnlTable.prototype.exportExcel = function (button) {
