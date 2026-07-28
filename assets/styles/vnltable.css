@@ -134,6 +134,128 @@
     opacity: 1;
 }
 
+/* ── Seçim çubuğu ──
+   Seçim varken belirir. Vurgulu bir şerit: kullanıcı bir kip içinde
+   olduğunu, tıkladığı düğmenin görünen satırlara değil SEÇİME
+   uygulanacağını bilsin. */
+
+.vnl-table-selection {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+    padding: .5rem .75rem;
+    border-bottom: 1px solid var(--vnl-table-border);
+    background: color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 10%, transparent);
+    font-size: .8125rem;
+}
+
+.vnl-selection-count {
+    font-weight: 600;
+}
+
+.vnl-selection-more {
+    padding: 0;
+    font-size: .8125rem;
+}
+
+.vnl-selection-actions {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    margin-left: auto;
+    flex-wrap: wrap;
+}
+
+/* ── Seçim ve detay sütunları ── */
+
+.vnl-sys {
+    padding-left: .35rem;
+    padding-right: .35rem;
+}
+
+.vnl-sys .form-check-input {
+    margin: 0;
+    vertical-align: middle;
+}
+
+.vnl-row-selected > td {
+    background: color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 12%, transparent);
+}
+
+/* Seçili satırın sabit hücreleri saydam olamaz; renk opak zeminin
+   üstüne katman olarak biner. */
+.vnl-row-selected :is(.vnl-pin-left, .vnl-pin-right) {
+    background:
+        linear-gradient(
+            color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 12%, transparent),
+            color-mix(in srgb, var(--vnl-bench, var(--vnl-table-accent)) 12%, transparent)),
+        var(--vnl-surface, var(--bs-body-bg));
+}
+
+.vnl-detail-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: .25rem;
+    background: transparent;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+}
+
+.vnl-detail-toggle:hover:not(:disabled) {
+    background: color-mix(in srgb, currentColor 14%, transparent);
+    color: var(--vnl-bench, var(--vnl-table-accent));
+}
+
+.vnl-detail-toggle:disabled {
+    opacity: .3;
+    cursor: default;
+}
+
+.vnl-detail-caret::after {
+    content: "▸";
+}
+
+.vnl-detail-caret {
+    transition: transform .15s;
+}
+
+.vnl-has-detail .vnl-detail-caret {
+    transform: rotate(90deg);
+}
+
+.vnl-has-detail .vnl-detail-toggle {
+    color: var(--vnl-bench, var(--vnl-table-accent));
+}
+
+/* ── Detay satırı ──
+   Ait olduğu satırın altına yapışır: araya çizgi girmez, girinti ve
+   zemin hangi satıra ait olduğunu söyler. */
+
+.vnl-has-detail > td {
+    border-bottom-color: transparent;
+}
+
+.vnl-detail-row > td {
+    padding: 0;
+    background: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+.vnl-detail-body {
+    padding: .75rem var(--vnl-table-cell-x);
+    padding-left: calc(var(--vnl-table-cell-x) + (var(--vnl-depth, 0) + 1) * 1.1rem);
+    white-space: normal;
+}
+
+.vnl-detail-body.vnl-table-error {
+    color: var(--bs-danger);
+}
+
 /* ── Gövde ──
    Kaydırma alanı ile katman ayrı: katman kaydırmayla kaymasın. */
 

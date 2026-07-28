@@ -39,8 +39,14 @@
 
                     <?= VnlTable::make('demoWorkbench')
                         ->url('app/vnltable/getList')
+                        ->detailUrl('app/vnltable/getList')
                         ->mode(VnlTable::WORKBENCH)
                         ->key('id')
+                        ->actions([
+                            ['name' => 'onayla', 'title' => 'Onayla', 'variant' => 'primary',
+                             'confirm' => 'Seçili kayıtların durumu "Onaylandı" olacak. Devam edilsin mi?'],
+                            ['name' => 'say', 'title' => 'Topla', 'variant' => 'soft-secondary'],
+                        ])
                         ->columns([
                             ['name' => 'id',    'title' => 'No',       'type' => 'number', 'width' => '90px',
                              'pin' => 'left', 'filter' => false, 'groupable' => false],

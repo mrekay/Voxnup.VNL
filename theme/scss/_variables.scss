@@ -120,6 +120,11 @@ $input-btn-padding-y-lg: .75rem;
 $input-btn-padding-x-lg: 1.25rem;
 $btn-font-weight:        500;
 
+// Form kontrolleri çizgisizdir: hafif dolgulu zemin ayrımı yapar, çizgi
+// yalnız focus'ta (emerald) belirir — temanın çizgisiz derinlik dili.
+$input-bg:                 var(--vnl-input-bg);
+$input-border-color:       transparent;
+$input-disabled-border-color: transparent;
 $input-focus-border-color: rgba($primary, .55);
 $focus-ring-opacity:       .2;
 

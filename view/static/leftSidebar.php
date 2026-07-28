@@ -46,9 +46,27 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
+                                "text" => "Şablon Söz Dizimi",
+                                'url' => 'docs/templating',
+                                'page_name' => 'templating.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
                                 "text" => "İstek Yönetimi ve Action'lar",
                                 'url' => 'docs/request-handling',
                                 'page_name' => 'request-handling.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Hata Yönetimi",
+                                'url' => 'docs/errors',
+                                'page_name' => 'errors.php',
                                 'permission' => '',
                                 'icon' => 'clock',
                                 'showmenu' => 1,
@@ -76,6 +94,15 @@ $SidebarMenu = array(
                                 "text" => "Config Definitions",
                                 'url' => 'docs/config-definitions',
                                 'page_name' => 'config-definitions.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Ortam (.env) ve Migrasyonlar",
+                                'url' => 'docs/environment',
+                                'page_name' => 'environment.php',
                                 'permission' => '',
                                 'icon' => 'clock',
                                 'showmenu' => 1,

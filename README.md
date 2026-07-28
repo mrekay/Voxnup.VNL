@@ -72,3 +72,24 @@ Uygulama, sol menüden erişilen kapsamlı bir dokümantasyon setiyle gelir:
 routing, istek yönetimi, modal sistemi, oturum, modeller, validator'lar,
 dil sistemi (i18n), modüller, view include sistemi, extension sistemi ve
 **VNL Theme** (/docs/theme).
+
+### 🤖 LLM'ler için
+
+Aynı dokümantasyonun dil modelleri ve kod asistanları için hazırlanmış markdown hali
+proje kökündedir; kurulu bir VNL'de `/llms.txt` ve `/llms-full.txt` adreslerinden servis edilir:
+
+| Dosya | İçerik |
+| --- | --- |
+| `llms.txt` | [llms.txt](https://llmstxt.org) formatında dizin: proje özeti + tüm sayfaların listesi |
+| `llms-full.txt` | Tüm dokümantasyonun tek dosyada tam markdown hali (~200 KB) |
+
+Dokümantasyon sayfaları değiştiğinde yeniden üretin:
+
+```bash
+php tools/build-llms-docs.php
+# PHP CLI yoksa
+docker run --rm -v "$PWD":/app -w /app php:8.2-cli php tools/build-llms-docs.php
+```
+
+Üretici, sayfa listesini `view/static/leftSidebar.php` içindeki `$SidebarMenu`'den okur —
+menüye eklenen yeni bir docs sayfası çıktıya kendiliğinden dahil olur.

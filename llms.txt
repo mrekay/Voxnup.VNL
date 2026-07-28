@@ -1,0 +1,43 @@
+# VNL
+
+> VNL (Voxnup Not Laravel), klasik MVC üzerine kurulu, Eloquent/Capsule ORM kullanan ve Bootstrap 5.3 tabanlı kendi tema katmanı (VNL Theme) ile gelen bir PHP microframework'üdür. Rota tanımı yoktur: URL'nin ilk segmenti doğrudan `controller/` altındaki dosyayı çalıştırır.
+
+VNL 3.0 · PHP 8.2+ · Bootstrap 5.3.8 · dokümantasyon dili Türkçe.
+
+Tüm dokümantasyonun tek dosyadaki tam hali: [llms-full.txt](/llms-full.txt)
+
+## Çekirdek
+
+- [VNL'ye Giriş](/docs/getting-started): VNL, PHP tabanlı, Illuminate (Eloquent/Capsule) ORM kullanan, Bootstrap 5.3 üzerine inşa edilen VNL Theme ile gelen bir uygulama şablonudur.
+- [Yönlendirme (Routing) ve Controller](/docs/routing): VNL'de karmaşık rota tanımlamaları (Route::get) yoktur.
+- [Şablon Söz Dizimi](/docs/templating): View dosyaları {{ $degisken }} gibi kısa bir söz dizimi kullanabilir.
+- [İstek Yönetimi ve Action'lar](/docs/request-handling): VNL'de form gönderimleri ve AJAX istekleri, controller'lardan bağımsız olarak actions/ klasöründe işlenir.
+- [Hata Yönetimi](/docs/errors): VNL'de hiçbir hata sessizce kaybolmaz.
+- [Modal Sistemi](/docs/modals): VNL, Bootstrap 5 modal'larını kendi dosya sistemiyle yönetir.
+- [Oturum Yönetimi ve Kimlik Doğrulama](/docs/session): VNL, oturum açma/kapama işlemlerini Session sınıfı ve UserModule modülü aracılığıyla yönetir.
+- [Config Definitions](/docs/config-definitions): libs/config/config_definitions.php dosyası, VNL uygulamasının tüm temel yapılandırmasını barındırır.
+- [Ortam Yapılandırması ve Migrasyonlar](/docs/environment): Ortama göre değişen ve gizli olan her şey proje kökündeki .env dosyasından okunur; veritabanı şeması migrations/ altında numaralı SQL dosyalarıyla yönetilir.
+- [Veritabanı Katmanı ve Modeller](/docs/models): VNL'de veritabanı işlemleri her zaman model sınıfları üzerinden yapılır.
+- [Validator Sistemi](/docs/validators): VNL'nin validator sistemi, gelen verilerin doğruluğunu action sınıflarında kontrol etmek için kullanılır.
+- [Dil ve Çoklu Dil Desteği (i18n)](/docs/languages): VNL, JSON tabanlı bir dil sistemi kullanır.
+- [VNL Table](/docs/vnltable): Sunucu tarafında tanımlanan, istemcide çizilen tablo sistemi.
+- [VNL Table — Grid](/docs/vnltable-grid): list'in üstüne sütun filtreleri gelir.
+- [VNL Table — Workbench](/docs/vnltable-workbench): grid'de veriyi süzersin; workbench'te şekillendirirsin — hangi sütun nerede duracak, satırlar neye göre kümelenecek.
+- [Modüller (libs/modules)](/docs/modules): VNL, tekrar kullanılabilir yardımcı işlemleri libs/modules/ dizinindeki statik sınıflar aracılığıyla sunar.
+- [View Includes Sistemi](/docs/view-includes): view/includes/ dizini, sayfalara özgü CSS, JS ve modal dosyalarını organize etmek için kullanılır.
+- [Extension Sistemi](/docs/extensions): VNL, extensions/ klasörü altında bağımsız eklentiler destekler.
+- [Stripe Extension](/docs/stripe): VNL için Stripe ödeme eklentisi.
+
+## VNL Theme El Kitabı
+
+- [VNL Theme — Genel Bakış](/docs/theme): Bootstrap 5.3 üzerine inşa edilen, VNL'in view sistemiyle tam entegre tema katmanı.
+- [Layout ve Preset'ler](/docs/theme-layout): Her sayfanın iskeleti controller'daki $page_config ile kurulur.
+- [Sidebar ve Menü](/docs/theme-sidebar): Menü tanımı VNL 2.x'ten beri aynı dizidir: view/static/leftSidebar.php içindeki $SidebarMenu.
+- [Renkler, Tema Modu ve Tipografi](/docs/theme-design): Tema token bazlıdır: bileşenler --vnl-* ve Bootstrap 5.3'ün adaptif --bs-* değişkenlerini tüketir.
+- [Bileşenler](/docs/theme-components): Bootstrap'in tüm bileşenleri temayla gelir; bu sayfa yalnız VNL Theme'in eklediklerini canlı örneklerle anlatır.
+- [Form ve Select](/docs/theme-forms): Form kontrolleri Bootstrap'tir; tema dolgun ölçüler, solid varyant ve parola göster/gizle ekler.
+- [İkonlar](/docs/theme-icons): İki set birlikte yüklüdür: temanın kendi arayüzü Bootstrap Icons kullanır, Font Awesome Free ise proje kodlarındaki mevcut fa-* kullanımları için uyumluluk katmanı olarak durur.
+- [Modallar](/docs/theme-modals): Davranış Bootstrap'indir (data-bs-toggle="modal"), görünüm VNL'indir: çizgisiz yüzey, gölgeyle derinlik.
+- [JavaScript API](/docs/theme-js): İstemci katmanı üç dosyadan oluşur: vendors.min.js (jQuery, Bootstrap, SweetAlert2, SlimSelect), vnl.min.js (tema davranışları) ve assets/scripts/vnl.js (VNL çekirdeği).
+- [Metronic'ten Geçiş](/docs/theme-migration): VNL 2.x + Metronic 8 üzerinde koşan projeleri VNL Theme'e taşımak için rehber.
+

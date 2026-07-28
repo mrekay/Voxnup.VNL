@@ -46,6 +46,16 @@ class VnlTableRequest
     /** Hücre düzenleme: tek satırın tek sütununu yazar. */
     const OP_SAVE = 'save';
 
+    /** Satır altı detay: bir satırın açılan gövdesini HTML olarak döndürür. */
+    const OP_DETAIL = 'detail';
+
+    /** Toplu işlem: seçili kayıtlar üzerinde çalışır. */
+    const OP_BULK = 'bulk';
+
+    /** Seçim biçimleri. */
+    const SELECT_SOME = 'some';
+    const SELECT_ALL  = 'all';
+
     /**
      * Filtre türü → kullanılabilir koşullar.
      *
@@ -96,12 +106,30 @@ class VnlTableRequest
     /** OP_SAVE: hücrenin yeni değeri. Ham gelir; doğrulaması sizde. */
     public $value = null;
 
+    /** OP_BULK: çalıştırılacak işlemin adı. */
+    public string $action = '';
+
+    /**
+     * OP_BULK: seçim.
+     *
+     *   ['mode' => 'some', 'ids' => ['3','7']]        yalnız bu kayıtlar
+     *   ['mode' => 'all',  'except' => ['3']]         filtreye uyan hepsi, 3 hariç
+     *
+     * "all" bir kimlik listesi DEĞİLDİR: kullanıcı 4200 kaydı seçerken
+     * tarayıcıya 25 tanesi inmiş oluyor. Filtreye uyan küme sunucuda
+     * çözülür; istemci yalnız neyi dışarıda bıraktığını söyler.
+     */
+    public array $selection = ['mode' => self::SELECT_SOME, 'ids' => [], 'except' => []];
+
     public static function from($req): self
     {
         $self = new self();
 
         $op = (string)$req->post('op', self::OP_LIST);
-        $ops = [self::OP_LIST, self::OP_DISTINCT, self::OP_EXPORT, self::OP_GROUP, self::OP_SAVE];
+        $ops = [
+            self::OP_LIST, self::OP_DISTINCT, self::OP_EXPORT,
+            self::OP_GROUP, self::OP_SAVE, self::OP_DETAIL, self::OP_BULK,
+        ];
         $self->op = in_array($op, $ops, true) ? $op : self::OP_LIST;
 
         $self->page = max(1, (int)$req->post('page', 1));
@@ -116,6 +144,8 @@ class VnlTableRequest
         $self->groupBy = (string)$req->post('by', '');
         $self->rowKey  = (string)$req->post('key', '');
         $self->value   = $req->post('value');
+        $self->action  = (string)$req->post('action', '');
+        $self->selection = self::normalizeSelection($req->post('selection'));
         $self->context = self::asArray($req->post('context'));
         $self->filters = self::normalizeFilters($req->post('filters'));
         $self->sort    = self::normalizeSort($req->post('sort'));
@@ -579,6 +609,112 @@ class VnlTableRequest
         ]);
     }
 
+    /* ================================================================
+       Satır altı detay
+       ================================================================ */
+
+    /**
+     * Detay gövdesi — HTML olarak akıtılır ve script biter.
+     *
+     * İstemci bunu innerHTML ile basar. Kaçış SİZDE: sütunlardaki
+     * 'render' => 'html' ile aynı sözleşme. Kullanıcı girdisini
+     * htmlspecialchars() olmadan buraya koymayın.
+     *
+     *   if ($t->op === VnlTableRequest::OP_DETAIL) {
+     *       $kayit = Kayit::find($t->rowKey);
+     *       $t->respondDetail(render('parts/kayit-detay', ['kayit' => $kayit]));
+     *   }
+     */
+    public function respondDetail(string $html): void
+    {
+        http_response_code(200);
+        header('Content-Type: text/html; charset=utf-8');
+        echo $html;
+        die;
+    }
+
+    /* ================================================================
+       Seçim ve toplu işlem
+       ================================================================ */
+
+    /** Kullanıcı "filtreye uyan hepsi"ni mi seçti. */
+    public function selectedAll(): bool
+    {
+        return $this->selection['mode'] === self::SELECT_ALL;
+    }
+
+    /** SELECT_SOME'da seçilen kimlikler; SELECT_ALL'da boş. */
+    public function selectedIds(): array
+    {
+        return $this->selectedAll() ? [] : $this->selection['ids'];
+    }
+
+    /** SELECT_ALL'da kullanıcının tek tek çıkardığı kimlikler. */
+    public function excludedIds(): array
+    {
+        return $this->selectedAll() ? $this->selection['except'] : [];
+    }
+
+    /** Hiçbir şey seçilmemişse toplu işlem çalıştırılmamalı. */
+    public function hasSelection(): bool
+    {
+        return $this->selectedAll() || $this->selection['ids'] !== [];
+    }
+
+    /**
+     * Seçimi sorguya uygular.
+     *
+     * applyFilters()'tan SONRA çağırın: "hepsi" seçimi zaten filtrelenmiş
+     * kümeyi kasteder, filtreler uygulanmadan çalıştırmak kullanıcının
+     * görmediği kayıtları da kapsardı.
+     *
+     *   $q = Kayit::query();
+     *   $t->applyFilters($q, $alanlar);
+     *   $t->applySelection($q, 'id');
+     *   $q->delete();
+     */
+    public function applySelection($query, string $keyColumn)
+    {
+        if (!$this->selectedAll()) {
+            /* Boş liste hiçbir kaydı seçmez; whereIn([]) da hiçbir satır
+               döndürmez, davranış zaten doğru. */
+            return $query->whereIn($keyColumn, $this->selection['ids']);
+        }
+
+        if ($this->selection['except']) {
+            $query->whereNotIn($keyColumn, $this->selection['except']);
+        }
+
+        return $query;
+    }
+
+    /** Bellekteki satır seçime giriyor mu (filtreleri ayrıca uygulayın). */
+    public function isSelected($row, string $keyColumn): bool
+    {
+        $row = self::rowToArray($row);
+        $key = self::text($row[$keyColumn] ?? '');
+
+        return $this->selectedAll()
+            ? !in_array($key, $this->selection['except'], true)
+            : in_array($key, $this->selection['ids'], true);
+    }
+
+    /**
+     * Toplu işlem yanıtı.
+     *
+     * $reload true ise istemci tabloyu yeniden yükler ve seçimi temizler —
+     * silme, durum değiştirme gibi listeyi değiştiren işlemlerde budur.
+     */
+    public function respondBulk(string $message = '', bool $reload = true): void
+    {
+        self::emit([
+            'done'    => true,
+            'action'  => $this->action,
+            'message' => $message,
+            'reload'  => $reload,
+        ]);
+    }
+
     /**
      * Excel çıktısı — xlsx olarak akıtılır ve script biter.
      *
@@ -728,6 +864,42 @@ class VnlTableRequest
         }
 
         return $out;
+    }
+
+    /**
+     * Seçim gövdesi.
+     *
+     * Tanınmayan biçim "hiçbir şey seçilmedi"ye düşer: belirsiz bir seçimle
+     * toplu işlem çalıştırmaktansa hiç çalıştırmamak doğru.
+     */
+    private static function normalizeSelection($raw): array
+    {
+        $raw  = self::asArray($raw);
+        $mode = ($raw['mode'] ?? '') === self::SELECT_ALL ? self::SELECT_ALL : self::SELECT_SOME;
+
+        return [
+            'mode'   => $mode,
+            'ids'    => $mode === self::SELECT_SOME ? self::keyList($raw['ids'] ?? null) : [],
+            'except' => $mode === self::SELECT_ALL ? self::keyList($raw['except'] ?? null) : [],
+        ];
+    }
+
+    /** Kimlik listesi metne indirgenir; JSON'da sayı gelmesi olağan. */
+    private static function keyList($value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $out = [];
+
+        foreach ($value as $item) {
+            if (is_scalar($item)) {
+                $out[] = self::text($item);
+            }
+        }
+
+        return array_values(array_unique($out));
     }
 
     /** ['ad', 'sehir'] ve ['sehir' => 'city'] biçimlerinin ikisi de kabul edilir. */

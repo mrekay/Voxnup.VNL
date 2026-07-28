@@ -29,6 +29,10 @@
   --vnl-sidebar-active-color: #45c583;
   --vnl-sidebar-active-bg: rgba(23, 166, 92, .12);
 
+  // Form kontrolleri: çizgisiz, hafif dolgulu zemin (tema dili — çizgi
+  // yalnız focus'ta belirir). Koyu modda içe gömük his için yarı saydam koyu.
+  --vnl-input-bg: var(--bs-secondary-bg);
+
   // Kod bloğu ve flyout paneli (iki modda da koyu; skin'ler override eder)
   --vnl-code-bg: #0b0f0e;
   --vnl-code-color: #d5ded9;
@@ -41,6 +45,7 @@
 
   --vnl-surface: #161c19;
   --vnl-surface-raised: #1c2320;
+  --vnl-input-bg: rgba(0, 0, 0, .24);
 
   --vnl-card-shadow: 0 .35rem 1.25rem rgba(0, 0, 0, .28);
   --vnl-card-ring: rgba(255, 255, 255, .045);

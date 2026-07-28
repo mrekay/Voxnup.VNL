@@ -222,8 +222,17 @@
         this.root    = root;
         this.config  = config;
         this.columns = config.columns.filter(function (c) { return c.visible; });
-        this.lang    = config.lang || {};
         this.opt     = config.options || {};
+
+        /* Seçim kutusu ve detay oku birer SÜTUNDUR. Satır başına iliştirilmiş
+           kutucuklar olsaydı colspan hesabı, sabit sütun indeksleri ve toplam
+           satırının hizası ayrı ayrı bozulurdu; sütun olarak mevcut makine
+           onları kendiliğinden taşıyor. */
+        var lead = [];
+        if (this.opt.selection) lead.push(systemColumn('__select'));
+        if (this.opt.detail)    lead.push(systemColumn('__detail'));
+        this.columns = lead.concat(this.columns);
+        this.lang    = config.lang || {};
 
         /* Kullanıcının gizlediği sütunlar (name → true); tercih tarayıcıda
            tablo kimliğiyle saklanır. visible:false'tan farkı: bunlar tanımda
@@ -261,6 +270,17 @@
         this.buckets  = {};
         this.allRows  = null;
         this.expanded = {};
+
+        /* Detay gövdeleri satır kimliğine göre saklanır: kapatıp açmak
+           sunucuya yeniden gitmesin. */
+        this.details    = {};
+        this.detailOpen = {};
+
+        /* Seçim. mode 'all' bir kimlik listesi DEĞİLDİR — "filtreye uyan
+           hepsi" demektir ve except onun deliklerini tutar. Kullanıcı 4200
+           kaydı seçerken tarayıcıya 25 tanesi inmiş oluyor. */
+        this.selection = { mode: 'some', ids: {}, except: {} };
+        this.selectionKey = '';
 
         /* Adresteki durum build()'den ÖNCE okunur: arama kutusu ve sayfa
            boyu seçimi kurulurken doğru değeri göstersin. */
@@ -366,6 +386,11 @@
             this.root.appendChild(this.chips);
         }
 
+        /* ---- Seçim çubuğu ----
+           Seçim varken belirir; kaç kayıt seçildiğini ve ne yapılabileceğini
+           tek yerde söyler. */
+        if (this.opt.selection) this.buildSelectionBar();
+
         /* ---- Tablo ----
            Kaydırma alanı ayrı bir kapsayıcıya alınır: yükleme katmanı
            kaydırmayla birlikte hareket etmesin, görünen alanda sabit kalsın. */
@@ -388,6 +413,16 @@
         this.columns.forEach(function (col) {
             var th = el('th', 'vnl-th vnl-align-' + col.align);
             if (col.width) th.style.width = col.width;
+
+            if (col.system) {
+                th.classList.add('vnl-sys');
+                pinClass(th, col);
+                if (col.name === '__select') th.appendChild(self.buildSelectAllBox());
+                self.ths[col.name] = th;
+                headRow.appendChild(th);
+
+                return;
+            }
 
             /* Başlık içeriği bir flex satırı: huni, hizalama ne olursa olsun
                etiketin peşinde kalsın. th'nin kendisi flex yapılamaz —
@@ -460,7 +495,7 @@
                 if (col.agg) {
                     cell.title = (self.lang.aggs || {})[col.agg] || col.agg;
                     self.totalCells[col.name] = cell;
-                } else if (!labelled) {
+                } else if (!labelled && !col.system) {
                     /* İlk toplamsız sütun satırı adlandırır — hesap
                        tablolarındaki alışkanlık. */
                     cell.textContent = self.lang.totals || '';
@@ -1278,6 +1313,7 @@
         this.state.sort    = (this.opt.order || []).slice();
         this.state.filters = {};
         this.state.page    = 1;
+        this.clearSelection();
         if (this.searchInput) this.searchInput.value = '';
         this.paintSort();
         this.paintFilters();
@@ -1741,6 +1777,7 @@
         this.tbody.innerHTML = '';
         this.tbody.appendChild(frag);
         this.layoutPins();
+        this.paintSelection();
     };
 
     /** Bir grup satiri ve - acikssa - altindakiler. Kendini cagirir. */
@@ -1777,7 +1814,7 @@
 
         if (this.allRows) {
             this.rowsAt(path).forEach(function (row) {
-                frag.appendChild(self.memberRow(row, depth));
+                self.appendRow(frag, row, depth + 1);
             });
 
             return;
@@ -1793,7 +1830,7 @@
         }
 
         bucket.rows.forEach(function (row) {
-            frag.appendChild(self.memberRow(row, depth));
+            self.appendRow(frag, row, depth + 1);
         });
 
         if (bucket.loading) {
@@ -1813,12 +1850,23 @@
         }
     };
 
-    VnlTable.prototype.memberRow = function (row, depth) {
+    /** Satırı ve — açıksa — altındaki detay gövdesini basar. */
+    VnlTable.prototype.appendRow = function (frag, row, depth) {
         var tr = this.buildRow(row);
-        tr.classList.add('vnl-group-member');
-        tr.style.setProperty('--vnl-depth', depth + 1);
 
-        return tr;
+        if (depth) {
+            tr.classList.add('vnl-group-member');
+            tr.style.setProperty('--vnl-depth', depth);
+        }
+
+        frag.appendChild(tr);
+
+        var key = this.rowKey(row);
+
+        if (key !== null && this.detailOpen[key]) {
+            tr.classList.add('vnl-has-detail');
+            frag.appendChild(this.detailRow(key, depth));
+        }
     };
 
     /** Tum sutunlari kaplayan tek hucreli satir. */
@@ -1927,6 +1975,336 @@
                 bucket.done = true;
                 console.error('[VNL Table] ' + self.config.id + ' group rows:', err);
                 self.renderGroups();
+            });
+    };
+
+    /* ---------------------------------------------------------------- */
+    /* Satır altı detay (workbench)                                      */
+    /* ---------------------------------------------------------------- */
+
+    VnlTable.prototype.buildDetailToggle = function (row, tr) {
+        var self = this;
+        var key  = this.rowKey(row);
+
+        var btn = el('button', 'vnl-detail-toggle');
+        btn.type = 'button';
+        btn.title = this.lang.detail || '';
+        btn.setAttribute('aria-label', this.lang.detail || '');
+        btn.setAttribute('aria-expanded', (key !== null && this.detailOpen[key]) ? 'true' : 'false');
+        btn.appendChild(el('span', 'vnl-detail-caret'));
+
+        if (key === null) {
+            /* Kimliksiz satırın detayı istenemez: hangi kayıt olduğunu
+               sunucuya söyleyecek bir şey yok. */
+            btn.disabled = true;
+
+            return btn;
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            self.toggleDetail(key, tr, btn);
+        });
+
+        return btn;
+    };
+
+    VnlTable.prototype.toggleDetail = function (key, tr, btn) {
+        var next = tr.nextSibling;
+
+        if (this.detailOpen[key]) {
+            delete this.detailOpen[key];
+            tr.classList.remove('vnl-has-detail');
+            btn.setAttribute('aria-expanded', 'false');
+
+            if (next && next.classList && next.classList.contains('vnl-detail-row')) {
+                next.parentNode.removeChild(next);
+            }
+
+            return;
+        }
+
+        this.detailOpen[key] = true;
+        tr.classList.add('vnl-has-detail');
+        btn.setAttribute('aria-expanded', 'true');
+
+        var depth = parseInt(tr.style.getPropertyValue('--vnl-depth'), 10) || 0;
+        tr.parentNode.insertBefore(this.detailRow(key, depth), tr.nextSibling);
+    };
+
+    /**
+     * Detay satırı. Gövde bellekte varsa oradan, yoksa sunucudan.
+     *
+     * İçerik innerHTML ile basılır: sunucu HTML üretir ve kaçışından
+     * kendisi sorumludur — render:'html' sütunlarıyla aynı sözleşme.
+     */
+    VnlTable.prototype.detailRow = function (key, depth) {
+        var self = this;
+
+        var tr = el('tr', 'vnl-detail-row');
+        if (depth) tr.style.setProperty('--vnl-depth', depth);
+
+        var td = el('td');
+        td.colSpan = this.visibleCount();
+
+        var body = el('div', 'vnl-detail-body');
+        td.appendChild(body);
+        tr.appendChild(td);
+
+        if (this.details[key] !== undefined) {
+            body.innerHTML = this.details[key];
+
+            return tr;
+        }
+
+        body.textContent = this.lang.loading || '';
+
+        this.post(this.config.detailUrl || this.config.url, this.payload('detail', { key: key }))
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+                self.details[key] = html;
+
+                /* Satır bu arada kapatılmış ya da tablo yeniden çizilmiş
+                   olabilir; gövde hâlâ ekrandaysa doldurulur. */
+                if (body.parentNode) body.innerHTML = html;
+            })
+            .catch(function (err) {
+                console.error('[VNL Table] ' + self.config.id + ' detail:', err);
+                body.textContent = self.lang.detailFailed || '';
+                body.classList.add('vnl-table-error');
+            });
+
+        return tr;
+    };
+
+    /* ---------------------------------------------------------------- */
+    /* Seçim ve toplu işlem (workbench)                                  */
+    /* ---------------------------------------------------------------- */
+
+    VnlTable.prototype.isRowSelected = function (key) {
+        return this.selection.mode === 'all'
+            ? !this.selection.except[key]
+            : !!this.selection.ids[key];
+    };
+
+    VnlTable.prototype.setRowSelected = function (key, on) {
+        if (this.selection.mode === 'all') {
+            if (on) delete this.selection.except[key];
+            else this.selection.except[key] = true;
+        } else if (on) {
+            this.selection.ids[key] = true;
+        } else {
+            delete this.selection.ids[key];
+        }
+    };
+
+    /** Seçili kayıt sayısı. 'all' modunda sunucunun bildirdiği sayıdan düşülür. */
+    VnlTable.prototype.selectionCount = function () {
+        if (this.selection.mode === 'all') {
+            return Math.max(0, this.state.filtered - Object.keys(this.selection.except).length);
+        }
+
+        return Object.keys(this.selection.ids).length;
+    };
+
+    VnlTable.prototype.clearSelection = function () {
+        this.selection = { mode: 'some', ids: {}, except: {} };
+        this.paintSelection();
+    };
+
+    /** Satır onay kutusu. */
+    VnlTable.prototype.buildRowBox = function (row) {
+        var self = this;
+        var key  = this.rowKey(row);
+
+        var box = el('input', 'form-check-input vnl-row-box');
+        box.type = 'checkbox';
+        box.setAttribute('aria-label', this.lang.select || '');
+
+        if (key === null) {
+            box.disabled = true;
+
+            return box;
+        }
+
+        box.checked = this.isRowSelected(key);
+        box.addEventListener('click', function (e) { e.stopPropagation(); });
+        box.addEventListener('change', function () {
+            self.setRowSelected(key, box.checked);
+            self.paintSelection();
+        });
+
+        return box;
+    };
+
+    /** Başlıktaki kutu: GÖRÜNEN sayfayı seçer, tabloyu değil. */
+    VnlTable.prototype.buildSelectAllBox = function () {
+        var self = this;
+
+        var box = el('input', 'form-check-input vnl-page-box');
+        box.type = 'checkbox';
+        box.title = this.lang.selectAll || '';
+        box.setAttribute('aria-label', this.lang.selectAll || '');
+
+        box.addEventListener('change', function () {
+            self.pageKeys().forEach(function (key) { self.setRowSelected(key, box.checked); });
+            self.paintSelection();
+        });
+
+        this.pageBox = box;
+
+        return box;
+    };
+
+    /** Ekranda basılı duran satırların kimlikleri. */
+    VnlTable.prototype.pageKeys = function () {
+        var self = this;
+        var keys = [];
+
+        Array.prototype.forEach.call(this.tbody.querySelectorAll('tr[data-key]'), function (tr) {
+            keys.push(tr.dataset.key);
+        });
+
+        return keys;
+    };
+
+    /**
+     * Seçim çubuğu: kaç kayıt seçili, hangi işlemler yapılabilir.
+     *
+     * Sayfanın tamamı seçiliyken ve filtrede daha fazlası varken
+     * "filtreye uyan hepsini seç" önerilir — kullanıcının 25 satırı
+     * seçip 4200 kaydı kastettiği durum budur.
+     */
+    VnlTable.prototype.buildSelectionBar = function () {
+        this.selectionBar = el('div', 'vnl-table-selection');
+        this.selectionBar.hidden = true;
+        this.root.appendChild(this.selectionBar);
+    };
+
+    VnlTable.prototype.paintSelection = function () {
+        var self  = this;
+        var count = this.selectionCount();
+
+        /* Satır kutuları ve sayfa kutusu her çizimden sonra tazelenir. */
+        var keys = this.pageKeys();
+        var on   = 0;
+
+        Array.prototype.forEach.call(this.tbody.querySelectorAll('tr[data-key]'), function (tr) {
+            var box = tr.querySelector('.vnl-row-box');
+            if (!box) return;
+
+            box.checked = self.isRowSelected(tr.dataset.key);
+            if (box.checked) on++;
+
+            tr.classList.toggle('vnl-row-selected', box.checked);
+        });
+
+        if (this.pageBox) {
+            this.pageBox.checked = keys.length > 0 && on === keys.length;
+            this.pageBox.indeterminate = on > 0 && on < keys.length;
+        }
+
+        var bar = this.selectionBar;
+        if (!bar) return;
+
+        bar.innerHTML = '';
+        bar.hidden = count === 0;
+
+        if (!count) return;
+
+        var all = this.selection.mode === 'all';
+
+        bar.appendChild(el('span', 'vnl-selection-count',
+            fill(all ? this.lang.selectedAll : this.lang.selected, { n: count })));
+
+        /* Sayfanın tamamı seçili ve filtrede daha fazlası var. */
+        if (!all && keys.length && on === keys.length && this.state.filtered > count) {
+            var more = el('button', 'btn btn-sm btn-link vnl-selection-more',
+                fill(this.lang.selectMatching, { n: this.state.filtered }));
+            more.type = 'button';
+            more.addEventListener('click', function () {
+                self.selection = { mode: 'all', ids: {}, except: {} };
+                self.paintSelection();
+            });
+
+            bar.appendChild(more);
+        }
+
+        var actions = el('div', 'vnl-selection-actions');
+
+        (this.config.actions || []).forEach(function (action) {
+            var btn = el('button', 'btn btn-sm btn-' + (action.variant || 'secondary'), action.title);
+            btn.type = 'button';
+            btn.addEventListener('click', function () { self.runAction(action, btn); });
+            actions.appendChild(btn);
+        });
+
+        var clear = el('button', 'btn btn-sm btn-link', this.lang.selectClear || '');
+        clear.type = 'button';
+        clear.addEventListener('click', function () { self.clearSelection(); });
+        actions.appendChild(clear);
+
+        bar.appendChild(actions);
+    };
+
+    VnlTable.prototype.runAction = function (action, btn) {
+        var self = this;
+
+        if (!action.confirm) return this.sendAction(action, btn);
+
+        /* Tema SweetAlert taşıyorsa onu, yoksa tarayıcının kendi
+           onayını kullan; hiçbir işlem sessizce çalışmasın. */
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+            window.Swal.fire({
+                icon: 'warning',
+                html: action.confirm,
+                showCancelButton: true
+            }).then(function (result) {
+                if (result && result.isConfirmed) self.sendAction(action, btn);
+            });
+
+            return;
+        }
+
+        if (window.confirm(action.confirm)) this.sendAction(action, btn);
+    };
+
+    VnlTable.prototype.sendAction = function (action, btn) {
+        var self  = this;
+        var label = btn.textContent;
+
+        btn.disabled = true;
+        btn.textContent = this.lang.loading || label;
+
+        this.post(this.config.url, this.payload('bulk', {
+            action:    action.name,
+            selection: {
+                mode:   this.selection.mode,
+                ids:    Object.keys(this.selection.ids),
+                except: Object.keys(this.selection.except)
+            }
+        }))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data || data.done !== true) throw new Error('reddedildi');
+
+                if (data.message && typeof showMessage === 'function') showMessage(data.message, false);
+
+                if (data.reload !== false) {
+                    self.clearSelection();
+                    self.load();
+                }
+            })
+            .catch(function (err) {
+                console.error('[VNL Table] ' + self.config.id + ' bulk:', err);
+
+                if (typeof showModalMessage === 'function') {
+                    showModalMessage(self.lang.bulkFailed || '', true);
+                }
+            })
+            .then(function () {
+                btn.disabled = false;
+                btn.textContent = label;
             });
     };
 
@@ -2069,6 +2447,19 @@
 
         if (!silent) this.writeUrl();
 
+        /* Filtre ya da arama değiştiyse seçim düşer: "filtreye uyan hepsi"
+           artık başka bir kümeyi kastediyor olurdu. Sayfalama ve sıralama
+           seçimi bozmaz. */
+        var signature = JSON.stringify([this.state.filters, this.state.search]);
+
+        if (signature !== this.selectionKey) {
+            this.selectionKey = signature;
+
+            if (this.selection.mode === 'all' || Object.keys(this.selection.ids).length) {
+                this.clearSelection();
+            }
+        }
+
         /* Gruplu görünümde satırlar doğrudan değil, grup listesi üzerinden
            gelir; akış tamamen ayrı. */
         if (this.state.groupBy.length) {
@@ -2136,11 +2527,12 @@
 
         var frag = document.createDocumentFragment();
 
-        this.state.rows.forEach(function (row) { frag.appendChild(self.buildRow(row)); });
+        this.state.rows.forEach(function (row) { self.appendRow(frag, row, 0); });
 
         this.tbody.innerHTML = '';
         this.tbody.appendChild(frag);
         this.layoutPins();
+        this.paintSelection();
     };
 
     /** Tek veri satırı; hem düz listede hem grup içinde kullanılır. */
@@ -2157,6 +2549,16 @@
 
             var td = el('td', 'vnl-align-' + col.align);
             pinClass(td, col);
+
+            if (col.system) {
+                td.classList.add('vnl-sys');
+                td.appendChild(col.name === '__select'
+                    ? self.buildRowBox(row)
+                    : self.buildDetailToggle(row, tr));
+                tr.appendChild(td);
+
+                return;
+            }
 
             if (col.render === 'html') {
                 /* Sütun bilinçli olarak html işaretlenmiş: sunucu içeriği
@@ -2389,11 +2791,41 @@
             if (!px) return;
 
             total += parseFloat(px[1]);
-            any = true;
+
+            /* Sistem sütunları her zaman genişlik bildirir; tabanın
+               gerekli olup olmadığına gerçek sütunlar karar verir. */
+            if (!col.system) any = true;
         });
 
         return any ? total + 'px' : null;
     };
+
+    /**
+     * Seçim ve detay sütunları.
+     *
+     * Sola sabitlenirler: yatay kaydırmada satırı seçme ve açma yetisi
+     * ekrandan çıkmamalı.
+     */
+    function systemColumn(name) {
+        return {
+            name: name,
+            title: '',
+            type: 'text',
+            render: 'text',
+            sortable: false,
+            visible: true,
+            hideable: false,
+            width: '2.75rem',
+            align: 'center',
+            filter: null,
+            agg: null,
+            pin: 'left',
+            groupable: false,
+            editable: false,
+            editOptions: null,
+            system: true
+        };
+    }
 
     /** Sabit sütun sınıfı. Kenar işareti layoutPins'te verilir: hangi
         sütunun kenarda kaldığı gizle/göster ile değişiyor. */

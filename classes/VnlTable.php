@@ -50,6 +50,8 @@ class VnlTable
     private string $url       = '';
     private string $exportUrl = '';
     private string $saveUrl   = '';
+    private string $detailUrl = '';
+    private array  $actions   = [];
     private string $mode    = self::LIST;
     private string $key     = 'id';
     private array  $columns = [];
@@ -148,6 +150,59 @@ class VnlTable
         return $this;
     }
 
+    /**
+     * Satır altı detayın geleceği action.
+     *
+     * Satır açıldığında oraya op="detail" ve satırın kimliği gider; yanıt
+     * JSON değil HTML'dir (VnlTableRequest::respondDetail). Verilmezse
+     * genişletme sütunu hiç çizilmez.
+     *
+     *   ->detailUrl('app/kayit/detay')
+     */
+    public function detailUrl(string $url): self
+    {
+        $url = trim($url);
+
+        if ($url !== '' && !preg_match('~^(https?:)?//~i', $url)) {
+            $url = '/' . ltrim($url, '/');
+        }
+
+        $this->detailUrl = $url;
+
+        return $this;
+    }
+
+    /**
+     * Toplu işlemler — seçim çubuğundaki düğmeler.
+     *
+     *   ->actions([
+     *       ['name' => 'sil',    'title' => 'Sil', 'variant' => 'danger',
+     *        'confirm' => 'Seçili kayıtlar silinecek. Emin misiniz?'],
+     *       ['name' => 'onayla', 'title' => 'Onayla'],
+     *   ])
+     *
+     * Tıklandığında url()'e op="bulk", action=<name> ve seçim gider.
+     * Seçim kutuları yalnız bu liste doluyken (ya da options'ta
+     * 'selection' => true iken) çizilir.
+     */
+    public function actions(array $actions): self
+    {
+        $this->actions = array_map(function ($action) {
+            if (!is_array($action) || empty($action['name'])) {
+                throwErrorMessage('VnlTable "' . $this->id . '": her toplu işlem bir "name" alanı içermelidir.');
+            }
+
+            return [
+                'name'    => (string)$action['name'],
+                'title'   => (string)($action['title'] ?? $action['name']),
+                'variant' => (string)($action['variant'] ?? 'secondary'),
+                'confirm' => isset($action['confirm']) ? (string)$action['confirm'] : null,
+            ];
+        }, array_values($actions));
+
+        return $this;
+    }
+
     /** Satır kimliğini taşıyan sütun; seçim ve satır işlemleri buna dayanır. */
     public function key(string $key): self
     {
@@ -232,9 +287,14 @@ class VnlTable
             'urlSync'   => $rich,
             'group'     => null,
             'minWidth'  => null,
+            /* Toplu işlem tanımlandıysa seçim kutusuna gerek var demektir;
+               yalnız listelemek için de açılabilir. */
+            'selection' => $this->actions !== [],
         ], $this->options);
 
-        $options['group'] = $this->resolveGroup($options['group']);
+        $options['group']     = $this->resolveGroup($options['group']);
+        $options['selection'] = (bool)$options['selection'];
+        $options['detail']    = $this->detailUrl !== '';
 
         /* Skin adı doğrudan CSS sınıfına dönüşüyor; sınıf adı olarak
            geçerli olmayan her karakter atılır. */
@@ -246,6 +306,8 @@ class VnlTable
             'url'     => $this->url,
             'exportUrl' => $this->exportUrl,
             'saveUrl' => $this->saveUrl,
+            'detailUrl' => $this->detailUrl,
+            'actions' => $this->actions,
             'mode'    => $this->mode,
             'key'     => $this->key,
             'columns' => array_map([$this, 'resolveFilter'], $this->columns),
@@ -568,6 +630,17 @@ class VnlTable
             'editHint'      => lang('VNLTABLE_EDIT_HINT'),
             'editSaved'     => lang('VNLTABLE_EDIT_SAVED'),
             'editFailed'    => lang('VNLTABLE_EDIT_FAILED'),
+
+            /* Detay ve seçim */
+            'detail'        => lang('VNLTABLE_DETAIL'),
+            'detailFailed'  => lang('VNLTABLE_DETAIL_FAILED'),
+            'select'        => lang('VNLTABLE_SELECT'),
+            'selectAll'     => lang('VNLTABLE_SELECT_ALL'),
+            'selected'      => lang('VNLTABLE_SELECTED'),
+            'selectedAll'   => lang('VNLTABLE_SELECTED_ALL'),
+            'selectMatching' => lang('VNLTABLE_SELECT_MATCHING'),
+            'selectClear'   => lang('VNLTABLE_SELECT_CLEAR'),
+            'bulkFailed'    => lang('VNLTABLE_BULK_FAILED'),
         ];
     }
 

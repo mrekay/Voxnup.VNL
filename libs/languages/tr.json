@@ -113,6 +113,15 @@
     "VNLTABLE_GROUP_DROP": "Gruplamak için sütun başlığını buraya sürükleyin",
     "VNLTABLE_EDIT_HINT": "Düzenlemek için çift tıklayın",
     "VNLTABLE_EDIT_SAVED": "Kaydedildi",
-    "VNLTABLE_EDIT_FAILED": "Kaydedilemedi"
+    "VNLTABLE_EDIT_FAILED": "Kaydedilemedi",
+    "VNLTABLE_DETAIL": "Detayı aç",
+    "VNLTABLE_DETAIL_FAILED": "Detay alınamadı.",
+    "VNLTABLE_SELECT": "Satırı seç",
+    "VNLTABLE_SELECT_ALL": "Sayfadakilerin tümünü seç",
+    "VNLTABLE_SELECTED": "_N_ kayıt seçili",
+    "VNLTABLE_SELECTED_ALL": "Filtreye uyan _N_ kaydın tümü seçili",
+    "VNLTABLE_SELECT_MATCHING": "Filtreye uyan _N_ kaydın tümünü seç",
+    "VNLTABLE_SELECT_CLEAR": "Seçimi temizle",
+    "VNLTABLE_BULK_FAILED": "İşlem tamamlanamadı."
   }
 ]

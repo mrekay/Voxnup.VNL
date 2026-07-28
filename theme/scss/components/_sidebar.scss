@@ -36,7 +36,11 @@
 }
 
 @include media-breakpoint-up(lg) {
-  .vnl-main {
+  // Sidebar fixed olduğu için içerik payını margin verir — ama YALNIZ
+  // sidebar gerçekten sayfadayken (:has). Focus/top-nav/landing/blank
+  // sayfalarında sidebar basılmaz; koşulsuz margin login ve 404'ü
+  // "görünmez sidebar" varmış gibi sağa itiyordu.
+  .vnl-app:has(> .vnl-sidebar) .vnl-main {
     margin-left: var(--vnl-sidebar-width);
     transition: margin-left .2s ease; // mod geçişinde içerik sıçramasın
 
@@ -45,7 +49,7 @@
     }
   }
 
-  html[data-vnl-sidebar] .vnl-main {
+  html[data-vnl-sidebar] .vnl-app:has(> .vnl-sidebar) .vnl-main {
     margin-left: var(--vnl-sidebar-width-mini);
   }
 }

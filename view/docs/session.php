@@ -20,8 +20,8 @@
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">1</span>
                                 <div>
-                                    <span class="fw-bold text-body">Cookie ile Otomatik Giriş</span>
-                                    <p class="text-body-secondary fs-6 mb-0 mt-1"><code>UserModule::CheckCookieAuth()</code> — Aktif session yoksa fakat <code>{prefix}auth</code> cookie'si mevcutsa, şifrelenmiş cookie çözülerek kullanıcı otomatik giriş yaptırılır. Cookie 30 günden eskiyse silinir.</p>
+                                    <span class="fw-bold text-body">Çerez ile Otomatik Giriş</span>
+                                    <p class="text-body-secondary fs-6 mb-0 mt-1"><code>UserModule::CheckCookieAuth()</code> — Aktif oturum yoksa fakat <code>{prefix}remember</code> çerezi varsa, jeton doğrulanarak kullanıcı otomatik giriş yaptırılır ve jeton yenilenir. Ayrıntı için <b>7. bölüme</b> bakın.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
@@ -134,9 +134,9 @@ exit;
                             </div>
                             <div class="col-md-6">
                                 <div class="border border-dashed rounded p-5 h-100">
-                                    <h6 class="fw-bold mb-4">Cookie ile Kalıcı Giriş</h6>
+                                    <h6 class="fw-bold mb-4">Çerez ile Kalıcı Giriş</h6>
                                     <p class="fs-6 text-body mb-0">
-                                        <b>VNL 3.0'da devre dışı.</b> Eski uygulama kullanıcı adını ve <b>düz parolayı</b> <code>{prefix}auth</code> cookie'sine yazıyordu; <code>safeEncrypt()</code>'in anahtarı kaynak kodda sabit olduğu için bu koruma sayılmaz. <code>CheckCookieAuth()</code> artık yalnızca eski cookie'yi siler. Kalıcı giriş için rastgele jeton yaklaşımı gerekir — jetonun hash'i kullanıcı kaydında saklanır, cookie'de yalnızca jeton taşınır.
+                                        <code>SetUser()</code> yalnızca oturumu doldurur; tarayıcı kapanınca biter. Kalıcı giriş isteniyorsa ayrıca <code>UserModule::RememberMe($user)</code> çağrılır — rastgele bir jeton üretilip <code>{prefix}remember</code> çerezine yazılır, veritabanında yalnızca özeti saklanır. <b>7. bölümde</b> ayrıntılandırılmıştır.
                                     </p>
                                 </div>
                             </div>
@@ -169,6 +169,11 @@ class action_login
 
         // Session'ı doldur
         UserModule::SetUser($user);
+
+        // Kullanıcı "beni hatırla" işaretlediyse kalıcı jeton üret
+        if (!empty($req->post('rememberMe'))) {
+            UserModule::RememberMe($user);
+        }
 
         returnSuccessMessage("Giriş başarılı.", ['redirect' => '/']);
     }
@@ -266,7 +271,7 @@ if ($CurrentUser->id > 0) {
                     <div class="separator separator-dashed my-8"></div>
 
                     <!--begin::Section 6-->
-                    <div class="mb-0">
+                    <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">6. <code>UserModule</code> Yardımcı Metotları</h3>
 
                         <div class="table-responsive border rounded bg-body-tertiary">
@@ -288,7 +293,19 @@ if ($CurrentUser->id > 0) {
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>UserModule::CheckCookieAuth()</code></td>
-                                    <td>Şifreli cookie varsa otomatik giriş sağlar.</td>
+                                    <td>Geçerli bir "beni hatırla" çerezi varsa oturumu açar ve jetonu yeniler. Her istekte otomatik çağrılır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>UserModule::RememberMe($user)</code></td>
+                                    <td>Bu cihaz için kalıcı giriş jetonu üretir ve çereze yazar. Girişten sonra, kullanıcı istediyse çağırın.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>UserModule::ForgetMe()</code></td>
+                                    <td>Yalnızca bu cihazın jetonunu iptal eder ve çerezi siler.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>UserModule::ForgetAllDevices($userId)</code></td>
+                                    <td>Kullanıcının tüm cihazlardaki jetonlarını iptal eder. Parola değişiminde çağırın.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>UserModule::CheckUser()</code></td>
@@ -296,7 +313,7 @@ if ($CurrentUser->id > 0) {
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>UserModule::LogOut()</code></td>
-                                    <td>Tüm cookie'leri temizler ve session'ı yok eder.</td>
+                                    <td>Bu cihazın jetonunu iptal eder, tüm çerezleri temizler ve session'ı yok eder.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>UserModule::CurrentIp()</code></td>
@@ -323,6 +340,110 @@ if ($CurrentUser->id > 0) {
                         </div>
                     </div>
                     <!--end::Section 6-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
+                    <!--begin::Section 7-->
+                    <div class="mb-0">
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. "Beni Hatırla" — Kalıcı Giriş</h3>
+                        <p class="fs-5 text-body mb-5">
+                            Oturum çerezi tarayıcı kapanınca biter. Kullanıcının günlerce giriş yapmadan dönebilmesi için VNL ayrı bir jeton çerezi kullanır: <code>{prefix}remember</code>. Jetonun kendisi yalnızca çerezde durur; veritabanında <b>SHA-256 özeti</b> saklanır.
+                        </p>
+
+                        <div class="row g-5 mb-6">
+                            <div class="col-md-6">
+                                <div class="border border-dashed rounded p-5 h-100">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="fa-solid fa-fingerprint fs-2 text-primary me-3"></i>
+                                        <h6 class="mb-0 fw-bold">Jeton, parola değil</h6>
+                                    </div>
+                                    <span class="text-body fs-6">Çerezde 32 rastgele bayt taşınır. Tablo sızsa bile özetten geçerli çerez üretilemez. Jeton kaba kuvvete kapalı olduğu için bcrypt yerine hızlı ve indekslenebilir bir özet kullanılır.</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border border-dashed rounded p-5 h-100">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="fa-solid fa-rotate fs-2 text-primary me-3"></i>
+                                        <h6 class="mb-0 fw-bold">Her kullanımda yenilenir</h6>
+                                    </div>
+                                    <span class="text-body fs-6">Çerez bir kez kullanılır: doğrulanan jeton silinir, yerine yenisi yazılır. Çalınan bir çerez, meşru kullanıcı siteye girdiği anda geçersiz kalır.</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border border-dashed rounded p-5 h-100">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="fa-solid fa-mobile-screen fs-2 text-primary me-3"></i>
+                                        <h6 class="mb-0 fw-bold">Cihaz başına bir satır</h6>
+                                    </div>
+                                    <span class="text-body fs-6">Her cihaz kendi jetonunu taşır; <code>user_agent</code> ve <code>ip_address</code> kaydedilir. Bir cihazdan çıkış diğerlerini etkilemez.</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border border-dashed rounded p-5 h-100">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="fa-solid fa-lock fs-2 text-primary me-3"></i>
+                                        <h6 class="mb-0 fw-bold">Çerez bayrakları</h6>
+                                    </div>
+                                    <span class="text-body fs-6"><code>httponly</code> (JavaScript okuyamaz), <code>samesite=Lax</code>, HTTPS üzerinden geldiyse <code>secure</code>. Ömür <code>UserModule::REMEMBER_DAYS</code> ile 30 gündür.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-body-emphasis mb-3">Otomatik giriş akışı</h5>
+                        <div class="border rounded p-5 bg-body-tertiary mb-6">
+                            <div class="d-flex align-items-start mb-4">
+                                <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">1</span>
+                                <div><span class="fw-bold text-body">Oturum zaten açıksa hiçbir şey yapılmaz.</span></div>
+                            </div>
+                            <div class="d-flex align-items-start mb-4">
+                                <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
+                                <div><span class="fw-bold text-body">Çerezdeki jetonun özeti aranır.</span>
+                                    <p class="text-body-secondary fs-6 mb-0 mt-1">Bulunamazsa çerez silinir — eski, iptal edilmiş ya da uydurma demektir.</p></div>
+                            </div>
+                            <div class="d-flex align-items-start mb-4">
+                                <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">3</span>
+                                <div><span class="fw-bold text-body">Süre ve kullanıcı doğrulanır.</span>
+                                    <p class="text-body-secondary fs-6 mb-0 mt-1">Jeton süresi geçmişse veya kullanıcı silinmişse satır ve çerez birlikte temizlenir.</p></div>
+                            </div>
+                            <div class="d-flex align-items-start mb-0">
+                                <span class="badge badge-circle badge-success me-4 mt-1 flex-shrink-0">4</span>
+                                <div><span class="fw-bold text-body">Oturum açılır, jeton döndürülür.</span>
+                                    <p class="text-body-secondary fs-6 mb-0 mt-1"><code>SetUser()</code> çağrılır, eski satır silinir ve <code>RememberMe()</code> ile yeni jeton yazılır.</p></div>
+                            </div>
+                        </div>
+
+                        <div class="vnl-code mb-6">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+// Çıkış — bu cihazın jetonu iptal edilir
+UserModule::LogOut();          // ForgetMe() dahili olarak çağrılır
+
+// Yalnızca "beni hatırla"yı iptal et, oturumu kapatma
+UserModule::ForgetMe();
+
+// Parola değişimi: çalınmış olabilecek tüm jetonları düşür
+$user->setStoredPassword(EncryptionModule::PasswordHash($yeniParola));
+$user->save();
+UserModule::ForgetAllDevices($user->id);
+
+// Bakım: süresi dolmuş jetonları temizle (cron ya da bakım action'ı)
+$silinen = RememberToken::purgeExpired();
+</code></pre>
+                        </div>
+
+                        <div class="alert alert-danger d-flex align-items-center p-5 mb-5">
+                            <i class="fa-solid fa-database fs-2hx text-danger me-4"></i>
+                            <div class="d-flex flex-column">
+                                <h5 class="mb-1 text-danger"><code>tbl_remember_tokens</code> tablosu gerekir</h5>
+                                <span class="text-body">Tablo yoksa kalıcı giriş çalışmaz. <code>migrations/0001_vnl_3_0_upgrade.sql</code> bu tabloyu oluşturur — bkz. <a href="/docs/environment" class="fw-bold">Ortam Yapılandırması ve Migrasyonlar</a>.</span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-center p-4">
+                            <i class="fa-solid fa-clock-rotate-left fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6"><b>VNL 2.x'ten geçiş:</b> eski sürüm kullanıcı adını ve <b>düz parolayı</b> <code>{prefix}auth</code> çerezine yazıyordu. <code>CheckCookieAuth()</code> bu çerezi gördüğü yerde tarayıcıdan siler; eski çerezle otomatik giriş yapılmaz.</span>
+                        </div>
+                    </div>
+                    <!--end::Section 7-->
 
                 </div>
             </div>

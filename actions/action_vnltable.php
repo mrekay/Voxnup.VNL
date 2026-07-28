@@ -45,6 +45,10 @@ class action_vnltable
             $this->save($t);
         }
 
+        if ($t->op === VnlTableRequest::OP_DETAIL) {
+            $this->detail($t);
+        }
+
         $rows  = $this->rows();
         $total = count($rows);
 
@@ -64,6 +68,12 @@ class action_vnltable
         $rows = $t->filterRows($rows);
 
         $filtered = count($rows);
+
+        /* Toplu işlem filtrelerden SONRA çalışır: "filtreye uyan hepsi"
+           kullanıcının süzdüğü kümeyi kasteder. */
+        if ($t->op === VnlTableRequest::OP_BULK) {
+            $this->bulk($t, $rows);
+        }
 
         /* Grup listesi: filtrelenmiş kümenin özeti. Değer listesinin
            aksine burada TÜM filtreler geçerlidir. */
@@ -129,6 +139,87 @@ class action_vnltable
         /* Normalleştirilmiş değeri geri veriyoruz: kullanıcı "  1500 "
            yazdıysa hücrede kırpılmış hâlini görsün. */
         $t->respondSaved($value);
+    }
+
+    /**
+     * Satır altı detay.
+     *
+     * Yanıt HTML'dir; kaçış burada yapılır. Gerçek bir tabloda bu genelde
+     * bir view render'ıdır: render('parts/kayit-detay', ['kayit' => $kayit]).
+     */
+    private function detail(VnlTableRequest $t): void
+    {
+        $id  = (int)$t->rowKey;
+        $row = null;
+
+        foreach ($this->rows() as $candidate) {
+            if ($candidate['id'] === $id) {
+                $row = $candidate;
+                break;
+            }
+        }
+
+        if (!$row) {
+            $t->respondDetail('<em>Kayıt bulunamadı.</em>');
+        }
+
+        $e = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+
+        $t->respondDetail(
+            '<div class="row g-4">'
+            . '<div class="col-md-4"><div class="text-body-secondary fs-8">Kayıt</div>'
+            . '<div class="fw-bold fs-5">' . $e($row['ad']) . '</div></div>'
+            . '<div class="col-md-4"><div class="text-body-secondary fs-8">Konum</div>'
+            . '<div class="fw-semibold">' . $e($row['sehir']) . '</div></div>'
+            . '<div class="col-md-4"><div class="text-body-secondary fs-8">Durum</div>'
+            . '<div class="fw-semibold">' . $e($row['durum']) . '</div></div>'
+            . '<div class="col-12"><div class="text-body-secondary fs-8 mb-1">Hareketler</div>'
+            . '<table class="table table-sm mb-0"><tbody>'
+            . '<tr><td>Açılış</td><td class="text-end">' . $e(number_format($row['tutar'] * 0.4, 0, ',', '.')) . '</td></tr>'
+            . '<tr><td>Ek işlem</td><td class="text-end">' . $e(number_format($row['tutar'] * 0.6, 0, ',', '.')) . '</td></tr>'
+            . '<tr class="fw-bold"><td>Toplam</td><td class="text-end">' . $e(number_format($row['tutar'], 0, ',', '.')) . '</td></tr>'
+            . '</tbody></table></div>'
+            . '</div>'
+        );
+    }
+
+    /**
+     * Toplu işlem.
+     *
+     * $rows filtrelerden geçmiş kümedir; "hepsi" seçimi bunu kasteder.
+     * Gerçek bir tabloda: applyFilters() + applySelection() ile tek sorgu.
+     */
+    private function bulk(VnlTableRequest $t, array $rows): void
+    {
+        if (!$t->hasSelection()) {
+            throwErrorMessage('Hiçbir kayıt seçilmedi.');
+        }
+
+        $secili = array_values(array_filter($rows, fn($row) => $t->isSelected($row, 'id')));
+        $adet   = count($secili);
+
+        if (!$adet) {
+            throwErrorMessage('Seçim hiçbir kayda denk gelmedi.');
+        }
+
+        if ($t->action === 'onayla') {
+            $edits = Session::get(self::EDIT_KEY) ?: [];
+
+            foreach ($secili as $row) {
+                $edits[$row['id']]['durum'] = 'Onaylandı';
+            }
+
+            Session::set(self::EDIT_KEY, $edits);
+            $t->respondBulk($adet . ' kayıt onaylandı.');
+        }
+
+        if ($t->action === 'say') {
+            /* Listeyi değiştirmeyen işlem: reload=false, seçim korunur. */
+            $toplam = array_sum(array_column($secili, 'tutar'));
+            $t->respondBulk($adet . ' kayıt, toplam ' . number_format($toplam, 0, ',', '.') . '.', false);
+        }
+
+        throwErrorMessage('Bilinmeyen işlem: ' . $t->action);
     }
 
     /** Düz arama — yalnız metin sütunlarında. */

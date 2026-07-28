@@ -113,6 +113,15 @@
     "VNLTABLE_GROUP_DROP": "Drag a column header here to group",
     "VNLTABLE_EDIT_HINT": "Double-click to edit",
     "VNLTABLE_EDIT_SAVED": "Saved",
-    "VNLTABLE_EDIT_FAILED": "Could not save"
+    "VNLTABLE_EDIT_FAILED": "Could not save",
+    "VNLTABLE_DETAIL": "Show detail",
+    "VNLTABLE_DETAIL_FAILED": "Could not load the detail.",
+    "VNLTABLE_SELECT": "Select row",
+    "VNLTABLE_SELECT_ALL": "Select everything on this page",
+    "VNLTABLE_SELECTED": "_N_ selected",
+    "VNLTABLE_SELECTED_ALL": "All _N_ matching records selected",
+    "VNLTABLE_SELECT_MATCHING": "Select all _N_ matching records",
+    "VNLTABLE_SELECT_CLEAR": "Clear selection",
+    "VNLTABLE_BULK_FAILED": "The operation could not be completed."
   }
 ]

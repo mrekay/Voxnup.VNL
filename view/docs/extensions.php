@@ -15,14 +15,49 @@
                 </div>
                 <div class="card-body pt-2">
                     <p class="fs-5 text-body mb-6">
-                        VNL başlangıcında (<code>libs/config.php</code>) aşağıdaki glob çalışır ve bulunan tüm <code>boot.php</code> dosyaları sırayla yüklenir:
+                        VNL başlangıcında (<code>libs/config.php</code>) önce <b>manifest</b> okunur, sonra <code>extensions/*/boot.php</code> dosyaları taranır. Yalnızca manifest'te <code>true</code> olarak işaretlenmiş eklentiler yüklenir:
                     </p>
                     <div class="vnl-code mb-8">
                         <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// libs/config.php
+$_extManifest       = getDocumentRoot() . 'extensions/extensions.php';
+$_enabledExtensions = file_exists($_extManifest) ? (require $_extManifest) : [];
+
 foreach (glob(getDocumentRoot() . 'extensions/*/boot.php') as $_extBoot) {
-    require_once $_extBoot;
+    $_extName = basename(dirname($_extBoot));
+
+    if (isset($_enabledExtensions[$_extName]) && $_enabledExtensions[$_extName] === true) {
+        try {
+            require_once $_extBoot;
+        } catch (Throwable $_extErr) {
+            vnl_render_error($_extErr);      // eklenti hatası VNL hata sayfasına düşer
+        }
+    }
 }
 </code></pre>
+                    </div>
+
+                    <div class="alert alert-danger d-flex align-items-center p-5 mb-8">
+                        <i class="fa-solid fa-toggle-off fs-2hx text-danger me-4"></i>
+                        <div class="d-flex flex-column">
+                            <h5 class="mb-1 text-danger">Klasörü kopyalamak yetmez</h5>
+                            <span class="text-body">Bir eklenti <code>extensions/extensions.php</code> manifest'inde <code>true</code> olarak kayıtlı değilse <code>boot.php</code>'si <b>hiç yüklenmez</b>. Eklenti sessizce çalışmıyorsa ilk bakılacak yer burasıdır.</span>
+                        </div>
+                    </div>
+
+                    <div class="vnl-code mb-8">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>&lt;?php
+// extensions/extensions.php — anahtar, klasör adıyla birebir eşleşmelidir
+
+return [
+    'stripe'       => false,   // pasif: hiçbir şey yüklenmez
+    'my-extension' => true,    // aktif: boot.php yüklenir
+];
+</code></pre>
+                    </div>
+
+                    <div class="alert alert-warning d-flex align-items-center p-4 mb-8">
+                        <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
+                        <span class="text-body fs-6">Manifest yalnızca <code>boot.php</code> yüklemesini denetler. <b>Controller ve action fallback'i manifest'e bakmaz</b> — pasif bir eklentinin controller'ı yine de bulunabilir, ama <code>boot.php</code>'de tanımlanan sabitler ve sınıflar yüklü olmadığı için hata verir. Bir eklentiyi tamamen devre dışı bırakmak istiyorsanız klasörünü de kaldırın.</span>
                     </div>
 
                     <p class="fs-5 text-body mb-6">
@@ -57,8 +92,9 @@ foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_
                     <p class="fs-5 text-body mb-5">Her eklenti <code>extensions/{eklenti-adi}/</code> altında şu yapıyı takip eder:</p>
                     <div class="vnl-code mb-8">
                         <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>extensions/
+├── extensions.php          ← MANİFEST: hangi eklenti aktif? (core dosyası, eklentiye ait değil)
 └── my-extension/
-    ├── boot.php            ← Otomatik yüklenir. Autoloader, config, sınıf yükleme buraya.
+    ├── boot.php            ← Manifest'te true ise yüklenir. Autoloader, config, sınıf yükleme buraya.
     ├── config.php          ← Eklentiye özgü ayarlar (kullanıcı düzenler)
     ├── src/                ← PHP sınıfları (model, modül vb.)
     │   ├── MyModel.php
@@ -263,6 +299,13 @@ class MyModel extends TableModel
                             </div>
                         </div>
                         <div class="d-flex align-items-start">
+                            <span class="badge badge-circle badge-danger me-4 mt-1 fs-6 flex-shrink-0">5</span>
+                            <div>
+                                <div class="fw-bold text-body mb-1">Manifest'te etkinleştir <span class="badge badge-soft-danger ms-2">Atlanırsa çalışmaz</span></div>
+                                <div class="text-body-secondary fs-6"><code>extensions/extensions.php</code> dosyasına <code>'eklenti-adi' =&gt; true</code> satırını ekle. Anahtar, klasör adıyla birebir aynı olmalıdır.</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start">
                             <span class="badge badge-circle badge-success me-4 mt-1 fs-6 flex-shrink-0">✓</span>
                             <div>
                                 <div class="fw-bold text-body mb-1">Hazır</div>
@@ -281,8 +324,15 @@ class MyModel extends TableModel
                 </div>
                 <div class="card-body pt-2">
                     <p class="fs-5 text-body mb-5">
-                        Eklentiyi devre dışı bırakmak için <code>extensions/{eklenti-adi}/</code> klasörünü silmek veya yeniden adlandırmak yeterlidir. VNL core'una hiçbir şey yazılmadığından temizlik yapmaya gerek yoktur.
+                        Eklentiyi <b>geçici olarak</b> devre dışı bırakmak için manifest'teki değeri <code>false</code> yapmak yeterlidir — dosyalar yerinde kalır, hiçbir kod yüklenmez. <b>Tamamen kaldırmak</b> için ayrıca <code>extensions/{eklenti-adi}/</code> klasörünü silin; controller ve action fallback'i manifest'e bakmadığı için klasör dururken eklentinin sayfaları hâlâ bulunabilir.
                     </p>
+                    <div class="vnl-code mb-5">
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// extensions/extensions.php
+return [
+    'my-extension' => false,   // pasif — dosyalar durur, kod yüklenmez
+];
+</code></pre>
+                    </div>
                     <div class="alert alert-danger d-flex align-items-center p-5">
                         <i class="fa-solid fa-circle-info fs-2hx text-danger me-4"></i>
                         <div>Eklenti kaldırılmadan önce DB tablolarını ve Composer bağımlılıklarını manuel olarak temizlemeyi unutmayın.</div>

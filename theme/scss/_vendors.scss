@@ -37,16 +37,21 @@
 // form-control görünümüne oturtulur.
 .ss-main {
   --ss-primary-color: var(--bs-primary);
-  --ss-bg-color: var(--bs-body-bg);
+  --ss-bg-color: var(--vnl-input-bg);
   --ss-font-color: var(--bs-body-color);
   --ss-font-placeholder-color: var(--bs-secondary-color);
   --ss-disabled-color: var(--bs-secondary-bg);
-  --ss-border-color: var(--bs-border-color);
+  --ss-border-color: transparent; // form kontrolleriyle aynı dil: çizgi yalnız focus'ta
   --ss-highlight-color: rgba(var(--bs-primary-rgb), .18);
   --ss-success-color: var(--bs-success);
   --ss-error-color: var(--bs-danger);
   --ss-main-height: calc(1.5em + .75rem + calc(var(--bs-border-width) * 2));
   font-size: var(--bs-body-font-size);
+
+  // SlimSelect, orijinal select'in sınıflarını bu kutuya kopyalar; markup'ta
+  // form-select varsa Bootstrap'in chevron arka planı da gelir ve SlimSelect'in
+  // kendi okuyla İKİ ok görünürdü. BS chevron'u burada söndürülür.
+  background-image: none !important;
 }
 
 .ss-content {
