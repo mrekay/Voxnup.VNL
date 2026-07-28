@@ -60,7 +60,8 @@
             last:    'bi bi-chevron-double-right',
             columns: 'bi bi-layout-three-columns',
             clear:   'bi bi-x-circle',
-            excel:   'bi bi-file-earmark-spreadsheet'
+            excel:   'bi bi-file-earmark-spreadsheet',
+            search:  'bi bi-search'
         },
         fa: {
             probe:   'fa-solid fa-angle-left',
@@ -70,11 +71,12 @@
             last:    'fa-solid fa-angles-right',
             columns: 'fa-solid fa-table-columns',
             clear:   'fa-solid fa-circle-xmark',
-            excel:   'fa-solid fa-file-excel'
+            excel:   'fa-solid fa-file-excel',
+            search:  'fa-solid fa-magnifying-glass'
         },
         emoji: {
             first: '«', prev: '‹', next: '›', last: '»',
-            columns: '▦', clear: '✕', excel: '▤'
+            columns: '▦', clear: '✕', excel: '▤', search: '⌕'
         }
     };
 
@@ -116,15 +118,43 @@
         };
     })();
 
-    /** Yalnızca ikon taşıyan düğme; metin başlık ve erişilebilirlik etiketi olur. */
-    function iconButton(iconName, label, variant) {
+    /**
+     * Yalnızca ikon taşıyan düğme; metin tooltip ve erişilebilirlik etiketi olur.
+     *
+     * Tooltip temanın vnlTooltips() köprüsünden geçer. $legacy true ise
+     * data-toggle kullanılır: data-bs-toggle o elemanda başka bir işi
+     * (dropdown) tutuyorsa ikisi çakışmasın diye. Tema iki biçimi de tanır.
+     */
+    function iconButton(iconName, label, variant, legacyTooltip) {
         var b = el('button', 'btn btn-sm vnl-icon-btn ' + (variant || 'btn-outline-secondary'));
         b.type = 'button';
         b.appendChild(icon(iconName));
         b.title = label;
         b.setAttribute('aria-label', label);
+        b.setAttribute(legacyTooltip ? 'data-toggle' : 'data-bs-toggle', 'tooltip');
 
         return b;
+    }
+
+    /** Tema köprüsü yoksa tarayıcının kendi title balonu devrede kalır. */
+    function initTooltips(scope) {
+        if (typeof window.vnlTooltips === 'function') {
+            window.vnlTooltips(scope);
+        }
+    }
+
+    /**
+     * Kaldırılacak düğmelerin tooltip örneklerini serbest bırakır.
+     * Sayfalama her yüklemede yeniden kurulduğu için gerekli: aksi halde
+     * açık kalmış bir balon DOM'da öksüz kalıyor.
+     */
+    function disposeTooltips(scope) {
+        if (!window.bootstrap || !window.bootstrap.Tooltip) return;
+
+        scope.querySelectorAll('[data-bs-toggle="tooltip"],[data-toggle="tooltip"]').forEach(function (node) {
+            var instance = window.bootstrap.Tooltip.getInstance(node);
+            if (instance) instance.dispose();
+        });
     }
 
     /** İkonlu düğme içeriği: font varsa <i>, yoksa emoji karakteri. */
@@ -194,7 +224,13 @@
                 self.state.page = 1;
                 self.load();
             }, 300));
-            bar.appendChild(search);
+            /* İkon input'un içine değil üstüne konur; input'un solunda
+               yer açılır, ikon tıklamayı yutmasın diye pointer-events kapalı. */
+            var searchWrap = el('div', 'vnl-table-search-wrap');
+            searchWrap.appendChild(icon('search'));
+            searchWrap.appendChild(search);
+
+            bar.appendChild(searchWrap);
             this.searchInput = search;
         }
 
@@ -294,6 +330,7 @@
         this.table = table;
 
         this.paintSort();
+        initTooltips(this.root);
     };
 
     VnlTable.prototype.toggleSort = function (name) {
@@ -370,7 +407,8 @@
 
         var wrap = el('div', 'dropdown vnl-table-columns');
 
-        var btn = iconButton('columns', this.lang.columns || '', 'btn-outline-secondary');
+        /* data-bs-toggle dropdown'a ayrıldığı için tooltip eski biçimle bağlanır. */
+        var btn = iconButton('columns', this.lang.columns || '', 'btn-outline-secondary', true);
         btn.setAttribute('data-bs-toggle', 'dropdown');
         /* İçerideki tıklamalar menüyü kapatmasın: art arda birkaç sütun
            gizlerken menü açık kalmalı. */
@@ -580,6 +618,10 @@
 
     VnlTable.prototype.renderPager = function (pages) {
         var self = this;
+
+        /* Düğmeler her yüklemede yeniden kurulur; eskilerin tooltip
+           örnekleri önce serbest bırakılmalı. */
+        disposeTooltips(this.pager);
         this.pager.innerHTML = '';
 
         function button(label, page, disabled, active) {
@@ -590,13 +632,14 @@
             return b;
         }
 
-        /* Ok tuşları ikonla; metin başlık ve ekran okuyucu etiketi olarak kalır. */
+        /* Ok tuşları ikonla; metin tooltip ve ekran okuyucu etiketi olarak kalır. */
         function arrow(iconName, label, page, disabled) {
             var b = button('', page, disabled);
             b.classList.add('vnl-icon-btn');
             b.appendChild(icon(iconName));
             b.title = label;
             b.setAttribute('aria-label', label);
+            b.setAttribute('data-bs-toggle', 'tooltip');
             return b;
         }
 
@@ -615,6 +658,8 @@
 
         this.pager.appendChild(arrow('next', this.lang.next || '', page + 1, page >= pages));
         this.pager.appendChild(arrow('last', this.lang.last || '', pages, page >= pages));
+
+        initTooltips(this.pager);
     };
 
     VnlTable.prototype.exportExcel = function (button) {

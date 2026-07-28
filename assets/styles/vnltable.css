@@ -46,8 +46,23 @@
     border-bottom: 1px solid var(--vnl-table-border);
 }
 
+.vnl-table-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 0 1 260px;
+}
+
+.vnl-table-search-wrap .vnl-icon {
+    position: absolute;
+    left: .6rem;
+    color: var(--bs-secondary-color);
+    pointer-events: none;   /* tıklama input'a geçsin */
+}
+
 .vnl-table-search {
-    max-width: 260px;
+    width: 100%;
+    padding-left: 2rem;
 }
 
 .vnl-table-actions {
@@ -131,14 +146,18 @@
     line-height: 1;
 }
 
-.vnl-icon {
-    font-size: 1em;
+/* Anahat ikon fontları küçük boyda metnin yanında zayıf kalıyor:
+   biraz büyütülür ve konturla ağırlık kazandırılır. */
+i.vnl-icon {
+    font-size: .95rem;
     line-height: 1;
+    -webkit-text-stroke: .35px currentColor;
 }
 
 .vnl-icon-text {
     font-family: inherit;   /* emoji yedeği: metin olarak basılır */
     font-size: 1.05em;
+    line-height: 1;
 }
 
 /* Klavyeyle gezinme görünür olsun */
@@ -351,16 +370,18 @@
     color: var(--vnl-table-accent);
 }
 
-/* Arama ve sayfa boyu: çerçeve yerine hafif zemin. */
+/* Arama ve sayfa boyu: çerçeve yerine hafif zemin.
+   background KISAYOLU KULLANILMAZ — form-select okunu background-image
+   olarak taşıyor, kısayol onu siler ve açılır ok kaybolurdu. */
 .vnl-table.vnl-skin-modern .vnl-table-search,
 .vnl-table.vnl-skin-modern .vnl-table-size select {
     border-color: transparent;
-    background: var(--vnl-table-stripe-bg);
+    background-color: var(--vnl-table-stripe-bg);
 }
 
 .vnl-table.vnl-skin-modern .vnl-table-search:focus,
 .vnl-table.vnl-skin-modern .vnl-table-size select:focus {
-    background: transparent;
+    background-color: transparent;
     border-color: color-mix(in srgb, var(--vnl-table-accent) 45%, transparent);
     box-shadow: none;
 }
@@ -409,9 +430,8 @@
 /* ── Dar ekran ── */
 
 @media (max-width: 576px) {
-    .vnl-table-search {
-        max-width: none;
-        width: 100%;
+    .vnl-table-search-wrap {
+        flex: 1 1 100%;
     }
 
     .vnl-table-actions,
