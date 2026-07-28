@@ -124,6 +124,7 @@ class VnlTable
      *   search (bool)       düz arama kutusu
      *   excel (bool)        Excel çıktı düğmesi
      *   clear (bool)        filtre temizle düğmesi
+     *   columns (bool)      sütun göster/gizle menüsü; tercih tarayıcıda kalıcıdır
      *   order (array)       başlangıç sıralaması: [['col'=>'id','dir'=>'desc']]
      *   height (string)     gövde yüksekliği, örn '60vh'
      *   skin (string)       default | modern | compact — ya da kendi skin'iniz
@@ -153,6 +154,7 @@ class VnlTable
             'search'    => true,
             'excel'     => true,
             'clear'     => true,
+            'columns'   => true,
             'order'     => [],
             'height'    => null,
             'skin'      => 'default',
@@ -205,7 +207,8 @@ class VnlTable
      *   type     text | number | date | datetime | bool — hizalama ve sıralama
      *   render   text | html — html yalnızca gerçekten HTML dönen sütunlar için
      *   sortable sıralanabilir mi
-     *   visible  başlangıçta görünür mü
+     *   visible  tanımdan tamamen çıkarılır mı (istemciye hiç gitmez)
+     *   hideable kullanıcı sütun menüsünden gizleyebilir mi
      *   width    '120px' gibi
      *   align    left | center | right; verilmezse type'tan türetilir
      *   filter   (aşama 2) text | set | number | date
@@ -225,6 +228,7 @@ class VnlTable
             'render'   => ($column['render'] ?? 'text') === 'html' ? 'html' : 'text',
             'sortable' => (bool)($column['sortable'] ?? true),
             'visible'  => (bool)($column['visible'] ?? true),
+            'hideable' => (bool)($column['hideable'] ?? true),
             'width'    => $column['width'] ?? null,
             'align'    => $column['align'] ?? ($type === 'number' ? 'right' : ($type === 'bool' ? 'center' : 'left')),
             'filter'   => $column['filter'] ?? null,
@@ -255,6 +259,7 @@ class VnlTable
             'last'          => lang('VNLTABLE_LAST'),
             'clear'         => lang('VNLTABLE_CLEAR'),
             'excel'         => lang('VNLTABLE_EXCEL'),
+            'columns'       => lang('VNLTABLE_COLUMNS'),
             'sortAsc'       => lang('VNLTABLE_SORT_ASC'),
             'sortDesc'      => lang('VNLTABLE_SORT_DESC'),
         ];

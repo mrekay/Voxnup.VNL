@@ -72,6 +72,7 @@
     "VNLTABLE_ERROR": "Tablo verisi alınamadı.",
     "VNLTABLE_ALL": "Tümü",
     "VNLTABLE_SORT_ASC": "Artan sırala",
-    "VNLTABLE_SORT_DESC": "Azalan sırala"
+    "VNLTABLE_SORT_DESC": "Azalan sırala",
+    "VNLTABLE_COLUMNS": "Sütunlar"
   }
 ]

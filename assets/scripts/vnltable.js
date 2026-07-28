@@ -58,6 +58,12 @@
         this.lang    = config.lang || {};
         this.opt     = config.options || {};
 
+        /* Kullanıcının gizlediği sütunlar (name → true); tercih tarayıcıda
+           tablo kimliğiyle saklanır. visible:false'tan farkı: bunlar tanımda
+           durur ve sütun menüsünden geri açılabilir. */
+        this.hiddenCols = this.restoreHidden();
+        this.ths = {};
+
         this.state = {
             page:    1,
             size:    this.opt.pageSize || 25,
@@ -99,6 +105,10 @@
         }
 
         var actions = el('div', 'vnl-table-actions');
+
+        if (this.opt.columns !== false && this.columns.some(function (c) { return c.hideable !== false; })) {
+            actions.appendChild(this.buildColumnMenu());
+        }
 
         if (this.opt.clear !== false) {
             var clear = el('button', 'btn btn-sm btn-outline-secondary', this.lang.clear || '');
@@ -142,6 +152,8 @@
                 th.addEventListener('click', function () { self.toggleSort(col.name); });
             }
 
+            if (self.hiddenCols[col.name]) th.hidden = true;
+            self.ths[col.name] = th;
             headRow.appendChild(th);
         });
 
@@ -222,6 +234,120 @@
         });
     };
 
+    /* ---------------------------------------------------------------- */
+    /* Sütun göster/gizle                                                */
+    /* ---------------------------------------------------------------- */
+
+    VnlTable.prototype.storageKey = function () {
+        return 'vnltable-cols-' + this.config.id;
+    };
+
+    VnlTable.prototype.restoreHidden = function () {
+        var known = {};
+        this.columns.forEach(function (c) {
+            if (c.hideable !== false) known[c.name] = true;
+        });
+
+        var hidden = {};
+        try {
+            (JSON.parse(localStorage.getItem(this.storageKey()) || '[]')).forEach(function (name) {
+                /* Tanım değişmiş olabilir: yalnız hâlâ var olan ve
+                   gizlenebilir sütunlar geri yüklenir. */
+                if (known[name]) hidden[name] = true;
+            });
+        } catch (e) { /* bozuk kayıt yok sayılır */ }
+        return hidden;
+    };
+
+    VnlTable.prototype.persistHidden = function () {
+        var names = Object.keys(this.hiddenCols);
+        try {
+            if (names.length) localStorage.setItem(this.storageKey(), JSON.stringify(names));
+            else localStorage.removeItem(this.storageKey());
+        } catch (e) { /* localStorage kapalıysa tercih oturumluk kalır */ }
+    };
+
+    VnlTable.prototype.visibleCount = function () {
+        var self = this;
+        return this.columns.filter(function (c) { return !self.hiddenCols[c.name]; }).length;
+    };
+
+    /** Araç çubuğundaki sütun menüsü: her sütun için bir onay kutusu. */
+    VnlTable.prototype.buildColumnMenu = function () {
+        var self = this;
+
+        var wrap = el('div', 'dropdown vnl-table-columns');
+
+        var btn = el('button', 'btn btn-sm btn-outline-secondary', this.lang.columns || '');
+        btn.type = 'button';
+        btn.setAttribute('data-bs-toggle', 'dropdown');
+        /* İçerideki tıklamalar menüyü kapatmasın: art arda birkaç sütun
+           gizlerken menü açık kalmalı. */
+        btn.setAttribute('data-bs-auto-close', 'outside');
+        btn.setAttribute('aria-expanded', 'false');
+        wrap.appendChild(btn);
+
+        var menu = el('div', 'dropdown-menu dropdown-menu-end vnl-table-columns-menu');
+        this.checkboxes = {};
+
+        this.columns.forEach(function (col) {
+            if (col.hideable === false) return;
+
+            var item = el('label', 'dropdown-item d-flex align-items-center gap-2 mb-0');
+
+            var box = el('input', 'form-check-input m-0');
+            box.type = 'checkbox';
+            box.checked = !self.hiddenCols[col.name];
+            box.addEventListener('change', function () {
+                self.toggleColumn(col.name, box.checked);
+            });
+
+            item.appendChild(box);
+            item.appendChild(el('span', null, col.title));
+            menu.appendChild(item);
+            self.checkboxes[col.name] = box;
+        });
+
+        wrap.appendChild(menu);
+        this.refreshColumnMenu();
+
+        return wrap;
+    };
+
+    VnlTable.prototype.toggleColumn = function (name, visible) {
+        if (visible) delete this.hiddenCols[name];
+        else this.hiddenCols[name] = true;
+
+        this.persistHidden();
+        this.applyVisibility();
+        this.refreshColumnMenu();
+    };
+
+    /** Son görünür sütunun kutusu kilitlenir: tablo tamamen boşaltılamaz. */
+    VnlTable.prototype.refreshColumnMenu = function () {
+        var self = this;
+        if (!this.checkboxes) return;
+
+        var lastOne = this.visibleCount() === 1;
+        Object.keys(this.checkboxes).forEach(function (name) {
+            var box = self.checkboxes[name];
+            box.disabled = lastOne && !self.hiddenCols[name];
+        });
+    };
+
+    VnlTable.prototype.applyVisibility = function () {
+        var self = this;
+
+        this.columns.forEach(function (col) {
+            var th = self.ths[col.name];
+            if (th) th.hidden = !!self.hiddenCols[col.name];
+        });
+
+        /* Gövde eldeki veriyle yeniden basılır; sunucuya gidilmez. */
+        if (this.state.rows.length) this.renderRows();
+        else this.renderMessage(this.lang.empty || '');
+    };
+
     VnlTable.prototype.clear = function () {
         this.state.search = '';
         this.state.sort   = (this.opt.order || []).slice();
@@ -299,7 +425,7 @@
         this.tbody.innerHTML = '';
         var tr = el('tr');
         var td = el('td', 'vnl-table-message' + (isError ? ' vnl-table-error' : ''), text);
-        td.colSpan = this.columns.length;
+        td.colSpan = this.visibleCount();
         tr.appendChild(td);
         this.tbody.appendChild(tr);
     };
@@ -321,6 +447,8 @@
             }
 
             self.columns.forEach(function (col) {
+                if (self.hiddenCols[col.name]) return;
+
                 var td = el('td', 'vnl-align-' + col.align);
 
                 if (col.render === 'html') {

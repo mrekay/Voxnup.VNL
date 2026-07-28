@@ -201,7 +201,12 @@
                                 <tr>
                                     <td class="ps-5"><code>visible</code></td>
                                     <td><code>true</code></td>
-                                    <td>Başlangıçta görünür mü.</td>
+                                    <td><code>false</code> verilirse sütun tanımdan tamamen çıkar — istemciye hiç gitmez, menüde de görünmez.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>hideable</code></td>
+                                    <td><code>true</code></td>
+                                    <td>Kullanıcı sütunu araç çubuğundaki menüden gizleyebilir mi. Kimlik/işlem sütunları için <code>false</code> verin.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>width</code> / <code>align</code></td>
@@ -317,6 +322,7 @@
                                 <tr><td class="ps-5"><code>search</code></td><td><code>true</code></td><td>Düz arama kutusu.</td></tr>
                                 <tr><td class="ps-5"><code>excel</code></td><td><code>true</code></td><td>Excel çıktı düğmesi. Aktif aramayı uygular, görünen sayfayı değil.</td></tr>
                                 <tr><td class="ps-5"><code>clear</code></td><td><code>true</code></td><td>Filtreleri temizle düğmesi.</td></tr>
+                                <tr><td class="ps-5"><code>columns</code></td><td><code>true</code></td><td>Sütun göster/gizle menüsü. Tercih tarayıcıda tablo kimliğiyle kalıcıdır; sütun tanımında <code>'hideable' =&gt; false</code> verilen sütun menüde listelenmez. Excel çıktısı gizlemeden etkilenmez.</td></tr>
                                 <tr><td class="ps-5"><code>height</code></td><td>—</td><td>Gövde yüksekliği (<code>'420px'</code>); başlık yapışkan kalır.</td></tr>
                                 <tr><td class="ps-5"><code>skin</code></td><td><code>'default'</code></td><td><code>default</code> · <code>modern</code> · <code>compact</code>. Kendi skin'inizi <code>.vnl-skin-adiniz</code> sınıfıyla CSS'te tanımlayabilirsiniz.</td></tr>
                                 <tr><td class="ps-5"><code>striped</code></td><td><code>false</code></td><td>Satırları dönüşümlü renklendirir. Skin'den bağımsızdır; rengi seçili skin sağlar.</td></tr>

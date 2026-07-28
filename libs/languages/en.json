@@ -72,6 +72,7 @@
     "VNLTABLE_ERROR": "Could not load table data.",
     "VNLTABLE_ALL": "All",
     "VNLTABLE_SORT_ASC": "Sort ascending",
-    "VNLTABLE_SORT_DESC": "Sort descending"
+    "VNLTABLE_SORT_DESC": "Sort descending",
+    "VNLTABLE_COLUMNS": "Columns"
   }
 ]
