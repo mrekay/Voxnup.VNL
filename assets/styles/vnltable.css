@@ -333,16 +333,66 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Grup içindeki satırlar bir tık içeride başlar. */
-.vnl-group-member > td:first-child {
-    padding-left: calc(var(--vnl-table-cell-x) + 1.2rem);
+/* Girinti seviyeye göre: her satır kendi derinliğini --vnl-depth ile
+   taşır, hiyerarşi tek bakışta okunur. */
+.vnl-group-inner,
+.vnl-group-member > td:first-child,
+.vnl-group-note > td {
+    padding-left: calc(var(--vnl-table-cell-x) + var(--vnl-depth, 0) * 1.1rem);
 }
 
 .vnl-group-note > td {
-    padding: .25rem var(--vnl-table-cell-x);
-    text-align: center;
+    padding-top: .25rem;
+    padding-bottom: .25rem;
     color: var(--bs-secondary-color);
     font-size: .8125rem;
+}
+
+/* Alt seviyeler biraz daha sönük: üsttekiler baskın kalsın. */
+.vnl-group-row[style*="--vnl-depth: 1"] > td,
+.vnl-group-row[style*="--vnl-depth: 2"] > td,
+.vnl-group-row[style*="--vnl-depth: 3"] > td {
+    background: color-mix(in srgb, var(--vnl-table-head-bg) 55%, var(--vnl-surface, var(--bs-body-bg)));
+}
+
+/* Çok seviyede hangi sütunun grubu olduğu yazılır. */
+.vnl-group-col {
+    color: var(--bs-secondary-color);
+    font-size: .75rem;
+}
+
+.vnl-group-col::after {
+    content: ":";
+}
+
+/* Bırakma alanındaki seviye numarası */
+.vnl-group-chip-level {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.1em;
+    height: 1.1em;
+    margin-right: .1rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, currentColor 20%, transparent);
+    font-size: .6875rem;
+    font-weight: 700;
+}
+
+.vnl-group-menu-level {
+    margin-left: auto;
+    color: var(--vnl-bench, var(--vnl-table-accent));
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+.vnl-group-menu-clear {
+    margin-top: .25rem;
+    border-top: 1px solid var(--vnl-table-border);
+    border-radius: 0;
+    padding-top: .45rem;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
 }
 
 .vnl-table-group-menu {

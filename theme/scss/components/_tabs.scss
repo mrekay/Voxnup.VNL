@@ -27,6 +27,51 @@
   }
 }
 
+// ---- Pills cilası ----------------------------------------------------------
+.nav-pills {
+  .nav-link {
+    color: var(--bs-secondary-color);
+    font-weight: 500;
+
+    &:hover:not(.active) {
+      color: var(--bs-body-color);
+      background: var(--bs-tertiary-bg);
+    }
+  }
+}
+
+// ---- Dikey sekmeler --------------------------------------------------------
+// <ul class="nav vnl-tabs-vertical"> — ayar sayfaları için sol menü hissi:
+// aktif öğe sol emerald rail + soft zemin alır (sidebar diliyle akraba).
+.vnl-tabs-vertical {
+  flex-direction: column;
+  gap: 2px;
+  min-width: 200px;
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    width: 100%;
+    padding: .55rem .9rem;
+    border-radius: var(--bs-border-radius);
+    color: var(--bs-secondary-color);
+    font-weight: 500;
+    text-align: left;
+
+    &:hover:not(.active) {
+      color: var(--bs-body-color);
+      background: var(--bs-tertiary-bg);
+    }
+
+    &.active {
+      color: var(--bs-primary-text-emphasis);
+      background: var(--bs-primary-bg-subtle);
+      box-shadow: inset 2px 0 0 var(--bs-primary);
+    }
+  }
+}
+
 // ---- Segmented (kapsül) sekmeler -------------------------------------------
 // <ul class="nav vnl-tabs-solid"> — data-bs-toggle="tab" ile çalışır.
 .vnl-tabs-solid {

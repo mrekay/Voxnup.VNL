@@ -220,6 +220,37 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
                             </div>
                         </div>
 
+                        <div class="row g-8 mb-6">
+                            <div class="col-lg-6">
+                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.vnl-tabs-vertical (ayar sayfaları)</div>
+                                <div class="d-flex gap-6">
+                                    <ul class="nav vnl-tabs-vertical" role="tablist">
+                                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vnl_tab_v1" type="button" role="tab"><i class="bi bi-person"></i>Profil</button></li>
+                                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_v2" type="button" role="tab"><i class="bi bi-shield-lock"></i>Güvenlik</button></li>
+                                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_v3" type="button" role="tab"><i class="bi bi-bell"></i>Bildirimler</button></li>
+                                    </ul>
+                                    <div class="tab-content text-body-secondary flex-grow-1">
+                                        <div class="tab-pane fade show active" id="vnl_tab_v1" role="tabpanel">Aktif öğe sol emerald rail + soft zemin alır — sidebar diliyle akraba.</div>
+                                        <div class="tab-pane fade" id="vnl_tab_v2" role="tabpanel">Dikey liste, ayar sayfalarının sol menüsü olarak tasarlandı.</div>
+                                        <div class="tab-pane fade" id="vnl_tab_v3" role="tabpanel">Üçüncü panel içeriği.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="fs-8 text-uppercase text-body-secondary fw-bold mb-3">.nav-pills + rozet/ikon kompozisyonları</div>
+                                <ul class="nav nav-pills gap-1 mb-4" role="tablist">
+                                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#vnl_tab_p1" type="button" role="tab">Gelen Kutusu <span class="badge badge-soft-primary ms-1">12</span></button></li>
+                                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_p2" type="button" role="tab"><i class="bi bi-send me-1"></i>Giden</button></li>
+                                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vnl_tab_p3" type="button" role="tab">Arşiv</button></li>
+                                </ul>
+                                <div class="tab-content text-body-secondary">
+                                    <div class="tab-pane fade show active" id="vnl_tab_p1" role="tabpanel">Pills dolu emerald aktifle gelir; rozet ve ikon serbestçe eklenir.</div>
+                                    <div class="tab-pane fade" id="vnl_tab_p2" role="tabpanel">İkonlu sekme örneği.</div>
+                                    <div class="tab-pane fade" id="vnl_tab_p3" role="tabpanel">Üçüncü panel içeriği.</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="vnl-code"><pre><code>&lt;!-- Ayrık kart accordion --&gt;
 &lt;div class="accordion vnl-accordion" id="sss"&gt;…&lt;/div&gt;
 
@@ -227,7 +258,13 @@ vnlLightbox(src, caption);              // tam ekran görsel; &lt;img class="mod
 &lt;ul class="nav nav-underline" role="tablist"&gt;…&lt;/ul&gt;
 
 &lt;!-- Segmented sekme --&gt;
-&lt;ul class="nav vnl-tabs-solid" role="tablist"&gt;…&lt;/ul&gt;</code></pre></div>
+&lt;ul class="nav vnl-tabs-solid" role="tablist"&gt;…&lt;/ul&gt;
+
+&lt;!-- Dikey sekmeler (ayar sayfaları) --&gt;
+&lt;ul class="nav vnl-tabs-vertical" role="tablist"&gt;…&lt;/ul&gt;
+
+&lt;!-- Pills: dolu emerald aktif; ikon ve rozet serbest --&gt;
+&lt;ul class="nav nav-pills" role="tablist"&gt;…&lt;/ul&gt;</code></pre></div>
                     </div>
 
                     <div class="separator separator-dashed my-8"></div>

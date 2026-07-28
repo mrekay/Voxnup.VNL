@@ -401,12 +401,14 @@ class VnlTable
     /**
      * Satır gruplaması — yalnız workbench'te.
      *
-     *   'group' => true                        menü açılır, başlangıçta grup yok
-     *   'group' => 'sehir'                     başlangıçta bu sütuna göre grupla
-     *   'group' => ['by' => 'sehir',           tam denetim
+     *   'group' => true                        menü ve bırakma alanı açılır
+     *   'group' => 'sehir'                     tek seviye
+     *   'group' => ['sehir', 'durum']          iç içe iki seviye
+     *   'group' => ['by' => ['sehir','durum'], tam denetim
      *               'mode' => 'auto',
      *               'limit' => 5000,
-     *               'menu' => true]
+     *               'menu' => true,
+     *               'zone' => true]
      *
      * mode neyin nerede yapılacağını söyler:
      *   client — bütün satırlar tek seferde çekilir, gruplama tarayıcıda.
@@ -422,7 +424,11 @@ class VnlTable
             return null;
         }
 
+        /* 'sehir' ve ['sehir', 'durum'] kısa yazımları. İlişkisel dizi
+           (by/mode/limit…) tam tanım sayılır; düz liste ise seviyelerdir. */
         if (is_string($spec)) {
+            $spec = ['by' => [$spec]];
+        } elseif (is_array($spec) && $spec !== [] && array_is_list($spec)) {
             $spec = ['by' => $spec];
         } elseif (!is_array($spec)) {
             $spec = [];
@@ -436,10 +442,18 @@ class VnlTable
             );
         }
 
-        $by = (string)($spec['by'] ?? '');
+        $by = $spec['by'] ?? [];
 
-        if ($by !== '' && !$this->hasColumn($by)) {
-            throwErrorMessage('VnlTable "' . $this->id . '": gruplanacak sütun "' . $by . '" tanımlı değil.');
+        if (is_string($by)) {
+            $by = ($by === '') ? [] : [$by];
+        }
+
+        $by = is_array($by) ? array_values(array_unique(array_map('strval', $by))) : [];
+
+        foreach ($by as $name) {
+            if (!$this->hasColumn($name)) {
+                throwErrorMessage('VnlTable "' . $this->id . '": gruplanacak sütun "' . $name . '" tanımlı değil.');
+            }
         }
 
         return [

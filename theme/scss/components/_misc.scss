@@ -122,6 +122,35 @@ h1, h2, h3, .h1, .h2, .h3 {
   flex-shrink: 0;
 }
 
+// Zaman çizelgesi / adım listesi (Metronic timeline sözleşmesi korunur):
+//   .timeline-item > .timeline-line.w-40px + .timeline-icon.symbol + .timeline-content
+// Çizgi, ikon sütununun (w-*px) ortasından geçer; ikon çizgiyi örter.
+.timeline-item {
+  position: relative;
+  display: flex;
+}
+
+.timeline-line {
+  display: block;
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  transform: translateX(50%);
+  border-left: 1px dashed var(--bs-border-color);
+}
+
+.timeline-icon {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.timeline-content {
+  flex-grow: 1;
+  min-width: 0;
+}
+
 // Hata sayfası kodu (401/404) — tipografik, görsel bağımlılığı yok
 .vnl-error-code {
   font-family: var(--bs-font-monospace);

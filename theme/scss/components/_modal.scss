@@ -1,0 +1,59 @@
+// ============================================================
+// VNL Theme — modal ekleri
+// Base modal cilası _tokens'tadır (yüzey + gölge, çizgisiz içerik).
+// Burada VNL'e özgü şekiller yaşar.
+// ============================================================
+
+// Başlık/altbilgi çizgisizdir — derinliği boşluk anlatır (tema dili)
+.modal-header {
+  padding-bottom: .5rem;
+}
+
+.modal-footer {
+  padding-top: .5rem;
+}
+
+// ---- Sağdan kayan panel (sheet) --------------------------------------------
+// <div class="modal fade vnl-modal-sheet"> — kayıt inceleme/düzenleme
+// panelleri için: tam boy sağ panel, sağdan kayarak açılır.
+// Genişlik --vnl-sheet-width ile, .vnl-modal-sheet-lg ile 680px.
+.vnl-modal-sheet {
+  --vnl-sheet-width: 480px;
+
+  .modal-dialog {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    width: min(var(--vnl-sheet-width), 100vw);
+    max-width: none;
+    display: flex;
+  }
+
+  .modal-content {
+    height: 100%;
+    border-radius: var(--bs-border-radius-lg) 0 0 var(--bs-border-radius-lg);
+  }
+
+  .modal-body {
+    overflow-y: auto;
+  }
+
+  &.fade .modal-dialog {
+    transform: translateX(100%);
+    transition: transform .25s ease;
+  }
+
+  &.show .modal-dialog {
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &.fade .modal-dialog { transition: none; }
+  }
+}
+
+.vnl-modal-sheet-lg {
+  --vnl-sheet-width: 680px;
+}

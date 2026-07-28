@@ -244,18 +244,22 @@
             sort:    (this.opt.order || []).slice(),
             search:  '',
             filters: {},
-            groupBy: (this.opt.group && this.opt.group.by) || '',
+            groupBy: ((this.opt.group && this.opt.group.by) || []).slice(),
             total:   0,
             filtered: 0,
             rows:    [],
             loading: false
         };
 
-        /* Gruplama durumu. groups sunucudan gelen özet listesi, bucket ise
-           her grubun yüklenmiş satırları — client stratejisinde tek seferde
-           dolar, server'da grup açıldıkça. */
-        this.groups   = [];
+        /* Gruplama durumu.
+             nodes    yol -> o seviyenin gruplari (server stratejisi)
+             buckets  yol -> yaprak grubun yuklenmis satirlari
+             allRows  client stratejisinde butun satirlar; doluysa her
+                      seviye ve her toplam tarayicida hesaplanir
+             expanded acik yollar */
+        this.nodes    = {};
         this.buckets  = {};
+        this.allRows  = null;
         this.expanded = {};
 
         /* Adresteki durum build()'den ÖNCE okunur: arama kutusu ve sayfa
@@ -702,7 +706,7 @@
         });
 
         /* Gövde eldeki veriyle yeniden basılır; sunucuya gidilmez. */
-        if (this.state.groupBy) this.renderGroups();
+        if (this.state.groupBy.length) this.renderGroups();
         else if (this.state.rows.length) this.renderRows();
         else this.renderMessage(this.lang.empty || '');
 
@@ -1299,23 +1303,52 @@
     };
 
     /* ---------------------------------------------------------------- */
-    /* Satır gruplama (workbench)                                        */
+    /* Satir gruplama (workbench)                                        */
     /* ---------------------------------------------------------------- */
 
     /**
-     * Başlığın sürüklenip bırakıldığı alan.
+     * Gruplama birden cok seviyeli olabilir: Sehir -> Durum gibi.
      *
-     * Gruplama açıkken seçili sütunu bir rozet olarak gösterir; boşken
-     * ne yapılacağını söyleyen kesik çizgili bir şerittir.
+     * Bir dugumun YOLU, ust seviyelerdeki anahtarlarin dizisidir
+     * (['Ankara', 'Onaylandi']). Yol sunucuya ayri bir alan olarak gitmez;
+     * siradan filtreye cevrilir. Boylece sunucunun gruplama icin ayri bir
+     * yol tutmasi gerekmez: her seviye tek sutunluk bir op = group istegi.
+     */
+    VnlTable.prototype.pathKey = function (path) {
+        return path.join('\u0000');
+    };
+
+    /** Yolu filtreye cevirir: her seviye kendi sutununda tek degerlik kume. */
+    VnlTable.prototype.pathFilters = function (path) {
+        var self    = this;
+        var filters = {};
+
+        Object.keys(this.state.filters).forEach(function (k) { filters[k] = self.state.filters[k]; });
+
+        path.forEach(function (value, i) {
+            filters[self.state.groupBy[i]] = { kind: 'text', set: [value] };
+        });
+
+        return filters;
+    };
+
+    /* ---- Birakma alani ---- */
+
+    /**
+     * Basligin suruklenip birakildigi alan.
+     *
+     * Seviyeleri sirayla rozet olarak gosterir; yeni bir baslik birakmak
+     * sona bir seviye ekler. Bosken ne yapilacagini soyleyen kesik cizgili
+     * bir serittir.
      */
     VnlTable.prototype.buildDropZone = function () {
         var self = this;
         var zone = el('div', 'vnl-group-zone');
 
         zone.addEventListener('dragover', function (e) {
-            /* preventDefault olmadan tarayıcı bırakmaya izin vermez. */
+            /* preventDefault olmadan tarayici birakmaya izin vermez. */
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
+            e.dataTransfer.dropEffect = 'copy';
             zone.classList.add('vnl-group-zone-over');
         });
 
@@ -1328,7 +1361,7 @@
             zone.classList.remove('vnl-group-zone-over');
 
             var name = e.dataTransfer.getData('text/vnl-column');
-            if (name) self.setGroup(name);
+            if (name) self.addGroup(name);
         });
 
         this.dropZone = zone;
@@ -1342,33 +1375,35 @@
         if (!zone) return;
 
         zone.innerHTML = '';
+        zone.classList.toggle('vnl-group-zone-on', this.state.groupBy.length > 0);
 
-        var col = this.state.groupBy && this.columns.filter(function (c) {
-            return c.name === self.state.groupBy;
-        })[0];
-
-        if (!col) {
-            zone.classList.remove('vnl-group-zone-on');
+        if (!this.state.groupBy.length) {
             zone.appendChild(el('span', 'vnl-group-zone-hint', this.lang.groupDrop || ''));
 
             return;
         }
 
-        zone.classList.add('vnl-group-zone-on');
+        this.state.groupBy.forEach(function (name, i) {
+            var col = self.column(name);
+            if (!col) return;
 
-        var chip = el('span', 'vnl-chip');
-        chip.appendChild(el('span', 'vnl-chip-text', (this.lang.group || '') + ': ' + col.title));
+            /* Seviye numarasi sirayi gosterir: Sehir -> Durum ile
+               Durum -> Sehir bambaska iki agac. */
+            var chip = el('span', 'vnl-chip vnl-group-chip');
+            chip.appendChild(el('span', 'vnl-group-chip-level', i + 1));
+            chip.appendChild(el('span', 'vnl-chip-text', col.title));
 
-        var x = el('button', 'vnl-chip-x', '×');
-        x.type = 'button';
-        x.setAttribute('aria-label', (this.lang.groupNone || ''));
-        x.addEventListener('click', function () { self.setGroup(''); });
+            var x = el('button', 'vnl-chip-x', '\u00d7');
+            x.type = 'button';
+            x.setAttribute('aria-label', col.title);
+            x.addEventListener('click', function () { self.removeGroup(name); });
 
-        chip.appendChild(x);
-        zone.appendChild(chip);
+            chip.appendChild(x);
+            zone.appendChild(chip);
+        });
     };
 
-    /** Başlık yazısını sürüklenebilir yapar. */
+    /** Baslik yazisini suruklenebilir yapar. */
     VnlTable.prototype.makeDraggable = function (label, col) {
         var self = this;
 
@@ -1379,20 +1414,22 @@
             self.dragging = true;
             self.root.classList.add('vnl-dragging');
 
-            /* Firefox setData olmadan sürüklemeyi hiç başlatmıyor. */
+            /* Firefox setData olmadan suruklemeyi hic baslatmiyor. */
             e.dataTransfer.setData('text/vnl-column', col.name);
             e.dataTransfer.setData('text/plain', col.title);
-            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.effectAllowed = 'copy';
         });
 
         label.addEventListener('dragend', function () {
             self.root.classList.remove('vnl-dragging');
 
-            /* Bayrak bir tur sonra düşer: dragend'den sonra gelen click
-               sıralamayı tetiklemesin. */
+            /* Bayrak bir tur sonra duser: dragend'den sonra gelen click
+               siralamayi tetiklemesin. */
             setTimeout(function () { self.dragging = false; }, 0);
         });
     };
+
+    /* ---- Menu ---- */
 
     VnlTable.prototype.buildGroupMenu = function () {
         var self = this;
@@ -1400,27 +1437,40 @@
 
         var btn = iconButton('group', this.lang.group || '', 'btn-outline-secondary', true);
         btn.setAttribute('data-bs-toggle', 'dropdown');
+        /* Art arda birkac seviye eklerken menu acik kalsin. */
+        btn.setAttribute('data-bs-auto-close', 'outside');
         btn.setAttribute('aria-expanded', 'false');
         wrap.appendChild(btn);
 
         var menu = el('div', 'dropdown-menu dropdown-menu-end vnl-table-group-menu');
         this.groupItems = {};
 
-        var none = el('button', 'dropdown-item', this.lang.groupNone || '');
-        none.type = 'button';
-        none.addEventListener('click', function () { self.setGroup(''); });
-        menu.appendChild(none);
-        this.groupItems[''] = none;
-
         this.columns.forEach(function (col) {
             if (col.groupable === false) return;
 
-            var item = el('button', 'dropdown-item', col.title);
-            item.type = 'button';
-            item.addEventListener('click', function () { self.setGroup(col.name); });
+            var item = el('label', 'dropdown-item d-flex align-items-center gap-2 mb-0');
+
+            var box = el('input', 'form-check-input m-0');
+            box.type = 'checkbox';
+            box.addEventListener('change', function () {
+                if (box.checked) self.addGroup(col.name);
+                else self.removeGroup(col.name);
+            });
+
+            var level = el('span', 'vnl-group-menu-level');
+
+            item.appendChild(box);
+            item.appendChild(el('span', null, col.title));
+            item.appendChild(level);
             menu.appendChild(item);
-            self.groupItems[col.name] = item;
+
+            self.groupItems[col.name] = { box: box, level: level };
         });
+
+        var none = el('button', 'dropdown-item vnl-group-menu-clear', this.lang.groupNone || '');
+        none.type = 'button';
+        none.addEventListener('click', function () { self.setGroups([]); });
+        menu.appendChild(none);
 
         wrap.appendChild(menu);
         this.groupBtn = btn;
@@ -1431,23 +1481,38 @@
 
     VnlTable.prototype.paintGroupMenu = function () {
         var self = this;
-        if (!this.groupItems) return;
 
-        Object.keys(this.groupItems).forEach(function (name) {
-            self.groupItems[name].classList.toggle('active', name === self.state.groupBy);
-        });
+        if (this.groupItems) {
+            Object.keys(this.groupItems).forEach(function (name) {
+                var at   = self.state.groupBy.indexOf(name);
+                var item = self.groupItems[name];
 
-        if (this.groupBtn) this.groupBtn.classList.toggle('vnl-group-on', !!this.state.groupBy);
+                item.box.checked = at !== -1;
+                item.level.textContent = at === -1 ? '' : (at + 1);
+            });
+        }
+
+        if (this.groupBtn) this.groupBtn.classList.toggle('vnl-group-on', this.state.groupBy.length > 0);
 
         this.paintDropZone();
     };
 
-    VnlTable.prototype.setGroup = function (name) {
-        if (name === this.state.groupBy) return;
+    VnlTable.prototype.addGroup = function (name) {
+        if (this.state.groupBy.indexOf(name) !== -1) return;
 
-        this.state.groupBy = name;
+        this.setGroups(this.state.groupBy.concat([name]));
+    };
+
+    VnlTable.prototype.removeGroup = function (name) {
+        this.setGroups(this.state.groupBy.filter(function (n) { return n !== name; }));
+    };
+
+    VnlTable.prototype.setGroups = function (names) {
+        if (names.join(',') === this.state.groupBy.join(',')) return;
+
+        this.state.groupBy = names;
         this.state.page    = 1;
-        this.groups        = [];
+        this.nodes         = {};
         this.buckets       = {};
         this.expanded      = {};
 
@@ -1455,15 +1520,17 @@
         this.load();
     };
 
+    /* ---- Yukleme ---- */
+
     /**
-     * Satırların nereden geleceği.
+     * Satirlarin nereden gelecegi.
      *
-     * Grup LİSTESİ her zaman sunucudan gelir (op = group): büyük tabloda
-     * doğru olan tek yol bu ve grup başına alt toplamlar da orada hesaplanır.
-     * Strateji yalnız SATIRLARIN nasıl çekileceğini belirler:
-     *   client — tek istekle hepsi iner, grup açmak anında olur
-     *   server — her grup açıldığında o gruba ait istek atılır
-     *   auto   — kayıt sayısı limit'in altındaysa client
+     *   client - hepsi tek istekle iner, butun seviyeler tarayicida
+     *            hesaplanir; acmak kapamak aninda olur.
+     *   server - her seviye ve her yaprak ayri istekle gelir.
+     *   auto   - kayit sayisi limit'in altindaysa client. Sayi henuz
+     *            bilinmiyorsa client denenir; gelen yanit tavana
+     *            dayandiysa server'a dusulur.
      */
     VnlTable.prototype.groupStrategy = function () {
         var group = this.opt.group || {};
@@ -1479,27 +1546,22 @@
         var self = this;
 
         this.setBusy(true);
-        if (!this.groups.length) this.renderMessage('');
+        if (!this.tbody.querySelector('.vnl-group-row')) this.renderMessage('');
 
-        this.post(this.config.url, this.payload('group', { by: this.state.groupBy }))
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                self.groups  = data.groups || [];
-                self.buckets = {};
+        this.nodes   = {};
+        this.buckets = {};
+        this.allRows = null;
 
-                /* Kayıt sayısı grup sayılarının toplamı; auto stratejisi
-                   kararını buna göre verir. */
-                self.state.filtered = self.groups.reduce(function (sum, g) { return sum + (g.n || 0); }, 0);
-                if (!self.state.total) self.state.total = self.state.filtered;
+        if (this.groupStrategy() === 'client') {
+            this.loadAllRows().catch(function (err) { self.failed(err, 'group'); });
 
-                if (self.groupStrategy() === 'client') return self.loadAllRows();
+            return;
+        }
 
-                self.finishGroups();
-            })
-            .catch(function (err) { self.failed(err, 'group'); });
+        this.loadNode([], true);
     };
 
-    /** client stratejisi: bütün satırlar tek seferde inip gruplara dağılır. */
+    /** client stratejisi: butun satirlar tek seferde iner. */
     VnlTable.prototype.loadAllRows = function () {
         var self  = this;
         var limit = (this.opt.group || {}).limit || 5000;
@@ -1507,12 +1569,59 @@
         return this.post(this.config.url, this.payload('list', { page: 1, size: limit }))
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                (data.rows || []).forEach(function (row) {
-                    var key = asText(row[self.state.groupBy]);
-                    (self.buckets[key] = self.buckets[key] || { rows: [], done: true }).rows.push(row);
-                });
+                self.state.filtered = data.filtered || 0;
+                if (!self.state.total) self.state.total = data.total || self.state.filtered;
 
+                /* Yanit tavana dayandiysa elimizdeki kume eksik: butun
+                   seviyeleri buradan hesaplamak yanlis sayilar uretirdi. */
+                if (self.state.filtered > limit) {
+                    self.allRows = null;
+                    self.loadNode([], true);
+
+                    return;
+                }
+
+                self.allRows = data.rows || [];
                 self.finishGroups();
+            });
+    };
+
+    /** server stratejisi: bir seviyenin gruplari. */
+    VnlTable.prototype.loadNode = function (path, first) {
+        var self = this;
+        var key  = this.pathKey(path);
+        var node = this.nodes[key] = this.nodes[key] || { groups: null, loading: false };
+
+        if (node.loading || node.groups) return;
+        node.loading = true;
+
+        this.post(this.config.url, this.payload('group', {
+            by:      this.state.groupBy[path.length],
+            filters: this.pathFilters(path)
+        }))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                node.loading = false;
+                node.groups  = data.groups || [];
+
+                if (first) {
+                    self.state.filtered = node.groups.reduce(function (sum, g) { return sum + (g.n || 0); }, 0);
+                    if (!self.state.total) self.state.total = self.state.filtered;
+                    self.finishGroups();
+
+                    return;
+                }
+
+                self.renderGroups();
+            })
+            .catch(function (err) {
+                node.loading = false;
+                node.groups  = [];
+
+                if (first) return self.failed(err, 'group');
+
+                console.error('[VNL Table] ' + self.config.id + ' group:', err);
+                self.renderGroups();
             });
     };
 
@@ -1524,45 +1633,109 @@
         this.renderFooter();
     };
 
-    VnlTable.prototype.renderGroups = function () {
+    /* ---- Yerel hesap (client stratejisi) ---- */
+
+    /** Yolun altina dusen satirlar. */
+    VnlTable.prototype.rowsAt = function (path) {
         var self = this;
 
-        if (!this.groups.length) {
+        return (this.allRows || []).filter(function (row) {
+            return path.every(function (value, i) {
+                return asText(row[self.state.groupBy[i]]) === value;
+            });
+        });
+    };
+
+    /** Yolun altindaki bir seviyenin gruplari - tamamen tarayicida. */
+    VnlTable.prototype.localGroups = function (path) {
+        var self    = this;
+        var column  = this.state.groupBy[path.length];
+        var buckets = {};
+
+        this.rowsAt(path).forEach(function (row) {
+            var key = asText(row[column]);
+            (buckets[key] = buckets[key] || []).push(row);
+        });
+
+        return Object.keys(buckets).sort(function (a, b) {
+            return trLower(a).localeCompare(trLower(b), 'tr', { numeric: true });
+        }).map(function (key) {
+            return { k: key, n: buckets[key].length, totals: self.localTotals(buckets[key]) };
+        });
+    };
+
+    /** Sunucudaki VnlTableRequest::totals ile ayni kurallar. */
+    VnlTable.prototype.localTotals = function (rows) {
+        var totals = {};
+
+        (this.aggCols || []).forEach(function (col) {
+            var values = [];
+
+            rows.forEach(function (row) {
+                var cell = row[col.name];
+
+                if (col.agg === 'count') {
+                    if (asText(cell) !== '') values.push(1);
+                } else if (cell !== null && cell !== '' && isFinite(cell)) {
+                    values.push(parseFloat(cell));
+                }
+            });
+
+            if (!values.length) {
+                totals[col.name] = null;
+
+                return;
+            }
+
+            var sum = values.reduce(function (a, b) { return a + b; }, 0);
+
+            switch (col.agg) {
+                case 'sum':   totals[col.name] = sum; break;
+                case 'count': totals[col.name] = values.length; break;
+                case 'min':   totals[col.name] = Math.min.apply(null, values); break;
+                case 'max':   totals[col.name] = Math.max.apply(null, values); break;
+                case 'avg':   totals[col.name] = Math.round((sum / values.length) * 100) / 100; break;
+            }
+        });
+
+        return totals;
+    };
+
+    /**
+     * Bir yolun altindaki gruplar. Henuz gelmemisse null doner ve sunucu
+     * stratejisinde yukleme baslatilir.
+     */
+    VnlTable.prototype.groupsAt = function (path) {
+        if (this.allRows) return this.localGroups(path);
+
+        var node = this.nodes[this.pathKey(path)];
+
+        if (!node) {
+            this.loadNode(path);
+
+            return null;
+        }
+
+        return node.groups;
+    };
+
+    /* ---- Cizim ---- */
+
+    VnlTable.prototype.renderGroups = function () {
+        var self   = this;
+        var groups = this.groupsAt([]) || [];
+
+        if (!groups.length) {
             this.renderMessage(this.lang.empty || '');
+
             return;
         }
 
         var frag  = document.createDocumentFragment();
         var start = (this.state.page - 1) * this.state.size;
-        var page  = this.groups.slice(start, start + this.state.size);
 
-        page.forEach(function (group) {
-            frag.appendChild(self.buildGroupRow(group));
-
-            if (!self.expanded[group.k]) return;
-
-            var bucket = self.buckets[group.k];
-
-            if (!bucket) {
-                frag.appendChild(self.spanRow(self.lang.loading || '', 'vnl-group-note'));
-                return;
-            }
-
-            bucket.rows.forEach(function (row) {
-                var tr = self.buildRow(row);
-                tr.classList.add('vnl-group-member');
-                frag.appendChild(tr);
-            });
-
-            /* Sunucu stratejisinde grup parça parça iner. */
-            if (!bucket.done) {
-                var more = self.spanRow('', 'vnl-group-note');
-                var btn  = el('button', 'btn btn-sm btn-link', self.lang.groupMore || '');
-                btn.type = 'button';
-                btn.addEventListener('click', function () { self.loadGroupRows(group.k); });
-                more.querySelector('td').appendChild(btn);
-                frag.appendChild(more);
-            }
+        groups.slice(start, start + this.state.size).forEach(function (group) {
+            self.renderNode(frag, [group.k], group, 0);
         });
 
         this.tbody.innerHTML = '';
@@ -1570,30 +1743,119 @@
         this.layoutPins();
     };
 
-    /** Tüm sütunları kaplayan tek hücreli satır. */
-    VnlTable.prototype.spanRow = function (text, cls) {
+    /** Bir grup satiri ve - acikssa - altindakiler. Kendini cagirir. */
+    VnlTable.prototype.renderNode = function (frag, path, group, depth) {
+        var self = this;
+
+        frag.appendChild(this.buildGroupRow(group, path, depth));
+
+        if (!this.expanded[this.pathKey(path)]) return;
+
+        /* Son seviye degilse altinda yine gruplar var. */
+        if (depth < this.state.groupBy.length - 1) {
+            var children = this.groupsAt(path);
+
+            if (children === null) {
+                frag.appendChild(this.spanRow(this.lang.loading || '', 'vnl-group-note', depth + 1));
+
+                return;
+            }
+
+            children.forEach(function (child) {
+                self.renderNode(frag, path.concat([child.k]), child, depth + 1);
+            });
+
+            return;
+        }
+
+        this.renderLeaf(frag, path, depth);
+    };
+
+    /** Yaprak grubun satirlari. */
+    VnlTable.prototype.renderLeaf = function (frag, path, depth) {
+        var self = this;
+
+        if (this.allRows) {
+            this.rowsAt(path).forEach(function (row) {
+                frag.appendChild(self.memberRow(row, depth));
+            });
+
+            return;
+        }
+
+        var bucket = this.buckets[this.pathKey(path)];
+
+        if (!bucket) {
+            this.loadGroupRows(path);
+            frag.appendChild(this.spanRow(this.lang.loading || '', 'vnl-group-note', depth + 1));
+
+            return;
+        }
+
+        bucket.rows.forEach(function (row) {
+            frag.appendChild(self.memberRow(row, depth));
+        });
+
+        if (bucket.loading) {
+            frag.appendChild(this.spanRow(this.lang.loading || '', 'vnl-group-note', depth + 1));
+
+            return;
+        }
+
+        /* Sunucu stratejisinde grup parca parca iner. */
+        if (!bucket.done) {
+            var more = this.spanRow('', 'vnl-group-note', depth + 1);
+            var btn  = el('button', 'btn btn-sm btn-link', this.lang.groupMore || '');
+            btn.type = 'button';
+            btn.addEventListener('click', function () { self.loadGroupRows(path); });
+            more.querySelector('td').appendChild(btn);
+            frag.appendChild(more);
+        }
+    };
+
+    VnlTable.prototype.memberRow = function (row, depth) {
+        var tr = this.buildRow(row);
+        tr.classList.add('vnl-group-member');
+        tr.style.setProperty('--vnl-depth', depth + 1);
+
+        return tr;
+    };
+
+    /** Tum sutunlari kaplayan tek hucreli satir. */
+    VnlTable.prototype.spanRow = function (text, cls, depth) {
         var tr = el('tr', cls);
         var td = el('td', null, text);
         td.colSpan = this.visibleCount();
         tr.appendChild(td);
 
+        if (depth) tr.style.setProperty('--vnl-depth', depth);
+
         return tr;
     };
 
-    VnlTable.prototype.buildGroupRow = function (group) {
+    VnlTable.prototype.buildGroupRow = function (group, path, depth) {
         var self = this;
-        var open = !!this.expanded[group.k];
+        var open = !!this.expanded[this.pathKey(path)];
 
         var tr = el('tr', 'vnl-group-row' + (open ? ' vnl-group-open' : ''));
+        tr.style.setProperty('--vnl-depth', depth);
+
         var td = el('td');
         td.colSpan = this.visibleCount();
 
-        /* İç kutu yatay kaydırmada yerinde kalır: geniş bir tabloda sağa
-           kayınca grup başlığı görünmez oluyordu. */
+        /* Ic kutu yatay kaydirmada yerinde kalir: genis bir tabloda saga
+           kayinca grup basligi gorunmez oluyordu. */
         var inner = el('div', 'vnl-group-inner');
 
-        var caret = el('span', 'vnl-group-caret');
-        inner.appendChild(caret);
+        inner.appendChild(el('span', 'vnl-group-caret'));
+
+        /* Birden cok seviye varken hangi sutunun grubu oldugu yazilir;
+           tek seviyede gereksiz gurultu. */
+        if (this.state.groupBy.length > 1) {
+            var col = this.column(this.state.groupBy[depth]);
+            if (col) inner.appendChild(el('span', 'vnl-group-col', col.title));
+        }
+
         inner.appendChild(el('span', 'vnl-group-key', group.k === '' ? (this.lang.groupEmpty || '') : group.k));
 
         if (group.n !== null && group.n !== undefined) {
@@ -1618,50 +1880,41 @@
         tr.setAttribute('role', 'button');
         tr.setAttribute('aria-expanded', open ? 'true' : 'false');
         tr.tabIndex = 0;
-        tr.addEventListener('click', function () { self.toggleGroup(group); });
+        tr.addEventListener('click', function () { self.toggleGroup(path); });
         tr.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                self.toggleGroup(group);
+                self.toggleGroup(path);
             }
         });
 
         return tr;
     };
 
-    VnlTable.prototype.toggleGroup = function (group) {
-        if (this.expanded[group.k]) {
-            delete this.expanded[group.k];
-            this.renderGroups();
+    VnlTable.prototype.toggleGroup = function (path) {
+        var key = this.pathKey(path);
 
-            return;
-        }
+        if (this.expanded[key]) delete this.expanded[key];
+        else this.expanded[key] = true;
 
-        this.expanded[group.k] = true;
-
-        /* client stratejisinde satırlar zaten elimizde. */
-        if (this.buckets[group.k]) this.renderGroups();
-        else this.loadGroupRows(group.k);
+        this.renderGroups();
     };
 
-    /** Bir grubun satırlarını çeker; ikinci çağrıda sonrakileri ekler. */
-    VnlTable.prototype.loadGroupRows = function (key) {
+    /** Yaprak grubun satirlarini ceker; ikinci cagrida sonrakileri ekler. */
+    VnlTable.prototype.loadGroupRows = function (path) {
         var self   = this;
+        var key    = this.pathKey(path);
         var bucket = this.buckets[key] = this.buckets[key] || { rows: [], done: false, loading: false };
 
         if (bucket.loading) return;
         bucket.loading = true;
-        this.renderGroups();
-
-        /* Grup anahtarı sıradan bir filtre olarak gider — sunucunun
-           gruplama için ayrı bir yol tutmasına gerek kalmaz. */
-        var filters = {};
-        Object.keys(this.state.filters).forEach(function (k) { filters[k] = self.state.filters[k]; });
-        filters[this.state.groupBy] = { kind: 'text', set: [key] };
 
         var page = Math.floor(bucket.rows.length / this.state.size) + 1;
 
-        this.post(this.config.url, this.payload('list', { page: page, filters: filters }))
+        this.post(this.config.url, this.payload('list', {
+            page:    page,
+            filters: this.pathFilters(path)
+        }))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 bucket.loading = false;
@@ -1723,7 +1976,9 @@
         }
 
         var groupBy = params.get(this.urlKey('g'));
-        if (groupBy !== null && this.opt.group) this.state.groupBy = groupBy;
+        if (groupBy !== null && this.opt.group) {
+            this.state.groupBy = groupBy === '' ? [] : groupBy.split(',');
+        }
 
         var filters = params.get(this.urlKey('f'));
         if (filters) {
@@ -1769,8 +2024,8 @@
             params.set(this.urlKey('f'), JSON.stringify(s.filters));
         }
 
-        if (s.groupBy !== ((this.opt.group && this.opt.group.by) || '')) {
-            params.set(this.urlKey('g'), s.groupBy);
+        if (s.groupBy.join(',') !== ((this.opt.group && this.opt.group.by) || []).join(',')) {
+            params.set(this.urlKey('g'), s.groupBy.join(','));
         }
 
         var query = params.toString();
@@ -1816,7 +2071,7 @@
 
         /* Gruplu görünümde satırlar doğrudan değil, grup listesi üzerinden
            gelir; akış tamamen ayrı. */
-        if (this.state.groupBy) {
+        if (this.state.groupBy.length) {
             this.loadGroups();
 
             return;
@@ -1851,7 +2106,8 @@
         this.state.loading = false;
         this.setBusy(false);
         this.state.rows = [];
-        this.groups = [];
+        this.nodes = {};
+        this.allRows = null;
 
         console.error('[VNL Table] ' + this.config.id + (what ? ' ' + what : '') + ':', err);
 
@@ -1922,6 +2178,13 @@
         });
 
         return tr;
+    };
+
+    /** Ada gore sutun tanimi. */
+    VnlTable.prototype.column = function (name) {
+        var hit = this.columns.filter(function (c) { return c.name === name; });
+
+        return hit.length ? hit[0] : null;
     };
 
     VnlTable.prototype.rowKey = function (row) {
@@ -2162,12 +2425,16 @@
 
         /* Gruplu görünümde sayfalanan birim gruptur, satır değil: bir
            grubun satırları kendi içinde açılıp yükleniyor. */
-        if (s.groupBy) {
-            this.info.textContent = this.groups.length
-                ? fill(this.lang.infoGroups, { groups: this.groups.length, total: s.filtered })
+        if (s.groupBy.length) {
+            /* Sayfalanan birim ust seviyedeki gruplar; alt seviyeler ve
+               satirlar kendi icinde aciliyor. */
+            var top = this.groupsAt([]) || [];
+
+            this.info.textContent = top.length
+                ? fill(this.lang.infoGroups, { groups: top.length, total: s.filtered })
                 : (this.lang.infoEmpty || '');
 
-            this.renderPager(Math.max(1, Math.ceil(this.groups.length / s.size)));
+            this.renderPager(Math.max(1, Math.ceil(top.length / s.size)));
 
             return;
         }

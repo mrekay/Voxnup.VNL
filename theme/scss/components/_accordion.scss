@@ -21,6 +21,27 @@
   }
 }
 
+// Yükseklik animasyonu Bootstrap'indir (.collapsing); gövde içeriği de
+// açılışa eşlik etsin — çıplak height animasyonu tek başına cansız kalıyor.
+.accordion-collapse.show .accordion-body {
+  animation: vnl-acc-body-in .25s ease both;
+}
+
+@keyframes vnl-acc-body-in {
+  from {
+    opacity: 0;
+    transform: translateY(-.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accordion-collapse.show .accordion-body { animation: none; }
+}
+
 // ---- Ayrık-kart varyantı ---------------------------------------------------
 // <div class="accordion vnl-accordion"> — maddeler bağımsız kartlar gibi.
 .vnl-accordion {

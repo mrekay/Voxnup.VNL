@@ -186,6 +186,7 @@ $SidebarMenu = array(
                         ["text" => "Bileşenler", 'url' => 'docs/theme-components', 'page_name' => 'theme-components.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
                         ["text" => "Form ve Select", 'url' => 'docs/theme-forms', 'page_name' => 'theme-forms.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
                         ["text" => "İkonlar", 'url' => 'docs/theme-icons', 'page_name' => 'theme-icons.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
+                        ["text" => "Modallar", 'url' => 'docs/theme-modals', 'page_name' => 'theme-modals.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
                         ["text" => "JavaScript API", 'url' => 'docs/theme-js', 'page_name' => 'theme-js.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
                         ["text" => "Metronic'ten Geçiş", 'url' => 'docs/theme-migration', 'page_name' => 'theme-migration.php', 'permission' => '', 'icon' => 'clock', 'showmenu' => 1, "child" => []],
                 ]

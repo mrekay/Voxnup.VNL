@@ -124,7 +124,23 @@
   .vnl-menu-sub {
     padding: 2px 0 2px 2rem;
 
-    &.show { display: flex; }
+    &.show {
+      display: flex;
+      animation: vnl-sub-in .2s ease both;
+    }
+  }
+}
+
+// Yerinde (accordion/mobil) açılımın giriş animasyonu — display toggle
+// yapısını bozmadan fade + hafif kayma
+@keyframes vnl-sub-in {
+  from {
+    opacity: 0;
+    transform: translateY(-.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -147,7 +163,7 @@
 
     &.show {
       display: flex; // yerinde açılım: sütun kırılımı yok
-      animation: none;
+      animation: vnl-sub-in .2s ease both;
     }
   }
 }
@@ -165,5 +181,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .vnl-menu-link { transition: none; }
-  .vnl-menu-sub.show { animation: none; }
+  .vnl-menu-sub.show { animation: none !important; }
 }

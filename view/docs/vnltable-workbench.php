@@ -30,11 +30,11 @@
                 <div class="card-body p-10">
                     <h3 class="fw-bold text-body-emphasis mb-4">1. Canlı Örnek</h3>
                     <p class="fs-5 text-body mb-6">
-                        Üç şeyi birden deneyin: <b>başlığın yazısını</b> üstteki kesik çizgili alana
-                        sürükleyin — tablo o sütuna göre gruplanır. <b>Ad Soyad</b>, <b>Şehir</b>,
-                        <b>Durum</b> ve <b>Tutar</b> hücrelerine <b>çift tıklayın</b> — yerinde
-                        düzenlenir ve kaydedilir. Tabloyu yatay kaydırın — <b>No</b> ile
-                        <b>Ad Soyad</b> solda, <b>Tarih</b> sağda kalır.
+                        Üç şeyi birden deneyin. <b>Başlığın yazısını</b> üstteki kesik çizgili alana
+                        sürükleyin — tablo o sütuna göre gruplanır; bir tane daha sürükleyin, iç içe
+                        iki seviye olur. <b>Şehir</b>, <b>Durum</b> ve <b>Tutar</b> hücrelerine
+                        <b>çift tıklayın</b> — yerinde düzenlenip kaydedilir. Tabloyu yatay
+                        kaydırın — <b>No</b> ile <b>Ad Soyad</b> solda, <b>Tarih</b> sağda kalır.
                     </p>
 
                     <?= VnlTable::make('demoWorkbench')
