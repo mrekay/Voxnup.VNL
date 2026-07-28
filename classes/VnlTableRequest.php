@@ -40,6 +40,9 @@ class VnlTableRequest
     /** Excel çıktısı. */
     const OP_EXPORT = 'export';
 
+    /** Satır gruplaması: grup listesi, sayıları ve alt toplamları. */
+    const OP_GROUP = 'group';
+
     /**
      * Filtre türü → kullanılabilir koşullar.
      *
@@ -81,12 +84,15 @@ class VnlTableRequest
     /** OP_DISTINCT: panelin kendi arama kutusu. */
     public string $query = '';
 
+    /** OP_GROUP: satırların hangi sütuna göre kümeleneceği. */
+    public string $groupBy = '';
+
     public static function from($req): self
     {
         $self = new self();
 
         $op = (string)$req->post('op', self::OP_LIST);
-        $self->op = in_array($op, [self::OP_LIST, self::OP_DISTINCT, self::OP_EXPORT], true)
+        $self->op = in_array($op, [self::OP_LIST, self::OP_DISTINCT, self::OP_EXPORT, self::OP_GROUP], true)
             ? $op
             : self::OP_LIST;
 
@@ -99,6 +105,7 @@ class VnlTableRequest
         $self->search  = trim((string)$req->post('search', ''));
         $self->column  = (string)$req->post('col', '');
         $self->query   = trim((string)$req->post('q', ''));
+        $self->groupBy = (string)$req->post('by', '');
         $self->context = self::asArray($req->post('context'));
         $self->filters = self::normalizeFilters($req->post('filters'));
         $self->sort    = self::normalizeSort($req->post('sort'));
@@ -437,6 +444,80 @@ class VnlTableRequest
         }
 
         $this->respondDistinct($values);
+    }
+
+    /**
+     * Grup listesi yanıtı (op = group).
+     *
+     * @param array $groups [['k' => 'Ankara', 'n' => 43, 'totals' => [...]], ...]
+     *
+     * n grup içindeki kayıt sayısı, totals ise o gruba ait alt toplamlar;
+     * ikisi de isteğe bağlıdır. İstemci grubu açtığında satırları ayrı bir
+     * op = list isteğiyle çeker — grup anahtarı sıradan bir filtre olarak
+     * gider, yani sunucu tarafında ek bir iş gerekmez.
+     */
+    public function respondGroups(array $groups): void
+    {
+        $out = [];
+
+        foreach ($groups as $group) {
+            if (!is_array($group)) {
+                continue;
+            }
+
+            $out[] = [
+                'k'      => self::text($group['k'] ?? ''),
+                'n'      => isset($group['n']) ? (int)$group['n'] : null,
+                'totals' => isset($group['totals']) && is_array($group['totals']) ? $group['totals'] : null,
+            ];
+        }
+
+        self::emit(['by' => $this->groupBy, 'groups' => $out]);
+    }
+
+    /**
+     * Bellekteki satırlardan grup listesini üretir ve yanıtı basar.
+     *
+     * distinctFrom()'dan farkı: burada TÜM filtreler geçerlidir, çünkü
+     * gruplar kullanıcının süzdüğü kümenin özetidir. Satırların filtreden
+     * geçmiş hâlini verin — respond()'a verdiğinizin aynısını.
+     *
+     * @param array $aggs ['tutar' => 'sum'] — grup başına alt toplamlar
+     */
+    public function groupFrom(array $rows, array $aggs = []): void
+    {
+        $column  = $this->groupBy;
+        $buckets = [];
+
+        foreach ($rows as $row) {
+            $flat = self::rowToArray($row);
+
+            if (!array_key_exists($column, $flat)) {
+                continue;
+            }
+
+            $key = self::text($flat[$column]);
+            $buckets[$key][] = $row;
+        }
+
+        uksort($buckets, function ($a, $b) {
+            return strnatcasecmp(
+                TextGeneralModule::trToLower((string)$a),
+                TextGeneralModule::trToLower((string)$b)
+            );
+        });
+
+        $groups = [];
+
+        foreach ($buckets as $key => $members) {
+            $groups[] = [
+                'k'      => (string)$key,
+                'n'      => count($members),
+                'totals' => $aggs ? self::totals($members, $aggs) : null,
+            ];
+        }
+
+        $this->respondGroups($groups);
     }
 
     /**

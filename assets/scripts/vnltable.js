@@ -90,7 +90,8 @@
             excel:   'bi bi-file-earmark-spreadsheet',
             search:  'bi bi-search',
             filter:  'bi bi-funnel',
-            filterOn: 'bi bi-funnel-fill'
+            filterOn: 'bi bi-funnel-fill',
+            group:   'bi bi-diagram-2'
         },
         fa: {
             probe:   'fa-solid fa-angle-left',
@@ -104,12 +105,13 @@
             search:  'fa-solid fa-magnifying-glass',
             /* Font Awesome Free'de anahat huni yok; aktiflik renkle ayrılır. */
             filter:  'fa-solid fa-filter',
-            filterOn: 'fa-solid fa-filter'
+            filterOn: 'fa-solid fa-filter',
+            group:   'fa-solid fa-layer-group'
         },
         emoji: {
             first: '«', prev: '‹', next: '›', last: '»',
             columns: '▦', clear: '✕', excel: '▤', search: '⌕',
-            filter: '▽', filterOn: '▼'
+            filter: '▽', filterOn: '▼', group: '☰'
         }
     };
 
@@ -230,6 +232,8 @@
         this.ths = {};
         this.filterBtns = {};
 
+        this.pinned = this.columns.some(function (c) { return !!c.pin; });
+
         /* Açık filtre paneli. Panel body'ye takılır — tablo overflow:hidden
            taşıdığı için içeride kalsaydı kırpılırdı. */
         this.panel = null;
@@ -240,11 +244,19 @@
             sort:    (this.opt.order || []).slice(),
             search:  '',
             filters: {},
+            groupBy: (this.opt.group && this.opt.group.by) || '',
             total:   0,
             filtered: 0,
             rows:    [],
             loading: false
         };
+
+        /* Gruplama durumu. groups sunucudan gelen özet listesi, bucket ise
+           her grubun yüklenmiş satırları — client stratejisinde tek seferde
+           dolar, server'da grup açıldıkça. */
+        this.groups   = [];
+        this.buckets  = {};
+        this.expanded = {};
 
         /* Adresteki durum build()'den ÖNCE okunur: arama kutusu ve sayfa
            boyu seçimi kurulurken doğru değeri göstersin. */
@@ -262,6 +274,7 @@
             self.syncControls();
             self.paintSort();
             self.paintFilters();
+            self.paintGroupMenu();
             self.load(true);
         };
 
@@ -308,6 +321,10 @@
 
         var actions = el('div', 'vnl-table-actions');
 
+        if (this.opt.group && this.opt.group.menu) {
+            actions.appendChild(this.buildGroupMenu());
+        }
+
         if (this.opt.columns !== false && this.columns.some(function (c) { return c.hideable !== false; })) {
             actions.appendChild(this.buildColumnMenu());
         }
@@ -346,6 +363,13 @@
         if (this.opt.height) wrap.style.maxHeight = this.opt.height;
 
         var table = el('table', 'vnl-table-el');
+
+        /* Tablo varsayılan olarak kabına sığar; sütun genişlikleri de öneri
+           sayılıp sıkıştırılır. Sabit sütunun bir işe yaraması için tablonun
+           kabından TAŞMASI gerekir — minWidth verilmediyse sütunların
+           bildirdiği genişlikler toplamı taban kabul edilir. */
+        var minWidth = this.opt.minWidth || (this.pinned ? this.declaredWidth() : null);
+        if (minWidth) table.style.minWidth = minWidth;
         var thead = el('thead');
         var headRow = el('tr');
 
@@ -380,6 +404,7 @@
             }
 
             th.appendChild(inner);
+            pinClass(th, col);
 
             if (self.hiddenCols[col.name]) th.hidden = true;
             self.ths[col.name] = th;
@@ -418,6 +443,8 @@
                     cell.classList.add('vnl-tf-label');
                     labelled = true;
                 }
+
+                pinClass(cell, col);
 
                 if (self.hiddenCols[col.name]) cell.hidden = true;
                 self.tfootCells = self.tfootCells || {};
@@ -472,6 +499,14 @@
         this.paintSort();
         this.paintFilters();
         initTooltips(this.root);
+
+        /* Sabit sütun ofsetleri gerçek genişliklerden gelir; pencere
+           değişince sütunlar da değişir. */
+        if (this.pinned) {
+            this.onResize = debounce(function () { self.layoutPins(); }, 120);
+            window.addEventListener('resize', this.onResize);
+            this.layoutPins();
+        }
     };
 
     /**
@@ -647,8 +682,11 @@
         });
 
         /* Gövde eldeki veriyle yeniden basılır; sunucuya gidilmez. */
-        if (this.state.rows.length) this.renderRows();
+        if (this.state.groupBy) this.renderGroups();
+        else if (this.state.rows.length) this.renderRows();
         else this.renderMessage(this.lang.empty || '');
+
+        this.layoutPins();
     };
 
     /* ---------------------------------------------------------------- */
@@ -1241,6 +1279,291 @@
     };
 
     /* ---------------------------------------------------------------- */
+    /* Satır gruplama (workbench)                                        */
+    /* ---------------------------------------------------------------- */
+
+    VnlTable.prototype.buildGroupMenu = function () {
+        var self = this;
+        var wrap = el('div', 'dropdown vnl-table-group');
+
+        var btn = iconButton('group', this.lang.group || '', 'btn-outline-secondary', true);
+        btn.setAttribute('data-bs-toggle', 'dropdown');
+        btn.setAttribute('aria-expanded', 'false');
+        wrap.appendChild(btn);
+
+        var menu = el('div', 'dropdown-menu dropdown-menu-end vnl-table-group-menu');
+        this.groupItems = {};
+
+        var none = el('button', 'dropdown-item', this.lang.groupNone || '');
+        none.type = 'button';
+        none.addEventListener('click', function () { self.setGroup(''); });
+        menu.appendChild(none);
+        this.groupItems[''] = none;
+
+        this.columns.forEach(function (col) {
+            if (col.groupable === false) return;
+
+            var item = el('button', 'dropdown-item', col.title);
+            item.type = 'button';
+            item.addEventListener('click', function () { self.setGroup(col.name); });
+            menu.appendChild(item);
+            self.groupItems[col.name] = item;
+        });
+
+        wrap.appendChild(menu);
+        this.groupBtn = btn;
+        this.paintGroupMenu();
+
+        return wrap;
+    };
+
+    VnlTable.prototype.paintGroupMenu = function () {
+        var self = this;
+        if (!this.groupItems) return;
+
+        Object.keys(this.groupItems).forEach(function (name) {
+            self.groupItems[name].classList.toggle('active', name === self.state.groupBy);
+        });
+
+        if (this.groupBtn) this.groupBtn.classList.toggle('vnl-group-on', !!this.state.groupBy);
+    };
+
+    VnlTable.prototype.setGroup = function (name) {
+        if (name === this.state.groupBy) return;
+
+        this.state.groupBy = name;
+        this.state.page    = 1;
+        this.groups        = [];
+        this.buckets       = {};
+        this.expanded      = {};
+
+        this.paintGroupMenu();
+        this.load();
+    };
+
+    /**
+     * Satırların nereden geleceği.
+     *
+     * Grup LİSTESİ her zaman sunucudan gelir (op = group): büyük tabloda
+     * doğru olan tek yol bu ve grup başına alt toplamlar da orada hesaplanır.
+     * Strateji yalnız SATIRLARIN nasıl çekileceğini belirler:
+     *   client — tek istekle hepsi iner, grup açmak anında olur
+     *   server — her grup açıldığında o gruba ait istek atılır
+     *   auto   — kayıt sayısı limit'in altındaysa client
+     */
+    VnlTable.prototype.groupStrategy = function () {
+        var group = this.opt.group || {};
+
+        if (group.mode === 'client' || group.mode === 'server') {
+            return group.mode;
+        }
+
+        return this.state.filtered <= (group.limit || 5000) ? 'client' : 'server';
+    };
+
+    VnlTable.prototype.loadGroups = function () {
+        var self = this;
+
+        this.setBusy(true);
+        if (!this.groups.length) this.renderMessage('');
+
+        this.post(this.config.url, this.payload('group', { by: this.state.groupBy }))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                self.groups  = data.groups || [];
+                self.buckets = {};
+
+                /* Kayıt sayısı grup sayılarının toplamı; auto stratejisi
+                   kararını buna göre verir. */
+                self.state.filtered = self.groups.reduce(function (sum, g) { return sum + (g.n || 0); }, 0);
+                if (!self.state.total) self.state.total = self.state.filtered;
+
+                if (self.groupStrategy() === 'client') return self.loadAllRows();
+
+                self.finishGroups();
+            })
+            .catch(function (err) { self.failed(err, 'group'); });
+    };
+
+    /** client stratejisi: bütün satırlar tek seferde inip gruplara dağılır. */
+    VnlTable.prototype.loadAllRows = function () {
+        var self  = this;
+        var limit = (this.opt.group || {}).limit || 5000;
+
+        return this.post(this.config.url, this.payload('list', { page: 1, size: limit }))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                (data.rows || []).forEach(function (row) {
+                    var key = asText(row[self.state.groupBy]);
+                    (self.buckets[key] = self.buckets[key] || { rows: [], done: true }).rows.push(row);
+                });
+
+                self.finishGroups();
+            });
+    };
+
+    VnlTable.prototype.finishGroups = function () {
+        this.state.loading = false;
+        this.setBusy(false);
+        this.renderGroups();
+        this.renderTotals(null);
+        this.renderFooter();
+    };
+
+    VnlTable.prototype.renderGroups = function () {
+        var self = this;
+
+        if (!this.groups.length) {
+            this.renderMessage(this.lang.empty || '');
+            return;
+        }
+
+        var frag  = document.createDocumentFragment();
+        var start = (this.state.page - 1) * this.state.size;
+        var page  = this.groups.slice(start, start + this.state.size);
+
+        page.forEach(function (group) {
+            frag.appendChild(self.buildGroupRow(group));
+
+            if (!self.expanded[group.k]) return;
+
+            var bucket = self.buckets[group.k];
+
+            if (!bucket) {
+                frag.appendChild(self.spanRow(self.lang.loading || '', 'vnl-group-note'));
+                return;
+            }
+
+            bucket.rows.forEach(function (row) {
+                var tr = self.buildRow(row);
+                tr.classList.add('vnl-group-member');
+                frag.appendChild(tr);
+            });
+
+            /* Sunucu stratejisinde grup parça parça iner. */
+            if (!bucket.done) {
+                var more = self.spanRow('', 'vnl-group-note');
+                var btn  = el('button', 'btn btn-sm btn-link', self.lang.groupMore || '');
+                btn.type = 'button';
+                btn.addEventListener('click', function () { self.loadGroupRows(group.k); });
+                more.querySelector('td').appendChild(btn);
+                frag.appendChild(more);
+            }
+        });
+
+        this.tbody.innerHTML = '';
+        this.tbody.appendChild(frag);
+        this.layoutPins();
+    };
+
+    /** Tüm sütunları kaplayan tek hücreli satır. */
+    VnlTable.prototype.spanRow = function (text, cls) {
+        var tr = el('tr', cls);
+        var td = el('td', null, text);
+        td.colSpan = this.visibleCount();
+        tr.appendChild(td);
+
+        return tr;
+    };
+
+    VnlTable.prototype.buildGroupRow = function (group) {
+        var self = this;
+        var open = !!this.expanded[group.k];
+
+        var tr = el('tr', 'vnl-group-row' + (open ? ' vnl-group-open' : ''));
+        var td = el('td');
+        td.colSpan = this.visibleCount();
+
+        /* İç kutu yatay kaydırmada yerinde kalır: geniş bir tabloda sağa
+           kayınca grup başlığı görünmez oluyordu. */
+        var inner = el('div', 'vnl-group-inner');
+
+        var caret = el('span', 'vnl-group-caret');
+        inner.appendChild(caret);
+        inner.appendChild(el('span', 'vnl-group-key', group.k === '' ? (this.lang.groupEmpty || '') : group.k));
+
+        if (group.n !== null && group.n !== undefined) {
+            inner.appendChild(el('span', 'vnl-group-count', fill(this.lang.groupCount, { n: group.n })));
+        }
+
+        if (group.totals) {
+            (this.aggCols || []).forEach(function (col) {
+                var value = group.totals[col.name];
+                if (value === null || value === undefined) return;
+
+                var chip = el('span', 'vnl-group-total');
+                chip.appendChild(el('span', 'vnl-group-total-label', col.title));
+                chip.appendChild(el('span', 'vnl-group-total-value', asText(value)));
+                inner.appendChild(chip);
+            });
+        }
+
+        td.appendChild(inner);
+        tr.appendChild(td);
+
+        tr.setAttribute('role', 'button');
+        tr.setAttribute('aria-expanded', open ? 'true' : 'false');
+        tr.tabIndex = 0;
+        tr.addEventListener('click', function () { self.toggleGroup(group); });
+        tr.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                self.toggleGroup(group);
+            }
+        });
+
+        return tr;
+    };
+
+    VnlTable.prototype.toggleGroup = function (group) {
+        if (this.expanded[group.k]) {
+            delete this.expanded[group.k];
+            this.renderGroups();
+
+            return;
+        }
+
+        this.expanded[group.k] = true;
+
+        /* client stratejisinde satırlar zaten elimizde. */
+        if (this.buckets[group.k]) this.renderGroups();
+        else this.loadGroupRows(group.k);
+    };
+
+    /** Bir grubun satırlarını çeker; ikinci çağrıda sonrakileri ekler. */
+    VnlTable.prototype.loadGroupRows = function (key) {
+        var self   = this;
+        var bucket = this.buckets[key] = this.buckets[key] || { rows: [], done: false, loading: false };
+
+        if (bucket.loading) return;
+        bucket.loading = true;
+        this.renderGroups();
+
+        /* Grup anahtarı sıradan bir filtre olarak gider — sunucunun
+           gruplama için ayrı bir yol tutmasına gerek kalmaz. */
+        var filters = {};
+        Object.keys(this.state.filters).forEach(function (k) { filters[k] = self.state.filters[k]; });
+        filters[this.state.groupBy] = { kind: 'text', set: [key] };
+
+        var page = Math.floor(bucket.rows.length / this.state.size) + 1;
+
+        this.post(this.config.url, this.payload('list', { page: page, filters: filters }))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                bucket.loading = false;
+                bucket.rows = bucket.rows.concat(data.rows || []);
+                bucket.done = bucket.rows.length >= (data.filtered || 0);
+                self.renderGroups();
+            })
+            .catch(function (err) {
+                bucket.loading = false;
+                bucket.done = true;
+                console.error('[VNL Table] ' + self.config.id + ' group rows:', err);
+                self.renderGroups();
+            });
+    };
+
+    /* ---------------------------------------------------------------- */
     /* URL senkronu                                                      */
     /* ---------------------------------------------------------------- */
 
@@ -1284,6 +1607,9 @@
                 return { col: bits[0], dir: bits[1] === 'desc' ? 'desc' : 'asc' };
             }).filter(function (s) { return !!s.col; });
         }
+
+        var groupBy = params.get(this.urlKey('g'));
+        if (groupBy !== null && this.opt.group) this.state.groupBy = groupBy;
 
         var filters = params.get(this.urlKey('f'));
         if (filters) {
@@ -1329,6 +1655,10 @@
             params.set(this.urlKey('f'), JSON.stringify(s.filters));
         }
 
+        if (s.groupBy !== ((this.opt.group && this.opt.group.by) || '')) {
+            params.set(this.urlKey('g'), s.groupBy);
+        }
+
         var query = params.toString();
 
         /* replaceState: arama kutusuna her yazışta geçmişe bir kayıt
@@ -1370,6 +1700,14 @@
 
         if (!silent) this.writeUrl();
 
+        /* Gruplu görünümde satırlar doğrudan değil, grup listesi üzerinden
+           gelir; akış tamamen ayrı. */
+        if (this.state.groupBy) {
+            this.loadGroups();
+
+            return;
+        }
+
         /* İlk yüklemede gösterilecek satır yok; katmanın kaplayacağı bir
            yükseklik olsun diye mesaj satırı basılır. Sonraki yüklemelerde
            mevcut satırlar korunur — aksi halde tek geniş hücre sütun
@@ -1392,15 +1730,21 @@
                 self.renderTotals(data.totals);
                 self.renderFooter();
             })
-            .catch(function (err) {
-                self.state.loading = false;
-                self.setBusy(false);
-                self.state.rows = [];
-                console.error('[VNL Table] ' + self.config.id + ':', err);
-                self.renderMessage(self.lang.error || '', true);
-                self.pager.innerHTML = '';
-                self.info.textContent = '';
-            });
+            .catch(function (err) { self.failed(err, ''); });
+    };
+
+    VnlTable.prototype.failed = function (err, what) {
+        this.state.loading = false;
+        this.setBusy(false);
+        this.state.rows = [];
+        this.groups = [];
+
+        console.error('[VNL Table] ' + this.config.id + (what ? ' ' + what : '') + ':', err);
+
+        this.renderMessage(this.lang.error || '', true);
+        this.renderTotals(null);
+        this.pager.innerHTML = '';
+        this.info.textContent = '';
     };
 
     VnlTable.prototype.renderMessage = function (text, isError) {
@@ -1422,34 +1766,133 @@
 
         var frag = document.createDocumentFragment();
 
-        this.state.rows.forEach(function (row) {
-            var tr = el('tr');
-            if (self.config.key && row[self.config.key] !== undefined) {
-                tr.dataset.key = row[self.config.key];
-            }
-
-            self.columns.forEach(function (col) {
-                if (self.hiddenCols[col.name]) return;
-
-                var td = el('td', 'vnl-align-' + col.align);
-
-                if (col.render === 'html') {
-                    /* Sütun bilinçli olarak html işaretlenmiş: sunucu içeriği
-                       üretiyor ve kaçışından kendisi sorumlu. */
-                    td.innerHTML = asText(row[col.name]);
-                } else {
-                    td.textContent = asText(row[col.name]);
-                }
-
-                tr.appendChild(td);
-            });
-
-            frag.appendChild(tr);
-        });
+        this.state.rows.forEach(function (row) { frag.appendChild(self.buildRow(row)); });
 
         this.tbody.innerHTML = '';
         this.tbody.appendChild(frag);
+        this.layoutPins();
     };
+
+    /** Tek veri satırı; hem düz listede hem grup içinde kullanılır. */
+    VnlTable.prototype.buildRow = function (row) {
+        var self = this;
+        var tr   = el('tr');
+
+        if (this.config.key && row[this.config.key] !== undefined) {
+            tr.dataset.key = row[this.config.key];
+        }
+
+        this.columns.forEach(function (col) {
+            if (self.hiddenCols[col.name]) return;
+
+            var td = el('td', 'vnl-align-' + col.align);
+            pinClass(td, col);
+
+            if (col.render === 'html') {
+                /* Sütun bilinçli olarak html işaretlenmiş: sunucu içeriği
+                   üretiyor ve kaçışından kendisi sorumlu. */
+                td.innerHTML = asText(row[col.name]);
+            } else {
+                td.textContent = asText(row[col.name]);
+            }
+
+            tr.appendChild(td);
+        });
+
+        return tr;
+    };
+
+    /* ---------------------------------------------------------------- */
+    /* Sütun sabitleme                                                   */
+    /* ---------------------------------------------------------------- */
+
+    /**
+     * Sabit sütunların kenara uzaklığı içerikle birlikte değişir, o yüzden
+     * her çizimden sonra ölçülür. Kenardaki sütun ayrıca işaretlenir:
+     * gölge, kaydırılan alanla arasındaki dikişi gösterir.
+     */
+    VnlTable.prototype.layoutPins = function () {
+        var self = this;
+        if (!this.pinned) return;
+
+        var visible = this.columns.filter(function (c) { return !self.hiddenCols[c.name]; });
+        var offsets = {};
+
+        var lefts  = visible.filter(function (c) { return c.pin === 'left'; });
+        var rights = visible.filter(function (c) { return c.pin === 'right'; });
+
+        var left = 0;
+        lefts.forEach(function (col) {
+            offsets[col.name] = ['left', left];
+            left += self.ths[col.name].getBoundingClientRect().width;
+        });
+
+        var right = 0;
+        rights.slice().reverse().forEach(function (col) {
+            offsets[col.name] = ['right', right];
+            right += self.ths[col.name].getBoundingClientRect().width;
+        });
+
+        /* Dikiş gölgesi yalnız kenardaki sütuna. Hangi sütunun kenarda
+           kaldığı gizle/göster ile değiştiği için her ölçümde yenilenir. */
+        var edge = {};
+        if (lefts.length)  edge[lefts[lefts.length - 1].name] = true;
+        if (rights.length) edge[rights[0].name] = true;
+
+        visible.forEach(function (col, i) {
+            var offset = offsets[col.name];
+            if (!offset) return;
+
+            var value = Math.round(offset[1]) + 'px';
+
+            apply(self.ths[col.name]);
+            if (self.tfootCells) apply(self.tfootCells[col.name]);
+
+            /* Gövde hücreleri gizli sütunları hiç basmıyor: sıra görünür
+               sütun sırasıyla birebir. */
+            Array.prototype.forEach.call(self.tbody.rows, function (tr) {
+                if (tr.cells.length === visible.length) apply(tr.cells[i]);
+            });
+
+            function apply(cell) {
+                if (!cell) return;
+
+                cell.style[offset[0]] = value;
+                cell.classList.toggle('vnl-pin-edge', !!edge[col.name]);
+            }
+        });
+    };
+
+    /**
+     * Sütunların bildirdiği genişliklerin toplamı.
+     *
+     * width vermeyen sütun için taban yoktur; hiçbiri vermemişse null döner
+     * ve tablo eski davranışında kalır. Yalnız px kabul edilir: yüzde ya da
+     * ch toplanamaz, toplanmaya çalışılırsa yanlış bir taban çıkar.
+     */
+    VnlTable.prototype.declaredWidth = function () {
+        var self  = this;
+        var total = 0;
+        var any   = false;
+
+        this.columns.forEach(function (col) {
+            if (self.hiddenCols[col.name]) return;
+
+            var px = /^(\d+(?:\.\d+)?)px$/.exec(String(col.width || ''));
+            if (!px) return;
+
+            total += parseFloat(px[1]);
+            any = true;
+        });
+
+        return any ? total + 'px' : null;
+    };
+
+    /** Sabit sütun sınıfı. Kenar işareti layoutPins'te verilir: hangi
+        sütunun kenarda kaldığı gizle/göster ile değişiyor. */
+    function pinClass(cell, col) {
+        if (col.pin) cell.classList.add('vnl-pin-' + col.pin);
+    }
 
     /**
      * Alt toplamları basar.
@@ -1472,6 +1915,19 @@
 
     VnlTable.prototype.renderFooter = function () {
         var s = this.state;
+
+        /* Gruplu görünümde sayfalanan birim gruptur, satır değil: bir
+           grubun satırları kendi içinde açılıp yükleniyor. */
+        if (s.groupBy) {
+            this.info.textContent = this.groups.length
+                ? fill(this.lang.infoGroups, { groups: this.groups.length, total: s.filtered })
+                : (this.lang.infoEmpty || '');
+
+            this.renderPager(Math.max(1, Math.ceil(this.groups.length / s.size)));
+
+            return;
+        }
+
         var start = s.filtered ? (s.page - 1) * s.size + 1 : 0;
         var end   = Math.min(s.page * s.size, s.filtered);
 

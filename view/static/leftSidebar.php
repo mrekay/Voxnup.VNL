@@ -127,6 +127,15 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
+                                "text" => "VNL Table — Workbench",
+                                'url' => 'docs/vnltable-workbench',
+                                'page_name' => 'vnltable-workbench.php',
+                                'permission' => '',
+                                'icon' => 'clock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
                                 "text" => "Modüller",
                                 'url' => 'docs/modules',
                                 'page_name' => 'modules.php',

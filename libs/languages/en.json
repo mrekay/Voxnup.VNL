@@ -103,6 +103,12 @@
     "VNLTABLE_AGG_MIN": "Minimum",
     "VNLTABLE_AGG_MAX": "Maximum",
     "VNLTABLE_AGG_COUNT": "Count",
-    "VNLTABLE_SORT_ADD": "Shift-click to add a sort key"
+    "VNLTABLE_SORT_ADD": "Shift-click to add a sort key",
+    "VNLTABLE_GROUP": "Group",
+    "VNLTABLE_GROUP_NONE": "No grouping",
+    "VNLTABLE_GROUP_COUNT": "_N_ records",
+    "VNLTABLE_GROUP_MORE": "Load more",
+    "VNLTABLE_GROUP_EMPTY": "(Empty)",
+    "VNLTABLE_INFO_GROUPS": "_GROUPS_ groups · _TOTAL_ records"
   }
 ]

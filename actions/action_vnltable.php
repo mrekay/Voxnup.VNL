@@ -53,6 +53,12 @@ class action_vnltable
 
         $filtered = count($rows);
 
+        /* Grup listesi: filtrelenmiş kümenin özeti. Değer listesinin
+           aksine burada TÜM filtreler geçerlidir. */
+        if ($t->op === VnlTableRequest::OP_GROUP) {
+            $t->groupFrom($rows, ['tutar' => 'sum', 'id' => 'count']);
+        }
+
         $sort = $t->sort[0] ?? ['col' => 'id', 'dir' => 'asc'];
         if (array_key_exists($sort['col'], self::COLUMNS)) {
             usort($rows, function ($a, $b) use ($sort) {

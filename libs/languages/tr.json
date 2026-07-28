@@ -103,6 +103,12 @@
     "VNLTABLE_AGG_MIN": "En küçük",
     "VNLTABLE_AGG_MAX": "En büyük",
     "VNLTABLE_AGG_COUNT": "Adet",
-    "VNLTABLE_SORT_ADD": "Shift ile ikinci sıralama"
+    "VNLTABLE_SORT_ADD": "Shift ile ikinci sıralama",
+    "VNLTABLE_GROUP": "Grupla",
+    "VNLTABLE_GROUP_NONE": "Gruplama yok",
+    "VNLTABLE_GROUP_COUNT": "_N_ kayıt",
+    "VNLTABLE_GROUP_MORE": "Daha fazla yükle",
+    "VNLTABLE_GROUP_EMPTY": "(Boş)",
+    "VNLTABLE_INFO_GROUPS": "_GROUPS_ grup · _TOTAL_ kayıt"
   }
 ]

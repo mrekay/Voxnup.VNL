@@ -213,6 +213,152 @@
     background: var(--vnl-table-hover-bg);
 }
 
+/* ── Sabit sütunlar ──
+   Katman sırası önemli: sabit başlık hücresi hem yatay hem dikey
+   kaydırmada üstte kalmalı, yoksa altından geçen gövde onu örtüyor.
+     normal td  → yok      sabit td   → 2
+     normal th  → 3        sabit th   → 4
+   Yapışkan hücre saydam olamaz: altından veri geçer. */
+
+.vnl-table-el .vnl-pin-left,
+.vnl-table-el .vnl-pin-right {
+    position: sticky;
+    z-index: 2;
+    background: var(--vnl-surface, var(--bs-body-bg));
+}
+
+.vnl-table-el thead .vnl-pin-left,
+.vnl-table-el thead .vnl-pin-right,
+.vnl-table-el tfoot .vnl-pin-left,
+.vnl-table-el tfoot .vnl-pin-right {
+    z-index: 4;
+    background: var(--vnl-table-head-bg);
+}
+
+/* Şerit ve hover renkleri saydamdır; sabit sütunda oldukları gibi
+   kullanılamaz, altlarından veri geçer. Bu yüzden opak zeminin ÜSTÜNE
+   ayrı bir katman olarak bindirilirler — color-mix bunu yapamaz, o
+   iki rengi karıştırır, birini diğerinin üstüne koymaz. */
+.vnl-table.vnl-striped .vnl-table-el tbody tr:nth-child(even) :is(.vnl-pin-left, .vnl-pin-right) {
+    background:
+        linear-gradient(var(--vnl-table-stripe-bg), var(--vnl-table-stripe-bg)),
+        var(--vnl-surface, var(--bs-body-bg));
+}
+
+.vnl-table-el tbody tr:hover :is(.vnl-pin-left, .vnl-pin-right) {
+    background:
+        linear-gradient(var(--vnl-table-hover-bg), var(--vnl-table-hover-bg)),
+        var(--vnl-surface, var(--bs-body-bg));
+}
+
+/* Dikiş: kaydırılan alanla arasındaki sınır belli olsun. */
+.vnl-table-el .vnl-pin-left.vnl-pin-edge {
+    box-shadow: 6px 0 6px -6px rgba(0, 0, 0, .25);
+}
+
+.vnl-table-el .vnl-pin-right.vnl-pin-edge {
+    box-shadow: -6px 0 6px -6px rgba(0, 0, 0, .25);
+}
+
+/* ── Gruplama ── */
+
+.vnl-group-row {
+    cursor: pointer;
+}
+
+.vnl-group-row > td {
+    padding: 0;
+    background: var(--vnl-table-head-bg);
+    border-bottom: 1px solid var(--vnl-table-border);
+}
+
+.vnl-group-row:hover > td {
+    background: var(--vnl-table-hover-bg);
+}
+
+/* Yatay kaydırmada grup başlığı yerinde kalsın: geniş tabloda sağa
+   kayınca hangi grupta olduğun kayboluyordu. */
+.vnl-group-inner {
+    position: sticky;
+    left: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    max-width: 100%;
+    padding: var(--vnl-table-cell-y) var(--vnl-table-cell-x);
+    white-space: nowrap;
+}
+
+.vnl-group-caret {
+    flex: none;
+    width: .7em;
+    color: var(--vnl-table-accent);
+    transition: transform .15s;
+}
+
+.vnl-group-caret::after {
+    content: "▸";
+}
+
+.vnl-group-open .vnl-group-caret {
+    transform: rotate(90deg);
+}
+
+.vnl-group-key {
+    font-weight: 600;
+}
+
+.vnl-group-count {
+    color: var(--bs-secondary-color);
+    font-size: .8125rem;
+}
+
+/* Grup alt toplamları: değer okunur, etiket geride durur. */
+.vnl-group-total {
+    display: inline-flex;
+    align-items: baseline;
+    gap: .3rem;
+    padding: .05rem .45rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--vnl-table-accent) 12%, transparent);
+    font-size: .75rem;
+}
+
+.vnl-group-total-label {
+    color: var(--bs-secondary-color);
+}
+
+.vnl-group-total-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Grup içindeki satırlar bir tık içeride başlar. */
+.vnl-group-member > td:first-child {
+    padding-left: calc(var(--vnl-table-cell-x) + 1.2rem);
+}
+
+.vnl-group-note > td {
+    padding: .25rem var(--vnl-table-cell-x);
+    text-align: center;
+    color: var(--bs-secondary-color);
+    font-size: .8125rem;
+}
+
+.vnl-table-group-menu {
+    min-width: 180px;
+    padding: .4rem;
+}
+
+.vnl-table-group-menu .dropdown-item {
+    border-radius: .3rem;
+    cursor: pointer;
+}
+
+.vnl-table-actions .btn.vnl-group-on {
+    color: var(--vnl-table-accent);
+}
+
 /* Hizalama — sütun tipinden türetilir */
 .vnl-align-right  { text-align: right; }
 .vnl-align-center { text-align: center; }

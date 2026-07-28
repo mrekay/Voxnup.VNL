@@ -165,6 +165,11 @@ class VnlTable
      *   chips (bool)        aktif filtreleri araç çubuğunun altında rozet olarak göster
      *   multiSort (bool)    shift+tık ile ikinci, üçüncü sıralama anahtarı
      *   urlSync (bool)      durumu adres çubuğuna yaz; grid'de varsayılan açık
+     *   group (array)       satır gruplaması (workbench) — bkz. resolveGroup()
+     *   minWidth (string)   tablonun taban genişliği, örn '1200px'. Tablo
+     *                       normalde kabına sığar; sabit sütunun iş görmesi
+     *                       için taşması gerekir. Verilmezse sabit sütunlu
+     *                       tabloda sütunların bildirdiği width'ler toplanır.
      */
     public function options(array $options): self
     {
@@ -204,7 +209,11 @@ class VnlTable
             'chips'     => $rich,
             'multiSort' => $rich,
             'urlSync'   => $rich,
+            'group'     => null,
+            'minWidth'  => null,
         ], $this->options);
+
+        $options['group'] = $this->resolveGroup($options['group']);
 
         /* Skin adı doğrudan CSS sınıfına dönüşüyor; sınıf adı olarak
            geçerli olmayan her karakter atılır. */
@@ -261,6 +270,9 @@ class VnlTable
      *   agg      alt toplam: sum | avg | min | max | count. Değeri sunucu
      *            hesaplar (VnlTableRequest::totals), burası yalnız hangi
      *            sütunda gösterileceğini söyler.
+     *   pin      left | right — sütunu kenara yapıştırır, yatay kaydırmada
+     *            yerinde kalır. Sunum özelliğidir, her modda geçerlidir.
+     *   groupable  workbench'te gruplama menüsünde listelensin mi
      *
      * filter burada ham bırakılır: mod() sütunlardan sonra çağrılabildiği
      * için çözümleme config()'e ertelenir.
@@ -293,6 +305,8 @@ class VnlTable
             'align'    => $column['align'] ?? ($type === 'number' ? 'right' : ($type === 'bool' ? 'center' : 'left')),
             'filter'   => $column['filter'] ?? null,
             'agg'      => $agg,
+            'pin'      => in_array($column['pin'] ?? null, ['left', 'right'], true) ? $column['pin'] : null,
+            'groupable' => (bool)($column['groupable'] ?? true),
         ];
     }
 
@@ -355,6 +369,69 @@ class VnlTable
         return $column;
     }
 
+    /**
+     * Satır gruplaması — yalnız workbench'te.
+     *
+     *   'group' => true                        menü açılır, başlangıçta grup yok
+     *   'group' => 'sehir'                     başlangıçta bu sütuna göre grupla
+     *   'group' => ['by' => 'sehir',           tam denetim
+     *               'mode' => 'auto',
+     *               'limit' => 5000,
+     *               'menu' => true]
+     *
+     * mode neyin nerede yapılacağını söyler:
+     *   client — bütün satırlar tek seferde çekilir, gruplama tarayıcıda.
+     *            Basit ve anında; büyük tabloda kullanılamaz.
+     *   server — grup listesi op=group ile gelir, satırlar grup açılınca
+     *            ayrı istekle. Büyük tabloda tek doğru yol.
+     *   auto   — son bilinen kayıt sayısı limit'in altındaysa client,
+     *            üstündeyse server. Varsayılan.
+     */
+    private function resolveGroup($spec): ?array
+    {
+        if ($this->mode !== self::WORKBENCH || $spec === null || $spec === false) {
+            return null;
+        }
+
+        if (is_string($spec)) {
+            $spec = ['by' => $spec];
+        } elseif (!is_array($spec)) {
+            $spec = [];
+        }
+
+        $mode = (string)($spec['mode'] ?? 'auto');
+
+        if (!in_array($mode, ['auto', 'client', 'server'], true)) {
+            throwErrorMessage(
+                'VnlTable "' . $this->id . '": geçersiz gruplama modu "' . $mode . '". Beklenen: auto, client, server'
+            );
+        }
+
+        $by = (string)($spec['by'] ?? '');
+
+        if ($by !== '' && !$this->hasColumn($by)) {
+            throwErrorMessage('VnlTable "' . $this->id . '": gruplanacak sütun "' . $by . '" tanımlı değil.');
+        }
+
+        return [
+            'by'    => $by,
+            'mode'  => $mode,
+            'limit' => max(1, (int)($spec['limit'] ?? 5000)),
+            'menu'  => (bool)($spec['menu'] ?? true),
+        ];
+    }
+
+    private function hasColumn(string $name): bool
+    {
+        foreach ($this->columns as $column) {
+            if ($column['name'] === $name) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static function kindFromType(string $type): string
     {
         switch ($type) {
@@ -410,6 +487,14 @@ class VnlTable
             /* Alt toplamlar */
             'totals'        => lang('VNLTABLE_TOTALS'),
             'aggs'          => self::aggLabels(),
+
+            /* Gruplama */
+            'group'         => lang('VNLTABLE_GROUP'),
+            'groupNone'     => lang('VNLTABLE_GROUP_NONE'),
+            'groupCount'    => lang('VNLTABLE_GROUP_COUNT'),
+            'groupMore'     => lang('VNLTABLE_GROUP_MORE'),
+            'groupEmpty'    => lang('VNLTABLE_GROUP_EMPTY'),
+            'infoGroups'    => lang('VNLTABLE_INFO_GROUPS'),
         ];
     }
 
