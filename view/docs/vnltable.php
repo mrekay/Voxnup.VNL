@@ -318,6 +318,8 @@
                                 <tr><td class="ps-5"><code>excel</code></td><td><code>true</code></td><td>Excel çıktı düğmesi. Aktif aramayı uygular, görünen sayfayı değil.</td></tr>
                                 <tr><td class="ps-5"><code>clear</code></td><td><code>true</code></td><td>Filtreleri temizle düğmesi.</td></tr>
                                 <tr><td class="ps-5"><code>height</code></td><td>—</td><td>Gövde yüksekliği (<code>'420px'</code>); başlık yapışkan kalır.</td></tr>
+                                <tr><td class="ps-5"><code>skin</code></td><td><code>'default'</code></td><td><code>default</code> · <code>modern</code> · <code>compact</code>. Kendi skin'inizi <code>.vnl-skin-adiniz</code> sınıfıyla CSS'te tanımlayabilirsiniz.</td></tr>
+                                <tr><td class="ps-5"><code>striped</code></td><td><code>false</code></td><td>Satırları dönüşümlü renklendirir. Skin'den bağımsızdır; rengi seçili skin sağlar.</td></tr>
                                 </tbody>
                             </table>
                         </div>
