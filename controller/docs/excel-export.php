@@ -1,18 +1,14 @@
 <?php
-$meta = [
-    'title'       => 'Excel Export',
-    'upper_title' => 'Dökümantasyon',
-    'description' => '',
-    'keywords'    => '',
-];
+/**
+ * Excel Export — kaldırıldı, VNL Table'a yönlendirir.
+ *
+ * Sayfa SDTable'ın export mekanizmasını ve libs/excel içindeki PHPExcel'i
+ * anlatıyordu; VNL 3.0'da ikisi de kaldırıldı. Excel çıktısı artık VNL
+ * Table'ın parçası (VnlTableExport), konu orada belgeleniyor.
+ *
+ * Rota kalıcı yönlendirme olarak korunuyor: eski bağlantılar ve yer
+ * imleri 404 yerine doğru sayfaya düşsün.
+ */
 
-$page_config = [
-    'topbar'        => true,
-    'leftsidebar'   => true,
-    'contentheader' => true,
-    'public'        => true,
-];
-
-require view('static/header');
-require view('docs/excel-export');
-require view('static/footer');
+header('Location: /docs/vnltable', true, 301);
+exit;

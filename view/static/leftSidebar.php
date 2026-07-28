@@ -118,24 +118,6 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
-                                "text" => "SDTable — DataTables",
-                                'url' => 'docs/sdtable',
-                                'page_name' => 'sdtable.php',
-                                'permission' => '',
-                                'icon' => 'clock',
-                                'showmenu' => 1,
-                                "child" => []
-                        ],
-                        [
-                                "text" => "Excel Export",
-                                'url' => 'docs/excel-export',
-                                'page_name' => 'excel-export.php',
-                                'permission' => '',
-                                'icon' => 'clock',
-                                'showmenu' => 1,
-                                "child" => []
-                        ],
-                        [
                                 "text" => "Modüller",
                                 'url' => 'docs/modules',
                                 'page_name' => 'modules.php',

@@ -1,18 +1,14 @@
 <?php
-$meta = [
-    'title'       => 'SDTable — DataTables',
-    'upper_title' => 'Dökümantasyon',
-    'description' => '',
-    'keywords'    => '',
-];
+/**
+ * SDTable — kaldırıldı, VNL Table'a yönlendirir.
+ *
+ * SDTable, DataTables üzerine kurulu tablo yardımcısıydı. DataTables
+ * VNL Theme 1.0 ile söküldü, yerini VNL Table aldı; sınıf da bu sürümde
+ * kaldırıldı.
+ *
+ * Rota kalıcı yönlendirme olarak korunuyor: eski bağlantılar ve yer
+ * imleri 404 yerine doğru sayfaya düşsün.
+ */
 
-$page_config = [
-    'topbar'        => true,
-    'leftsidebar'   => true,
-    'contentheader' => true,
-    'public'        => true,
-];
-
-require view('static/header');
-require view('docs/sdtable');
-require view('static/footer');
+header('Location: /docs/vnltable', true, 301);
+exit;
