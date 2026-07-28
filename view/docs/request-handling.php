@@ -97,6 +97,35 @@ class action_kullanici
 }
 </code></pre>
                         </div>
+
+                        <div class="alert alert-danger d-flex align-items-center p-5 mt-6 mb-5">
+                            <i class="fa-solid fa-circle-xmark fs-2hx text-danger me-4"></i>
+                            <div class="d-flex flex-column">
+                                <h5 class="mb-1 text-danger">Action'da SQL Yazılmaz — Felsefe</h5>
+                                <span class="text-body">Action ince bir kapıdır: isteği karşılar, doğrular, işi modele devreder ve yanıtı döndürür. Çok ağır bir zorunluluk olmadıkça action içinde sorgu kurulmaz — ne <code>Capsule::table()</code> ne ham SQL. <b>Tüm sorgular class'larda toplanır</b> (bkz. <a href="/docs/models">Model ve Veritabanı</a> sayfasındaki "Capsule:: Doğrudan Kullanımı Yasak Gibidir" kuralı). Bu kural sorguları tek yerde tutar: aynı liste üç action'da üç kez yazılmaz, sütun değişince tek sınıf güncellenir.</span>
+                            </div>
+                        </div>
+
+                        <p class="text-body mb-3">
+                            İzin verilen tek esneklik: <b>sınıftan başlayan zinciri</b> action'da uzatmak.
+                            Bu durumda bile join edilen taraf başka bir sınıf olmak zorundadır —
+                            tablo adı elle yazılmaz, karşılık gelen modelden alınır:
+                        </p>
+
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// ❌ Yanlış: sorgu action'da kuruluyor
+$rows = Capsule::table('tbl_users')
+    ->leftJoin('tbl_roller', 'tbl_roller.id', '=', 'tbl_users.rol_id')
+    ->get();
+
+// ✅ İzinli: zincir sınıftan başlar; join edilen taraf da bir sınıftır
+$rows = Users::SelectList($filters, $extras)
+    ->leftJoin((new Roller)->getTable(), 'tbl_roller.id', '=', 'tbl_users.rol_id')
+    ->get();
+
+// ✅ En iyisi: join'in kendisi de modelde yaşar
+$rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
+                        </div>
                     </div>
 
                     <div class="separator separator-dashed my-8"></div>
