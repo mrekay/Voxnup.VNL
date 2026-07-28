@@ -77,6 +77,11 @@
         var self = this;
         this.root.innerHTML = '';
 
+        /* Görünüm sınıfları: skin bir CSS katmanı, şerit ondan bağımsız
+           bir anahtar — hangi skin seçilirse seçilsin çalışır. */
+        this.root.classList.add('vnl-skin-' + (this.opt.skin || 'default'));
+        if (this.opt.striped) this.root.classList.add('vnl-striped');
+
         /* ---- Araç çubuğu ---- */
         var bar = el('div', 'vnl-table-toolbar');
 
@@ -112,7 +117,11 @@
         bar.appendChild(actions);
         this.root.appendChild(bar);
 
-        /* ---- Tablo ---- */
+        /* ---- Tablo ----
+           Kaydırma alanı ayrı bir kapsayıcıya alınır: yükleme katmanı
+           kaydırmayla birlikte hareket etmesin, görünen alanda sabit kalsın. */
+        var body = el('div', 'vnl-table-body');
+
         var wrap = el('div', 'vnl-table-scroll');
         if (this.opt.height) wrap.style.maxHeight = this.opt.height;
 
@@ -142,7 +151,15 @@
         this.tbody = el('tbody');
         table.appendChild(this.tbody);
         wrap.appendChild(table);
-        this.root.appendChild(wrap);
+        body.appendChild(wrap);
+
+        /* Yükleme katmanı: satırlar silinmez, yerinde bulanıklaşır. */
+        this.overlay = el('div', 'vnl-table-overlay');
+        this.overlay.setAttribute('aria-hidden', 'true');
+        this.overlay.appendChild(el('span', 'vnl-table-overlay-text', this.lang.loading || ''));
+        body.appendChild(this.overlay);
+
+        this.root.appendChild(body);
 
         /* ---- Alt bilgi ---- */
         var foot = el('div', 'vnl-table-footer');
@@ -226,10 +243,25 @@
         };
     };
 
+    /** Yükleme durumu: satırlar yerinde kalır, bulanıklaşır ve üstüne katman gelir. */
+    VnlTable.prototype.setBusy = function (busy) {
+        this.root.classList.toggle('vnl-is-loading', !!busy);
+        this.overlay.setAttribute('aria-hidden', busy ? 'false' : 'true');
+        this.table.setAttribute('aria-busy', busy ? 'true' : 'false');
+    };
+
     VnlTable.prototype.load = function () {
         var self = this;
         this.state.loading = true;
-        this.renderMessage(this.lang.loading || '');
+        this.setBusy(true);
+
+        /* İlk yüklemede gösterilecek satır yok; katmanın kaplayacağı bir
+           yükseklik olsun diye mesaj satırı basılır. Sonraki yüklemelerde
+           mevcut satırlar korunur — aksi halde tek geniş hücre sütun
+           genişliklerini çökertip tabloyu zıplatıyordu. */
+        if (!this.state.rows.length) {
+            this.renderMessage('');
+        }
 
         /* fetch kullanılıyor: jQuery'nin global ajaxComplete akışına girmesin,
            tablo kendi hata durumunu kendi gösterebilsin. */
@@ -245,6 +277,7 @@
             })
             .then(function (data) {
                 self.state.loading = false;
+                self.setBusy(false);
                 self.state.rows     = data.rows || [];
                 self.state.total    = data.total || 0;
                 self.state.filtered = (data.filtered !== undefined) ? data.filtered : self.state.total;
@@ -253,6 +286,8 @@
             })
             .catch(function (err) {
                 self.state.loading = false;
+                self.setBusy(false);
+                self.state.rows = [];
                 console.error('[VNL Table] ' + self.config.id + ':', err);
                 self.renderMessage(self.lang.error || '', true);
                 self.pager.innerHTML = '';

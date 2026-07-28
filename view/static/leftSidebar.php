@@ -315,6 +315,11 @@ function showSideBar($array, $level)
             <div class="vnl-menu-item">
                 <a class="vnl-menu-link <?= ($item["url"] == $fileName || $item["url"] == $friendly_name) ? 'active' : '' ?>"
                    href="/<?= $item["url"] ?>">
+                    <?php /* Alt öğelerde de ikon: flyout/accordion fark etmez.
+                             Passthrough kuralı üst seviyeyle aynı. */
+                    if (!empty($item['icon'])) { ?>
+                        <span class="vnl-menu-icon"><i class="<?= strpos($item['icon'], ' ') !== false ? $item['icon'] : 'fa-solid fa-' . $item['icon']; ?>"></i></span>
+                    <?php } ?>
                     <span class="vnl-menu-title"><?= $item["text"] ?></span>
                 </a>
             </div>

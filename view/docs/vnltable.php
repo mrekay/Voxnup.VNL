@@ -51,18 +51,77 @@
                             'pageSize' => 10,
                             'order'    => [['col' => 'id', 'dir' => 'asc']],
                             'height'   => '420px',
+                            'skin'     => 'default',
+                            'striped'  => true,
                         ])
                         ->render() ?>
                 </div>
             </div>
             <!--end::Canlı örnek-->
 
+            <!--begin::Skinler-->
+            <div class="card mb-10">
+                <div class="card-body p-10">
+                    <h3 class="fw-bold text-body-emphasis mb-4">2. Skinler ve Şerit</h3>
+                    <p class="fs-5 text-body mb-6">
+                        <code>skin</code> tablonun görünüm katmanıdır. <code>striped</code> ise ondan
+                        bağımsız bir anahtardır: hangi skin seçilirse seçilsin satırları dönüşümlü
+                        renklendirir, rengi de o skin'den alır.
+                    </p>
+
+                    <div class="vnl-code mb-6">
+                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>-&gt;options([
+    'skin'    =&gt; 'modern',   // default | modern | compact
+    'striped' =&gt; true,       // skin'den bağımsız
+])</code></pre>
+                    </div>
+
+                    <h6 class="fw-bold mb-3"><span class="badge badge-soft-primary me-2">modern</span> şeritli</h6>
+                    <div class="mb-8">
+                        <?= VnlTable::make('demoModern')
+                            ->url('app/vnltable/getList')
+                            ->key('id')
+                            ->columns([
+                                ['name' => 'ad',    'title' => 'Ad Soyad'],
+                                ['name' => 'sehir', 'title' => 'Şehir'],
+                                ['name' => 'durum', 'title' => 'Durum'],
+                                ['name' => 'tutar', 'title' => 'Tutar', 'type' => 'number'],
+                            ])
+                            ->options([
+                                'pageSize' => 5, 'pageSizes' => [5, 10, 25],
+                                'skin' => 'modern', 'striped' => true,
+                                'search' => false, 'excel' => false, 'clear' => false,
+                            ])
+                            ->render() ?>
+                    </div>
+
+                    <h6 class="fw-bold mb-3"><span class="badge badge-soft-secondary me-2">compact</span> şeritsiz</h6>
+                    <?= VnlTable::make('demoCompact')
+                        ->url('app/vnltable/getList')
+                        ->key('id')
+                        ->columns([
+                            ['name' => 'id',    'title' => 'No',    'type' => 'number', 'width' => '70px'],
+                            ['name' => 'ad',    'title' => 'Ad Soyad'],
+                            ['name' => 'sehir', 'title' => 'Şehir'],
+                            ['name' => 'durum', 'title' => 'Durum'],
+                            ['name' => 'tutar', 'title' => 'Tutar', 'type' => 'number'],
+                        ])
+                        ->options([
+                            'pageSize' => 8, 'pageSizes' => [8, 20, 50],
+                            'skin' => 'compact',
+                            'search' => false, 'excel' => false, 'clear' => false,
+                        ])
+                        ->render() ?>
+                </div>
+            </div>
+            <!--end::Skinler-->
+
             <div class="card mb-10">
                 <div class="card-body p-10">
 
                     <!--begin::Tanım-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">2. Tablo Tanımı</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">3. Tablo Tanımı</h3>
                         <p class="fs-5 text-body mb-4">
                             <code>VnlTable</code> zincirleme kurulur ve <code>render()</code> ile basılır.
                             HTML tablo değil, bir bağlama noktası ve JSON tanım üretir; çizimi
@@ -102,7 +161,7 @@
 
                     <!--begin::Sütun-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">3. Sütun Seçenekleri</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Sütun Seçenekleri</h3>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
@@ -168,7 +227,7 @@
 
                     <!--begin::getList-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">4. <code>getList</code> Sözleşmesi</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. <code>getList</code> Sözleşmesi</h3>
                         <p class="fs-5 text-body mb-4">
                             <code>getList</code> adı VNL 2.x'ten korunur, sözleşme tamamen değişti.
                             <code>VnlTableRequest</code> gelen isteği çözer ve yanıtı biçimlendirir.
@@ -240,7 +299,7 @@
 
                     <!--begin::Seçenekler-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">5. Tablo Seçenekleri</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">6. Tablo Seçenekleri</h3>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">

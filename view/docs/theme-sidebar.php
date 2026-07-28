@@ -27,7 +27,7 @@
                                 <tbody class="text-body fw-semibold">
                                 <tr><td><code>text</code></td><td>Menüde görünen ad</td></tr>
                                 <tr><td><code>url</code></td><td>Bağlantı (başında <code>/</code> olmadan); child'lı öğelerde boş bırakılır</td></tr>
-                                <tr><td><code>icon</code></td><td>FA kısa adı (<code>'home'</code> → <code>fa-solid fa-home</code>) <b>ya da</b> boşluklu tam class (<code>'bi bi-house'</code> olduğu gibi basılır)</td></tr>
+                                <tr><td><code>icon</code></td><td>FA kısa adı (<code>'home'</code> → <code>fa-solid fa-home</code>) <b>ya da</b> boşluklu tam class (<code>'bi bi-house'</code> olduğu gibi basılır). <b>Alt öğelerde de geçerlidir</b> — flyout panelde ve accordion listede basılır; boş bırakılırsa yalnız başlık görünür</td></tr>
                                 <tr><td><code>permission</code></td><td>Yetki kodu (UserPermissions entegrasyonu için ayrılmıştır)</td></tr>
                                 <tr><td><code>showmenu</code></td><td><code>0</code> her zaman gizli · <code>1</code> her zaman görünür · <code>2</code> yalnız oturum açıkken</td></tr>
                                 <tr><td><code>child</code></td><td>Alt öğe dizisi — varlığında öğe alt menü başlığına dönüşür</td></tr>

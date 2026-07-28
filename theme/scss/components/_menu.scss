@@ -81,6 +81,11 @@
     padding: .45rem .75rem;
     font-size: .8125rem;
   }
+
+  .vnl-menu-icon {
+    font-size: .8125rem;
+    opacity: .8;
+  }
 }
 
 @include media-breakpoint-up(lg) {

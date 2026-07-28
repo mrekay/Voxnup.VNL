@@ -126,6 +126,8 @@ class VnlTable
      *   clear (bool)        filtre temizle düğmesi
      *   order (array)       başlangıç sıralaması: [['col'=>'id','dir'=>'desc']]
      *   height (string)     gövde yüksekliği, örn '60vh'
+     *   skin (string)       default | modern | compact — ya da kendi skin'iniz
+     *   striped (bool)      satırları dönüşümlü renklendir; skin'den bağımsızdır
      */
     public function options(array $options): self
     {
@@ -153,7 +155,14 @@ class VnlTable
             'clear'     => true,
             'order'     => [],
             'height'    => null,
+            'skin'      => 'default',
+            'striped'   => false,
         ], $this->options);
+
+        /* Skin adı doğrudan CSS sınıfına dönüşüyor; sınıf adı olarak
+           geçerli olmayan her karakter atılır. */
+        $options['skin']    = preg_replace('/[^a-z0-9-]/', '', strtolower((string)$options['skin'])) ?: 'default';
+        $options['striped'] = (bool)$options['striped'];
 
         return [
             'id'      => $this->id,
