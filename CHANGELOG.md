@@ -9,11 +9,17 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
-## [3.0.0] — yayımlanmadı
+## [3.0.0] — 2026-07-31
 
 VNL 2.x'ten gelen kurulumlar için **kırıcı** bir sürüm. Yükseltmeden önce
 aşağıdaki *Kırıcı Değişiklikler* bölümünü baştan sona okuyun; çoğu adım
 mekaniktir ama birkaçı veri kaybına yol açabilir.
+
+**Bu sürüme `php vnl.php update` ile geçilemez.** Güncelleyici 3.0 ile
+*gelir*, 3.0'a *götürmez*: 2.x'te ne `vnl/` dizini, ne konsol, ne de
+`MANIFEST` vardır. 2.x → 3.0 geçişi elle yapılır — aşağıdaki yol tablosunu
+uygulayın, sonra `php vnl.php doctor` ile kontrol edin. 3.0'dan sonraki
+sürümlere geçiş güncelleyiciyle olur.
 
 **Şema:** `vnl/migrations/0001_vnl_3_0_upgrade.sql` zorunludur.
 `php vnl.php migrate --run` ile uygulayın.
