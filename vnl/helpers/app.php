@@ -257,6 +257,20 @@ function throwErrorMessage($errorMessage, $status = 400)
     throw new Exception($errorMessage);
 }
 
+/**
+ * PHPEXCELMODE hakkında.
+ *
+ * Aşağıdaki dört yer bu sabite bakıp betiği sonlandırmaktan vazgeçiyor:
+ * niyet, Excel çıktısı üretilirken yanıt fonksiyonlarının akışı kesmemesi.
+ * Sabiti tanımlayan TEK yer action_datatableMultipleSelect.php idi ve o
+ * dosya VNL 3.0'da silindi (DataTables kalıntısıydı, hiçbir yerden
+ * çağrılmıyordu). Yani VNL artık bu sabiti hiç tanımlamıyor.
+ *
+ * Denetimler yine de duruyor: kendi ihracat akışında yanıt fonksiyonunun
+ * die etmesini istemeyen bir proje sabiti kendisi tanımlayabilir. VNL'in
+ * kendi Excel çıktısı (VnlTableExport) buna ihtiyaç duymaz, kendi exit'ini
+ * çağırır.
+ */
 function returnErrorMessage($message, $error_code = 400,$devcode=""){
     http_response_code($error_code);
     $json = json_encode(['message' => $message, 'devcode' => $devcode]);

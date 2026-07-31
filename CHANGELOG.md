@@ -173,6 +173,13 @@ yönlendiriyor. PHPExcel ve DataTables bağımlılıkları kaldırıldı; Excel
 - SDTable sınıfı ve `/docs/sdtable`, `/docs/excel-export` sayfaları
 - `checkMobileBrowser()`
 - `$testMode` yapılandırma anahtarı
+- Öksüz script'ler: `assets/scripts/jquery-standalone.js` (85 KB — tema
+  paketi kendi jQuery'sini taşıyor), `price-input-mask.js`, `panel-fixed.js`.
+  Hiçbirinin çağıranı yoktu.
+- `actions/action_datatableMultipleSelect.php` ve `files/template/GenelDataTable.xlsx`
+  — DataTables kalıntısı. Bu dosya `PHPEXCELMODE` sabitini **tanımlayan tek
+  yerdi**; sabiti okuyan denetimler `vnl/helpers/app.php`'de duruyor, artık
+  isteyen projenin kendisi tanımlar.
 
 ### Güvenlik
 
