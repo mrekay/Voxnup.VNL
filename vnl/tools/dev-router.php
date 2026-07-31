@@ -22,9 +22,10 @@ if (php_sapi_name() === 'cli-server') {
     $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
     /* .env, .git, .htaccess … — .htaccess bunları engelliyor, yerel sunucu
-       engellemiyordu ve düz metin olarak servis ediyordu. */
+       engellemiyordu ve düz metin olarak servis ediyordu. Konsol giriş
+       noktası da üretimde olduğu gibi burada da kapalı. */
     foreach (explode('/', trim((string)$url, '/')) as $segment) {
-        if ($segment !== '' && $segment[0] === '.') {
+        if ($segment !== '' && ($segment[0] === '.' || $segment === 'vnl.php' || $segment === 'vnl.cmd')) {
             http_response_code(403);
             die('403');
         }

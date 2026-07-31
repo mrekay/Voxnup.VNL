@@ -29,8 +29,8 @@ Elle `mysql <` ile değil, araçla — böylece neyin uygulandığı kayda geçe
 aynı migration ikinci kez çalışmaz:
 
 ```bash
-php vnl/tools/migrate.php --status   # ne uygulanmış, ne bekliyor
-php vnl/tools/migrate.php --run      # bekleyenleri sırayla uygula
+php vnl.php migrate --status   # ne uygulanmış, ne bekliyor
+php vnl.php migrate --run      # bekleyenleri sırayla uygula
 ```
 
 Ayrıntı için uygulama içindeki **/docs/versioning** sayfasına bakın.

@@ -91,7 +91,7 @@
                                 <tr><td><code>codemods/migrate-icons.mjs</code></td><td>138 keenicon'u <code>fa-*</code> karşılığına çevirir, duotone path span'larını siler (HTML-escape'li örnekler dahil)</td></tr>
                                 <tr><td><code>codemods/sweep-utilities.mjs a|b</code></td><td>Sınıf eşleme tablosunu uygular (FAZ A: adaptif aileler; FAZ B: soft/vnl-code)</td></tr>
                                 <tr><td><code>codemods/sweep-hero.mjs</code></td><td>Ortalanmış eski hero bloklarını overline'lı sola yaslı düzene çevirir</td></tr>
-                                <tr><td><code>tools/dev-router.php</code> <span class="text-body-secondary">(bu repo)</span></td><td>Yerel smoke test: <code>php -S 0.0.0.0:8080 tools/dev-router.php</code></td></tr>
+                                <tr><td><code>vnl/tools/dev-router.php</code> <span class="text-body-secondary">(bu repo)</span></td><td>Yerel smoke test: <code>php vnl.php serve</code></td></tr>
                                 </tbody>
                             </table>
                         </div>

@@ -16,7 +16,7 @@ aşağıdaki *Kırıcı Değişiklikler* bölümünü baştan sona okuyun; çoğ
 mekaniktir ama birkaçı veri kaybına yol açabilir.
 
 **Şema:** `vnl/migrations/0001_vnl_3_0_upgrade.sql` zorunludur.
-`php vnl/tools/migrate.php --run` ile uygulayın.
+`php vnl.php migrate --run` ile uygulayın.
 
 ### Kırıcı Değişiklikler
 
@@ -123,8 +123,17 @@ yönlendiriyor. PHPExcel ve DataTables bağımlılıkları kaldırıldı; Excel
   SHA-256 özeti durur. Her kullanımda yenilenir.
 - **Çekirdek/proje ayrımı** — `vnl/` ile kök arasındaki sınır; aynı adlı
   dosyayla çekirdeği ezme. Bkz. **/docs/architecture**.
-- **Migration çalıştırıcısı** — `vnl/tools/migrate.php`; uygulananları
+- **Konsol** — `php vnl.php`. Tek giriş noktası: `migrate`, `update`,
+  `doctor`, `version`, `serve`, `release`. Windows için `vnl.cmd` kısayolu.
+- **Migration çalıştırıcısı** — `php vnl.php migrate`; uygulananları
   veritabanında tutar, bekleyenleri sırayla uygular.
+- **Güncelleyici** — `php vnl.php update`. Yayın arşivini indirir,
+  `MANIFEST`'e karşı doğrular, `vnl.bak/` yedeğini alır ve yalnız içeriği
+  değişen dosyaları yazar. Kurulu çekirdek kurcalanmışsa üzerine yazmadan
+  önce durur. `--rollback` ile geri dönülür.
+- **`php vnl.php doctor`** — projenin tohumlanmış dosyalarını (index.php,
+  config/, languages/, view/static/) çekirdeğin beklentisine karşı sınar.
+  Güncelleme proje tarafına dokunamadığı için bu boşluğu o kapatır.
 - **Hata sayfası** — kaynak kod bağlamı, çağrı zinciri ve ortam bilgisiyle;
   AJAX isteklerinde JSON döner.
 - **`Permission` ve `MailObject` sınıfları** — çağrılıyor ama tanımlı

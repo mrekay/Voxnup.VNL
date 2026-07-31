@@ -7,8 +7,8 @@ yürür, numaralarınız çakışmaz.
 ## Çalıştırma
 
 ```bash
-php vnl/tools/migrate.php --status   # ne uygulanmış, ne bekliyor
-php vnl/tools/migrate.php --run      # bekleyenleri sırayla uygula
+php vnl.php migrate --status   # ne uygulanmış, ne bekliyor
+php vnl.php migrate --run      # bekleyenleri sırayla uygula
 ```
 
 Araç uygulananları veritabanında `tbl_vnl_migrations` tablosunda tutar; aynı

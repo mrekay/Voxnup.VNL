@@ -6,9 +6,9 @@
  *  Authors: Voxnup Authors
  * ============================================================
  *
- *   php vnl/tools/migrate.php --status
- *   php vnl/tools/migrate.php --run
- *   php vnl/tools/migrate.php --run --dry-run
+ *   php vnl.php migrate --status
+ *   php vnl.php migrate --run
+ *   php vnl.php migrate --run --dry-run
  *
  * İki ayrı sayaç yürür: çekirdeğinkiler vnl/migrations/, projeninkiler
  * migrations/. Numaraları birbirinden bağımsızdır — bir VNL yükseltmesi
@@ -20,14 +20,6 @@
  * PDO açılır. Şemayı düzeltmeniz gereken an, çoğu zaman uygulamanın
  * açılmadığı andır.
  */
-
-if (PHP_SAPI !== 'cli') {
-    http_response_code(403);
-    die("Bu arac yalnizca komut satirindan calisir.\n");
-}
-
-define('VNL_PATH', dirname(__DIR__));
-define('VNL_ROOT', dirname(__DIR__, 2));
 
 require_once VNL_PATH . '/env.php';
 require_once VNL_ROOT . '/config/definitions.php';
@@ -499,27 +491,31 @@ class VnlMigrate
 
 /* ------------------------------------------------------------------ */
 
-$args   = array_slice($argv, 1);
-$status = in_array('--status', $args, true);
-$run    = in_array('--run', $args, true);
-$dry    = in_array('--dry-run', $args, true);
+return static function (array $args): int {
+    $status = in_array('--status', $args, true);
+    $run    = in_array('--run', $args, true);
+    $dry    = in_array('--dry-run', $args, true);
 
-if (in_array('--help', $args, true) || in_array('-h', $args, true) || (!$status && !$run)) {
-    fwrite(STDOUT, <<<TXT
+    if (in_array('--help', $args, true) || in_array('-h', $args, true) || (!$status && !$run)) {
+        fwrite(STDOUT, <<<TXT
 
-  VNL migration calistiricisi
+  Bekleyen sema degisikliklerini uygular.
 
-    php vnl/tools/migrate.php --status         neyin uygulandigini gosterir
-    php vnl/tools/migrate.php --run            bekleyenleri sirayla uygular
-    php vnl/tools/migrate.php --run --dry-run  uygulamaz, calisacak SQL'i basar
+    php vnl.php migrate --status         neyin uygulandigini gosterir
+    php vnl.php migrate --run            bekleyenleri sirayla uygular
+    php vnl.php migrate --run --dry-run  uygulamaz, calisacak SQL'i basar
 
   Cekirdegin migrationlari vnl/migrations/, projeninkiler migrations/
   altindadir. Numaralari birbirinden bagimsiz yurur; once cekirdek uygulanir.
 
 
 TXT
-    );
-    exit($status || $run ? 0 : 1);
-}
+        );
 
-exit((new VnlMigrate(new ConfigDefinitions()))->{$run ? 'run' : 'status'}(...($run ? [$dry] : [])));
+        return ($status || $run) ? 0 : 1;
+    }
+
+    $migrator = new VnlMigrate(new ConfigDefinitions());
+
+    return $run ? $migrator->run($dry) : $migrator->status();
+};

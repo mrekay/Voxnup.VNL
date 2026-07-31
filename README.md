@@ -14,6 +14,7 @@ VNL klasik MVC üzerine inşa edilmiş Eloquent veritabanı sistemini kullanan b
 - [VNL Theme](#-vnl-theme)
 - [Çekirdek ve Proje](#-çekirdek-ve-proje)
 - [Sürüm ve Şema](#️-sürüm-ve-şema)
+- [Konsol](#️-konsol)
 - [Gereksinimler](#-gereksinimler)
 - [Kurulum](#-kurulum)
 - [Dokümantasyon](#-dokümantasyon)
@@ -93,14 +94,41 @@ bölümü aynı zamanda göç rehberidir.
 kayda geçer ve aynı migration ikinci kez işlenmez:
 
 ```bash
-php vnl/tools/migrate.php --status         # ne uygulanmış, ne bekliyor
-php vnl/tools/migrate.php --run            # bekleyenleri sırayla uygula
-php vnl/tools/migrate.php --run --dry-run  # uygulamaz, çalışacak SQL'i basar
+php vnl.php migrate --status         # ne uygulanmış, ne bekliyor
+php vnl.php migrate --run            # bekleyenleri sırayla uygula
+php vnl.php migrate --run --dry-run  # uygulamaz, çalışacak SQL'i basar
 ```
 
 Çekirdeğin migration'ları `vnl/migrations/`, sizinkiler `migrations/`
 altındadır; numaraları bağımsız yürür, bir VNL yükseltmesi sizin sıranızla
-çakışmaz. Ayrıntılar **/docs/versioning** sayfasında.
+çakışmaz.
+
+Çekirdeği güncellemek de aynı konsoldan:
+
+```bash
+php vnl.php update --check      # yeni sürüm var mı, neler değişti
+php vnl.php update --to 3.1.0   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
+php vnl.php doctor              # proje tarafı yeni çekirdeğe uygun mu
+php vnl.php migrate --run       # şemayı güncelle
+```
+
+`update`, yazmadan önce kurulu çekirdeği `vnl/MANIFEST`'e karşı sınar; birileri
+`vnl/` altını değiştirmişse durur, çünkü aksi halde o değişiklikler sessizce
+silinirdi. Ters giderse `php vnl.php update --rollback`.
+
+Ayrıntılar **/docs/versioning** sayfasında.
+
+## 🖥️ Konsol
+
+```bash
+php vnl.php              # komut listesi
+php vnl.php serve        # yerel geliştirme sunucusu
+php vnl.php version      # çekirdek ve proje sürümleri
+```
+
+Windows'ta `vnl.cmd` kısayolu vardır (`vnl migrate --run`; PowerShell'de
+`.\vnl`), Unix'te `chmod +x vnl.php` sonrası `./vnl.php`. Adı düz `vnl` olamaz:
+bir dizinde aynı adı taşıyan dosya ve dizin bir arada bulunamaz.
 
 ## 🚀 Gereksinimler
 
@@ -122,10 +150,10 @@ git clone https://github.com/mrekay/VNL-TEMPLATE.git .
 Yerelde hızlıca denemek için (PHP kuruluysa ya da Docker ile):
 
 ```bash
-php -S 0.0.0.0:8080 vnl/tools/dev-router.php
+php vnl.php serve
 # veya
 docker run --rm -p 8080:8080 -v "$PWD":/app -w /app php:8.2-cli \
-  php -S 0.0.0.0:8080 vnl/tools/dev-router.php
+  php vnl.php serve
 ```
 
 ## 📚 Dokümantasyon

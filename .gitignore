@@ -12,3 +12,9 @@
 
 # Derlenmis sablon onbellegi
 files/cache/
+
+# Guncelleme yedegi — "php vnl.php update" birakir, geri donus icin durur
+vnl.bak/
+
+# Yayin arsivleri — "php vnl.php release" ciktisi, surum varligi olarak yuklenir
+dist/

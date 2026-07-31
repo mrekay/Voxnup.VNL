@@ -10,6 +10,25 @@
 
             <div class="card mb-10">
                 <div class="card-body p-10">
+                    <h3 class="fw-bold text-body-emphasis mb-4">Konsol</h3>
+                    <p class="fs-5 text-body mb-4">
+                        Bu sayfadaki her şey tek bir giriş noktasından çalışır. <code>vnl.php</code> projenizindir ve <code>index.php</code> gibi incedir: çekirdeği yükleyip komutu ona devreder.
+                    </p>
+                    <div class="vnl-code mb-4"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>php vnl.php                 komut listesi
+php vnl.php migrate --run   bekleyen şema değişikliklerini uygular
+php vnl.php update --check  yeni çekirdek sürümü var mı
+php vnl.php doctor          kurulumu bu çekirdeğin beklentisine karşı sınar
+php vnl.php version         çekirdek ve proje sürümleri
+php vnl.php serve           yerel geliştirme sunucusu
+php vnl.php release         yayın arşivi üretir (bakım için)</code></pre></div>
+                    <p class="fs-6 text-muted mb-0">
+                        Windows'ta <code>vnl.cmd</code> kısayolu vardır: <code>vnl migrate --run</code> (PowerShell'de <code>.\vnl</code>). Unix'te <code>chmod +x vnl.php</code> sonrası <code>./vnl.php</code>. Adı düz <code>vnl</code> olamaz: bir dizinde aynı adı taşıyan dosya ve dizin bir arada bulunamaz, kökte zaten <code>vnl/</code> var.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card mb-10">
+                <div class="card-body p-10">
 
                     <!--begin::Section 1-->
                     <div class="mb-10">
@@ -95,11 +114,18 @@
                     <!--begin::Section 3-->
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">3. Yayın Sırası</h3>
-                        <div class="vnl-code"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>1. CHANGELOG.md    — "yayımlanmadı" başlığına tarih yazılır
-2. vnl/VERSION     — yeni numara
-3. README.md       — sürüm rozeti
-4. git commit -m "Release 3.1.0"
-5. git tag -a v3.1.0 -m "VNL 3.1.0"</code></pre></div>
+                        <p class="fs-5 text-body mb-4">Bakım tarafıdır; türev projelerde çalıştırılmaz.</p>
+                        <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>1. CHANGELOG.md         — "yayımlanmadı" başlığına tarih yazılır
+2. vnl/VERSION          — yeni numara
+3. README.md            — sürüm rozeti
+4. php vnl.php release  — vnl/MANIFEST + dist/vnl-3.1.0.tar.gz üretir
+5. git commit -m "Release 3.1.0"
+6. git tag -a v3.1.0 -m "VNL 3.1.0"
+7. dist/ çıktısını etiketin yayın varlıklarına yükle</code></pre></div>
+                        <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
+                            <span class="text-body fs-6"><b>4. adım atlanırsa güncelleyici o sürüme geçemez</b> — arşivi yayın varlıkları arasında bulamaz. <code>vnl/MANIFEST</code> ayrıca yayın anında üretilir; iki yayın arasındaki commit'lerde eskir, o yüzden geliştirme sırasında <code>update --verify</code> değişmiş dosya bildirebilir. Bu doğrudur: çekirdek gerçekten yayımlandığı gibi değildir.</span>
+                        </div>
                     </div>
                     <!--end::Section 3-->
 
@@ -148,12 +174,12 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">5. Çalıştırıcı</h3>
 
-                        <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>php vnl/tools/migrate.php --status         neyin uygulandığını gösterir
-php vnl/tools/migrate.php --run            bekleyenleri sırayla uygular
-php vnl/tools/migrate.php --run --dry-run  uygulamaz, çalışacak SQL'i basar
+                        <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>php vnl.php migrate --status         neyin uygulandığını gösterir
+php vnl.php migrate --run            bekleyenleri sırayla uygular
+php vnl.php migrate --run --dry-run  uygulamaz, çalışacak SQL'i basar
 
 # PHP CLI yoksa
-docker run --rm -v "$PWD":/app -w /app php:8.2-cli php vnl/tools/migrate.php --status</code></pre></div>
+docker run --rm -v "$PWD":/app -w /app php:8.2-cli php vnl.php migrate --status</code></pre></div>
 
                         <p class="fs-5 text-body mb-4">Uygulananlar veritabanında <code>tbl_vnl_migrations</code> tablosunda tutulur. <code>--status</code> çıktısındaki işaretler:</p>
 
@@ -180,10 +206,40 @@ docker run --rm -v "$PWD":/app -w /app php:8.2-cli php vnl/tools/migrate.php --s
                     <!--begin::Section 6-->
                     <div class="mb-0">
                         <h3 class="fw-bold text-body-emphasis mb-4">6. Yükseltme</h3>
-                        <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>1. CHANGELOG.md okunur — ana sürüm atlıyorsa Kırıcı bölümü zorunludur
-2. rm -rf vnl/  ve yeni sürümün vnl/ dizini yerine konur
-3. php vnl/tools/migrate.php --status   ne bekliyor?
-4. php vnl/tools/migrate.php --run</code></pre></div>
+
+                        <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>php vnl.php update --check      yeni sürüm var mı, neler değişti
+php vnl.php update --to 3.1.0   çekirdeği değiştir
+php vnl.php doctor              proje tarafı yeni çekirdeğe uygun mu
+php vnl.php migrate --run       şemayı güncelle</code></pre></div>
+
+                        <p class="fs-5 text-body mb-4">
+                            <code>update</code> yalnızca <code>vnl/</code> dizinini değiştirir; projenin hiçbir dosyasına dokunmaz. Sırayla: arşivi indirir, kendi <code>MANIFEST</code>'ine karşı doğrular, mevcut çekirdeği <code>vnl.bak/</code> altına yedekler, sonra <b>yalnız içeriği değişen dosyaları</b> yazıp yeni sürümde bulunmayanları siler. Bir şey ters giderse <code>php vnl.php update --rollback</code>.
+                        </p>
+
+                        <div class="table-responsive mb-5">
+                            <table class="table table-row-dashed align-middle fs-6">
+                                <tbody>
+                                <tr>
+                                    <td style="width:210px"><code>--verify</code></td>
+                                    <td>Kurulu çekirdeği <code>vnl/MANIFEST</code>'e karşı sınar. <b>Güncellemeden önce kendiliğinden çalışır</b> ve kurcalanmış dosya bulursa durur — aksi halde o değişiklikler sessizce silinirdi. Bilerek yapıldıysa <code>--force</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--file a.tar.gz</code></td>
+                                    <td>Sunucu dışarıya çıkamıyorsa: arşivi elde indirip yolunu verin.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--rollback</code></td>
+                                    <td><code>vnl.bak/</code> üzerinden bir önceki sürüme döner.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="alert alert-info d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3 mt-1"></i>
+                            <span class="text-body fs-6"><code>doctor</code> adımı atlanmamalı. Güncelleme projenin dosyalarına dokunamaz ama bazı sürümler proje tarafında bir şey bekler — 3.0'ın <code>index.php</code>'si <code>VNL_ROOT</code> tanımlamak zorundadır ve 2.x'ten gelen bir <code>index.php</code> çekirdeği hiç yükleyemez. CHANGELOG bunu yazar; <code>doctor</code> aynı şeyi <b>sorar</b>.</span>
+                        </div>
+
                         <p class="fs-5 text-body mb-0">
                             Kod ve şema ayrı adımlar olduğu için sıra önemlidir: önce kod, sonra şema. Yeni kod eski şemayla kısa süre çalışabilmelidir; tersi genellikle çalışmaz.
                         </p>
