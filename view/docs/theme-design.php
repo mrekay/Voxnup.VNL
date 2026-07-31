@@ -205,7 +205,10 @@ $page_config = ['skin' => 'ornekskin'];</code></pre></div>
                             var link = document.createElement('link');
                             link.id = 'vnl_skin_demo_css';
                             link.rel = 'stylesheet';
-                            link.href = '<?= $assets_address ?>/vnl/css/skins/' + name + '.min.css';
+                            /* Yol vnl_asset() ile kurulur: skin'ler projenin assets/'i altında
+                               değil çekirdeğin varlıkları arasındadır ve VNL_ASSETS_URL ile
+                               CDN'e taşınabilir. */
+                            link.href = '<?= vnl_asset('theme/css/skins/') ?>' + name + '.min.css';
                             document.head.appendChild(link);
                             btn.innerHTML = '<i class="bi bi-arrow-counterclockwise me-2"></i>Varsayılana dön';
                         }

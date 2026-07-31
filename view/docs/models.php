@@ -187,31 +187,25 @@ class Urun extends TableModel
         ],
     ];
 
-    // Kesinlikle zorunlu — boş bırakılamaz
+    // Kesinlikle zorunlu. Bu bir sütun LİSTESİ DEĞİL, filtre HARİTASIDIR:
+    // anahtar dışarıdan gelen filtre adı, 'name' gerçek sütun, 'operator'
+    // o filtrenin varsayılan karşılaştırması.
     protected static $columns = [
-        'u.Id',
-        'u.ad',
-        'u.fiyat',
-        'u.stok',
-        'u.aktif',
-        'k.ad as kategori_ad',
+        'id'       => ['name' => 'tbl_urunler.id'],
+        'ad'       => ['name' => 'tbl_urunler.ad', 'operator' => 'like'],
+        'fiyat'    => ['name' => 'tbl_urunler.fiyat'],
+        'stok'     => ['name' => 'tbl_urunler.stok'],
+        'aktif'    => ['name' => 'tbl_urunler.aktif'],
+        'kategori' => ['name' => 'tbl_urunler.kategori_id'],
     ];
 
-    public static function Select($filter)
+    // TableModel'in TEK soyut metodu budur; implement etmezseniz sınıf
+    // örneklenemez. Select() zaten TableModel'den gelir, yeniden yazmayın.
+    public static function SelectList($filters = [], $extras = [])
     {
-        return static::SelectList($filter, ['limit' => 1])->first();
-    }
-
-    public static function SelectList(array $filters = [], array $extras = [])
-    {
-        $query = static::from((new static)->tableName('u'))
-            ->join(
-                (new Kategori)->tableName('k'),
-                'k.Id', '=', 'u.kategori_id'
-            )
-            ->select(static::$columns);
-
-        return (new static)->selectListQuery(static::$columns, $filters, $extras, $query);
+        return self::selectListQuery(self::$columns, $filters, $extras)
+            ->select('tbl_urunler.*', 'k.ad as kategori_ad')
+            ->leftJoin(Kategori::tableName('k'), 'kategori_id', '=', 'k.id');
     }
 }
 </code></pre>
@@ -224,20 +218,20 @@ class Urun extends TableModel
                         </div>
 
                         <div class="vnl-code mb-4">
-                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tek kayıt — id ile
-$urun = Urun::Select(['u.Id' => 42]);
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tek kayıt. Anahtar SÜTUN ADI DEĞİL, $columns'taki filtre adıdır.
+$urun = Urun::Select(['id' => 42]);
 
 // Filtrelenmiş liste — sayfalı — ->get() ZORUNLU
 $liste = Urun::SelectList(
-    ['u.ad' => ['value' => 'bisiklet', 'operator' => 'like']],
-    ['limit' => 20, 'begin' => 0, 'order' => 'u.ad', 'order_by' => 'asc']
+    ['ad' => 'bisiklet'],                      // operatör $columns'tan: like
+    ['limit' => 20, 'begin' => 0, 'order' => 'ad', 'order_by' => 'asc']
 )->get();
 
 // Sayım — sayfalama için
-$filtreliSayisi = Urun::SelectList($filters, null)->count();
-$toplamSayisi   = Urun::SelectList([], null)->count();
+$filtreliSayisi = Urun::SelectList($filters)->count();
+$toplamSayisi   = Urun::SelectList([])->count();
 
-// Tüm kayıtlar (limit yok) — Excel export için
+// Tüm kayıtlar: negatif limit uygulanmaz, zaten varsayılan da budur
 $tumListe = Urun::SelectList($filters, ['limit' => -1])->get();
 </code></pre>
                         </div>
@@ -255,17 +249,22 @@ $tumListe = Urun::SelectList($filters, ['limit' => -1])->get();
 
                         <h5 class="fw-bold text-body-emphasis mb-3"><code>$filters</code> Formatı</h5>
                         <div class="vnl-code mb-5">
-                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Kısa biçim — eşitlik kontrolü
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Kısa biçim — değer doğrudan; operatör $columns'tan gelir
 $filters = [
-    'u.aktif' => 1,
-    'u.ad'    => 'bisiklet',
+    'aktif' => 1,
+    'ad'    => 'bisiklet',
 ];
 
-// Uzun biçim — operatör belirtme
+// Uzun biçim — operatörü çağrı yerinde ez
 $filters = [
-    'u.ad'    => ['value' => 'bisiklet', 'operator' => 'like'],
-    'u.fiyat' => ['value' => '100|500',  'operator' => 'between'],
+    'ad'    => ['value' => 'bisiklet', 'operator' => 'like'],
+    'fiyat' => ['value' => '100|500',  'operator' => 'between'],
 ];</code></pre>
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
+                            <span class="text-body fs-6"><b>Filtre anahtarı <code>$columns</code>'ta tanımlı değilse istek düşer.</b> <code>setFilterDefault()</code> tanımadığı her anahtar için <code>throwErrorMessage("İç Veritabanı Hatası : Geçerli Filtre Gelmedi (...)")</code> fırlatır. Bu bilinçlidir: dışarıdan gelen bir ad doğrudan sütun adına çevrilseydi, filtre listesi bir SQL enjeksiyon yüzeyi olurdu. Değeri boş olan filtreler ise sessizce atılır, sorguya hiç girmez.</span>
                         </div>
 
                         <h5 class="fw-bold text-body-emphasis mb-3">Desteklenen Operatörler</h5>
@@ -287,7 +286,7 @@ $filters = [
                                 <tr>
                                     <td class="ps-5"><code>like</code></td>
                                     <td><code>'bisiklet'</code></td>
-                                    <td>SQL <code>LIKE '%bisiklet%'</code> sorgusu üretir.</td>
+                                    <td><code>LOWER(sutun) LIKE '%bisiklet%'</code> üretir &mdash; iki taraf da küçültüldüğü için MySQL'de büyük/küçük harf duyarsızdır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>ilike</code></td>
@@ -316,18 +315,18 @@ $filters = [
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>limit</code></td>
-                                    <td><code>10</code></td>
-                                    <td>Sayfa başına kayıt sayısı. <code>-1</code> verilirse limit uygulanmaz (tüm kayıtlar).</td>
+                                    <td><code>-1</code></td>
+                                    <td>Sayfa başına kayıt sayısı. Negatif değerlerde limit uygulanmaz &mdash; <b>varsayılan da budur</b>, yani <code>$extras</code> vermezseniz tüm kayıtlar döner.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>begin</code></td>
                                     <td><code>0</code></td>
-                                    <td>Başlangıç offset'i. DataTables'ın <code>start</code> parametresi ile eşleşir.</td>
+                                    <td>Başlangıç offset'i.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>order</code></td>
-                                    <td><code>'Id'</code></td>
-                                    <td>Sıralama yapılacak sütun adı.</td>
+                                    <td><code>''</code></td>
+                                    <td>Sıralanacak <b>filtre adı</b> &mdash; ham sütun adı değil, <code>$columns</code>'taki anahtar. Orada bulunmayan bir değer <b>sessizce yok sayılır</b> ve sorgu sırasız kalır. Boş bırakılırsa <code>ORDER BY</code> hiç eklenmez.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>order_by</code></td>

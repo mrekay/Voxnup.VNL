@@ -47,7 +47,7 @@
                                     <td><code>E_ERROR</code>, <code>E_PARSE</code>, <code>E_COMPILE_ERROR</code> — bunlar exception handler'a düşmez; PHP kapanırken yakalanır. Tanımsız metot ve sınıf hataları buraya girer.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>index.php</code> / <code>controller/app.php</code></td>
+                                    <td class="ps-5"><code>vnl/kernel.php</code> / <code>controller/app.php</code></td>
                                     <td><span class="badge badge-soft-warning">Controller & Action</span></td>
                                     <td>Controller <code>try/catch</code> içinde çalıştırılır. Action tarafında <code>app.php</code> istisnayı JSON'a çevirir.</td>
                                 </tr>
@@ -84,7 +84,7 @@
                                 <tr>
                                     <td class="ps-5">1</td>
                                     <td><code>X-Requested-With: XMLHttpRequest</code></td>
-                                    <td>jQuery <code>$.ajax</code>, DataTables — VNL'in tüm AJAX çağrıları</td>
+                                    <td>jQuery <code>$.ajax</code>, VNL Table — VNL'in tüm AJAX çağrıları</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5">2</td>
@@ -239,7 +239,7 @@ set_exception_handler(function (Throwable $e) use ($_vnlDebug) {
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">5. Beklenen Hatalar — Exception Sınıfları</h3>
                         <p class="fs-5 text-body mb-5">
-                            <code>exceptions/</code> klasöründeki tüm dosyalar uygulama başlangıcında otomatik yüklenir. Bu sınıfların ortak bir özelliği vardır ve bu özellik davranışlarını anlamanın anahtarıdır:
+                            Çekirdeğin <code>vnl/exceptions/</code> dizini ile projenin <code>exceptions/</code> dizini uygulama başlangıcında birleştirilerek yüklenir; aynı adlı dosyada projeninki kazanır. Bu sınıfların ortak bir özelliği vardır ve bu özellik davranışlarını anlamanın anahtarıdır:
                         </p>
 
                         <div class="alert alert-warning d-flex align-items-center p-5 mb-6">

@@ -12,7 +12,7 @@
                 <i class="fa-solid fa-shield fs-2hx text-warning me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-body-emphasis">Güvenlik Uyarısı</h5>
-                    <span class="text-body">VNL 3.0'dan itibaren <code>$salt_text</code> ve veritabanı bilgileri <code>.env</code> dosyasından okunur; bu dosya <code>.gitignore</code>'dadır ve web sunucusu tarafından servis edilmez. Bu değerleri <code>config_definitions.php</code> içine geri yazmayın.</span>
+                    <span class="text-body">VNL 3.0'dan itibaren <code>$salt_text</code> ve veritabanı bilgileri <code>.env</code> dosyasından okunur; bu dosya <code>.gitignore</code>'dadır ve web sunucusu tarafından servis edilmez. Bu değerleri <code>config/definitions.php</code> içine geri yazmayın.</span>
                 </div>
             </div>
 
@@ -75,7 +75,7 @@ $debug = env('APP_DEBUG', false);      // true/false/null/empty çevrilir
                         <div class="alert alert-warning d-flex align-items-start p-4">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">
-                                Kurulumda <code>.env.example</code>'ı <code>.env</code> olarak kopyalayıp <code>APP_SALT</code>'a <b>her kurulum için farklı</b> rastgele bir değer verin. Bu değer oturum çerezlerinin imzalanmasında kullanılır; değiştirilmesi mevcut "beni hatırla" çerezlerini geçersiz kılar.
+                                Kurulumda <code>.env.example</code>'ı <code>.env</code> olarak kopyalayıp doldurun. <code>APP_ENCRYPTION_KEY</code> her kurulumda farklı ve gizli olmalıdır &mdash; <code>safeEncrypt()</code> onu kullanır ve değiştirmek daha önce şifrelenmiş her veriyi çözülemez hâle getirir. <code>APP_SALT</code> ise <b>ayrılmış bir alandır: VNL çekirdeği onu hiçbir yerde okumaz</b> (parolalar bcrypt'in kendi tuzuyla, &laquo;beni hatırla&raquo; jetonları SHA-256 ile korunur); kendi imzalama ihtiyacınız için kullanabilirsiniz.
                             </span>
                         </div>
                     </div>
@@ -114,7 +114,7 @@ $debug = env('APP_DEBUG', false);      // true/false/null/empty çevrilir
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$version</code></td>
-                                    <td><code>"2.2.0"</code></td>
+                                    <td><code>"3.0.0"</code></td>
                                     <td><b>Projenizin</b> sürüm numarası. <code>$cDefinitions->version()</code> ile okunur; sekme başlığı gibi yerlerde kullanılabilir. Çekirdeğin sürümüyle karıştırmayın.</td>
                                 </tr>
                                 <tr>
@@ -311,7 +311,7 @@ $this->db_info = [
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">6. Erişim İstisnaları (<code>$login_except_pages</code>)</h3>
                         <p class="fs-5 text-body mb-4">
-                            Giriş yapılmadan erişilmesine izin verilen sayfa listesidir. <code>index.php</code> her istekte bu listeyi kontrol eder. İki format desteklenir:
+                            Giriş yapılmadan erişilmesine izin verilen sayfa listesidir. <code>vnl/kernel.php</code> her istekte bu listeyi kontrol eder. İki format desteklenir:
                         </p>
 
                         <div class="row g-5 mb-5">

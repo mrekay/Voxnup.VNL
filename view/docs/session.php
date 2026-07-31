@@ -41,7 +41,7 @@
                             <div class="d-flex align-items-start mb-0">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">4</span>
                                 <div>
-                                    <span class="fw-bold text-body">Sayfa Erişim Kontrolü (<code>index.php</code>)</span>
+                                    <span class="fw-bold text-body">Sayfa Erişim Kontrolü (<code>vnl/kernel.php</code>)</span>
                                     <p class="text-body-secondary fs-6 mb-0 mt-1">İstenen sayfa <code>$login_except_pages</code>'de değilse ve <code>$CurrentUser->id</code> sıfır veya negatifse, controller çalıştırılır ama çıktı yakalanır. <code>$page_config['public']</code> tanımlı değilse kullanıcı <code>/login</code>'e yönlendirilir.</p>
                                 </div>
                             </div>
@@ -247,7 +247,7 @@ if ($CurrentUser->id > 0) {
                                             <h5 class="mb-0 fw-bold">Yöntem 2 — <code>$page_config['public']</code></h5>
                                         </div>
                                         <p class="fs-6 text-body mb-3">
-                                            Controller dosyanızda <code>$page_config['public'] = true</code> tanımlayın. <code>index.php</code> controller çıktısını yakalar; <code>public</code> tanımlıysa ekrana basar, yoksa login'e yönlendirir.
+                                            Controller dosyanızda <code>$page_config['public'] = true</code> tanımlayın. <code>vnl/kernel.php</code> controller çıktısını yakalar; <code>public</code> tanımlıysa ekrana basar, yoksa login'e yönlendirir.
                                         </p>
                                         <div class="bg-body-tertiary rounded p-3">
                                             <code class="fs-7">$page_config = [<br>&nbsp;&nbsp;'public' => true,<br>&nbsp;&nbsp;'leftsidebar' => false,<br>];</code>

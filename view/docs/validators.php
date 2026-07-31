@@ -12,7 +12,7 @@
                 <i class="fa-solid fa-shield-halved fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-primary">Otomatik Yükleme</h5>
-                    <span class="text-body"><code>validators/</code> klasöründeki tüm PHP dosyaları uygulama başlarken otomatik olarak yüklenir. Yeni bir validator oluşturmak için bu klasöre dosya eklemeniz yeterlidir.</span>
+                    <span class="text-body">Çekirdeğin <code>vnl/validators/</code> dizini ile projenin <code>validators/</code> dizini uygulama başlarken birleştirilerek yüklenir. Yeni bir validator için proje tarafına dosya eklemeniz yeterlidir; <code>DefaultValidator</code>'ı ezmek isterseniz aynı adı verin.</span>
                 </div>
             </div>
 
@@ -328,7 +328,7 @@ class action_kullanici
 
                         <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
-                            <span class="text-body fs-6">Her iki exception da JSON <code>{"success": false, "message": "..."}</code> formatında yanıt üretir ve PHP çalışmasını durdurur. AJAX çağrılarında istemci tarafı bu yanıtı <code>error</code> callback'inde yakalar.</span>
+                            <span class="text-body fs-6">Her iki exception da <code>returnErrorMessage()</code> üzerinden <code>{"message": "...", "devcode": "..."}</code> gövdesini basar, HTTP durum kodunu ayarlar (varsayılan 400) ve PHP çalışmasını durdurur. <code>success</code> diye bir alan yoktur. AJAX çağrılarında istemci tarafı bunu <code>error</code> callback'inde yakalar.</span>
                         </div>
                     </div>
                     <!--end::Section 6-->

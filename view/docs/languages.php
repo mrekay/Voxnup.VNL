@@ -23,11 +23,11 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">1. Genel Bakış</h3>
                         <p class="fs-5 text-body mb-4">
-                            Dil sistemi uygulama başlangıcında <code>config_soft.php</code> içinde başlatılır. Session'da kayıtlı dil tercihine göre ilgili JSON dosyası okunur ve bellekte bir sözlük olarak tutulur. Anahtarlar sınıfta ayrıca tanımlanmaz — bu yüzden dosya ile kod arasında kayma oluşamaz.
+                            Dil sistemi uygulama başlangıcında <code>vnl/bootstrap.php</code> içinde başlatılır. Session'da kayıtlı dil tercihine göre ilgili JSON dosyası okunur ve bellekte bir sözlük olarak tutulur. Anahtarlar sınıfta ayrıca tanımlanmaz — bu yüzden dosya ile kod arasında kayma oluşamaz.
                         </p>
 
                         <div class="vnl-code mb-5">
-                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// config_soft.php içinde otomatik başlatma
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// vnl/bootstrap.php içinde otomatik başlatma
 Language::set(Language::GetLanguage());
 
 // Language::GetLanguage() — session'daki dil tercihi
@@ -186,7 +186,6 @@ echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
                                 <code>Language::$ANAHTAR</code> statik özellik söz dizimi <strong>VNL 3.0 ile kaldırılmıştır</strong>. Eski projelerde <code>Language::$X</code> → <code>lang('X')</code> ve <code>sprintf(Language::$X, $a)</code> → <code>lang('X', $a)</code> dönüşümü yapılmalıdır.
                             </span>
                         </div>
-                        </div>
                     </div>
                     <!--end::Section 4-->
 
@@ -194,85 +193,83 @@ echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
 
                     <!--begin::Section 5-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">5. Mevcut Dil Anahtarları</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Dil Anahtarları</h3>
+                        <p class="fs-5 text-body mb-4">
+                            Sözlüğün tek doğruluk kaynağı dosyanın kendisidir; <code>languages/tr.json</code> şu an <b>132 anahtar</b> taşıyor. Aşağıdaki tablo onların tamamı değil, <b>çekirdeğin kendi çağırdıklarından</b> bir seçki — bunlar bir projede eksik kalırsa doğrulama ve hata mesajları anahtar adını basar.
+                        </p>
+
+                        <div class="alert alert-warning d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
+                            <span class="text-body fs-6"><b>VNL 3.0'da <code>Language::$ANAHTAR</code> yazımı kaldırıldı.</b> Statik özellikler yerine sözlük API'si geldi: <code>lang('ANAHTAR')</code>. Eski yazımı kullanan kod, sınıfta o özellik artık tanımlı olmadığı için çalışmaz.</span>
+                        </div>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
                                 <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-280px">Anahtar</th>
-                                    <th class="min-w-350px">Amaç / Açıklama</th>
+                                    <th class="min-w-250px">tr.json karşılığı</th>
+                                    <th class="min-w-300px">Nereden çağrılır</th>
                                 </tr>
                                 </thead>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
-                                    <td class="ps-5"><code>$ERR_GENERAL</code></td>
-                                    <td>Genel hata mesajı. Spesifik bir mesaj yoksa kullanılır.</td>
+                                    <td class="ps-5"><code>ERR_GENERAL</code></td>
+                                    <td class="text-body-secondary">Bir hata oluştu.</td>
+                                    <td>Spesifik bir mesaj yoksa kullanılan genel hata.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$PLEASE_FILL_THE_REQUIRED_FIELD</code></td>
-                                    <td>Boş alan uyarısı. <code>%s</code> ile alan adını alır.</td>
+                                    <td class="ps-5"><code>ERR_PERM</code></td>
+                                    <td class="text-body-secondary">Bu işlem için yetkiniz bulunmamaktadır.</td>
+                                    <td>Yetki reddi.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$SUCCESS</code></td>
-                                    <td>Genel başarı mesajı.</td>
+                                    <td class="ps-5"><code>FUNCTION_NOT_FOUND</code></td>
+                                    <td class="text-body-secondary">İşlev bulunamadı.</td>
+                                    <td>Eylem dağıtıcısı: istenen metot yok.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$DELETE_SUCCESS</code></td>
-                                    <td>Silme işlemi başarı mesajı.</td>
+                                    <td class="ps-5"><code>PLEASE_FILL_THE_REQUIRED_FIELD</code></td>
+                                    <td class="text-body-secondary">Lütfen gerekli alanları doldurunuz.</td>
+                                    <td><code>DefaultValidator::validateEmpty()</code> alan adı verilmeden çağrıldığında.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$UPDATE_SUCCESS</code></td>
-                                    <td>Güncelleme başarı mesajı.</td>
+                                    <td class="ps-5"><code>PLEASE_FILL_IN_FIELD</code></td>
+                                    <td class="text-body-secondary">Lütfen %s alanını doldurun.</td>
+                                    <td>Aynısı, alan adıyla. <code>%s</code> yer tutucusunu <code>lang()</code>'in ek argümanı doldurur.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$SAVE_SUCCESS</code></td>
-                                    <td>Kaydetme başarı mesajı.</td>
+                                    <td class="ps-5"><code>PLEASE_SELECT_VALID_OPTION</code></td>
+                                    <td class="text-body-secondary">Lütfen geçerli seçenekleri seçiniz.</td>
+                                    <td><code>validateEmptyOption()</code> / <code>validateEmptyID()</code>.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$DATATABLES_PROCESSING</code></td>
-                                    <td>DataTables yüklenirken gösterilen metin.</td>
+                                    <td class="ps-5"><code>PLEASE_ENTER_VALID_DATE</code></td>
+                                    <td class="text-body-secondary">Lütfen geçerli tarih giriniz.</td>
+                                    <td><code>validateDate()</code> ve türevleri.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$DATATABLES_EMPTY</code></td>
-                                    <td>DataTables sonuç bulunamadı metni.</td>
+                                    <td class="ps-5"><code>PLEASE_ENTER_VALID_PHONE_NUMBER</code></td>
+                                    <td class="text-body-secondary">Lütfen geçerli bir telefon numarası giriniz.</td>
+                                    <td><code>validatePhone()</code>.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$INVALID_DATE</code></td>
-                                    <td>Geçersiz tarih formatı hata mesajı.</td>
+                                    <td class="ps-5"><code>EMAIL_ADDRESS_INVALID</code></td>
+                                    <td class="text-body-secondary">Eposta adresi geçersiz.</td>
+                                    <td><code>validateEmptyMail()</code>.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$INVALID_EMAIL</code></td>
-                                    <td>Geçersiz e-posta adresi hata mesajı.</td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-5"><code>$INVALID_PHONE</code></td>
-                                    <td>Geçersiz telefon numarası hata mesajı.</td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-5"><code>$INVALID_PASSWORD</code></td>
-                                    <td>Şifre kurallarına uymuyor hata mesajı.</td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-5"><code>$AGE_RESTRICTION</code></td>
-                                    <td>Yaş kısıtlaması hata mesajı (16 yaş altı).</td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-5"><code>$FUTURE_DATE_NOT_ALLOWED</code></td>
-                                    <td>Gelecek tarih girilmesine izin verilmez mesajı.</td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-5"><code>$TEXT_TOO_SHORT</code></td>
-                                    <td>Metin çok kısa hata mesajı.</td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-5"><code>$TEXT_TOO_LONG</code></td>
-                                    <td>Metin çok uzun hata mesajı.</td>
+                                    <td class="ps-5"><code>PLEASE_DO_NOT_PASS_X_CHAR_LIMIT</code></td>
+                                    <td class="text-body-secondary">Lütfen %s karaketer limitini geçmeyin.</td>
+                                    <td><code>validateTextLength()</code>. Sınırı argüman olarak alır.</td>
                                 </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
+                    <div class="separator separator-dashed my-8"></div>
+
                     <!--end::Section 5-->
 
                     <div class="separator separator-dashed my-8"></div>

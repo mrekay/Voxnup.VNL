@@ -293,7 +293,7 @@ $page_config = [
     └── UrunEkle.php</code></pre>
 
                         <p class="fs-5 text-body mb-4">
-                            Modal dosyaları <code>view/includes/modals.php</code> üzerinden yüklenir.
+                            Modal dosyaları <code>view/static/modals.php</code> üzerinden yüklenir.
                             Bu dosya her sayfada <code>footer.php</code> tarafından otomatik çağrılır.
                             Siz sadece <code>modals.php</code>'ye hangi modal dosyalarını dahil edeceğinizi belirtirsiniz:
                         </p>

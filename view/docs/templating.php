@@ -249,7 +249,7 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">4. Kaçış — JS Şablon Motorları İçin</h3>
                         <p class="fs-5 text-body mb-5">
-                            Vue, Handlebars, Mustache ve DataTables gibi kütüphaneler de <code>&#123;&#123; }}</code> söz dizimi kullanır. VNL'in bunlara dokunmaması için ifadenin başına <code>&#64;</code> koyun:
+                            Vue, Handlebars ve Mustache gibi kütüphaneler de <code>&#123;&#123; }}</code> söz dizimi kullanır. VNL'in bunlara dokunmaması için ifadenin başına <code>&#64;</code> koyun:
                         </p>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-6">

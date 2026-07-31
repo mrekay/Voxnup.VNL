@@ -19,10 +19,10 @@
                     </p>
                     <div class="vnl-code mb-8">
                         <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// vnl/boot.php
-$_extManifest       = getDocumentRoot() . 'extensions/extensions.php';
+$_extManifest       = VNL_ROOT . '/extensions/extensions.php';
 $_enabledExtensions = file_exists($_extManifest) ? (require $_extManifest) : [];
 
-foreach (glob(getDocumentRoot() . 'extensions/*/boot.php') as $_extBoot) {
+foreach (glob(VNL_ROOT . '/extensions/*/boot.php') as $_extBoot) {
     $_extName = basename(dirname($_extBoot));
 
     if (isset($_enabledExtensions[$_extName]) && $_enabledExtensions[$_extName] === true) {
@@ -72,8 +72,8 @@ if (!file_exists($action_path)) {
     }
 }
 
-// index.php — controller fallback
-foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_extCtrl) {
+// vnl/kernel.php — controller fallback
+foreach (glob(VNL_ROOT . '/extensions/*/controller/' . route(0) . '.php') as $_extCtrl) {
     $controllerPath = $_extCtrl;
     break;
 }
@@ -142,7 +142,7 @@ require_once MY_EXT_PATH . '/src/MyModel.php';
                     <div class="alert alert-info d-flex align-items-center p-5 mb-5">
                         <i class="fa-solid fa-circle-info fs-2hx text-info me-4"></i>
                         <div>
-                            <strong>Önemli:</strong> <code>boot.php</code>, <code>config_db.php</code>'den sonra çalışır.
+                            <strong>Önemli:</strong> <code>boot.php</code>, <code>config/database.php</code>'den sonra çalışır.
                             Eloquent modeller, <code>$CurrentUser</code> ve tüm VNL modülleri bu noktada hazırdır.
                         </div>
                     </div>

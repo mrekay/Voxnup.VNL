@@ -23,7 +23,7 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">1. URL Parçalama Mantığı</h3>
                         <p class="fs-5 text-body mb-5">
-                            Kullanıcı bir adrese girdiğinde, <code>index.php</code> URL'yi <code>/</code> ile bölerek bir <code>$route</code> dizisi oluşturur. Bu dizinin elemanlarına herhangi bir yerden <code>route(index)</code> yardımcı fonksiyonu ile ulaşılabilir. Proje bir alt klasörde çalışıyorsa alt klasör adı otomatik olarak diziden çıkarılır.
+                            Kullanıcı bir adrese girdiğinde, <code>vnl/kernel.php</code> URL'yi <code>/</code> ile bölerek bir <code>$route</code> dizisi oluşturur. (VNL 3.0'a kadar bu kod kökteki <code>index.php</code>'nin içindeydi, yani her projede bir kopyası vardı; artık çekirdeğin.) Bu dizinin elemanlarına herhangi bir yerden <code>route(index)</code> yardımcı fonksiyonu ile ulaşılabilir. Proje bir alt klasörde çalışıyorsa alt klasör adı otomatik olarak diziden çıkarılır.
                         </p>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
@@ -195,10 +195,28 @@ if ($islem === 'profil') {
                                 </thead>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
+                                    <td class="ps-5"><code>layout</code></td>
+                                    <td><code>'app'</code></td>
+                                    <td><code>app / top-nav / landing / focus / blank</code></td>
+                                    <td><b>Önce bu okunur.</b> Preset, aşağıdaki bayrakların tamamına bir varsayılan küme atar; sonra sizin verdiğiniz anahtarlar onu ezer. Birleşme sırası: varsayılanlar &rarr; preset &rarr; controller'ın <code>$page_config</code>'i. Bkz. <a href="/docs/theme-layout">Layout Preset'leri</a>.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>leftsidebar</code></td>
                                     <td><span class="badge badge-soft-success">true</span></td>
-                                    <td><code>true / false</code></td>
-                                    <td>Sol menü sidebar'ını gösterir veya gizler. <code>false</code> yapıldığında sayfa tam genişliğe geçer.</td>
+                                    <td><code>true / false / 'mini' / 'mini-hover'</code></td>
+                                    <td>Sol menüyü gösterir, gizler ya da <b>daraltılmış</b> başlatır. <code>'mini'</code> sabit dar kalır, <code>'mini-hover'</code> üzerine gelince genişler. <code>false</code> yapıldığında sayfa tam genişliğe geçer. Uygulama geneli varsayılanı <code>ConfigDefinitions::themeDefaults()</code>'tan gelir.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>submenu</code></td>
+                                    <td><code>'flyout'</code></td>
+                                    <td><code>flyout / accordion</code></td>
+                                    <td>Alt menülerin açılma biçimi: sağda panel ya da alt alta liste. Sidebar daraltılmışken accordion da flyout'a düşer.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>skin</code></td>
+                                    <td><code>null</code></td>
+                                    <td><code>null / 'dracula' / …</code></td>
+                                    <td>Tema renklerinin üstüne binen hafif katman. <code>vnl/assets/theme/css/skins/</code> altındaki herhangi bir skin adı. Uygulama geneli varsayılanı yine <code>themeDefaults()</code>'ta.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>topbar</code></td>

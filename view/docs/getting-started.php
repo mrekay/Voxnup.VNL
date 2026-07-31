@@ -74,9 +74,25 @@
                             <span class="text-body-emphasis fs-4 fw-bold font-monospace user-select-all">git clone https://github.com/mrekay/VNL-TEMPLATE.git .</span>
                         </div>
 
+                        <p class="fs-5 text-body mb-4">
+                            Ardından ortam dosyasını oluşturun. <code>.env</code> commit edilmez ve web sunucusu tarafından servis edilmez; veritabanı bilgileri, adresler ve şifreleme anahtarı oradadır.
+                        </p>
+
+                        <div class="d-flex align-items-center bg-body-secondary border rounded p-5 mb-4">
+                            <i class="fa-solid fa-terminal fs-2 text-body-emphasis me-3"></i>
+                            <span class="text-body-emphasis fs-4 fw-bold font-monospace user-select-all">cp .env.example .env</span>
+                        </div>
+
+                        <p class="fs-5 text-body mb-4">
+                            Şemayı kurun ve kurulumu doğrulayın:
+                        </p>
+
+                        <div class="vnl-code mb-4"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>php vnl.php migrate --run   # bekleyen şema değişikliklerini uygula
+php vnl.php doctor          # eksik bir şey kalmış mı</code></pre></div>
+
                         <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
-                            <span class="text-body fs-6">Alt dizine kuruyorsanız <code>.htaccess</code>'deki HTTPS yönlendirme kuralını ve <code>config_definitions.php</code> içindeki <code>$site_url</code> değerini buna göre güncelleyin.</span>
+                            <span class="text-body fs-6">Alt dizine kuruyorsanız <code>.htaccess</code>'deki HTTPS yönlendirme kuralını ve <code>.env</code> içindeki <code>APP_URL</code> değerini buna göre güncelleyin.</span>
                         </div>
                     </div>
                     <!--end::Section 1-->
@@ -87,7 +103,7 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">2. Yapılandırma</h3>
                         <p class="fs-5 text-body mb-4">
-                            Tek yapılandırma dosyası: <code>config/definitions.php</code>. Bu dosyayı açın ve aşağıdaki alanları doldurun.
+                            Yapılandırma <b>iki yere</b> ayrılır. Ortama göre değişen ve gizli olan her şey <code>.env</code>'dedir (veritabanı, adresler, SMTP, şifreleme anahtarı) &mdash; tam listesi <a href="/docs/environment">Ortam Değişkenleri</a> sayfasında. Uygulamanın kimliği ise <code>config/definitions.php</code>'de durur ve depoya girer:
                         </p>
                         <div class="d-flex align-items-center bg-body-tertiary border border-dashed rounded p-4 mb-5">
                             <i class="fa-solid fa-file fs-1 text-primary me-3"></i>
@@ -104,11 +120,6 @@
                                 </tr>
                                 </thead>
                                 <tbody class="text-body fw-semibold">
-                                <tr>
-                                    <td class="ps-5"><code>$testMode</code></td>
-                                    <td><code>false</code></td>
-                                    <td><code>false</code> = üretim, <code>true</code> = geliştirme. Her modun ayrı DB bloğu vardır.</td>
-                                </tr>
                                 <tr>
                                     <td class="ps-5"><code>$app_name</code></td>
                                     <td><code>"Uygulamam"</code></td>
@@ -262,15 +273,23 @@
                                     <i class="bi bi-filetype-php text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
                                     <div><b>index.php</b><span class="text-muted fw-normal ms-2">— Ön denetleyici. Çekirdeği yükler ve isteği ona devreder; içinde yönlendirme mantığı yoktur.</span></div>
                                 </li>
+                                <li class="mb-2 d-flex align-items-start">
+                                    <i class="bi bi-terminal text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl.php</b> <span class="text-body-secondary">· vnl.cmd</span><span class="text-muted fw-normal ms-2">— Konsol giriş noktası; <code>index.php</code>'nin komut satırı karşılığı ve onun gibi ince. <code>php vnl.php migrate</code>, <code>… update</code>, <code>… doctor</code>. <code>vnl.cmd</code> Windows kısayoludur.</span></div>
+                                </li>
                                 <li class="mb-0 d-flex align-items-start">
                                     <i class="bi bi-file-earmark-code text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>.htaccess</b><span class="text-muted fw-normal ms-2">— Apache rewrite kuralları. Her isteği <code>index.php</code>'ye yönlendirir; HTTPS zorlamasını içerir.</span></div>
+                                    <div><b>.htaccess</b><span class="text-muted fw-normal ms-2">— Apache rewrite kuralları. Her isteği <code>index.php</code>'ye yönlendirir; HTTPS zorlamasını içerir. <code>.env</code> ve konsol dosyalarını web'den engeller.</span></div>
                                 </li>
                             </ul>
                         </div>
                         <div class="border rounded p-6 bg-body-tertiary mt-5">
                             <div class="fw-bold text-body-emphasis mb-4"><i class="bi bi-box-seam text-primary me-2"></i>VNL'in — güncellemede komple değişir</div>
                             <ul class="list-unstyled fs-6 text-body fw-semibold mb-0">
+                                <li class="mb-3 pb-3 border-bottom d-flex align-items-start">
+                                    <i class="bi bi-folder2 text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl/</b><span class="text-muted fw-normal ms-2">— Kökteki <b>tek</b> çekirdek dizini; aşağıdakilerin hepsi bunun altındadır. Buraya hiçbir şey yazmayın: güncelleme bu dizini komple değiştirir. Bir çekirdek dosyasını değiştirmek isterseniz aynı adlısını kendi tarafınıza koyun.</span></div>
+                                </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-box text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
                                     <div><b>vnl/classes/</b><span class="text-muted fw-normal ms-2">— Request, Session, Language, TableModel, VnlTable ailesi.</span></div>

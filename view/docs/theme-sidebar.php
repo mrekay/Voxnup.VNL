@@ -112,7 +112,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="vnl-code"><pre><code>// Uygulama geneli (config_definitions.php):
+                        <div class="vnl-code"><pre><code>// Uygulama geneli (config/definitions.php):
 private $theme_defaults = ['leftsidebar' => true, 'submenu' => 'accordion'];
 
 // Ya da sayfa bazında:

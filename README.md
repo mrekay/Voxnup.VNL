@@ -6,7 +6,10 @@
 
 **VNL**, [Voxnup Not Laravel].
 
-VNL klasik MVC üzerine inşa edilmiş Eloquent veritabanı sistemini kullanan bir Microframework'tür.
+VNL, PHP 8.2 üzerine kurulu bir **uygulama şablonudur** — kurduğunuz bir kütüphane değil,
+klonlayıp üstüne yazdığınız bir başlangıç noktası. Yönlendirme, Eloquent (Illuminate/Capsule)
+ORM, `{{ }}` şablon derleyicisi, oturum ve yetkilendirme, dil sistemi, migration'lar, bir
+konsol ve kendi tema katmanı hazır gelir; kurulumda ne composer ne npm gerekir.
 
 ## 📋 İçindekiler
 

@@ -283,7 +283,8 @@ echo TextGeneralModule::NumberFormatTR(1234567.89, 2);
 
                         <div class="vnl-code">
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Action içinde dosya yükleme
-$dosya = $req->file('dosya'); // $_FILES['dosya']
+$fileReq = new FileRequest();   // $_FILES'i normalize eder, dosya adini temizler
+$dosya   = $fileReq->get('dosya');
 $hedef = getDocumentRoot() . 'files/belgeler/' . Auth::User()->Id . '/';
 
 $dosyaAdi = FileManagerModule::UploadFile($hedef, $dosya, 'pdf,docx,xlsx');
@@ -571,11 +572,7 @@ if (!empty($videoId)) {
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>MailModule::SendMail(MailObject $mailObject)</code></td>
-                                    <td>SMTP üzerinden e-posta gönderir. <code>MailObject</code>: <code>id, unique_code, title, content, to, media_data</code> alanlarını içerir.</td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-5"><code>MailModule::PrepareMail($mail_id, $email)</code></td>
-                                    <td>Veritabanındaki mail şablonunu yükler, <code>{placeholder}</code>'ları doldurur ve <code>MailObject</code> döndürür.</td>
+                                    <td>SMTP üzerinden e-posta gönderir. <code>MailObject</code>: <code>to, title, content, media, toName</code> alanlarını içerir. <code>MAIL_HOST</code> boşsa gönderim yapılmaz, hata loglanır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>MailModule::isValidEmail($email)</code></td>
