@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(grep -E '\\\\.\\(php|htaccess\\)$')",
-      "Bash(wc -l /d/Projeler/VNL-TEMPLATE/**/*.php)"
-    ]
-  }
-}
