@@ -12,6 +12,3 @@
 
 # Derlenmis sablon onbellegi
 files/cache/
-
-# VNL Theme kaynak bagimliliklari (derlenmis cikti assets/vnl/ commit edilir)
-theme/node_modules/

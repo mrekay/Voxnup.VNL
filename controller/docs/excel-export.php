@@ -2,7 +2,7 @@
 /**
  * Excel Export — kaldırıldı, VNL Table'a yönlendirir.
  *
- * Sayfa SDTable'ın export mekanizmasını ve libs/excel içindeki PHPExcel'i
+ * Sayfa SDTable'ın export mekanizmasını ve PHPExcel'i
  * anlatıyordu; VNL 3.0'da ikisi de kaldırıldı. Excel çıktısı artık VNL
  * Table'ın parçası (VnlTableExport), konu orada belgeleniyor.
  *

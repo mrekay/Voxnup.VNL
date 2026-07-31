@@ -8,7 +8,7 @@
                 <div class="vnl-lead">
                     İstemci katmanı üç dosyadan oluşur: <code>vendors.min.js</code> (jQuery, Bootstrap,
                     SweetAlert2, SlimSelect), <code>vnl.min.js</code> (tema davranışları) ve
-                    <code>assets/scripts/vnl.js</code> (VNL çekirdeği). Hepsi <code>head</code>'de yüklenir;
+                    <code>vnl/assets/js/vnl.js</code> (VNL çekirdeği). Hepsi <code>head</code>'de yüklenir;
                     sayfa içi satır arası <code>$(...)</code> kullanımı güvenlidir.
                 </div>
             </div>

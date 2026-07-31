@@ -55,11 +55,11 @@ $page_config = ['topbar' => true, 'leftsidebar' => true, 'contentheader' => true
                         <p class="text-body mb-4">
                             Sidebar'ın açılış durumu ve alt menü davranışı <b>sistemden sisteme değişir</b>:
                             bir ERP daraltılmış (mini-hover) başlamak isterken bir pazarlama sitesi tam açık ister.
-                            Bu yüzden bu iki varsayılan <code>libs/config/config_definitions.php</code> içindeki
+                            Bu yüzden bu iki varsayılan <code>config/definitions.php</code> içindeki
                             <code>themeDefaults()</code> ile uygulama genelinde belirlenir; sayfalar yine
                             <code>$page_config</code> ile ezebilir.
                         </p>
-                        <div class="vnl-code"><pre><code>// libs/config/config_definitions.php
+                        <div class="vnl-code"><pre><code>// config/definitions.php
 private $theme_defaults = [
     'leftsidebar' => true,       // true | 'mini' | 'mini-hover'
     'submenu'     => 'flyout',   // 'flyout' | 'accordion'

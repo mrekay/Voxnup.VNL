@@ -6,7 +6,15 @@
  *  Authors: Voxnup Authors
  * ============================================================
  */
-$vnl_theme_path = $assets_address . '/vnl';
+/* Bu dosya PROJENİNDİR; VNL güncellemesi ona dokunmaz. Yüklenecek çekirdek
+   dosyalarının listesi ise çekirdekten gelir (vnl_core_styles), böylece VNL'e
+   yeni bir CSS eklendiğinde burayı elle düzeltmek gerekmez. Sırayı ya da
+   etiketleri değiştirmek isterseniz aşağıdaki döngü sizindir. */
+$vnl_theme_path = vnl_asset('theme');
+
+/* Skin: vnl.min.css üstüne yüklenen hafif renk katmanı. Uygulama geneli
+   themeDefaults()['skin'] ya da sayfa bazında $page_config['skin'] ile. */
+$vnl_skin = $page_config['skin'] ?? ($vnl_theme_defaults['skin'] ?? null);
 ?>
 <!-- Pre-paint tema kurulumu: CSS'ten ÖNCE, senkron. localStorage anahtarı
      "data-bs-theme" Metronic dönemiyle aynıdır; kayıtlı tercih korunur.
@@ -39,15 +47,6 @@ $vnl_theme_path = $assets_address . '/vnl';
 <meta name="description" content="<?php echo $meta['description'] ?? ''; ?>">
 
 <link rel="icon" href="<?= $cDefinitions->appLogoPath() . 'VNL.png' ?>" type="image/png">
-<link href="<?= $vnl_theme_path ?>/css/vnl.min.css" rel="stylesheet" type="text/css"/>
-<?php
-/* Skin: vnl.min.css üstüne yüklenen hafif renk katmanı. Uygulama geneli
-   themeDefaults()['skin'] ya da sayfa bazında $page_config['skin'] ile. */
-$vnl_skin = $page_config['skin'] ?? ($vnl_theme_defaults['skin'] ?? null);
-if (!empty($vnl_skin)) { ?>
-    <link href="<?= $vnl_theme_path ?>/css/skins/<?= htmlspecialchars($vnl_skin) ?>.min.css" rel="stylesheet" type="text/css"/>
+<?php foreach (vnl_core_styles($vnl_skin) as $vnl_css) { ?>
+<link href="<?= $vnl_css ?>" rel="stylesheet" type="text/css"/>
 <?php } ?>
-<link href="<?= $vnl_theme_path ?>/css/bi.min.css" rel="stylesheet" type="text/css"/>
-<link href="<?= $vnl_theme_path ?>/css/fa.min.css" rel="stylesheet" type="text/css"/>
-<!-- VNL Table: renklerini tema değişkenlerinden alır, skin sonrası yüklenir. -->
-<link href="<?= $assets_address ?>/styles/vnltable.css" rel="stylesheet" type="text/css"/>

@@ -66,7 +66,7 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">1. Kurulum</h3>
                         <p class="fs-5 text-body mb-4">
-                            Projeyi web sunucunuzun kök dizinine klonlayın. <code>composer</code> gerekmez; vendor bağımlılıkları (<code>libs/vendor/</code>) repoya dahildir.
+                            Projeyi web sunucunuzun kök dizinine klonlayın. <code>composer</code> gerekmez; vendor bağımlılıkları (<code>vnl/vendor/</code>) repoya dahildir.
                         </p>
 
                         <div class="d-flex align-items-center bg-body-secondary border rounded p-5 mb-4">
@@ -87,11 +87,11 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">2. Yapılandırma</h3>
                         <p class="fs-5 text-body mb-4">
-                            Tek yapılandırma dosyası: <code>libs/config/config_definitions.php</code>. Bu dosyayı açın ve aşağıdaki alanları doldurun.
+                            Tek yapılandırma dosyası: <code>config/definitions.php</code>. Bu dosyayı açın ve aşağıdaki alanları doldurun.
                         </p>
                         <div class="d-flex align-items-center bg-body-tertiary border border-dashed rounded p-4 mb-5">
                             <i class="fa-solid fa-file fs-1 text-primary me-3"></i>
-                            <span class="fs-5 fw-bold text-body font-monospace">libs/config/config_definitions.php</span>
+                            <span class="fs-5 fw-bold text-body font-monospace">config/definitions.php</span>
                         </div>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
@@ -162,27 +162,27 @@
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
                                 <div>
                                     <code class="fw-bold text-body">index.php</code>
-                                    <p class="text-muted fs-7 mb-0 mt-1">URL'yi parçalayarak <code>$route</code> dizisini oluşturur → <code>libs/config.php</code>'yi yükler → controller'ı belirler → login kontrolü yapar.</p>
+                                    <p class="text-muted fs-7 mb-0 mt-1">Tek işi <code>VNL_ROOT</code>'u sabitleyip <code>vnl/boot.php</code> ile <code>vnl/kernel.php</code>'yi çağırmak. Yönlendirme mantığı VNL 3.0'da buradan çekirdeğe taşındı; artık her projede bir kopyası durmuyor.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">3</span>
                                 <div>
-                                    <code class="fw-bold text-body">libs/config.php</code>
-                                    <p class="text-muted fs-7 mb-0 mt-1"><code>config_definitions.php</code> → <code>config_soft.php</code> → <code>config_db.php</code> sırasıyla yüklenir.</p>
+                                    <code class="fw-bold text-body">vnl/boot.php</code>
+                                    <p class="text-muted fs-7 mb-0 mt-1">Hata sayfası, şablon derleyicisi ve <code>.env</code> okuyucu → <code>config/definitions.php</code> (sizin) → <code>vnl/bootstrap.php</code> → <code>vnl/vendor</code> → <code>config/database.php</code> (sizin) → eklentiler.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">4</span>
                                 <div>
-                                    <code class="fw-bold text-body">libs/config/config_soft.php</code>
-                                    <p class="text-muted fs-7 mb-0 mt-1">Helper'lar, <code>spl_autoload</code> (sınıf otomatik yükleme), session başlatma, <code>$req</code> (Request), <code>$lang</code> (Language) nesneleri hazırlanır. <code>modules/</code>, <code>exceptions/</code>, <code>validators/</code> otomatik taranır.</p>
+                                    <code class="fw-bold text-body">vnl/bootstrap.php</code>
+                                    <p class="text-muted fs-7 mb-0 mt-1">Otomatik yükleyici (önce <code>classes/</code>, sonra <code>vnl/classes/</code>), yardımcılar, oturum, <code>$req</code> ve dil. <code>modules/</code>, <code>exceptions/</code>, <code>validators/</code> iki taraftan birleştirilerek taranır; aynı adlı dosyada sizinki kazanır.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">5</span>
                                 <div>
-                                    <code class="fw-bold text-body">libs/config/config_db.php</code>
+                                    <code class="fw-bold text-body">config/database.php</code>
                                     <p class="text-muted fs-7 mb-0 mt-1"><code>Database</code> (Capsule) başlatılır → <code>$CurrentUser</code> nesnesi hazırlanır → cookie ile otomatik giriş kontrolü → kullanıcı bilgisi yüklenir.</p>
                                 </div>
                             </div>
@@ -190,7 +190,7 @@
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">6</span>
                                 <div>
                                     <code class="fw-bold text-body">controller/{sayfa}.php</code>
-                                    <p class="text-muted fs-7 mb-0 mt-1">İlgili controller çalışır: <code>$meta</code> ve <code>$page_config</code> tanımlanır, DB sorguları yapılır, view dosyaları ekrana basılır.</p>
+                                    <p class="text-muted fs-7 mb-0 mt-1"><code>vnl/kernel.php</code> adresi denetleyiciye çevirir ve giriş denetimini uygular; ilgili controller çalışır: <code>$meta</code> ve <code>$page_config</code> tanımlanır, DB sorguları yapılır, view dosyaları ekrana basılır.</p>
                                 </div>
                             </div>
                         </div>
@@ -204,6 +204,7 @@
                         <h3 class="fw-bold text-body-emphasis mb-4">4. Klasör Yapısı</h3>
 
                         <div class="border rounded p-6 bg-body-tertiary">
+                            <div class="fw-bold text-body-emphasis mb-4"><i class="bi bi-person-gear text-primary me-2"></i>Sizin — güncelleme buraya dokunmaz</div>
                             <ul class="list-unstyled fs-6 text-body fw-semibold mb-0">
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
@@ -211,43 +212,96 @@
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>assets/</b><span class="text-muted fw-normal ms-2">— CSS, JS, görseller. Derlenmiş VNL Theme çıktısı <code>assets/vnl/</code> içindedir (kaynağı: <code>theme/</code>).</span></div>
+                                    <div><b>api/</b><span class="text-muted fw-normal ms-2">— Ayrı bir giriş noktası açmak isterseniz.</span></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>classes/</b><span class="text-muted fw-normal ms-2">— OOP sınıfları. <code>spl_autoload</code> ile otomatik yüklenir. Alt klasör desteği var: <code>classes/alt/Sinif.php</code>.</span></div>
+                                    <div><b>assets/</b><span class="text-muted fw-normal ms-2">— SİZİN CSS/JS/görselleriniz. VNL'in kendi varlıkları burada değil, <code>vnl/assets/</code> altındadır.</span></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>controller/</b><span class="text-muted fw-normal ms-2">— Her URL segmentine karşılık gelen düz PHP dosyaları. Alt klasör desteği: <code>controller/docs/routing.php</code>.</span></div>
+                                    <div><b>classes/</b><span class="text-muted fw-normal ms-2">— OOP sınıflarınız. Otomatik yüklenir. Bir çekirdek sınıfıyla <b>aynı adı</b> verirseniz sizinki geçerli olur.</span></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>exceptions/</b><span class="text-muted fw-normal ms-2">— Özel exception sınıfları (<code>StandartException</code>, <code>EmptyDataException</code>). Tüm dosyalar başlangıçta otomatik yüklenir.</span></div>
+                                    <div><b>config/</b><span class="text-muted fw-normal ms-2">— <code>definitions.php</code> (uygulama tanımları) ve <code>database.php</code> (bağlantı açılışı).</span></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>files/</b><span class="text-muted fw-normal ms-2">— Kullanıcı yüklemeleri, Excel çıktıları ve şablon dosyaları.</span></div>
+                                    <div><b>controller/</b><span class="text-muted fw-normal ms-2">— Her URL segmentine karşılık gelen düz PHP dosyaları. Hata sayfaları da (<code>401.php</code>, <code>404.php</code>) sizindir.</span></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>libs/</b><span class="text-muted fw-normal ms-2">— Çekirdek: <code>config/</code> (yapılandırma), <code>helper/</code> (fonksiyonlar), <code>modules/</code> (UserModule, MailModule vb.), <code>languages/</code> (JSON dil dosyaları), <code>vendor/</code> (Illuminate/Eloquent), <code>excel/</code> (PHPExcel).</span></div>
+                                    <div><b>helpers/</b><span class="text-muted fw-normal ms-2">— Kendi global fonksiyonlarınız. Çekirdeğinkilerle birlikte yüklenir.</span></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>validators/</b><span class="text-muted fw-normal ms-2">— Giriş verisi doğrulama kuralları. Tüm dosyalar başlangıçta otomatik yüklenir.</span></div>
+                                    <div><b>languages/</b><span class="text-muted fw-normal ms-2">— JSON dil dosyaları. Metinler projeden projeye değiştiği için çekirdekte tutulmaz.</span></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>view/</b><span class="text-muted fw-normal ms-2">— HTML/PHP şablonlar. <code>view/static/</code> layout parçaları, <code>view/includes/</code> modal ve sayfa başı/sonu dosyaları.</span></div>
+                                    <div><b>migrations/</b><span class="text-muted fw-normal ms-2">— Kendi şema değişiklikleriniz. VNL'inkiler <code>vnl/migrations/</code> altındadır, numaralar çakışmaz.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>validators/</b><span class="text-muted fw-normal ms-2">— Giriş verisi doğrulama kurallarınız.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>view/</b><span class="text-muted fw-normal ms-2">— Şablonlar. <code>view/static/</code> düzen parçaları, <code>view/includes/</code> modal ve sayfa başı/sonu dosyaları. <b>Çekirdek tek bir görünüm bile taşımaz.</b></span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>files/</b><span class="text-muted fw-normal ms-2">— Kullanıcı yüklemeleri, Excel çıktıları, şablon önbelleği.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>extensions/</b><span class="text-muted fw-normal ms-2">— Eklentiler. Manifest'te açık olanlar yüklenir.</span></div>
                                 </li>
                                 <li class="mb-2 pt-4 border-top d-flex align-items-start">
                                     <i class="bi bi-filetype-php text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>index.php</b><span class="text-muted fw-normal ms-2">— Tüm istekleri karşılayan Front Controller. URL ayrıştırma ve login kontrolü burada yapılır.</span></div>
+                                    <div><b>index.php</b><span class="text-muted fw-normal ms-2">— Ön denetleyici. Çekirdeği yükler ve isteği ona devreder; içinde yönlendirme mantığı yoktur.</span></div>
                                 </li>
                                 <li class="mb-0 d-flex align-items-start">
                                     <i class="bi bi-file-earmark-code text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
                                     <div><b>.htaccess</b><span class="text-muted fw-normal ms-2">— Apache rewrite kuralları. Her isteği <code>index.php</code>'ye yönlendirir; HTTPS zorlamasını içerir.</span></div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="border rounded p-6 bg-body-tertiary mt-5">
+                            <div class="fw-bold text-body-emphasis mb-4"><i class="bi bi-box-seam text-primary me-2"></i>VNL'in — güncellemede komple değişir</div>
+                            <ul class="list-unstyled fs-6 text-body fw-semibold mb-0">
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-box text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl/classes/</b><span class="text-muted fw-normal ms-2">— Request, Session, Language, TableModel, VnlTable ailesi.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-box text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl/modules/</b><span class="text-muted fw-normal ms-2">— UserModule, MailModule, EncryptionModule ve arkadaşları.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-box text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl/helpers/</b><span class="text-muted fw-normal ms-2">— <code>controller()</code>, <code>view()</code>, <code>lang()</code>, <code>vnl_asset()</code>.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-box text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl/assets/</b><span class="text-muted fw-normal ms-2">— VNL Theme derleme çıktısı (<code>theme/</code>) ile <code>vnl.js</code> ve <code>vnltable</code>.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-box text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl/vendor/</b><span class="text-muted fw-normal ms-2">— Illuminate/Eloquent, PHPMailer. Composer gerektirmez, repoda gelir.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-box text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl/boot.php</b><span class="text-muted fw-normal ms-2">— Çekirdek önyüklemesi.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-box text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl/kernel.php</b><span class="text-muted fw-normal ms-2">— Yönlendirme ve giriş denetimi.</span></div>
+                                </li>
+                                <li class="mb-3 d-flex align-items-start">
+                                    <i class="bi bi-box text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
+                                    <div><b>vnl/VERSION</b><span class="text-muted fw-normal ms-2">— Çekirdeğin sürümü. Projenin sürümü ayrı: <code>config/definitions.php</code>.</span></div>
                                 </li>
                             </ul>
                         </div>

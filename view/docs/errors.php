@@ -23,7 +23,7 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">1. Yakalama Katmanları</h3>
                         <p class="fs-5 text-body mb-5">
-                            <code>libs/config.php</code> her şeyden önce <code>libs/vnl_error.php</code>'yi yükler — böylece bootstrap sırasında oluşan hatalar bile yakalanır. Üç ayrı ağ kurulur:
+                            <code>vnl/boot.php</code> her şeyden önce <code>vnl/error.php</code>'yi yükler — böylece bootstrap sırasında oluşan hatalar bile yakalanır. Üç ayrı ağ kurulur:
                         </p>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-6">
@@ -57,7 +57,7 @@
 
                         <div class="alert alert-success d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-check fs-2 text-success me-3"></i>
-                            <span class="text-body fs-6">PHP'nin kendi "Fatal error" metnini bastığı durumlar için <code>libs/config.php</code> en başta <code>ob_start()</code> çağırır; hata sayfası çıktı tamponunu temizleyerek devralır. Böylece JSON yanıtının başına PHP uyarısı karışmaz.</span>
+                            <span class="text-body fs-6">PHP'nin kendi "Fatal error" metnini bastığı durumlar için <code>vnl/boot.php</code> en başta <code>ob_start()</code> çağırır; hata sayfası çıktı tamponunu temizleyerek devralır. Böylece JSON yanıtının başına PHP uyarısı karışmaz.</span>
                         </div>
                     </div>
                     <!--end::Section 1-->
@@ -115,10 +115,10 @@
   "error": {
     "type":  "Error",
     "text":  "Call to undefined method ...",
-    "file":  "/libs/modules/UserModule.php",
+    "file":  "/vnl/modules/UserModule.php",
     "line":  21,
     "trace": [
-      { "file": "/libs/config/config_db.php", "line": 16, "function": "UserModule::SetCurrentUserInfo" }
+      { "file": "/config/database.php", "line": 16, "function": "UserModule::SetCurrentUserInfo" }
     ]
   }
 }</code></pre>
@@ -183,7 +183,7 @@
                             <i class="fa-solid fa-circle-exclamation fs-2hx text-danger me-4"></i>
                             <div class="d-flex flex-column">
                                 <h5 class="mb-1 text-danger">Üretimde açık bırakmayın</h5>
-                                <span class="text-body">Hata sayfası <b>ortam ayrımı yapmaz</b>: geliştirme ile üretim arasında fark gözetmeden dosya yollarını, kaynak kod parçalarını ve çağrı zincirini gösterir. Bu, geliştirme sırasında büyük kolaylık, canlıda ise bilgi sızıntısıdır. Canlıya çıkarken <code>libs/config.php</code>'deki handler'ı kendi ortam bayrağınızla sarın (aşağıdaki örnek) ve hatayı <code>error_log</code>'a yazdırın.</span>
+                                <span class="text-body">Hata sayfası <b>ortam ayrımı yapmaz</b>: geliştirme ile üretim arasında fark gözetmeden dosya yollarını, kaynak kod parçalarını ve çağrı zincirini gösterir. Bu, geliştirme sırasında büyük kolaylık, canlıda ise bilgi sızıntısıdır. Canlıya çıkarken <code>vnl/boot.php</code>'deki handler'ı kendi ortam bayrağınızla sarın (aşağıdaki örnek) ve hatayı <code>error_log</code>'a yazdırın.</span>
                             </div>
                         </div>
                     </div>
@@ -195,7 +195,7 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">4. Üretim İçin Kapatma</h3>
                         <p class="fs-5 text-body mb-4">
-                            <code>.env</code>'e bir bayrak ekleyip <code>libs/config.php</code>'deki iki handler'ı buna göre kurun. Ayrıntılı sayfa yalnızca geliştirmede açılır, canlıda kullanıcı sade bir mesaj görür, geliştirici log'a bakar:
+                            <code>.env</code>'e bir bayrak ekleyip <code>vnl/boot.php</code>'deki iki handler'ı buna göre kurun. Ayrıntılı sayfa yalnızca geliştirmede açılır, canlıda kullanıcı sade bir mesaj görür, geliştirici log'a bakar:
                         </p>
 
                         <div class="vnl-code mb-5">
@@ -205,7 +205,7 @@ APP_DEBUG=false</code></pre>
 
                         <div class="vnl-code">
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
-// libs/config.php — mevcut handler'ların yerine
+// vnl/boot.php — mevcut handler'ların yerine
 
 $_vnlDebug = (bool)VnlEnv::get('APP_DEBUG', false);
 

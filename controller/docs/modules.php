@@ -1,6 +1,6 @@
 <?php
 $meta = [
-    'title'       => 'Modüller (libs/modules)',
+    'title'       => 'Modüller (vnl/modules)',
     'upper_title' => 'Dökümantasyon',
     'description' => '',
     'keywords'    => '',

@@ -5,7 +5,7 @@
             <div class="vnl-page-hero mb-12 mt-6">
                 <div class="vnl-overline mb-3">// docs/config-definitions</div>
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Config Definitions</h1>
-                <div class="vnl-lead"><code>libs/config/config_definitions.php</code> dosyası, VNL uygulamasının tüm temel yapılandırmasını barındırır. Her yeni projede ilk doldurulması gereken dosyadır.</div>
+                <div class="vnl-lead"><code>config/definitions.php</code> dosyası, VNL uygulamasının tüm temel yapılandırmasını barındırır. Her yeni projede ilk doldurulması gereken dosyadır.</div>
             </div>
 
             <div class="alert alert-warning d-flex align-items-center p-5 mb-10">
@@ -115,12 +115,12 @@ $debug = env('APP_DEBUG', false);      // true/false/null/empty çevrilir
                                 <tr>
                                     <td class="ps-5"><code>$version</code></td>
                                     <td><code>"2.2.0"</code></td>
-                                    <td>Uygulamanızın sürüm numarası. <code>$cDefinitions->version()</code> ile okunur; sekme başlığı gibi yerlerde kullanılabilir.</td>
+                                    <td><b>Projenizin</b> sürüm numarası. <code>$cDefinitions->version()</code> ile okunur; sekme başlığı gibi yerlerde kullanılabilir. Çekirdeğin sürümüyle karıştırmayın.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>$vnl_version</code></td>
-                                    <td><code>"2.2.0"</code></td>
-                                    <td>VNL framework'ünün sürüm numarasıdır. <b>Değiştirmeyin.</b> Framework takibi için ayrı tutulmuştur.</td>
+                                    <td class="ps-5"><code>$version</code> <span class="text-muted">(çekirdek)</span></td>
+                                    <td><code>vnl/VERSION</code></td>
+                                    <td>VNL 3.0'a kadar burada bir <code>$vnl_version</code> alanı vardı ve yanında &laquo;değiştirmeyin&raquo; yazıyordu &mdash; proje dosyasında duran bir şeyi proje değiştirmesin diye rica etmek gerekiyordu. Artık kaynağı <code>vnl/VERSION</code>; okumak için yine <code>$cDefinitions-&gt;vnl_version()</code>.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -135,8 +135,7 @@ $debug = env('APP_DEBUG', false);      // true/false/null/empty çevrilir
                             <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $app_name      = "Stok Takip";   // Uygulama adı — şirket adı değil
 private $app_logo      = "logo.png";
 private $app_logo_path = "/assets/media/logos/";
-private $version       = "1.0.0";
-// $vnl_version değiştirmeyin
+private $version       = "1.0.0";   // projenin sürümü; çekirdeğinki vnl/VERSION'da
 </code></pre>
                         </div>
                     </div>

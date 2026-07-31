@@ -16,9 +16,10 @@
             <div class="alert alert-primary d-flex align-items-center p-5 mb-10">
                 <i class="bi bi-info-circle fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
-                    <span class="fw-bold">Kaynak <code>theme/</code> dizininde, derlenmiş çıktı <code>assets/vnl/</code> altındadır.</span>
-                    <span class="text-body-secondary">Çıktı repoya commit edilir — template kullanıcısının Node/npm kurması ya da build alması gerekmez.
-                    Temayı özelleştirmek isteyenler için: <code>cd theme && npm ci && npm run build</code></span>
+                    <span class="fw-bold">Kaynak ayrı bir depodadır (<a href="https://github.com/mrekay/VNL-THEME" target="_blank" rel="noopener">VNL-THEME</a>); derlenmiş çıktı <code>vnl/assets/theme/</code> altındadır.</span>
+                    <span class="text-body-secondary">Çıktı bu repoya commit edilir — template kullanıcısının Node/npm kurması ya da build alması gerekmez.
+                    Temayı özelleştirmek isteyenler tema deposunu klonlayıp çıktıyı buraya derler:
+                    <code>VNL_OUT=/yol/VNL-TEMPLATE/vnl/assets/theme npm run build</code></span>
                 </div>
             </div>
 
@@ -59,18 +60,19 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">Dosya Mimarisi</h3>
                         <p class="text-body mb-4">
-                            Tema iki parçadan oluşur: <b>kaynak</b> (<code>theme/</code> — SCSS, JS modülleri, build araçları)
-                            ve <b>derlenmiş çıktı</b> (<code>assets/vnl/</code>). Sayfalar yalnız çıktıyı yükler;
+                            Tema iki parçadan oluşur: <b>kaynak</b> (ayrı depo:
+                            <a href="https://github.com/mrekay/VNL-THEME" target="_blank" rel="noopener">VNL-THEME</a> — SCSS, JS modülleri, build araçları)
+                            ve <b>derlenmiş çıktı</b> (<code>vnl/assets/theme/</code> — bu repodadır). Sayfalar yalnız çıktıyı yükler;
                             asset yükleme noktaları <code>view/includes/static/head-standard.php</code> ve
                             <code>script-standard.php</code> dosyalarıdır.
                         </p>
-                        <div class="vnl-code"><pre><code>theme/
+                        <div class="vnl-code"><pre><code>VNL-THEME/            (ayrı depo)
 ├── scss/            → vnl.scss (Bootstrap + tema), bi.scss, fa.scss
 ├── js/              → vnl-theme.js + modules/ (tema modu, sidebar, flyout, tooltip, lightbox)
-├── tools/           → tek seferlik migrasyon codemod'ları + dev-router
-└── build.mjs        → vendor concat + esbuild + font kopyalama
+├── tools/codemods/  → Metronic'ten geçiş codemod'ları
+└── build.mjs        → sass + vendor concat + esbuild + font kopyalama
 
-assets/vnl/
+vnl/assets/theme/           (bu repo — build çıktısı)
 ├── css/vnl.min.css  → Bootstrap 5.3.8 + VNL Theme + SweetAlert2/SlimSelect skin'leri
 ├── css/bi.min.css   → Bootstrap Icons 1.13
 ├── css/fa.min.css   → Font Awesome Free (solid/regular/brands + v4 shim)

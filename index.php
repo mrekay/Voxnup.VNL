@@ -1,64 +1,19 @@
 <?php
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — Ön Denetleyici
+ *  Authors: Voxnup Authors
+ * ============================================================
+ *
+ * Bu dosya PROJENİNDİR ama içinde proje mantığı yoktur: çekirdeği yükler
+ * ve isteği ona devreder. Sayfa eklemek için buraya değil controller/
+ * altına dosya açılır.
+ *
+ * Yönlendirme vnl/kernel.php'dedir. Orayı ezmek isterseniz bu dosyada
+ * kernel.php yerine kendi dosyanızı çağırın; çekirdeğe dokunmanız gerekmez.
+ */
 
-require __DIR__ . '/libs/config.php';
+define('VNL_ROOT', __DIR__);
 
-$routeExplode = explode('?', $_SERVER['REQUEST_URI']);
-$route = array_values(array_filter(explode('/', $routeExplode[0])));
-if (getSubFolderName() != '/' && getSubFolderName() != '\\') {
-    array_shift($route);
-}
-
-if (!route(0)) {
-    $route[0] = 'index';
-}
-
-// Login kontrolü için orijinal route değerlerini sakla ($route[0] aşağıda değişebilir)
-$originalSegment0 = route(0);
-$originalSegment1 = route(1);
-
-// Alt klasör desteği: /docs/overview → controller/docs/overview.php
-$controllerPath = controller(route(0));
-if (is_dir(getPath() . '/controller/' . route(0)) && route(1)) {
-    $groupedController = route(0) . '/' . route(1);
-    if (file_exists(controller($groupedController))) {
-        $controllerPath = controller($groupedController);
-    } else {
-        $controllerPath = controller('404');
-    }
-} elseif (!file_exists($controllerPath)) {
-    /* Extension controller fallback */
-    $_extCtrlFound = false;
-    foreach (glob(getPath() . '/extensions/*/controller/' . route(0) . '.php') as $_extCtrl) {
-        $controllerPath = $_extCtrl;
-        $_extCtrlFound  = true;
-        break;
-    }
-    if (!$_extCtrlFound) {
-        $route[0] = '404';
-        $controllerPath = controller('404');
-    }
-    unset($_extCtrlFound, $_extCtrl);
-}
-
-// currentPage: gruplu sayfalarda "docs/overview", tekil sayfalarda "index" gibi
-$loginExceptPages = $cDefinitions->getLoginExceptPages();
-$currentPage = ($originalSegment1 && is_dir(getPath() . '/controller/' . $originalSegment0))
-    ? $originalSegment0 . '/' . $originalSegment1
-    : $originalSegment0;
-$isExceptPage = in_array($currentPage, $loginExceptPages) || in_array($originalSegment0, $loginExceptPages);
-
-if (!$isExceptPage && $CurrentUser->id <= 0) {
-    // Controller'ı çalıştır, output'u yakala; $page_config['public'] varsa geç
-    ob_start();
-    try { require $controllerPath; } catch (Throwable $e) { ob_end_clean(); vnl_render_error($e); }
-    $output = ob_get_clean();
-
-    if (!empty($page_config['public'])) {
-        echo $output;
-    } else {
-        header('location:' . $cDefinitions->getSiteUrl() . '/login');
-        exit;
-    }
-} else {
-    try { require $controllerPath; } catch (Throwable $e) { vnl_render_error($e); }
-}
+require VNL_ROOT . '/vnl/boot.php';
+require VNL_PATH . '/kernel.php';

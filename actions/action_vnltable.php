@@ -1,7 +1,7 @@
 <?php
 /*!
  * ============================================================
- *  Voxnup Not Laravel (VNL) 3.0.0 — VNL Table Demo Verisi
+ *  Voxnup Not Laravel (VNL) — VNL Table Demo Verisi
  *  docs/vnltable sayfasındaki canlı örneği besler.
  *  Authors: Voxnup Authors
  * ============================================================

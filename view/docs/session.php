@@ -230,7 +230,7 @@ if ($CurrentUser->id > 0) {
                                             <h5 class="mb-0 fw-bold">Yöntem 1 — <code>login_except_pages</code></h5>
                                         </div>
                                         <p class="fs-6 text-body mb-3">
-                                            <code>libs/config/config_definitions.php</code> dosyasındaki <code>$login_except_pages</code> dizisine sayfa adını ekleyin. Controller hiç yüklenmeden doğrudan erişim verilir.
+                                            <code>config/definitions.php</code> dosyasındaki <code>$login_except_pages</code> dizisine sayfa adını ekleyin. Controller hiç yüklenmeden doğrudan erişim verilir.
                                         </p>
                                         <div class="bg-body-tertiary rounded p-3">
                                             <code class="fs-7">private $login_except_pages = [<br>&nbsp;&nbsp;"login", "register", "hakkimizda"<br>];</code>

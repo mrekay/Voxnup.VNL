@@ -5,7 +5,7 @@
             <div class="vnl-page-hero mb-12 mt-6">
                 <div class="vnl-overline mb-3">// docs/languages</div>
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Dil ve Çoklu Dil Desteği (i18n)</h1>
-                <div class="vnl-lead">VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>libs/languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong>; aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.</div>
+                <div class="vnl-lead">VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong>; aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.</div>
             </div>
 
             <div class="alert alert-info d-flex flex-column flex-sm-row p-5 mb-10">
@@ -43,8 +43,8 @@ $yuklu = Language::current();
                                 <div class="border border-dashed rounded p-5 h-100 text-center">
                                     <i class="bi bi-filetype-json fs-2x text-warning mb-3 d-block"></i>
                                     <h6 class="fw-bold mb-2">JSON Dosyaları</h6>
-                                    <code class="fs-7">libs/languages/tr.json</code><br>
-                                    <code class="fs-7">libs/languages/en.json</code>
+                                    <code class="fs-7">languages/tr.json</code><br>
+                                    <code class="fs-7">languages/en.json</code>
                                 </div>
                             </div>
                             <div class="col-md-4">

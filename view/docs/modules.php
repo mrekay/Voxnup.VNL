@@ -4,15 +4,15 @@
 
             <div class="vnl-page-hero mb-12 mt-6">
                 <div class="vnl-overline mb-3">// docs/modules</div>
-                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Modüller (libs/modules)</h1>
-                <div class="vnl-lead">VNL, tekrar kullanılabilir yardımcı işlemleri <code>libs/modules/</code> dizinindeki statik sınıflar aracılığıyla sunar. Tüm modüller uygulama başlangıcında otomatik yüklenir; herhangi bir yerden <code>ModulAdi::Metot()</code> biçiminde statik olarak çağrılır.</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Modüller (vnl/modules)</h1>
+                <div class="vnl-lead">VNL, tekrar kullanılabilir yardımcı işlemleri <code>vnl/modules/</code> dizinindeki statik sınıflar aracılığıyla sunar. Tüm modüller uygulama başlangıcında otomatik yüklenir; herhangi bir yerden <code>ModulAdi::Metot()</code> biçiminde statik olarak çağrılır.</div>
             </div>
 
             <div class="alert alert-primary d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-cubes fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column">
                     <h5 class="mb-1 text-primary">Otomatik Yükleme ve Statik Kullanım</h5>
-                    <span class="text-body"><code>libs/modules/</code> dizinindeki tüm PHP dosyaları uygulama başlangıcında otomatik olarak dahil edilir. Tüm modüller statik çağrı ile kullanılır: <code>EncryptionModule::PasswordHash($sifre)</code></span>
+                    <span class="text-body"><code>vnl/modules/</code> dizinindeki tüm PHP dosyaları uygulama başlangıcında otomatik olarak dahil edilir. Tüm modüller statik çağrı ile kullanılır: <code>EncryptionModule::PasswordHash($sifre)</code></span>
                 </div>
             </div>
 
@@ -24,7 +24,7 @@
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-primary me-3 fs-5">E</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">EncryptionModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/EncryptionModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/EncryptionModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">Şifreleme ve deşifreleme işlemleri. Parola hash'leme ve cookie verisi için AES şifreleme sağlar.</p>
 
@@ -94,7 +94,7 @@ if ($veri === false) { /* kurcalanmış, anahtar değişmiş veya geçersiz */ }
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-success me-3 fs-5">D</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">DateTimeModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/DateTimeModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/DateTimeModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">Tarih ve zaman işlemleri; format dönüştürme, fark hesaplama ve "X zaman önce" gösterimi.</p>
 
@@ -160,7 +160,7 @@ $gg = DateTimeModule::DiffDay('2024-01-01', '2024-12-31');
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-info me-3 fs-5">T</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">TextGeneralModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/TextGeneralModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/TextGeneralModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">Metin işleme, sayı formatlama ve URL temizleme yardımcıları.</p>
 
@@ -248,7 +248,7 @@ echo TextGeneralModule::NumberFormatTR(1234567.89, 2);
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-warning me-3 fs-5">F</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">FileManagerModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/FileManagerModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/FileManagerModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">Dosya yükleme, silme ve disk alanı işlemleri.</p>
 
@@ -309,7 +309,7 @@ FileManagerModule::DeleteFile(getDocumentRoot() . $belge->DosyaYolu);
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-danger me-3 fs-5">C</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">CurlModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/CurlModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/CurlModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">Dış servislere HTTP isteği göndermek için kullanılır. Form-encoded, JSON ve Basic Auth destekler.</p>
 
@@ -369,7 +369,7 @@ $data = CurlModule::GetCurlPage('https://api.example.com/products', 5, true);
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-dark me-3 fs-5">L</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">LogModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/LogModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/LogModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">Günlük bazında log dosyası oluşturur. Her gün ayrı bir <code>log_Y-m-d.log</code> dosyası oluşturulur.</p>
 
@@ -424,7 +424,7 @@ LogModule::SetMysqErrorlLog(
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-secondary me-3 fs-5">U</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">URLModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/URLModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/URLModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">Mevcut sayfa URL bilgisine erişmek için yardımcılar.</p>
 
@@ -458,7 +458,7 @@ LogModule::SetMysqErrorlLog(
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-soft-secondary me-3 fs-5">A</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">ArrayModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/ArrayModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/ArrayModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">Dizi işleme yardımcıları.</p>
 
@@ -488,7 +488,7 @@ LogModule::SetMysqErrorlLog(
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-danger me-3 fs-5">P</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">PDFModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/PDFModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/PDFModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">PDF oluşturma servisiyle entegrasyon. Uzak print URL'ini çağırarak PDF üretir.</p>
 
@@ -518,7 +518,7 @@ LogModule::SetMysqErrorlLog(
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-primary me-3 fs-5">S</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">SocialLinkModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/SocialLinkModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/SocialLinkModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">Sosyal medya link işlemleri.</p>
 
@@ -556,7 +556,7 @@ if (!empty($videoId)) {
                         <div class="d-flex align-items-center mb-5">
                             <span class="badge badge-circle badge-success me-3 fs-5">M</span>
                             <h3 class="fw-bold text-body-emphasis mb-0">MailModule</h3>
-                            <span class="text-muted fs-7 ms-3 font-monospace">libs/modules/MailModule.php</span>
+                            <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/MailModule.php</span>
                         </div>
                         <p class="fs-5 text-body mb-4">PHPMailer üzerinden SMTP e-posta gönderimi. SMTP ayarları modül içinde yapılandırılır.</p>
 

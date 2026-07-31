@@ -37,6 +37,24 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
+                                "text" => "Çekirdek ve Proje",
+                                'url' => 'docs/architecture',
+                                'page_name' => 'architecture.php',
+                                'permission' => '',
+                                'icon' => 'bi bi-box-seam',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Sürümleme ve Migration",
+                                'url' => 'docs/versioning',
+                                'page_name' => 'versioning.php',
+                                'permission' => '',
+                                'icon' => 'bi bi-tags',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
                                 "text" => "Yönlendirme (Routing) ve Controller",
                                 'url' => 'docs/routing',
                                 'page_name' => 'routing.php',
@@ -386,7 +404,7 @@ function ShowSidebarMenu($array, $level)
 
             if ($hasChild) {
                 /* Alt menü sağda flyout panel olarak açılır (hover ya da tıklama;
-                   mobil offcanvas'ta yerinde). Davranış: theme/js/modules/flyout.js */
+                   mobil offcanvas'ta yerinde). Davranış: VNL-THEME js/modules/flyout.js */
                 ?>
                 <div class="vnl-menu-item vnl-has-sub">
                     <button type="button"

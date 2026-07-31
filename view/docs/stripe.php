@@ -22,7 +22,7 @@
                             <div>
                                 <div class="fw-bold text-body mb-1">Stripe PHP SDK'yı yükle</div>
                                 <div class="vnl-code mt-2">
-                                    <code class="text-warning">cd libs &amp;&amp; composer require stripe/stripe-php</code>
+                                    <code class="text-warning">cd vnl &amp;&amp; composer require stripe/stripe-php</code>
                                 </div>
                             </div>
                         </div>

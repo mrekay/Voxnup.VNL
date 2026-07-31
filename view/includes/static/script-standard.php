@@ -16,9 +16,8 @@
 <!-- VNL Theme: vendor paketi (jquery + bootstrap + sweetalert2 + slim-select),
      tema davranışları ve VNL çekirdek script'i. Script'ler head'de kalır:
      view/modal dosyaları body içinde satır arası $(...) çalıştırıyor. -->
-<script src="<?= $assets_address ?>/vnl/js/vendors.min.js"></script>
-<script src="<?= $assets_address ?>/vnl/js/vnl.min.js"></script>
-<script src="<?= $assets_address ?>/scripts/vnl.js"></script>
-<script src="<?= $assets_address ?>/scripts/vnltable.js"></script>
+<?php foreach (vnl_core_scripts() as $vnl_js) { ?>
+<script src="<?= $vnl_js ?>"></script>
+<?php } ?>
 
 

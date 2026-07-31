@@ -1,11 +1,16 @@
-# Migrations
+# Migrations — projenin şeması
 
-Veritabanı değişiklikleri burada, **numara sırasıyla** çalıştırılır.
+Bu dizin **sizindir**. Kendi tablolarınızın değişiklikleri buraya, numara
+sırasıyla girer:
 
 ```
-0001_vnl_3_0_upgrade.sql
+0001_siparis_tablosu.sql
 0002_...
 ```
+
+**VNL'in kendi şeması burada değildir** — o `vnl/migrations/` altındadır ve
+çekirdek güncellendiğinde yenilenir. İkisini ayrı tutmak, bir VNL yükseltmesinin
+sizin migration numaralarınızla çakışmasını engeller.
 
 ## Kurallar
 
@@ -15,22 +20,21 @@ Veritabanı değişiklikleri burada, **numara sırasıyla** çalıştırılır.
   tablo oluştururken `CREATE TABLE IF NOT EXISTS` kullanın.
 - Sütun sözleşmesi: `snake_case`, birincil anahtar `id`, yumuşak silme `deleted_at`.
 
+- **`ALTER TABLE`'ın MySQL'de `IF EXISTS`'i yoktur.** Var olmayabilecek bir
+  tabloyu değiştiriyorsanız koşullu yazın; örneği `vnl/migrations/0001`'dedir.
+
 ## Çalıştırma
 
+Elle `mysql <` ile değil, araçla — böylece neyin uygulandığı kayda geçer ve
+aynı migration ikinci kez çalışmaz:
+
 ```bash
-mysql -u KULLANICI -p VERITABANI < migrations/0001_vnl_3_0_upgrade.sql
+php vnl/tools/migrate.php --status   # ne uygulanmış, ne bekliyor
+php vnl/tools/migrate.php --run      # bekleyenleri sırayla uygula
 ```
+
+Ayrıntı için uygulama içindeki **/docs/versioning** sayfasına bakın.
 
 `.sql` dosyaları web sunucusu tarafından servis edilmez (`.htaccess` ve
 `web.config` engeller), ama yine de yalnızca dağıtım sırasında erişilmeleri
 beklenir.
-
-## VNL 3.0'a yükseltiyorsanız
-
-`0001` zorunludur. İki kritik değişiklik içerir:
-
-- `tbl_users.password` → `VARCHAR(255)`. VNL 3.0 bcrypt kullanır (60 karakter);
-  2.x'in `sha1(md5())` hash'i için 40 karakter yetiyordu. Sütun dar kalırsa
-  hash sessizce kırpılır ve kullanıcı bir sonraki girişinde içeri giremez.
-- `tbl_remember_tokens` — "beni hatırla" jetonları. Tablo yoksa kalıcı giriş
-  çalışmaz.

@@ -7,8 +7,9 @@
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Renkler, Tema Modu ve Tipografi</h1>
                 <div class="vnl-lead">
                     Tema token bazlıdır: bileşenler <code>--vnl-*</code> ve Bootstrap 5.3'ün adaptif
-                    <code>--bs-*</code> değişkenlerini tüketir. Renk, yüzey ve ölçek kararları tek yerden
-                    (<code>theme/scss/_variables.scss</code> ve <code>_tokens.scss</code>) yönetilir.
+                    <code>--bs-*</code> değişkenlerini tüketir. Renk, yüzey ve ölçek kararları tema
+                    deposunda tek yerden (<code>scss/_variables.scss</code> ve <code>_tokens.scss</code>)
+                    yönetilir.
                 </div>
             </div>
 
@@ -125,7 +126,7 @@ document.addEventListener('vnl.theme.changed', function (e) {
                                 <tr>
                                     <td>Piksel boyutları</td>
                                     <td><code>w-250px</code>, <code>w-lg-500px</code>, <code>min-w-125px</code>, <code>mw-650px</code>, <code>mh-300px</code>, <code>h-45px</code></td>
-                                    <td>Liste <code>theme/scss/_utilities.scss</code> içindedir; yeni değer gerekiyorsa ekleyip build alın</td>
+                                    <td>Liste <code>scss/_utilities.scss</code> içindedir; yeni değer gerekiyorsa ekleyip build alın</td>
                                 </tr>
                                 <tr>
                                     <td>Editoryal parçalar</td>
@@ -149,7 +150,7 @@ document.addEventListener('vnl.theme.changed', function (e) {
                         <p class="text-body mb-4">
                             Skin, Bootstrap'i yeniden derlemeyen <b>hafif bir renk katmanıdır</b>
                             (Dracula örneği ~7 KB): <code>vnl.min.css</code>'in üstüne yüklenir.
-                            Yazar yalnız paleti tanımlar; <code>theme/scss/_skin-engine.scss</code>
+                            Yazar yalnız paleti tanımlar; <code>scss/_skin-engine.scss</code>
                             subtle/emphasis türevlerini, link/focus zincirini, dolu buton durumlarını,
                             yüzeyleri ve sidebar/kod token'larını otomatik üretir.
                         </p>
@@ -160,7 +161,7 @@ document.addEventListener('vnl.theme.changed', function (e) {
                             </button>
                             <span class="text-body-secondary fs-8">(yalnız bu sekmede, geçicidir — tekrar tıklayınca döner)</span>
                         </div>
-                        <p class="text-body fw-semibold mb-2">1. Palet dosyasını oluşturun — <code>theme/scss/skins/ornekskin.scss</code>:</p>
+                        <p class="text-body fw-semibold mb-2">1. Palet dosyasını oluşturun — <code>scss/skins/ornekskin.scss</code>:</p>
                         <div class="vnl-code mb-5"><pre><code>@use "../skin-engine" as vnl;
 
 @include vnl.skin((
@@ -177,16 +178,17 @@ document.addEventListener('vnl.theme.changed', function (e) {
     light: ( body-bg: #f5f4fa, surface: #ffffff ),      // açık mod karşılıkları
 ));</code></pre></div>
                         <p class="text-body fw-semibold mb-2">2. Derleyin ve etkinleştirin:</p>
-                        <div class="vnl-code"><pre><code>cd theme && npm run build      # skins/ altındaki her dosya → assets/vnl/css/skins/&lt;ad&gt;.min.css
+                        <div class="vnl-code"><pre><code># tema deposunda: scss/skins/ altındaki her dosya → vnl/assets/theme/css/skins/&lt;ad&gt;.min.css
+VNL_OUT=/yol/VNL-TEMPLATE/vnl/assets/theme npm run build
 
-// libs/config/config_definitions.php — uygulama geneli:
+// config/definitions.php — uygulama geneli:
 private $theme_defaults = [ ..., 'skin' => 'ornekskin' ];
 
 // ya da sayfa bazlı:
 $page_config = ['skin' => 'ornekskin'];</code></pre></div>
                         <p class="text-body-secondary mb-0 mt-4">
                             Her anahtar opsiyoneldir — verilmeyen değer varsayılan kimlikten kalır.
-                            Hazır örnek: <code>theme/scss/skins/dracula.scss</code> (resmî Dracula paleti).
+                            Hazır örnek: tema deposunda <code>scss/skins/dracula.scss</code> (resmî Dracula paleti).
                             Radius/font gibi yapısal değişiklikler skin kapsamı dışındadır — onlar için
                             <code>_variables.scss</code> ile kendi build'inizi alın.
                         </p>

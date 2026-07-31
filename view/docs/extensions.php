@@ -15,10 +15,10 @@
                 </div>
                 <div class="card-body pt-2">
                     <p class="fs-5 text-body mb-6">
-                        VNL başlangıcında (<code>libs/config.php</code>) önce <b>manifest</b> okunur, sonra <code>extensions/*/boot.php</code> dosyaları taranır. Yalnızca manifest'te <code>true</code> olarak işaretlenmiş eklentiler yüklenir:
+                        VNL başlangıcında (<code>vnl/boot.php</code>) önce <b>manifest</b> okunur, sonra <code>extensions/*/boot.php</code> dosyaları taranır. Yalnızca manifest'te <code>true</code> olarak işaretlenmiş eklentiler yüklenir:
                     </p>
                     <div class="vnl-code mb-8">
-                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// libs/config.php
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// vnl/boot.php
 $_extManifest       = getDocumentRoot() . 'extensions/extensions.php';
 $_enabledExtensions = file_exists($_extManifest) ? (require $_extManifest) : [];
 
@@ -288,7 +288,7 @@ class MyModel extends TableModel
                             <span class="badge badge-circle badge-primary me-4 mt-1 fs-6 flex-shrink-0">3</span>
                             <div>
                                 <div class="fw-bold text-body mb-1">Gerekli bağımlılıkları yükle</div>
-                                <div class="text-body-secondary fs-6">Eklentinin talep ettiği Composer paketlerini <code>libs/</code> altında kur. Örn: <code>composer require stripe/stripe-php</code></div>
+                                <div class="text-body-secondary fs-6">Eklentinin talep ettiği Composer paketlerini <code>vnl/</code> altında kur. Örn: <code>composer require stripe/stripe-php</code></div>
                             </div>
                         </div>
                         <div class="d-flex align-items-start">

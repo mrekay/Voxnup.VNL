@@ -7,8 +7,9 @@
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Metronic'ten Geçiş</h1>
                 <div class="vnl-lead">
                     VNL 2.x + Metronic 8 üzerinde koşan projeleri VNL Theme'e taşımak için rehber.
-                    Bu template'in kendi geçişinde kullanılan codemod'lar <code>theme/tools/</code>
-                    altında durur ve türev projelerde yeniden kullanılabilir.
+                    Bu template'in kendi geçişinde kullanılan codemod'lar tema deposunda
+                    (<a href="https://github.com/mrekay/VNL-THEME" target="_blank" rel="noopener">VNL-THEME</a>)
+                    <code>tools/codemods/</code> altında durur ve türev projelerde yeniden kullanılabilir.
                 </div>
             </div>
 
@@ -25,7 +26,7 @@
                                 </tr>
                                 </thead>
                                 <tbody class="text-body fw-semibold">
-                                <tr><td><code>assets/v1</code> bundle'ları (~7 MB)</td><td><code>assets/vnl</code> (~1 MB, font'lar dahil)</td></tr>
+                                <tr><td><code>assets/v1</code> bundle'ları (~7 MB)</td><td><code>vnl/assets/theme</code> (~1 MB, font'lar dahil)</td></tr>
                                 <tr><td>keenicons (<code>ki-duotone ki-*</code> + path span'ları)</td><td>Bootstrap Icons + Font Awesome Free 7 birlikte</td></tr>
                                 <tr><td><code>badge-light-*</code>, <code>btn-light-*</code></td><td><code>badge-soft-*</code>, <code>btn-soft-*</code></td></tr>
                                 <tr><td><code>text-gray-800</code> vb. sabit griler</td><td><code>text-body*</code> adaptif aile</td></tr>
@@ -75,8 +76,9 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">3. Codemod Araçları</h3>
                         <p class="text-body mb-4">
-                            Bu template'in geçişini yapan Node script'leri (kapsam listelerini projenize göre
-                            düzenleyip kullanın; hepsi <code>--dry</code> ile önizleme destekler):
+                            Bu template'in geçişini yapan Node script'leri. Tema deposundadır, <b>hedef projenin
+                            kökünde</b> çalıştırılır; taranacak dosyalar glob olarak verilir (<code>--root=&lt;dizin&gt;</code>
+                            ile kök değiştirilebilir, hepsi <code>--dry</code> ile önizleme destekler):
                         </p>
                         <div class="table-responsive mb-0">
                             <table class="table table-row-dashed align-middle fs-7 gy-4">
@@ -86,10 +88,10 @@
                                 </tr>
                                 </thead>
                                 <tbody class="text-body fw-semibold">
-                                <tr><td><code>theme/tools/migrate-icons.mjs</code></td><td>138 keenicon'u <code>fa-*</code> karşılığına çevirir, duotone path span'larını siler (HTML-escape'li örnekler dahil)</td></tr>
-                                <tr><td><code>theme/tools/sweep-utilities.mjs a|b</code></td><td>Sınıf eşleme tablosunu uygular (FAZ A: adaptif aileler; FAZ B: soft/vnl-code)</td></tr>
-                                <tr><td><code>theme/tools/sweep-hero.mjs</code></td><td>Ortalanmış eski hero bloklarını overline'lı sola yaslı düzene çevirir</td></tr>
-                                <tr><td><code>theme/tools/dev-router.php</code></td><td>Yerel smoke test: <code>php -S 0.0.0.0:8080 theme/tools/dev-router.php</code></td></tr>
+                                <tr><td><code>codemods/migrate-icons.mjs</code></td><td>138 keenicon'u <code>fa-*</code> karşılığına çevirir, duotone path span'larını siler (HTML-escape'li örnekler dahil)</td></tr>
+                                <tr><td><code>codemods/sweep-utilities.mjs a|b</code></td><td>Sınıf eşleme tablosunu uygular (FAZ A: adaptif aileler; FAZ B: soft/vnl-code)</td></tr>
+                                <tr><td><code>codemods/sweep-hero.mjs</code></td><td>Ortalanmış eski hero bloklarını overline'lı sola yaslı düzene çevirir</td></tr>
+                                <tr><td><code>tools/dev-router.php</code> <span class="text-body-secondary">(bu repo)</span></td><td>Yerel smoke test: <code>php -S 0.0.0.0:8080 tools/dev-router.php</code></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -101,7 +103,7 @@
                         <h3 class="fw-bold text-body-emphasis mb-4">4. Önerilen Sıra</h3>
                         <ol class="text-body mb-0">
                             <li class="mb-2"><b>Guard'lar:</b> <code>vnl.js</code>'inizi template'teki sürümle eşitleyin (moment/DataTables guard'ları + SlimSelect köprüsü + Swal v11).</li>
-                            <li class="mb-2"><b>Asset takası:</b> <code>assets/vnl/</code> dizinini ve <code>view/includes/static/</code> + <code>view/static/</code> dosyalarını template'ten alın; <code>themeDefaults()</code>'u config'inize ekleyin.</li>
+                            <li class="mb-2"><b>Asset takası:</b> <code>vnl/assets/theme/</code> dizinini ve <code>view/includes/static/</code> + <code>view/static/</code> dosyalarını template'ten alın; <code>themeDefaults()</code>'u config'inize ekleyin.</li>
                             <li class="mb-2"><b>Sweep:</b> codemod'ları kendi <code>view/</code> dizininize koşun; kalan <code>ki-*</code> / <code>badge-light-*</code> / <code>text-gray-*</code> kullanımlarını grep ile sıfırlayın.</li>
                             <li class="mb-2"><b>Metronic'i silin:</b> <code>assets/v1/</code> ve Metronic'e özel include'lar.</li>
                             <li><b>Doğrulama:</b> <code>php -l</code> + dev-router ile sayfa sayfa gezin; console'da hata ve 404 asset kalmamalı.</li>

@@ -1,7 +1,7 @@
 <?php
 /*!
  * ============================================================
- *  Voxnup Not Laravel (VNL) 3.0.0 — Yetki Tanımı
+ *  Voxnup Not Laravel (VNL) — Yetki Tanımı
  *  tbl_permissions kayıtları; User ve UserPermissions bu tabloya bağlıdır.
  *  Authors: Voxnup Authors
  * ============================================================
