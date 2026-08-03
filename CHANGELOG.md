@@ -9,6 +9,33 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.0.1] — 2026-08-03
+
+### Değişenler
+
+- **Yeni VNL logosu.** Maskotun yüzü yerini devre izleri arasına yerleşmiş "VNL"
+  yazısına bıraktı; geniş kilit (ikon + *Voxnup*) da yeni ikonla yeniden üretildi.
+  Dosyalar aynı adlarda kaldı, web boyutlarına indirildi ve palet PNG olarak
+  yeniden kodlandı:
+
+  | Dosya | Önce | Sonra |
+  | --- | --- | --- |
+  | `vnl/media/VNLMASCOT.png` | 1664², 92 KB | 256², 11 KB |
+  | `vnl/media/VNLBIG.png` | 4500×1800, 168 KB | 1800×720, 63 KB |
+  | `assets/media/logos/VNL.png` | 1668², 102 KB | 512², 30 KB |
+  | `assets/media/logos/VNLBIG.png` | 4500×1800, 168 KB | 1800×720, 63 KB |
+
+  `VNLMASCOT.png` hata sayfasına base64 olarak gömüldüğü için kazanç doğrudan
+  yanıt boyutuna yansıyor: her hata sayfası ~110 KB hafifledi.
+
+  **`assets/` proje tarafındadır, güncelleyici oraya dokunmaz.** `update` yalnız
+  `vnl/media/` altındaki iki dosyayı yeniler; yeni logoyu uygulamanızın giriş,
+  401/404 ve menü ekranlarında da görmek istiyorsanız `assets/media/logos/`
+  altındaki iki dosyayı elle kopyalayın. Kendi logonuzu koyduysanız zaten bir şey
+  yapmanız gerekmez.
+
+---
+
 ## [3.0.0] — 2026-07-31
 
 VNL 2.x'ten gelen kurulumlar için **kırıcı** bir sürüm. Yükseltmeden önce
