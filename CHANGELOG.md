@@ -9,6 +9,45 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.1.0] — 2026-08-24
+
+### Eklenenler
+
+- **Proje hata ekranı kancası.** `vnl_render_error()` artık çıktısını basmadan
+  önce projede `vnl_project_error_page(Throwable $e)` diye bir fonksiyon var mı
+  diye bakar. Varsa ekranı proje üretir ve istek orada biter; fonksiyon
+  **dönerse** çekirdeğin ayrıntılı sayfası basılır — geliştirme makinesinde
+  ayrıntı böyle korunur. Fonksiyon `helpers/` altında tanımlanır,
+  `vnl_load_dir('helpers')` onu kendiliğinden yükler: çekirdeğe dokunmak
+  gerekmez.
+
+  Kanca üç yakalama katmanının da tek geçtiği yerdedir — yakalanmamış
+  istisnalar, ölümcül hatalar ve **denetleyicide oluşan istisnalar**. Sonuncusu
+  bu kancanın asıl sebebi: `vnl/kernel.php` denetleyiciyi kendi `try/catch`'i
+  içinde çalıştırıp hatayı doğrudan `vnl_render_error()`'a verir, yani yalnız
+  `set_exception_handler`'ı değiştiren bir proje sayfa hatalarını — en sık
+  görülenleri — kaçırıyordu.
+
+  Sözleşme: kanca çıktı tamponları temizlendikten **sonra**, durum kodu
+  yazılmadan **önce** çağrılır (durum kodu ve HTML/JSON kararı projenindir,
+  istek türü için `vnl_wants_json()` vardır); istisna fırlatırsa yutulur ve
+  çekirdeğin sayfası basılır — hata ekranının hatası kullanıcıyı boş sayfada
+  bırakmaz.
+
+### Değişenler
+
+- **`/docs/errors` → "Üretim İçin Kapatma" bölümü yeniden yazıldı.** Eski reçete
+  `vnl/boot.php`'deki handler'ları elle düzenletiyordu: hem çekirdeğe dokunuyor
+  (güncellemede kayboluyor) hem de yukarıdaki sebeple denetleyici hatalarını
+  kaçırıyordu. Yerini yeni kancanın sözleşmesi ve çalışan bir örnek aldı.
+
+### Yükseltme
+
+`vnl/` değiştirilir, başka bir şey gerekmez. Kanca tanımlanmadığı sürece
+davranış 3.0.1 ile birebir aynıdır.
+
+---
+
 ## [3.0.1] — 2026-08-03
 
 ### Değişenler
