@@ -193,42 +193,73 @@
 
                     <!--begin::Section 4-->
                     <div class="mb-10">
-                        <h3 class="fw-bold text-body-emphasis mb-4">4. Üretim İçin Kapatma</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Üretim İçin: Ekranı Projeye Devretmek</h3>
                         <p class="fs-5 text-body mb-4">
-                            <code>.env</code>'e bir bayrak ekleyip <code>vnl/boot.php</code>'deki iki handler'ı buna göre kurun. Ayrıntılı sayfa yalnızca geliştirmede açılır, canlıda kullanıcı sade bir mesaj görür, geliştirici log'a bakar:
+                            Ayrıntılı sayfa <b>geliştirici içindir</b>: kaynak kodu, dosya yollarını, SQL cümlesini ve ortam bilgisini basar. Canlıda kullanıcının göreceği ekranı proje belirler.
+                        </p>
+                        <p class="fs-5 text-body mb-4">
+                            <code>vnl_render_error()</code> çıktısını basmadan önce projede <code>vnl_project_error_page()</code> diye bir fonksiyon var mı diye bakar. Varsa ekranı o üretir ve istek orada biter; <b>dönerse</b> çekirdeğin ayrıntılı sayfası basılır — geliştirme makinesinde ayrıntı böyle korunur. Fonksiyonu <code>helpers/</code> altında bir dosyada tanımlayın, <code>vnl_load_dir('helpers')</code> onu kendiliğinden yükler: çekirdeğe dokunmak gerekmez.
                         </p>
 
                         <div class="vnl-code mb-5">
-                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code># .env
-APP_DEBUG=false</code></pre>
-                        </div>
-
-                        <div class="vnl-code">
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
-// vnl/boot.php — mevcut handler'ların yerine
+// helpers/hata-ekrani.php
 
-$_vnlDebug = (bool)VnlEnv::get('APP_DEBUG', false);
-
-set_exception_handler(function (Throwable $e) use ($_vnlDebug) {
-    if ($_vnlDebug) {
-        vnl_render_error($e);        // ayrıntılı sayfa / JSON
+function vnl_project_error_page(Throwable $e): void
+{
+    // Dönmek = "sen bas": konsolda ve geliştirmede ayrıntılı sayfa kalsın.
+    if (PHP_SAPI === 'cli' || VnlEnv::get('APP_DEBUG', false)) {
+        return;
     }
 
-    error_log('[VNL][Fatal] ' . get_class($e) . ': ' . $e->getMessage()
-        . ' @ ' . $e->getFile() . ':' . $e->getLine());
+    error_log('[VNL][Fatal] ' . get_class($e) . ': ' . $e-&gt;getMessage()
+        . ' @ ' . $e-&gt;getFile() . ':' . $e-&gt;getLine());
 
-    http_response_code(500);
+    http_response_code(503);
 
     if (vnl_wants_json()) {
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['message' => 'Beklenmeyen bir hata oluştu.', 'devcode' => 'VNL_FATAL']);
+        echo json_encode(['message' =&gt; 'Beklenmeyen bir hata oluştu.', 'devcode' =&gt; 'APP_FATAL']);
     } else {
-        echo 'Beklenmeyen bir hata oluştu.';
+        echo '&lt;!doctype html&gt;&lt;meta charset="utf-8"&gt;&lt;title&gt;Bakım&lt;/title&gt;'
+           . '&lt;p&gt;Şu anda hizmet veremiyoruz. Birazdan tekrar deneyin.&lt;/p&gt;';
     }
 
     exit(1);
-});
-</code></pre>
+}</code></pre>
+                        </div>
+
+                        <div class="table-responsive mb-5">
+                            <table class="table table-row-dashed align-middle fs-6">
+                                <tbody>
+                                <tr>
+                                    <td style="width:230px"><b>Ne zaman çağrılır</b></td>
+                                    <td>Çıktı tamponları temizlendikten <b>sonra</b>, durum kodu yazılmadan <b>önce</b>. Durum kodunu ve HTML/JSON kararını proje verir; istek türünü <code>vnl_wants_json()</code> ile sorabilirsiniz.</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Dönerse</b></td>
+                                    <td>Çekirdeğin ayrıntılı sayfası basılır. Kancayı kapatmanın yolu budur: <code>if (...) return;</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td><b>İstisna fırlatırsa</b></td>
+                                    <td>Yutulur ve yine çekirdeğin sayfası basılır — hata ekranının hatası kullanıcıyı boş sayfada bırakmaz.</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Hangi hatalar</b></td>
+                                    <td>Üçü de: yakalanmamış istisnalar, ölümcül hatalar ve denetleyicide oluşan istisnalar.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="alert alert-info d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3 mt-1"></i>
+                            <span class="text-body fs-6"><b>Neden <code>set_exception_handler</code>'ı değiştirmek yetmez:</b> <code>vnl/kernel.php</code> denetleyiciyi kendi <code>try/catch</code>'i içinde çalıştırır ve hatayı doğrudan <code>vnl_render_error()</code>'a verir. Handler'ı değiştiren bir proje sayfa hatalarını kaçırır — yani en sık görülenleri. Kanca üç katmanın da tek geçtiği yerdedir.</span>
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
+                            <span class="text-body fs-6"><b>Çıktıyı önce kurun, sonra basın.</b> Yarım basılmış bir ekranın üstüne — fonksiyon o sırada hata alırsa — çekirdeğin sayfası eklenir ve ortaya okunmaz bir yanıt çıkar. Ekranı bir dizeye hazırlayıp tek <code>echo</code> ile basmak bu ihtimali kapatır. Aynı sebeple: hatanın kaydını <b>önce</b> ucuz olan yere (dosya/<code>error_log</code>) yazın; veritabanı zaten çökmüş olabilir ve her deneme sürücü zaman aşımı kadar bekletir.</span>
                         </div>
                     </div>
                     <!--end::Section 4-->

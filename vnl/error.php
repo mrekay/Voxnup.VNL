@@ -72,6 +72,10 @@ function vnl_render_error_json(Throwable $e): never
  *
  * Standalone hata sayfası — VNL'in view sistemine bağımlı değildir.
  * set_exception_handler ve extension loader hataları tarafından tetiklenir.
+ *
+ * Bu sayfa GELİŞTİRİCİ içindir: kaynak kodu, dosya yollarını ve ortam bilgisini
+ * basar. Canlıda kullanıcının göreceği ekranı proje belirler — bkz. aşağıdaki
+ * vnl_project_error_page() kancası ve /docs/errors.
  */
 function vnl_render_error(Throwable $e): never
 {
@@ -84,6 +88,26 @@ function vnl_render_error(Throwable $e): never
 
     // Tüm önceki çıktıları temizle
     while (ob_get_level()) ob_end_clean();
+
+    /* Projenin hata ekranı.
+     *
+     * Proje tarafında vnl_project_error_page() tanımlıysa ekranı o üretir ve
+     * istek orada biter; dönerse aşağıdaki ayrıntılı sayfa basılır. Kanca burada
+     * durur çünkü üç yakalama katmanı da (exception handler, fatal kapanışı,
+     * kernel'in denetleyici catch'i) tek bu fonksiyona çıkar: yalnız
+     * set_exception_handler'ı değiştirmek denetleyici hatalarını kaçırırdı.
+     *
+     * Tampon temizlendikten AMA durum kodu yazılmadan önce çağrılır: proje
+     * kendi durum kodunu (503 gibi) ve HTML/JSON kararını kendi verir.
+     */
+    if (function_exists('vnl_project_error_page')) {
+        try {
+            vnl_project_error_page($e);
+        } catch (Throwable $_vnlProjectError) {
+            /* Proje ekranının kendi hatası kullanıcıyı boş sayfada bırakmasın:
+               sessizce çekirdeğin sayfasına düşülür. */
+        }
+    }
 
     http_response_code(500);
 

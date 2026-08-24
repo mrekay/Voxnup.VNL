@@ -19,6 +19,12 @@ vnl/validators/Foo.php     →  validators/Foo.php
 değiştirilmiş dosya bulursa güncellemeyi durdurur — yani buradaki bir düzenleme
 sessizce kaybolmaz, ama güncellemeyi de bloke eder.
 
+**Hata sayfası için dosya kopyalamayın.** Canlıda kullanıcıya ayrıntılı sayfa
+yerine kendi ekranınızı bastırmak istiyorsanız `helpers/` altında
+`vnl_project_error_page(Throwable $e)` tanımlayın: `error.php` çıktısını basmadan
+önce onu çağırır, fonksiyon dönerse çekirdeğin sayfasına düşer. Sözleşmesi ve
+örneği `/docs/errors` → *Üretim İçin*.
+
 ## VNL'in kendisi üzerinde çalışıyorsanız
 
 O zaman burası doğru yer. İki şeyi unutmayın:
