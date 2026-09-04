@@ -28,7 +28,7 @@
                                 <tr><td><code>text</code></td><td>Menüde görünen ad</td></tr>
                                 <tr><td><code>url</code></td><td>Bağlantı (başında <code>/</code> olmadan); child'lı öğelerde boş bırakılır</td></tr>
                                 <tr><td><code>icon</code></td><td>FA kısa adı (<code>'home'</code> → <code>fa-solid fa-home</code>) <b>ya da</b> boşluklu tam class (<code>'bi bi-house'</code> olduğu gibi basılır). <b>Alt öğelerde de geçerlidir</b> — flyout panelde ve accordion listede basılır; boş bırakılırsa yalnız başlık görünür</td></tr>
-                                <tr><td><code>permission</code></td><td>Yetki kodu (UserPermissions entegrasyonu için ayrılmıştır)</td></tr>
+                                <tr><td><code>permission</code></td><td>Yetki kodu. <code>vnl_can()</code> üzerinden projeye sorulur — bkz. §4. Boş bırakılırsa öğe herkese görünür</td></tr>
                                 <tr><td><code>showmenu</code></td><td><code>0</code> her zaman gizli · <code>1</code> her zaman görünür · <code>2</code> yalnız oturum açıkken</td></tr>
                                 <tr><td><code>child</code></td><td>Alt öğe dizisi — varlığında öğe alt menü başlığına dönüşür</td></tr>
                                 <tr><td><code>qs_active</code> / <code>subs</code></td><td>Aktiflik eşleşmesine query-string / ek URL'ler dahil etme</td></tr>
@@ -122,8 +122,59 @@ $page_config = ['submenu' => 'accordion'];</code></pre></div>
 
                     <div class="separator separator-dashed my-8"></div>
 
+                    <div class="mb-10">
+                        <h3 class="fw-bold text-body-emphasis mb-4">4. Yetkiye Göre Gizleme</h3>
+
+                        <p class="fs-5 text-body mb-4">
+                            Menü öğesinin <code>permission</code> anahtarı <code>vnl_can($kod)</code>'a sorulur.
+                            Yetki <b>şeması projenindir</b> — VNL'in <code>tbl_permissions</code>'ı bir örnektir,
+                            gerçek kurulumlar rol, kiracı, ürün gibi kendi eksenlerini katar. O yüzden çekirdek
+                            burada karar vermez, projeye sorar:
+                        </p>
+
+                        <div class="vnl-code mb-5"><pre><code>// helpers/yetki.php — vnl_load_dir('helpers') kendiliğinden yükler,
+// çekirdeğe dokunmak gerekmez.
+function vnl_project_permission(string $code, $user): bool
+{
+    return $user !== null && UserPermissions::CanViewByCode($user->id, $code);
+}</code></pre></div>
+
+                        <div class="alert alert-info d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
+                            <span class="text-body fs-6">
+                                Bu fonksiyon <b>tanımlanmadığı sürece kapı açıktır</b>: her öğe görünür ve
+                                davranış VNL 3.1 ile birebir aynıdır. Yeni bir çekirdek sürümü kimsenin
+                                menüsünü boşaltmaz. Kanca istisna fırlatırsa yutulmaz — yetki sorgusundaki
+                                bir hatayı sessizce "yetkisi yok"a çevirmek onu boş bir menünün arkasında
+                                saklardı.
+                            </span>
+                        </div>
+
+                        <p class="text-body mb-4">
+                            <b>Alt öğeleri de kapsar.</b> Bir başlığın altındaki her öğe elenmişse başlık da
+                            çizilmez (<code>hasVisibleChild()</code>); aksi halde kullanıcı ok işaretine
+                            tıklar ve boş bir panel açılırdı. <code>showmenu</code> artık alt öğelerde de
+                            geçerlidir.
+                        </p>
+
+                        <div class="alert alert-warning d-flex align-items-start p-4">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">
+                                <b>VNL 3.1 ve öncesinde bu denetim hiç çalışmıyordu.</b>
+                                <code>leftSidebar.php</code> içinde yetki satırları yoruma alınmış,
+                                <code>$pagePermission = true;</code> ile kısa devre edilmişti;
+                                <code>hasVisibleChild()</code> tanımlıydı ama hiçbir yerden çağrılmıyordu.
+                                <code>view/static/leftSidebar.php</code> <b>projenindir</b>, güncelleme ona
+                                dokunmaz: mevcut kurulumlarda dosyayı şablondaki sürümle değiştirin.
+                                <code>php vnl.php doctor</code> bunu artık ayrıca sınıyor.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="separator separator-dashed my-8"></div>
+
                     <div class="mb-0">
-                        <h3 class="fw-bold text-body-emphasis mb-4">4. Topbar</h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">5. Topbar</h3>
                         <p class="text-body mb-4">
                             Üst çubuk iki temada da koyudur — sidebar ile kesintisiz tek çerçeve oluşturur.
                             İçeriği <code>view/static/topNavbar.php</code>'dedir:

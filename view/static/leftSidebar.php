@@ -338,9 +338,13 @@ if ($page_config['leftsidebar'] != false) {
     <?php
 }
 
-/* Alt seviye menü öğeleri (accordion içeriği). Fonksiyon imzaları ve
+/* Alt seviye menü öğeleri (accordion/flyout içeriği). Fonksiyon imzaları ve
    $SidebarMenu dizi sözleşmesi VNL 2.x ile birebir aynıdır; yalnızca
-   üretilen markup VNL Theme'e aittir. */
+   üretilen markup VNL Theme'e aittir.
+
+   Yetki denetimi vnl_can() üzerinden geçer: proje helpers/ altında
+   vnl_project_permission() tanımlamadıysa kapı açıktır ve menü VNL 3.1'deki
+   gibi çizilir. Tanımladıysa 'permission' anahtarı olan her öğe ona sorulur. */
 function showSideBar($array, $level)
 {
     global $fileName, $meta;
@@ -349,13 +353,12 @@ function showSideBar($array, $level)
 
     foreach ($array as $item) {
 
-
-        //TODO : SİSTEMİ ENTEGRE ETTİKTEN SONRA AKTİF EDİN
-//        if (!empty($item['permission'])) {
-//            if (!UserPermissions::CanViewByCode($GLOBALS['CurrentUser']->Id, $item['permission'])) {
-//                continue;
-//            }
-//        }
+        /* Alt öğede de showmenu geçerlidir. VNL 3.1'e kadar yalnız üst
+           seviyede bakılıyordu: bir alt sayfaya 'showmenu' => 0 vermek
+           hiçbir işe yaramıyor, hasVisibleChild() ile de çelişiyordu. */
+        if (!canShowMenu($item['showmenu'] ?? 1, vnl_can($item['permission'] ?? ''))) {
+            continue;
+        }
 
         if (!empty($item["text"])) { ?>
             <div class="vnl-menu-item">
@@ -380,19 +383,21 @@ function showSideBar($array, $level)
 
 function ShowSidebarMenu($array, $level)
 {
-    global $fileName, $NumberTexts, $CurrentUser, $ActiveProductId, $meta;
+    /* $vnl_submenu view/static/header.php'de kuruluyor ama buraya global
+       olarak alınmıyordu: fonksiyon kapsamında tanımsız kaldığı için
+       ($vnl_submenu ?? 'flyout') her zaman 'flyout' dönüyor ve accordion
+       düzeninde "aktif dal açık gelir" davranışı hiç çalışmıyordu. */
+    global $fileName, $NumberTexts, $CurrentUser, $ActiveProductId, $meta, $vnl_submenu;
 
     $friendly_name = isset($meta['friendly_name']) ? $meta['friendly_name'] : '';
 
+    $accordion = ($vnl_submenu ?? 'flyout') === 'accordion';
 
     $fileName = empty($fileName) ? '/' : $fileName;
 
     foreach ($array as $menu) {
 
-
-        // TODO: SİSTEMİ ENTEGRE ETTİKTEN SONRA AKTİF EDİN
-//        $pagePermission = !empty($menu['permission']) ? UserPermissions::CanViewByCode($CurrentUser->Id, $menu['permission']) : true;
-        $pagePermission = true;
+        $pagePermission = vnl_can($menu['permission'] ?? '');
 
         $showmenu = canShowMenu($menu['showmenu'], $pagePermission);
         if ($showmenu) {
@@ -402,6 +407,13 @@ function ShowSidebarMenu($array, $level)
 
             $hasChild = isset($menu['child']) && !empty($menu['child']);
 
+            /* Alt öğelerinin hepsi gizliyse üst öğe boş bir panel açardı:
+               kullanıcı ok işaretine tıklar, hiçbir şey çıkmaz. hasVisibleChild()
+               VNL 3.1'e kadar tanımlı olduğu hâlde hiçbir yerden çağrılmıyordu. */
+            if ($hasChild && !hasVisibleChild($menu['child'])) {
+                continue;
+            }
+
             if ($hasChild) {
                 /* Alt menü sağda flyout panel olarak açılır (hover ya da tıklama;
                    mobil offcanvas'ta yerinde). Davranış: VNL-THEME js/modules/flyout.js */
@@ -409,12 +421,12 @@ function ShowSidebarMenu($array, $level)
                 <div class="vnl-menu-item vnl-has-sub">
                     <button type="button"
                             class="vnl-menu-link <?= $isActive ? 'active' : '' ?>"
-                            aria-haspopup="true" aria-expanded="false">
+                            aria-haspopup="true" aria-expanded="<?= ($accordion && $isActive) ? 'true' : 'false' ?>">
                         <span class="vnl-menu-icon"><i class="<?= strpos($menu['icon'], ' ') !== false ? $menu['icon'] : 'fa-solid fa-' . $menu['icon']; ?>"></i></span>
                         <span class="vnl-menu-title"><?= $menu['text']; ?></span>
                         <span class="vnl-menu-arrow"><i class="bi bi-chevron-right"></i></span>
                     </button>
-                    <div class="vnl-menu-sub <?= ($vnl_submenu ?? 'flyout') === 'accordion' && $isActive ? 'show' : '' ?>">
+                    <div class="vnl-menu-sub <?= ($accordion && $isActive) ? 'show' : '' ?>">
                         <?php showSideBar($menu['child'], $level + 1); ?>
                     </div>
                 </div>
@@ -473,7 +485,7 @@ function canShowMenu($showmenu, $permission = true): bool
             $_showmenu = true;
             break;
         case 2:
-            $_showmenu = !empty($CurrentUser->id) && $CurrentUser->id > 0;
+            $_showmenu = vnl_logged_in();
             break;
     }
 
@@ -481,23 +493,16 @@ function canShowMenu($showmenu, $permission = true): bool
 
 }
 
+/** Bu dalın altında gösterilebilir tek bir öğe var mı? */
 function hasVisibleChild($children)
 {
-    global $CurrentUser;
-
     if (empty($children)) return false;
 
     foreach ($children as $child) {
 
+        $permission = vnl_can($child['permission'] ?? '');
 
-        //TODO : BURAYI SİSTEMİ ENTEGRE ETTİKTEN SONRA AKTİF EDİN
-//        $permission = !empty($child['permission'])
-//                ? UserPermissions::CanViewByCode($CurrentUser->Id, $child['permission'])
-//                : true;
-
-        $permission = true;
-
-        $showmenu = canShowMenu($child["showmenu"], $permission);
+        $showmenu = canShowMenu($child["showmenu"] ?? 1, $permission);
 
         if ($showmenu) {
             return true;
