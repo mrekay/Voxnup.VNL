@@ -73,6 +73,81 @@ function showMessage(message, is_err) {
     )
 }
 
+/**
+ * Onaylı silme akışı: SweetAlert2 onayı + AJAX.
+ *
+ * /docs/theme-js bu fonksiyonu VNL 3.0'dan beri anlatıyordu ama hiçbir
+ * dosyada tanımlı değildi; VNL 3.2'de yazıldı. Sözleşme dokümandaki
+ * biçimin kendisidir: deleteItemFromDB({url, data, ...}).
+ *
+ *   deleteItemFromDB({
+ *       url:   '/app/kayit/sil',
+ *       data:  { id: 42 },
+ *       table: 'kayitlar'          // silme sonrası VNL Table'ı tazele
+ *   });
+ *
+ * Seçenekler:
+ *   url            (zorunlu) isteğin gideceği action
+ *   data           gönderilecek gövde
+ *   method         varsayılan POST
+ *   title/text     onay kutusunun başlığı ve metni
+ *   confirmText    onay düğmesi yazısı
+ *   cancelText     vazgeç düğmesi yazısı
+ *   successMessage sunucu bir message döndürmezse basılacak metin
+ *   table          VNL Table kimliği; verilirse başarıda reload() edilir
+ *   reload         true ise sayfa yeniden yüklenir
+ *   onSuccess      başarı geri çağrısı; yanıtı alır
+ *   customErrMessage  true ise hata modalını vnl.js basmaz, çağıran basar
+ *
+ * Hata yolu bilinçli olarak BOŞ: 400/401/406/410/500 yanıtları zaten
+ * yukarıdaki genel $(document).ajaxComplete kancasından geçip mesajı
+ * basıyor. Burada ikinci bir modal açmak aynı hatayı iki kez gösterirdi.
+ *
+ * Swal'ın vaadini döndürür: çağıran zincirlemek isterse zincirleyebilir.
+ */
+function deleteItemFromDB(options) {
+    options = options || {};
+
+    if (!options.url) {
+        console.error('[VNL] deleteItemFromDB: url zorunludur.');
+
+        return;
+    }
+
+    return Swal.fire({
+        icon: 'warning',
+        title: options.title || 'Emin misiniz?',
+        text: options.text || 'Kayıt silinecek. Bu işlem geri alınamaz.',
+        showCancelButton: true,
+        confirmButtonText: options.confirmText || 'Sil',
+        cancelButtonText: options.cancelText || 'Vazgeç',
+    }).then(function (result) {
+        if (!result.isConfirmed) return result;
+
+        return $.ajax({
+            url: options.url,
+            type: options.method || 'POST',
+            data: options.data || {},
+            customErrMessage: options.customErrMessage === true
+        }).done(function (response) {
+            var message = (response && response.message)
+                ? response.message
+                : (options.successMessage || 'Kayıt silindi.');
+
+            showMessage(message, false);
+
+            if (typeof options.onSuccess === 'function') options.onSuccess(response);
+
+            /* Listeyi tazelemek çağıranın işi; iki kısayol var. */
+            if (options.table && typeof window.vnlTable === 'function' && vnlTable(options.table)) {
+                vnlTable(options.table).reload();
+            }
+
+            if (options.reload) window.location.reload();
+        });
+    });
+}
+
 // Görsel önizleme: eski .image-modal (hiç çalışmayan .modal('show') çağrısı)
 // yerine tema lightbox'ı. Çağrı imzası korunur.
 $(document).on('click', '.modal-image', function () {

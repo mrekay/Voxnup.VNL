@@ -134,7 +134,7 @@
                                     </tr>
                                     <tr>
                                         <td><code>static/script-standard.php</code></td>
-                                        <td><code>$SITE_URL</code>, <code>VNL_USER_ID</code>, <code>VNL_LANG</code> dil köprüsü, vendor paketi (jQuery + Bootstrap + SweetAlert2 + SlimSelect), <code>vnl.min.js</code>, <code>vnl.js</code>, <code>showMessage()</code> ve <code>showModalMessage()</code> yardımcıları</td>
+                                        <td><code>$SITE_URL</code> ve <code>VNL_USER_ID</code> globalleri, ardından <code>vnl_core_scripts()</code> listesi: vendor paketi (jQuery + Bootstrap + SweetAlert2 + SlimSelect), <code>vnl.min.js</code>, <code>vnl.js</code>, <code>vnltable.js</code>. <code>showMessage()</code> ve <code>showModalMessage()</code> <code>vnl.js</code>'te tanımlıdır</td>
                                     </tr>
                                 </tbody>
                             </table>
