@@ -102,6 +102,44 @@ TXT
         false
     );
 
+    /* ---- Proje tarafındaki bilinen güvenlik tuzakları ----
+       Bu iki dosya da projenindir: guncelleme onlara dokunamaz, dolayisiyla
+       VNL 3.2'deki duzeltmeler mevcut kurulumlara kendiliginden ulasmaz.
+       Bosluk burada kapatilir. */
+
+    /* Yorumlar ayiklanir: duzeltilmis dosya eski hatayi aciklamak icin
+       ayni ifadeyi YORUM icinde taşıyor, denetim ona takilmasin. */
+    $auth = @file_get_contents(VNL_ROOT . '/actions/Auth.php');
+    $authCode = '';
+
+    if (is_string($auth)) {
+        foreach (@token_get_all($auth) as $token) {
+            $authCode .= is_array($token)
+                ? (in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true) ? ' ' : $token[1])
+                : $token;
+        }
+    }
+
+    $checks[] = $check(
+        'Auth::CheckLogin() gercekten denetliyor',
+        !is_string($auth) || !preg_match('/empty\s*\(\s*self::User\(\)\s*\)/', $authCode),
+        "GUVENLIK: `!empty(self::User())` bir giris denetimi degildir.\n"
+        . "        \$CurrentUser kosulsuz kurulur ve PHP'de nesne asla empty olmaz;\n"
+        . "        denetim HER ZAMAN true doner, yani hic denetlemez. Olcut\n"
+        . "        vnl_logged_in() olmali. Sablondaki actions/Auth.php ile degistirin."
+    );
+
+    $sidebar = @file_get_contents(VNL_ROOT . '/view/static/leftSidebar.php');
+    $checks[] = $check(
+        'Kenar cubugu yetki denetimi canli',
+        !is_string($sidebar) || !preg_match('/^\s*\$pagePermission\s*=\s*true\s*;/m', $sidebar),
+        "Menu yetki denetimi kisa devre edilmis (\$pagePermission = true).\n"
+        . "        'permission' anahtari yazan menu ogeleri herkese gorunur.\n"
+        . "        VNL 3.2 bunu vnl_can() kancasina bagladi; sablondaki\n"
+        . "        view/static/leftSidebar.php ile degistirin.",
+        false
+    );
+
     /* ---- Eski sürümden kalıntı ---- */
     $checks[] = $check(
         'libs/ kalintisi yok',
