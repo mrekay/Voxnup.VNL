@@ -70,6 +70,73 @@ function route($index)
 	return isset($route[$index]) ? $route[$index] : false;
 }
 
+/* ------------------------------------------------------------------ *
+ *  Kimlik ve yetki
+ * ------------------------------------------------------------------ */
+
+/**
+ * Oturum açılmış mı?
+ *
+ * $CurrentUser her istekte KOŞULSUZ kurulur (config/database.php'deki
+ * `new User()`); girişsiz istekte bile elde boş bir model durur. PHP'de
+ * nesne asla empty olmadığı için `!empty($CurrentUser)` bir giriş denetimi
+ * DEĞİLDİR — her zaman doğru döner. Tek geçerli ölçüt kimliğin kendisidir;
+ * vnl/kernel.php girişsizi ($CurrentUser->id <= 0) zaten böyle tanıyor,
+ * bu fonksiyon aynı ölçütü tek isim altında toplar.
+ */
+function vnl_logged_in(): bool
+{
+	global $CurrentUser;
+
+	return isset($CurrentUser) && !empty($CurrentUser->id) && (int)$CurrentUser->id > 0;
+}
+
+/**
+ * Oturum açmış kullanıcı — girişsizde null.
+ *
+ * $CurrentUser ile farkı boşluğun ayıklanmış olmasıdır: vnl_user()?->id
+ * yazan kod girişsiz istekte kimlik yerine null görür, boş bir model değil.
+ */
+function vnl_user()
+{
+	global $CurrentUser;
+
+	return vnl_logged_in() ? $CurrentUser : null;
+}
+
+/**
+ * Yetki kapısı — menü ve sayfa aynı soruyu buradan sorar.
+ *
+ * Yetki ŞEMASI projenindir: VNL'in tbl_permissions'ı bir örnektir, gerçek
+ * kurulumlar rol, kiracı, ürün gibi kendi eksenlerini katar. O yüzden
+ * çekirdek burada karar vermez, PROJEYE SORAR:
+ *
+ *   // helpers/yetki.php  —  vnl_load_dir('helpers') kendiliğinden yükler
+ *   function vnl_project_permission(string $code, $user): bool
+ *   {
+ *       return $user !== null && UserPermissions::CanViewByCode($user->id, $code);
+ *   }
+ *
+ * Proje böyle bir fonksiyon TANIMLAMADIYSA kapı açıktır ve davranış VNL 3.1
+ * ile birebir aynıdır — yeni bir çekirdek sürümü kimsenin menüsünü
+ * boşaltmaz. Tanımlandığı anda kenar çubuğu onu her menü öğesi için çağırır.
+ *
+ * Kanca istisna fırlatırsa yutulmaz: sessizce "yetkisi yok" saymak, yetki
+ * sorgusundaki bir hatayı boş bir menüye çevirip saklardı.
+ */
+function vnl_can(?string $permission): bool
+{
+	if ($permission === null || trim($permission) === '') {
+		return true;
+	}
+
+	if (!function_exists('vnl_project_permission')) {
+		return true;
+	}
+
+	return (bool)vnl_project_permission($permission, vnl_user());
+}
+
 /**
  * Uygulama içi tam adres.
  *

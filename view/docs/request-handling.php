@@ -249,22 +249,45 @@ $rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>Auth::CheckLogin()</code></td>
-                                    <td>Kullanıcı giriş yapmamışsa otomatik hata fırlatır ve işlemi durdurur.</td>
+                                    <td>Kullanıcı giriş yapmamışsa hata fırlatır ve işlemi durdurur. Ölçüt <code>vnl_logged_in()</code>: kaydedilmiş bir kullanıcı kimliği var mı.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::User()</code></td>
-                                    <td>Aktif <code>$CurrentUser</code> nesnesini döndürür.</td>
+                                    <td>Aktif <code>$CurrentUser</code> nesnesini döndürür. <b>Girişsiz istekte de bir nesne döner</b> — boş bir <code>User</code>. Giriş denetimi için kullanmayın.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::HasPermis([1, 2])</code></td>
-                                    <td>Kullanıcının izin ID'si verilen dizide yoksa hata fırlatır.</td>
+                                    <td>Kullanıcının izin ID'si verilen dizide yoksa hata fırlatır. Girişsiz istek de elenir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::UserPermis()</code></td>
                                     <td>Aktif kullanıcının <code>perm_id</code> değerini döndürür.</td>
                                 </tr>
+                                <tr>
+                                    <td class="ps-5"><code>vnl_logged_in()</code> / <code>vnl_user()</code></td>
+                                    <td>Çekirdeğin karşılıkları; her yerde çağrılabilir. <code>vnl_user()</code> girişsizde <b><code>null</code></b> döner, boş model değil.</td>
+                                </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div class="alert alert-danger d-flex align-items-start p-5 mb-5">
+                            <i class="fa-solid fa-shield-halved fs-2hx text-danger me-4"></i>
+                            <div class="d-flex flex-column">
+                                <h5 class="mb-1 text-danger">VNL 3.2 güvenlik düzeltmesi — <code>CheckLogin()</code> hiç denetlemiyordu</h5>
+                                <span class="text-body">
+                                    VNL 3.1'e kadar ölçüt <code>!empty(self::User())</code> idi.
+                                    <code>$CurrentUser</code> her istekte koşulsuz kurulur
+                                    (<code>config/database.php</code>) ve PHP'de bir nesne hiçbir zaman
+                                    <code>empty</code> olmaz — yani denetim <b>her zaman <code>true</code></b>
+                                    dönüyordu. Bu sayfa onu "giriş yapılmamışsa hata fırlatır" diye tarif
+                                    ettiği için action'lar o satıra güveniyordu.
+                                    <br><br>
+                                    <b><code>actions/Auth.php</code> projenindir; güncelleme ona dokunamaz.</b>
+                                    Mevcut kurulumlarda dosyayı şablondaki sürümle değiştirin.
+                                    <code>php vnl.php doctor</code> bu tuzağı artık ayrıca sınıyor.
+                                </span>
+                            </div>
                         </div>
                         <div class="vnl-code">
                             <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>use ActionGlobal\Auth;
