@@ -9,6 +9,219 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.2.0] — 2026-09-04
+
+Üç gerçek hata düzeltildi (ikisi güvenlik), bir eksik kapatıldı ve dokümanda
+var olup kodda olmayan üç API'nin hesabı görüldü. **Kırıcı değişiklik yoktur:**
+yeni bir şey tanımlanmadığı sürece davranış 3.1.0 ile birebir aynıdır — tek
+istisna aşağıda "boş üst menü" başlığında açıkça yazılıdır.
+
+### Eklenenler
+
+- **VNL Table hücre biçimlendiricileri — `format`.** Sütun artık bir hücrenin
+  nasıl görüneceğini *bildirebiliyor*: `badge`, `dot`, `icon`, `bool`, `link`.
+
+  **Neden.** VNL Table'ın kurucu kuralı "hücre ham değer taşır"dır — sıralama,
+  filtre, gruplama, pivot ve Excel çıktısı ham değer olmadan doğru çalışamaz.
+  Ama sütun sözleşmesinde hücre biçimlendirici *yoktu*: `formatter`,
+  `cellRender`, `cellRenderer` üçü de sıfır kez geçiyor, `render` yalnız
+  `text|html` alıyordu. Sonuç, kuralın kendi kendini yemesiydi — bir hücrede
+  rozet göstermenin **tek** yolu değerin YERİNE HTML göndermekti
+  (`render => 'html'`). Veri biçime feda oluyor, kaçış sorumluluğu da her
+  eylem dosyasına dağılıyordu. Bu şablonun taşındığı 12 ürünlük bir pakette
+  bunun ölçüsü şu: 90 dosyada 328 rozet, 93 dosyada satır kimliğini hücreye
+  gizli `<input>` olarak sokan bir kaçamak.
+
+  `format` dengeyi tersine çevirir: **değer ham kalır**, sunucu yalnız NİYETİ
+  bildirir, çizimi `vnltable.js` yapar.
+
+  ```php
+  ['name' => 'durum', 'title' => 'Durum', 'format' => [
+      'kind'    => 'badge',
+      'map'     => ['1' => 'success', '2' => 'warning', '3' => 'danger'],
+      'labels'  => ['1' => 'Onaylandı', '2' => 'Beklemede', '3' => 'İptal'],
+      'default' => 'secondary',
+  ]],
+  ```
+
+  **Neden ham HTML genişletilmedi.** Sorun zaten sunucunun HTML üretmek zorunda
+  kalmasıydı; `render => 'html'`'in kapsamını büyütmek onu derinleştirirdi.
+  **Neden bildirimsel yol asıl yol.** Üretilen düğümlerin hiçbiri `innerHTML`
+  kullanmaz — metin her zaman `textContent`'ten geçer, renk adları sunucuda
+  beyaz listeye (`VnlTable::VARIANTS`) karşı doğrulanır, `link`'in adresi hem
+  sunucuda hem istemcide şema beyaz listesinden geçer. Yani bu yolda XSS
+  yüzeyi yoktur. Yazım hatası da ekranda renksiz bir rozete dönüşmez, tanımda
+  hata verir.
+
+  Biçimlendirici **yalnız ekrandır**: satırdaki değere, sıralamaya, filtreye,
+  gruplamaya, pivota ve Excel çıktısına dokunmaz. `render => 'html'` yerinde
+  duruyor ve sözleşmesi değişmedi — ama artık son çaredir. Üçünü aynı sütunda
+  birden vermek tanım hatasıdır ve sayfa yüklenirken durur.
+
+- **Adlandırılmış biçimlendirici — `formatter` + `vnlTable.formatter()`.**
+  Bildirimsel sözlüğün yetmediği yer için ikinci bir yol. Sütun bir **ad**
+  söyler, adı sayfa kaydeder:
+
+  ```php
+  ['name' => 'tutar', 'type' => 'number', 'formatter' => 'paraTr']
+  ```
+  ```js
+  vnlTable.formatter('paraTr', function (value, row, col) {
+      return Number(value).toLocaleString('tr-TR') + ' ₺';
+  });
+  ```
+
+  Fonksiyon **metin** ya da **DOM düğümü** döndürür, **HTML metni döndüremez**.
+  Bu kasıtlıdır: markup üretecek biçimlendirici düğümü kendisi kursun, kaçış
+  sorusu hiç doğmasın. Satır işlemi düğmeleri de buraya aittir — `onclick`
+  dizesi kurmak yerine düğüme gerçek bir dinleyici bağlanır, satırın tamamı
+  zaten fonksiyonun elindedir. İki yolun sözlüğü ve örnekleri **/docs/vnltable
+  §5**'te.
+
+- **Menü yetki kancası — `vnl_can()` ve `vnl_project_permission()`.** Yetki
+  ŞEMASI projenindir; VNL'in `tbl_permissions`'ı bir örnektir, gerçek
+  kurulumlar rol, kiracı, ürün gibi kendi eksenlerini katar. O yüzden çekirdek
+  karar vermez, projeye sorar:
+
+  ```php
+  // helpers/yetki.php — vnl_load_dir('helpers') kendiliğinden yükler
+  function vnl_project_permission(string $code, $user): bool
+  {
+      return $user !== null && UserPermissions::CanViewByCode($user->id, $code);
+  }
+  ```
+
+  Proje bu fonksiyonu tanımlamadığı sürece kapı açıktır: her öğe görünür ve
+  davranış 3.1.0 ile aynıdır — yeni bir çekirdek sürümü kimsenin menüsünü
+  boşaltmaz. 3.1.0'daki hata ekranı kancasının (`vnl_project_error_page()`)
+  kurduğu düzenin aynısı.
+
+- **`vnl_logged_in()` ve `vnl_user()`.** "Giriş yapılmış mı" sorusunun tek
+  cevabı. `$CurrentUser` her istekte koşulsuz kurulduğu için ölçüt nesnenin
+  varlığı olamaz; ölçüt kimliğin kendisidir ve `vnl/kernel.php` girişsizi
+  zaten böyle tanıyordu. `vnl_user()` girişsizde **`null`** döner — boş model
+  değil; `vnl_user()?->id` yazan kod isteği düşürmez.
+
+- **`deleteItemFromDB()`.** `/docs/theme-js` bunu VNL 3.0'dan beri anlatıyordu
+  ama hiçbir JS dosyasında tanımlı değildi. Yazıldı: SweetAlert2 onayı + AJAX,
+  başarıda toast, `table` verilirse VNL Table'ı tazeleme. Hata yolu bilinçli
+  olarak boş — `400/401/406/410/500` yanıtları zaten genel AJAX kancasından
+  geçip mesajı basıyor, ikinci bir modal aynı hatayı iki kez gösterirdi.
+  Seçeneklerin tamamı **/docs/theme-js §1**'de.
+
+- **`php vnl.php doctor` — iki yeni denetim.** Aşağıdaki iki düzeltme
+  **proje** dosyalarında; güncelleme onlara dokunamaz, yani mevcut
+  kurulumlara kendiliğinden ulaşmazlar. `doctor` artık `actions/Auth.php`'nin
+  kırık giriş denetimini ve `view/static/leftSidebar.php`'deki kısa devreyi
+  ayrı ayrı sınıyor.
+
+### Düzeltilenler
+
+- **`Auth::CheckLogin()` hiçbir zaman denetlemiyordu. (GÜVENLİK)** Ölçüt
+  `!empty(self::User())` idi; `self::User()` `$CurrentUser` global'ini
+  döndürüyor, o da `config/database.php`'de koşulsuz `new User()` ile
+  kuruluyor. PHP'de bir nesne hiçbir zaman `empty` olmaz ⇒ metot **her zaman
+  `true`** dönüyordu. `/docs/request-handling` §5 onu "giriş yapılmamışsa hata
+  fırlatır ve işlemi durdurur" diye tarif ettiği için action'lar o satıra
+  güveniyordu. Ölçüt artık `vnl_logged_in()`.
+
+  Durum kodu bilerek 400'de bırakıldı: `vnl.js`'in 401 dalı oturumu DÜŞMÜŞ
+  kullanıcı için yazılmıştır ve `VNL_USER_ID` sıfırken hiçbir şey göstermez —
+  girişsiz kullanıcı ekranda sessizlik görürdü.
+
+- **`Auth::HasPermis()` girişsiz isteği eleyemiyordu.** Boş modelin `null`
+  `perm_id`'si gevşek karşılaştırmada listedeki `0` ya da `''` ile
+  eşleşebiliyordu. Artık önce giriş sorulur.
+
+- **Kenar çubuğu yetki denetimi ölü koddu. (GÜVENLİK)** Üç ayrı kırık parça:
+  yetki satırları hem `showSideBar()` hem `ShowSidebarMenu()` içinde yoruma
+  alınmış ve `$pagePermission = true;` ile kısa devre edilmişti;
+  `hasVisibleChild()` tanımlıydı ama **hiçbir yerden çağrılmıyordu**; alt
+  menü öğelerinde `showmenu` hiç okunmuyordu, yani bir alt sayfaya
+  `'showmenu' => 0` vermek işe yaramıyordu. Üçü de düzeltildi ve denetim
+  yukarıdaki `vnl_can()` kancasına bağlandı.
+
+  **Boş üst menü — 3.1.0'a göre tek gözle görülür fark.** Artık alt
+  öğelerinin tamamı gizli olan bir üst başlık hiç çizilmiyor. 3.1.0'da o
+  başlık görünüyor, tıklanıyor ve boş bir panel açıyordu. Menüsünde böyle bir
+  dal olmayan bir kurulumda hiçbir şey değişmez.
+
+- **`$vnl_submenu` fonksiyon kapsamında tanımsızdı.** `view/static/header.php`
+  onu kuruyor ama `ShowSidebarMenu()`'nün `global` listesinde yoktu; sonuç
+  olarak `($vnl_submenu ?? 'flyout')` her zaman `'flyout'` dönüyor ve
+  `accordion` düzeninin "aktif dal sayfa açılışında açık gelir" davranışı
+  **hiç çalışmıyordu**. Değişken `global` listesine eklendi; `aria-expanded`
+  de artık gerçek durumu söylüyor.
+
+- **`type => 'bool'` hücreyi hiç etkilemiyordu.** Yalnız hizalamayı `center`
+  yapıyor ve filtre panelinin türünü belirliyordu; hücrede ham `1`/`0`
+  görünüyordu. `'format' => ['kind' => 'bool']` artık evet/hayır çizimini de
+  veriyor — ham değere dokunmadan.
+
+### Kaldırılanlar
+
+- **`vnlLang('ANAHTAR')` ve `VNL_LANG` doküman girdileri.** `/docs/theme-js`
+  §2 ve `/docs/view-includes` §2 bunları "sunucudan `lang()` ile beslenen JS
+  dil köprüsü" diye anlatıyordu; ikisi de hiçbir dosyada tanımlı değildi.
+  `view/includes/footer/script-login.php`'deki "JS dil köprüsü kaldırıldı"
+  notu köprünün 3.0'da **bilinçli olarak** söküldüğünü, dokümanın
+  güncellenmediğini gösteriyor.
+
+  **Neden yeniden yazılmadı.** Dokümanın tarifi bir sözleşme değil, bir
+  cümleydi: hangi anahtarların istemciye ineceğini söylemiyordu. Sözlüğün
+  tamamını göndermek hem gereksiz hem sızıntı olurdu; anahtar seçimi için bir
+  kural uydurmak da tam olarak "uydurma API" demekti. Üstelik çekirdeğin bu
+  soruna kendi cevabı zaten var ve daha iyisi: **her bileşen kendi metinlerini
+  kendi tanımıyla taşır** — `VnlTable::lang()` metinleri tablo tanımının
+  `lang` bloğunda gönderir, istemcide ayrı bir köprü gerekmez. Doküman koda
+  uyduruldu ve bu desen `/docs/theme-js` §2'de yazıldı.
+
+  `deleteItemFromDB()` ile neden farklı karar verildiği: onun tarifi
+  (`{url, data, …}` + "Swal onayı + AJAX") uygulanabilecek kadar somuttu ve
+  çevresindeki sözleşmeler — `returnSuccessMessage()` biçimi, genel
+  `ajaxComplete` hata yönetimi — geri kalanını zaten belirliyordu.
+
+- **`/docs/view-includes`**'taki `script-standard.php` satırı düzeltildi:
+  dosya `VNL_LANG` tanımlamıyor ve `showMessage()`/`showModalMessage()`
+  `vnl.js`'te duruyor.
+
+### Güvenlik
+
+- Giriş denetimi (`Auth::CheckLogin()`) ve menü yetki denetimi gerçekten
+  çalışıyor. İkisi de **proje dosyalarındadır** — aşağıdaki yükseltme notuna
+  bakın.
+- Hücre biçimlendiricisinin bildirimsel yolunda XSS yüzeyi yoktur: metin
+  `textContent`'ten geçer, sınıf adları beyaz listelidir, `link`'in adresi hem
+  sunucuda hem istemcide şema beyaz listesinden (`http`, `https`, `mailto`,
+  `tel`, göreli) geçer ve satırdan gelen yer tutucular URL-kodlanır. `target`
+  verilen bağlantıya `rel="noopener noreferrer"` eklenir.
+- Adlandırılmış biçimlendirici HTML metni kabul etmez; markup isteyen düğümü
+  kendisi kurar.
+
+### Yükseltme
+
+`php vnl.php update` `vnl/` dizinini değiştirir ve **çekirdek tarafında başka
+bir şey gerekmez**. Şema değişikliği yoktur, migration yoktur.
+
+Ama bu sürümdeki iki güvenlik düzeltmesi **proje** dosyalarındadır;
+güncelleyici oraya dokunamaz. Mevcut kurulumlarda ikisini elle alın:
+
+| Dosya | Neden |
+| --- | --- |
+| `actions/Auth.php` | `CheckLogin()` hiç denetlemiyordu |
+| `view/static/leftSidebar.php` | menü yetki denetimi kısa devre edilmişti; `$vnl_submenu` eksikti |
+
+`php vnl.php doctor` ikisini de ayrı ayrı sınar ve hangisinin eski kaldığını
+söyler. `leftSidebar.php`'yi kendi menünüzle özelleştirdiyseniz dosyayı
+komple değiştirmek yerine yalnız alttaki fonksiyonları (`showSideBar`,
+`ShowSidebarMenu`, `canShowMenu`, `hasVisibleChild`) şablondakiyle
+karşılaştırın; `$SidebarMenu` dizi sözleşmesi değişmedi.
+
+Menüde `permission` kullanmıyorsanız yapacak bir şey yok: kanca
+tanımlanmadığı sürece kapı açıktır.
+
+---
+
 ## [3.1.0] — 2026-08-24
 
 ### Eklenenler
