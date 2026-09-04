@@ -92,7 +92,10 @@
             filter:  'bi bi-funnel',
             filterOn: 'bi bi-funnel-fill',
             group:   'bi bi-diagram-2',
-            pivot:   'bi bi-grid-3x3'
+            pivot:   'bi bi-grid-3x3',
+            /* bool biçimlendiricisi */
+            check:   'bi bi-check-lg',
+            cross:   'bi bi-x-lg'
         },
         fa: {
             probe:   'fa-solid fa-angle-left',
@@ -108,12 +111,15 @@
             filter:  'fa-solid fa-filter',
             filterOn: 'fa-solid fa-filter',
             group:   'fa-solid fa-layer-group',
-            pivot:   'fa-solid fa-table-cells'
+            pivot:   'fa-solid fa-table-cells',
+            check:   'fa-solid fa-check',
+            cross:   'fa-solid fa-xmark'
         },
         emoji: {
             first: '«', prev: '‹', next: '›', last: '»',
             columns: '▦', clear: '✕', excel: '▤', search: '⌕',
-            filter: '▽', filterOn: '▼', group: '☰', pivot: '▦'
+            filter: '▽', filterOn: '▼', group: '☰', pivot: '▦',
+            check: '✓', cross: '✕'
         }
     };
 
@@ -214,6 +220,247 @@
         node.setAttribute('aria-hidden', 'true');
 
         return node;
+    }
+
+
+    /* ---------------------------------------------------------------- */
+    /* Hücre biçimlendiriciler                                           */
+    /* ---------------------------------------------------------------- */
+
+    /**
+     * Neden burada.
+     *
+     * Hücre HAM DEĞER taşır — sıralama, filtre, gruplama, pivot ve Excel
+     * çıktısı ham değer olmadan doğru çalışamaz. Rozet göstermek isteyen
+     * sunucunun elinde bu yüzden tek bir yol vardı: değerin YERİNE HTML
+     * göndermek (render:'html'). O yol veriyi biçime feda ediyor ve kaçış
+     * sorumluluğunu her eylem dosyasına dağıtıyordu.
+     *
+     * Biçimlendirici o dengeyi tersine çevirir: satırdaki değer ham kalır,
+     * sunucu yalnızca NİYETİ bildirir ("bu sütun bir durum rozetidir"),
+     * çizimi istemci yapar. Üretilen düğümlerin hiçbiri innerHTML
+     * kullanmaz; metin her zaman textContent'ten geçer, sınıf adları
+     * sunucuda beyaz listeye karşı doğrulanır. Yani bu yolda XSS yüzeyi
+     * yoktur — render:'html' ise olduğu gibi durur, sözleşmesi değişmedi.
+     */
+
+    /** Sayfanın kaydettiği adlandırılmış biçimlendiriciler. */
+    var formatters = {};
+
+    /** Bir değer "doğru" mu? bool biçimlendiricisinin ölçütü. */
+    function truthy(value) {
+        if (value === null || value === undefined || value === '') return false;
+        if (typeof value === 'boolean') return value;
+
+        var text = String(value).trim().toLowerCase();
+
+        return !(text === '0' || text === 'false' || text === 'no' || text === 'hayir' || text === 'hayır');
+    }
+
+    /** Değere karşılık gelen eşleme girdisi; yoksa varsayılan. */
+    function mapped(table, value, fallback) {
+        if (!table) return fallback;
+
+        var key = (value === null || value === undefined) ? '' : String(value);
+
+        return Object.prototype.hasOwnProperty.call(table, key) ? table[key] : fallback;
+    }
+
+    /**
+     * İkon sınıfı: boşluklu tam class olduğu gibi, tek kelime FA kısa adı
+     * sayılır. Kenar çubuğundaki 'icon' anahtarıyla aynı kural.
+     */
+    function iconClass(name) {
+        name = String(name || '');
+
+        return name.indexOf(' ') !== -1 ? name : 'fa-solid fa-' + name;
+    }
+
+    /* Bağlantı biçimlendiricisinde izin verilen şemalar. */
+    var SAFE_SCHEMES = ['http:', 'https:', 'mailto:', 'tel:'];
+
+    /**
+     * href şablonunu satırla doldurur: '/kayit/{id}' → '/kayit/42'.
+     *
+     * Değerler encodeURIComponent'ten geçer ve sonuçtaki şema beyaz listeye
+     * karşı sınanır: 'javascript:' taşıyan bir satır değeri bağlantıyı
+     * çalıştırılabilir hale getiremesin.
+     */
+    function safeHref(template, row) {
+        var out = String(template || '').replace(/\{([A-Za-z0-9_.-]+)\}/g, function (all, key) {
+            var v = row[key];
+
+            return (v === null || v === undefined) ? '' : encodeURIComponent(String(v));
+        });
+
+        var scheme = /^\s*([A-Za-z][A-Za-z0-9+.-]*:)/.exec(out);
+
+        if (scheme && SAFE_SCHEMES.indexOf(scheme[1].toLowerCase()) === -1) {
+            return null;
+        }
+
+        return out;
+    }
+
+    /**
+     * Bildirimsel biçimlendirici. Tanım sunucuda doğrulanmış olarak gelir
+     * (VnlTable::normalizeFormat), burada yalnız çizilir.
+     *
+     * Dönüş: hücreye eklenecek düğüm ya da null (null → düz metin).
+     */
+    function formatNode(spec, value, row) {
+        var label   = String(mapped(spec.labels, value, (value === null || value === undefined) ? '' : value));
+        var variant = mapped(spec.map, value, spec['default'] || 'secondary');
+
+        if (spec.kind === 'badge') {
+            return el('span', (spec.soft === false ? 'badge bg-' : 'badge badge-soft-') + variant, label);
+        }
+
+        if (spec.kind === 'dot') {
+            var wrap = el('span', 'vnl-cell-dot-wrap');
+            wrap.appendChild(el('span', 'vnl-cell-dot text-' + variant));
+            if (label !== '') wrap.appendChild(el('span', null, label));
+
+            return wrap;
+        }
+
+        if (spec.kind === 'icon') {
+            var name = mapped(spec.icons, value, spec.icon || '');
+            if (!name) return null;
+
+            var box   = el('span', 'vnl-cell-icon text-' + variant);
+            var glyph = el('i', iconClass(name));
+            glyph.setAttribute('aria-hidden', 'true');
+            box.appendChild(glyph);
+            if (label !== '' && spec.labels) box.appendChild(el('span', null, label));
+
+            return box;
+        }
+
+        if (spec.kind === 'bool') {
+            /* type:'bool' VNL 3.1'e kadar yalnız hizalamayı ve filtre
+               türünü belirliyordu; hücrede yine düz "1"/"0" görünüyordu. */
+            var on   = truthy(value);
+            var cell = el('span', 'vnl-cell-bool text-' + (on ? (spec.onVariant || 'success') : (spec.offVariant || 'danger')));
+
+            cell.appendChild(icon(on ? 'check' : 'cross'));
+
+            var text = on ? spec.onLabel : spec.offLabel;
+            if (text) cell.appendChild(el('span', null, text));
+
+            return cell;
+        }
+
+        if (spec.kind === 'link') {
+            if (label === '') return null;
+
+            var href = safeHref(spec.href, row);
+            if (href === null) return null;
+
+            var a = el('a', 'vnl-cell-link', label);
+            a.href = href;
+
+            if (spec.target) {
+                a.target = spec.target;
+                /* Yeni sekmede açılan bağlantı açanı window.opener ile
+                   yönlendirebilir; hedef adres satır verisinden geliyor. */
+                a.rel = 'noopener noreferrer';
+            }
+
+            return a;
+        }
+
+        return null;
+    }
+
+    /**
+     * Hücrenin içeriğini yazar.
+     *
+     * buildRow, hücre düzenleme ve kayıt sonrası boyama tek bu noktadan
+     * geçer: biçimlendirici hepsinde aynı çalışsın, bir hücreyi düzenleyip
+     * kaydetmek rozeti düz metne çevirmesin.
+     */
+    function paintCell(td, col, row) {
+        var value = row[col.name];
+
+        td.textContent = '';
+        td.classList.remove('vnl-cell-formatted');
+
+        /* Adlandırılmış biçimlendirici: sayfanın kaydettiği fonksiyon.
+           Metin döndürürse metin olarak basılır, düğüm döndürürse eklenir.
+           HTML metni asla yorumlanmaz. Kaydı olmayan ad sessizce düz metne
+           düşer — tablo bir yazım hatası yüzünden boş kalmasın. */
+        if (col.formatter) {
+            var fn = formatters[col.formatter];
+
+            if (typeof fn === 'function') {
+                var out;
+
+                try {
+                    out = fn(value, row, col);
+                } catch (e) {
+                    console.error('[VNL Table] biçimlendirici "' + col.formatter + '":', e);
+                    out = null;
+                }
+
+                if (out instanceof Node) {
+                    td.appendChild(out);
+                    td.classList.add('vnl-cell-formatted');
+
+                    return;
+                }
+
+                if (out !== null && out !== undefined) {
+                    td.textContent = asText(out);
+
+                    return;
+                }
+            } else {
+                console.warn('[VNL Table] kayıtlı olmayan biçimlendirici: ' + col.formatter);
+            }
+        }
+
+        if (col.format) {
+            var node = formatNode(col.format, value, row);
+
+            if (node) {
+                td.appendChild(node);
+                td.classList.add('vnl-cell-formatted');
+
+                return;
+            }
+        }
+
+        if (col.render === 'html') {
+            /* Sütun bilinçli olarak html işaretlenmiş: sunucu içeriği
+               üretiyor ve kaçışından kendisi sorumlu. */
+            td.innerHTML = asText(value);
+
+            return;
+        }
+
+        td.textContent = asText(value);
+    }
+
+    /**
+     * Henüz kaydedilmemiş bir değeri satırı bozmadan hücreye çizer.
+     *
+     * Düzenleme sırasında gerekli: kullanıcının yazdığı değer sunucudan
+     * onay gelene kadar satıra işlenmez, ama hücrede biçimlendirilmiş
+     * hâliyle görünmelidir.
+     */
+    function paintValue(td, col, row, value) {
+        if (value === row[col.name]) {
+            paintCell(td, col, row);
+
+            return;
+        }
+
+        var shadow = {};
+        Object.keys(row).forEach(function (k) { shadow[k] = row[k]; });
+        shadow[col.name] = value;
+
+        paintCell(td, col, shadow);
     }
 
     /* ---------------------------------------------------------------- */
@@ -3011,13 +3258,7 @@
                 return;
             }
 
-            if (col.render === 'html') {
-                /* Sütun bilinçli olarak html işaretlenmiş: sunucu içeriği
-                   üretiyor ve kaçışından kendisi sorumlu. */
-                td.innerHTML = asText(row[col.name]);
-            } else {
-                td.textContent = asText(row[col.name]);
-            }
+            paintCell(td, col, row);
 
             /* Düzenlenebilir hücre satır kimliğini kendi üstünde taşır:
                satır yeniden çizilse de kaydetme isteği doğru kaydı bulur. */
@@ -3089,7 +3330,7 @@
             settled = true;
 
             td.classList.remove('vnl-editing');
-            td.textContent = value;
+            paintValue(td, col, row, value);
         }
 
         function commit() {
@@ -3143,14 +3384,14 @@
                 var saved = (data.value === null || data.value === undefined) ? value : asText(data.value);
 
                 row[col.name] = saved;
-                td.textContent = saved;
+                paintCell(td, col, row);
 
                 td.classList.add('vnl-saved');
                 setTimeout(function () { td.classList.remove('vnl-saved'); }, 900);
             })
             .catch(function (err) {
                 td.classList.remove('vnl-saving');
-                td.textContent = original;
+                paintCell(td, col, row);
                 td.classList.add('vnl-save-failed');
                 setTimeout(function () { td.classList.remove('vnl-save-failed'); }, 1500);
 
@@ -3466,6 +3707,31 @@
         return instances[id];
     };
     window.vnlTable.init = init;
+
+    /**
+     * Adlandırılmış hücre biçimlendiricisi kaydeder.
+     *
+     *   vnlTable.formatter('durum', function (value, row, col) {
+     *       return value === 'Onaylandı' ? '✔ ' + value : value;   // metin
+     *   });
+     *
+     * Dönüş metinse metin olarak basılır, DOM düğümüyse hücreye eklenir.
+     * HTML METNİ DÖNDÜRÜLEMEZ — kasıtlı: markup üretecek biçimlendirici
+     * düğümü kendisi kursun, kaçış sorusu hiç doğmasın. Gerçekten ham HTML
+     * gerekiyorsa sütun zaten render:'html' diyebilir.
+     *
+     * Kayıt tabloyu kurmadan önce yapılmalıdır; sonradan kaydedilen bir
+     * biçimlendirici vnlTable('id').reload() ile devreye girer.
+     */
+    window.vnlTable.formatter = function (name, fn) {
+        if (typeof fn !== 'function') {
+            console.error('[VNL Table] formatter("' + name + '") bir fonksiyon ister.');
+
+            return;
+        }
+
+        formatters[String(name)] = fn;
+    };
 
     VnlTable.prototype.reload = function () { this.load(); };
 

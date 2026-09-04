@@ -27,6 +27,7 @@ class action_vnltable
         'durum'  => 'Durum',
         'tutar'  => 'Tutar',
         'tarih'  => 'Tarih',
+        'aktif'  => 'Aktif',
     ];
 
     /** Düzenlenebilir sütunlar. Gerçek bir tabloda burası DB sütun eşlemesidir. */
@@ -260,6 +261,10 @@ class action_vnltable
                 'durum' => self::DURUMLAR[$i % count(self::DURUMLAR)],
                 'tutar' => ($i * 3779) % 48500 + 1500,
                 'tarih' => date('Y-m-d', strtotime('2026-01-01 +' . ($i * 3) . ' days')),
+                /* Biçimlendirici demosu. Hücre HAM 1/0 taşır; "Evet"/"Hayır"
+                   çizimi istemcinin işi — sıralama, filtre ve Excel çıktısı
+                   sayının kendisini görmeye devam etsin diye. */
+                'aktif' => ($i % 4 === 0) ? 0 : 1,
             ];
 
             /* Oturumdaki düzenlemeler üretilen satırın üzerine biner. */
