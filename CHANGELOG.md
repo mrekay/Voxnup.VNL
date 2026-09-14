@@ -9,6 +9,88 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.3.0] — 2026-09-14
+
+Tek konu: çekirdeğin **tarih ve saat seçicisi yoktu**. Bu sürüm onu ekler.
+**Kırıcı değişiklik yoktur:** `data-vnl-date` yazmayan bir sayfada davranış
+3.2.0 ile birebir aynıdır; değişen yalnız `<head>`'e giren üç varlık etiketidir.
+
+### Eklenenler
+
+- **VNL Date — `<input data-vnl-date>`.** Tarih, saat, tarih+saat, ay ve
+  aralık için tek bileşen. Sayfa yazarı bir nitelik yazar, çekirdek açılışta
+  kurar; sayfa başına JavaScript gerekmez:
+
+  ```html
+  <input data-vnl-date            name="tarih">    <!-- 14.09.2026 → 2026-09-14 -->
+  <input data-vnl-date="time"     name="saat">     <!-- 09:30 → 09:30:00 -->
+  <input data-vnl-date="datetime" name="zaman">    <!-- → 2026-09-14 09:30:00 -->
+  <input data-vnl-date="month"    name="donem">    <!-- 09.2026 → 2026-09 -->
+  <input data-vnl-date="range"    name="aralik">   <!-- → 2026-09-01 - 2026-09-14 -->
+  ```
+
+  **Neden.** VNL Theme'in vendor paketinde tarih girişine dair hiçbir şey
+  yoktu — ne flatpickr, ne datepicker, ne moment. Şablonun taşındığı 12 ürünlük
+  pakette ise 31 kullanım noktası bootstrap-datepicker + bootstrap-timepicker +
+  bootstrap-datetimepicker + moment 2.4.0 (2013) zincirine bağlıydı ve bu
+  sayfalar VNL kabuğuna geçemiyordu. Boşluk sayfa sayfa yamayla değil,
+  çekirdeği genişleterek kapatıldı: bir kez yazılır, her proje `update` ile alır.
+
+  **Neden yerli `<input type="date">` değil.** Sıfır bağımlılık cazipti ama
+  üç şey karşılanamıyordu: ay seçici Firefox ve Safari masaüstünde yoktur,
+  yalnız-yıl görünümü hiçbir yerde yoktur, saatin 24 saat gösterimi ve dakika
+  adımı işletim sistemi yereline bağlıdır ve sayfadan denetlenemez. Görünüm de
+  tarayıcıdan tarayıcıya değişir; "VNL ölçüttür" ilkesiyle çelişir. İkisini
+  birden sunmak (yerli varsayılan + kütüphane) aynı formda iki görsel dil ve
+  iki değer sözleşmesi demekti; reddedildi.
+
+  **Neden flatpickr.** Vanilla (jQuery'siz), bağımlılıksız, MIT, ~50 KB
+  (gzip ~16), Türkçe yerel ayarı ve ay eklentisi resmî dağıtımda; tarih, saat,
+  aralık, min/max, klavye erişimi bir arada. Bakımı yavaş (son sürüm 4.6.13),
+  bu bilinçli kabul edildi: kod küçük, kapalı ve çekirdekle taşınıyor; VNL
+  jQuery 3.7.1 ve Bootstrap'ı da aynı yolla taşıyor.
+
+  **Değer sözleşmesi — HTML'in kendi kuralı.** Kullanıcı yerel biçimi görür
+  (`14.09.2026`), `value` her zaman ISO'dur (`2026-09-14`): asıl input
+  gizlenir ve ISO taşır, kullanıcı biçimli bir kopyada çalışır. Action'da
+  dönüşüm yok; `Y-m-d` doğrudan modele gider. Sunucusu ekrandaki metni bekleyen
+  sayfa `data-vnl-date-value="text"` der — input'un değeri ekrandakinin
+  kendisidir; eski `gg/aa/yyyy` sözleşmeleri böyle korunur. Girişteki değer
+  ISO da olsa ekran biçiminde de olsa okunur; okunamayan değer flatpickr'ın
+  esnek ayrıştırıcısına bırakılmaz (`2026-09-14`'ü `d.m.Y` ile okuyup 20
+  Haziran çıkarırdı), temizlenir ve konsola yazılır.
+
+  **Tema.** Takvimin her rengi `--bs-*` / `--vnl-*` token'ından okunur:
+  koyu temada VNL'in koyusu, aydınlıkta skin. Modal ve offcanvas içindeki
+  seçici takvimi `body`'ye değil o kabın içine ekler — Bootstrap 5'in odak
+  tuzağı body'deki takvimin saat kutusuna yazmayı engelliyordu.
+
+  Nitelikler (`-format -value -min -max -step -seconds -inline -locale -input
+  -toggle`), `vnlDate` API'si, `vnl.date.*` olayları, eski seçicilerden geçiş
+  tablosu ve canlı örnekler **/docs/theme-dates**'te.
+
+- **`vnl_core_styles()` / `vnl_core_scripts()`** listesine `css/vnl-date.css`,
+  `js/flatpickr.min.js` ve `js/vnl-date.js` eklendi. `head-standard.php`
+  listeyi çekirdekten aldığı için projede dokunulacak yer yoktur — 3.0'da bu
+  yüzden çekirdeğe konmuştu.
+
+- **`clearForm($form)`** artık VNL Date örneklerini de sıfırlıyor: `val("")`
+  yalnız metni siler, seçili gün örnekte kalır ve takvim yeniden açılınca
+  eski günü gösterirdi.
+
+### Yükseltme
+
+`vnl/` değiştirilir, başka bir şey gerekmez. Şema değişikliği yoktur.
+Kullanmayan sayfa etkilenmez; yeni bir tarih alanı için tek satır:
+`<input data-vnl-date name="...">`.
+
+Eski bir seçiciden geçiyorsanız **/docs/theme-dates §7**'deki tablo çağrıyı
+niteliğe çevirir. İki şeyin karşılığı bilerek yoktur: yalnız-yıl görünümü
+(`minViewMode: 2`) ve daterangepicker'ın hazır aralık düğmeleri; ilki için
+`<select>`, ikincisi için sayfanın kendi düğmeleri + `vnlDate.set(el, [a, b])`.
+
+---
+
 ## [3.2.0] — 2026-09-04
 
 Üç gerçek hata düzeltildi (ikisi güvenlik), bir eksik kapatıldı ve dokümanda

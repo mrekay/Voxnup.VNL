@@ -1,6 +1,6 @@
 # VNL
 
-![Version](https://img.shields.io/badge/version-3.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-3.3.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
@@ -43,6 +43,8 @@ inşa edilen **VNL Theme** ile gelir:
   `$page_config['layout'] = 'app';`
 - **Self-host her şey** — Inter variable (latin-ext dahil), Font Awesome Free 7, jQuery 3.7,
   SweetAlert2 v11, SlimSelect. Hiçbir CDN'e istek atılmaz.
+- **Tarih ve saat seçici** — `<input data-vnl-date>` (tarih, saat, ay, aralık); ekranda Türkçe,
+  sunucuya ISO. Altyapı flatpickr, çekirdekle gelir, tema token'larını okur.
 - **Derlenmiş çıktı repodadır** (`vnl/assets/theme/`) — kurulumda Node/npm/build **gerekmez**.
 
 Tema kaynağı ayrı bir depodadır: **[VNL-THEME](https://github.com/mrekay/VNL-THEME)**.
@@ -110,7 +112,7 @@ altındadır; numaraları bağımsız yürür, bir VNL yükseltmesi sizin sıran
 
 ```bash
 php vnl.php update --check      # yeni sürüm var mı, neler değişti
-php vnl.php update --to 3.2.0   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
+php vnl.php update --to 3.3.0   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
 php vnl.php doctor              # proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run       # şemayı güncelle
 ```
