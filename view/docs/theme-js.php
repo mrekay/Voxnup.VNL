@@ -93,7 +93,8 @@
                                 <tr><td><code>vnlLightbox(src, altyazı)</code></td><td>Tam ekran görsel; bir <code>&lt;img&gt;</code>'e <code>.modal-image</code> vermek de yeterli</td></tr>
                                 <tr><td><code>vnlTooltips(kapsam)</code></td><td>Tooltip'leri başlatır (<code>data-bs-toggle</code> ve eski <code>data-toggle</code>); AJAX sonrası otomatik çağrılır</td></tr>
                                 <tr><td><code>selectReload($(…))</code></td><td>AJAX select doldurma — bkz. <a href="/docs/theme-forms">Form ve Select</a></td></tr>
-                                <tr><td><code>clearForm($form)</code> / <code>validateForm($form)</code></td><td>Form temizleme (SlimSelect dahil) ve basit doğrulama. VNL 3.0'da adlar <code>ClearForm</code> / <code>checkValidity</code> idi</td></tr>
+                                <tr><td><code>clearForm($form)</code> / <code>validateForm($form)</code></td><td>Form temizleme (SlimSelect ve VNL Date dahil) ve basit doğrulama. VNL 3.0'da adlar <code>ClearForm</code> / <code>checkValidity</code> idi</td></tr>
+                                <tr><td><code>vnlDate(el)</code> · <code>vnlDate.set/clear/init/parse/format</code></td><td>Tarih ve saat seçici; sayfa <code>&lt;input data-vnl-date&gt;</code> yazar, JS gerekmez — bkz. <a href="/docs/theme-dates">Tarih ve Saat</a></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -144,7 +145,13 @@
 document.addEventListener('vnl.theme.changed', function (e) {
     // e.detail.mode: 'light' | 'dark' | 'system'
     // e.detail.resolved: gerçekte uygulanan 'light' | 'dark'
-});</code></pre></div>
+});
+
+// Tarih seçici — input üzerinde yayılır, kabarır (bkz. /docs/theme-dates)
+document.addEventListener('vnl.date.change', function (e) {
+    // e.detail.value: sunucuya gidecek değer · e.detail.text: ekrandaki metin · e.detail.dates: [Date]
+});
+// vnl.date.open · vnl.date.close · vnl.date.ready</code></pre></div>
                         <p class="text-body-secondary mb-0 mt-4">
                             AJAX yaşam döngüsü (global hata yönetimi, 401 yenilemesi, <code>elementReady()</code>)
                             için bkz. <a href="/docs/request-handling">İstek Yönetimi</a>.

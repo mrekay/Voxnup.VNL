@@ -130,11 +130,11 @@
                                 <tbody>
                                     <tr>
                                         <td><code>static/head-standard.php</code></td>
-                                        <td>Meta etiketleri, pre-paint tema modu script'i, <code>vnl.min.css</code> ve <code>fa.min.css</code></td>
+                                        <td>Meta etiketleri, pre-paint tema modu script'i, ardından <code>vnl_core_styles()</code> listesi: <code>vnl.min.css</code> (+ skin), <code>bi.min.css</code>, <code>fa.min.css</code>, <code>vnltable.css</code>, <code>vnl-date.css</code></td>
                                     </tr>
                                     <tr>
                                         <td><code>static/script-standard.php</code></td>
-                                        <td><code>$SITE_URL</code> ve <code>VNL_USER_ID</code> globalleri, ardından <code>vnl_core_scripts()</code> listesi: vendor paketi (jQuery + Bootstrap + SweetAlert2 + SlimSelect), <code>vnl.min.js</code>, <code>vnl.js</code>, <code>vnltable.js</code>. <code>showMessage()</code> ve <code>showModalMessage()</code> <code>vnl.js</code>'te tanımlıdır</td>
+                                        <td><code>$SITE_URL</code> ve <code>VNL_USER_ID</code> globalleri, ardından <code>vnl_core_scripts()</code> listesi: vendor paketi (jQuery + Bootstrap + SweetAlert2 + SlimSelect), <code>vnl.min.js</code>, <code>vnl.js</code>, <code>vnltable.js</code>, <code>flatpickr.min.js</code> + <code>vnl-date.js</code> (VNL Date). <code>showMessage()</code> ve <code>showModalMessage()</code> <code>vnl.js</code>'te tanımlıdır</td>
                                     </tr>
                                 </tbody>
                             </table>

@@ -230,6 +230,7 @@ $SidebarMenu = array(
                         ["text" => "Renkler, Tema Modu ve Tipografi", 'url' => 'docs/theme-design', 'page_name' => 'theme-design.php', 'permission' => '', 'icon' => 'bi bi-palette', 'showmenu' => 1, "child" => []],
                         ["text" => "Bileşenler", 'url' => 'docs/theme-components', 'page_name' => 'theme-components.php', 'permission' => '', 'icon' => 'bi bi-grid-1x2', 'showmenu' => 1, "child" => []],
                         ["text" => "Form ve Select", 'url' => 'docs/theme-forms', 'page_name' => 'theme-forms.php', 'permission' => '', 'icon' => 'bi bi-input-cursor-text', 'showmenu' => 1, "child" => []],
+                        ["text" => "Tarih ve Saat", 'url' => 'docs/theme-dates', 'page_name' => 'theme-dates.php', 'permission' => '', 'icon' => 'bi bi-calendar3', 'showmenu' => 1, "child" => []],
                         ["text" => "İkonlar", 'url' => 'docs/theme-icons', 'page_name' => 'theme-icons.php', 'permission' => '', 'icon' => 'bi bi-stars', 'showmenu' => 1, "child" => []],
                         ["text" => "Modallar", 'url' => 'docs/theme-modals', 'page_name' => 'theme-modals.php', 'permission' => '', 'icon' => 'bi bi-window-stack', 'showmenu' => 1, "child" => []],
                         ["text" => "JavaScript API", 'url' => 'docs/theme-js', 'page_name' => 'theme-js.php', 'permission' => '', 'icon' => 'bi bi-braces', 'showmenu' => 1, "child" => []],

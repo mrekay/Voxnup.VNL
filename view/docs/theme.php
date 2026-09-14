@@ -31,6 +31,7 @@
                 ['docs/theme-design', 'bi bi-palette', 'Renkler ve Tipografi', "Koyu/açık tema mekanizması, yüzey katmanları, --vnl-* token'ları, yazı ve boşluk ölçekleri."],
                 ['docs/theme-components', 'bi bi-grid-1x2', 'Bileşenler', 'Kartlar, soft rozet/butonlar, symbol, kod bloğu, spinner, lightbox — canlı örneklerle.'],
                 ['docs/theme-forms', 'bi bi-input-cursor-text', 'Form ve Select', 'Solid form varyantları, parola göster/gizle, SlimSelect köprüsü ve AJAX select sözleşmesi.'],
+                ['docs/theme-dates', 'bi bi-calendar3', 'Tarih ve Saat', 'VNL Date: data-vnl-date ile tarih, saat, ay ve aralık; ISO/metin değer sözleşmesi, modal içi kullanım ve eski seçicilerden geçiş.'],
                 ['docs/theme-icons', 'bi bi-stars', 'İkonlar', "Bootstrap Icons + Font Awesome birlikte: kullanım, menü passthrough ve tekleştirme yolu."],
                 ['docs/theme-modals', 'bi bi-window-stack', 'Modallar', 'Boyutlar, scrollable, fullscreen, sağdan kayan sheet paneli ve ikonlu onay deseni — canlı demolarla.'],
                 ['docs/theme-js', 'bi bi-braces', 'JavaScript API', "Tema davranışları, global yardımcılar, data attribute API'leri ve olaylar."],

@@ -43,7 +43,9 @@
                         <p class="text-body-secondary mb-0 mt-4">
                             Karakter sayacı için <code>.length-counter</code> + <code>length-target-class</code>
                             deseni korunmuştur; buton yükleniyor deseni için bkz.
-                            <a href="/docs/theme-components">Bileşenler</a>.
+                            <a href="/docs/theme-components">Bileşenler</a>. Tarih, saat, ay ve aralık
+                            girişi ayrı bir bileşendir — <code>&lt;input data-vnl-date&gt;</code>, bkz.
+                            <a href="/docs/theme-dates">Tarih ve Saat</a>.
                         </p>
                     </div>
 
