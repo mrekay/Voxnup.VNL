@@ -185,11 +185,18 @@ function vnl_core_styles(?string $skin = null): array
 	$styles[] = vnl_asset('theme/css/bi.min.css');
 	$styles[] = vnl_asset('theme/css/fa.min.css');
 	$styles[] = vnl_asset('css/vnltable.css');
+	$styles[] = vnl_asset('css/vnl-date.css');
 
 	return $styles;
 }
 
-/** Çekirdeğin script'leri, doğru sırayla. @see vnl_core_styles() */
+/**
+ * Çekirdeğin script'leri, doğru sırayla. @see vnl_core_styles()
+ *
+ * flatpickr, VNL Date'in taşıyıcısıdır ve vnl-date.js ondan sonra gelmek
+ * zorundadır. Tema paketine (vendors.min.js) konmadı: o dosya VNL-THEME
+ * deposunda derlenir, çekirdek sürümü tema derlemesine bağlanmasın.
+ */
 function vnl_core_scripts(): array
 {
 	return [
@@ -197,6 +204,8 @@ function vnl_core_scripts(): array
 		vnl_asset('theme/js/vnl.min.js'),
 		vnl_asset('js/vnl.js'),
 		vnl_asset('js/vnltable.js'),
+		vnl_asset('js/flatpickr.min.js'),
+		vnl_asset('js/vnl-date.js'),
 	];
 }
 

@@ -249,6 +249,11 @@ function convertFileSize(size) {
 
 function clearForm($form) {
     $form.find("input[type!='checkbox'], textarea").not('.no-clear').val("");
+    // VNL Date: val("") yalnız metni siler, seçili tarih örnekte kalır ve
+    // takvim yeniden açılınca eski günü gösterirdi. Örnek de sıfırlanır.
+    $form.find('input[data-vnl-date]').not('.no-clear').each(function () {
+        if (this._flatpickr) this._flatpickr.clear();
+    });
     $form.find("select").not('.no-clear').each(function () {
         // SlimSelect'li select'lerde UI'ın da sıfırlanması için instance API'si
         if (this.slim) {
