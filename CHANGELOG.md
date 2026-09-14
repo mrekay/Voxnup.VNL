@@ -9,6 +9,82 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.3.1] — 2026-09-14
+
+Tek düzeltme: **`.app-content` içine yazılan modal backdrop'un altında
+kalıyordu.** Kırıcı değişiklik yoktur; giriş animasyonu görünüm olarak aynıdır,
+değişen yalnız `vnl.min.css`'teki iki kelimedir.
+
+### Düzeltilenler
+
+- **Giriş animasyonu bittikten sonra `.app-content` üzerinde kalıcı bir
+  transform bırakıyordu; içerideki `position: fixed` öğeler (Bootstrap modal)
+  viewport'a değil `.app-content`'e göre konumlanıyor ve backdrop'un altında
+  kalıyordu.**
+
+  **Ne.** `.app-content, .vnl-focus { animation: vnl-page-in .3s ease both }`.
+  `both` doldurma kipi animasyon bitince son keyframe'i uygulamaya devam eder.
+  Keyframe `transform: translateY(.375rem) → none` olduğundan tarayıcı son
+  kare olarak `none`'ı değil, interpolasyonun sonucu olan kimlik matrisini
+  (`matrix(1, 0, 0, 1, 0, 0)`) tutar. CSS Transforms kuralı gereği `none`
+  dışında transform taşıyan her öğe, `position: fixed` torunları için
+  containing block ve yeni bir stacking context olur. Sonuç: `.app-content`
+  içine yazılan bir modal `.app-content` kutusuna göre konumlanır, `z-index:
+  1055`'i `.app-content`'in stacking context'inde hapsolur ve `body`'ye eklenen
+  `.modal-backdrop` (`z-index: 1050`) modalin **üstüne** çizilir;
+  `elementFromPoint` backdrop'u döndürür, modal tıklanamaz. IKYSIS taşımasında
+  bulundu; orada modaller içeriğin dışına taşınarak dolaşıldı — ama "modali
+  içeriğin içine yaz" diye yazan her sayfa için tuzak çekirdekteydi.
+
+  **Ölçüm** (Chrome 151, `/docs/theme-components`, modal `.app-content`
+  içinde). Önce: `getComputedStyle(appContent).transform` =
+  `matrix(1, 0, 0, 1, 0, 0)`; `.modal` kutusu = `.app-content` kutusu
+  (260,0 · 1020×3556), viewport değil; `elementFromPoint` = `.modal-backdrop`;
+  fare tıklaması düğmeye ulaşmıyor. Sonra: `transform` = `none`; `.modal`
+  kutusu = viewport (0,0 · 1280×900); `elementFromPoint` = `.modal-body` /
+  düğme; tıklama ulaşıyor. `.vnl-focus` (login) için aynı: kimlik matrisi →
+  `none`.
+
+  **Düzeltme.** Doldurma kipi `both` → `backwards`. `backwards` ilk kareden
+  önce `from` keyframe'ini uygular (ilk boyamada içerik görünmez, sıçrama yok),
+  animasyon bitince kuralı düşürür; öğe taban stiline (`opacity: 1`,
+  `transform: none`) döner. `to` keyframe'i taban stile eşit olduğundan bitişte
+  de sıçrama yoktur. Aynı kalıp içerik barındıran akordeon gövdesinde de vardı
+  (`.accordion-collapse.show .accordion-body`, `vnl-acc-body-in`): akordeon
+  içine yazılan modal aynı tuzağa düşerdi, o da `backwards` yapıldı.
+
+  **Neden bu, diğerleri değil.** Keyframe'den `transform`'u çıkarmak yukarı
+  kaymayı kaldırır, görünüm değişirdi. Animasyon bitince sınıfı JS ile
+  düşürmek `.app-content` düzen sınıfı olduğu için ayrı bir sınıf ve betik
+  isterdi. `both`'u tutup transform'u etkisizleştirmenin CSS'te yolu yoktur:
+  `none` dışındaki her değer containing block'tur. Seçilen değişiklik
+  keyframe'lere, süreye ve easing'e dokunmaz; 0–300 ms arası çizim kare kare
+  aynıdır (aynı animasyon anında alınan karelerde 0 piksel fark).
+
+  **Görünür tek fark — olumlu.** Kalıcı transform `.app-content`'i ayrı bir
+  kompozit katmana alıyor, içindeki yazı gri tonlu antialiasing ile
+  çiziliyordu; şimdi sayfanın geri kalanı gibi alt piksel (LCD) antialiasing
+  kullanır. Yalnız yazı kenarlarındadır.
+
+  **Bilerek dokunulmayanlar.** `.dropdown-menu.show` (`vnl-dropdown-in`)
+  `margin-top` animasyonudur ve transform içermediği için containing block
+  oluşturmaz; `both` orada kalır — taban `margin-top`
+  (`--bs-dropdown-spacer`) keyframe'in sonundan farklıdır, `backwards` görünür
+  sıçrama yapardı. Kenar çubuğu alt menüleri (`vnl-flyout-in`, `vnl-sub-in`)
+  içerik barındırmaz, olduğu gibi kaldı. `prefers-reduced-motion` dalı
+  değişmedi (`animation: none`).
+
+  **Etki.** `.app-content` (app, top-nav, landing düzenleri), `.vnl-focus`
+  (focus düzeni) ve akordeon gövdesi içine yazılan modal, offcanvas, toast ve
+  her `position: fixed` öğe artık viewport'a göre konumlanır. Modalini bu
+  yüzden içeriğin dışına taşımış sayfalar öyle kalabilir; ikisi de çalışır.
+
+### Yükseltme
+
+`vnl/` değiştirilir, başka bir şey gerekmez. Şema değişikliği yoktur.
+
+---
+
 ## [3.3.0] — 2026-09-14
 
 Tek konu: çekirdeğin **tarih ve saat seçicisi yoktu**. Bu sürüm onu ekler.
