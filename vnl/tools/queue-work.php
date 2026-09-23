@@ -113,6 +113,19 @@ function vnl_queue_run_job(VnlJob $job, callable $say): void
     $path = Queue::handlerPath($job->type());
 
     vnl_queue_inflight($job, true);
+
+    /* İşleyicinin echo çıktısı. Seviye tutulur: işleyici kendi tamponunu
+       açık bırakmış olabilir, tampon da çoktan kapanmış olabilir. */
+    $level   = ob_get_level();
+    $collect = static function () use ($level): string {
+        $out = '';
+        while (ob_get_level() > $level) {
+            $out = (string)ob_get_clean() . $out;
+        }
+
+        return $out;
+    };
+
     ob_start();
 
     try {
@@ -132,7 +145,7 @@ function vnl_queue_run_job(VnlJob $job, callable $say): void
 
         $handler($job->payload(), $job);
 
-        $echoed = (string)ob_get_clean();
+        $echoed = $collect();
         if ($echoed !== '') {
             $job->log(rtrim($echoed));
         }
@@ -150,10 +163,10 @@ function vnl_queue_run_job(VnlJob $job, callable $say): void
 
         $say('#' . $job->id() . ($done > 0 ? ' tamamlandi' : ' tamamlandi ama ayirma kaybedilmis: sonuc yazilmadi'));
     } catch (VnlJobLostException $e) {
-        ob_end_clean();
+        $collect();
         $say('#' . $job->id() . ' birakildi — ' . $e->getMessage());
     } catch (Throwable $e) {
-        $echoed = (string)ob_get_clean();
+        $echoed = $collect();
         $error  = get_class($e) . ': ' . $e->getMessage();
 
         try {
