@@ -16,6 +16,14 @@
                 </div>
             </div>
 
+            <div class="alert alert-warning d-flex align-items-center p-5 mb-10">
+                <i class="fa-solid fa-lock fs-2hx text-warning me-4"></i>
+                <div class="d-flex flex-column">
+                    <h4 class="mb-1">3.4.0 — Canlıda ayrıntı yok</h4>
+                    <span class="text-body">Aşağıda anlatılan ayrıntılı sayfa ve <code>error</code> alanlı JSON yalnız <code>.env</code>'de <code>APP_DEBUG=true</code> iken gösterilir. Varsayılan (<code>false</code>) kipte istisna PHP günlüğüne <code>[VNL][ref]</code> ile yazılır; kullanıcı kaynak kod, yol ve SQL metni içermeyen genel bir sayfa ya da <code>{"message","devcode":"VNL_FATAL","ref"}</code> görür. <code>display_errors</code> da yalnız debug kipinde açıktır. Action içindeki beklenmeyen istisnalar da aynı kurala uyar; <code>throwErrorMessage($m, 422)</code> ise durum kodunu korur.</span>
+                </div>
+            </div>
+
             <div class="card mb-10">
                 <div class="card-body p-10">
 

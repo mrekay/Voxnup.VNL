@@ -16,6 +16,14 @@
                 </div>
             </div>
 
+            <div class="alert alert-warning d-flex align-items-center p-5 mb-10">
+                <i class="fa-solid fa-lock fs-2hx text-warning me-4"></i>
+                <div class="d-flex flex-column">
+                    <h4 class="mb-1">3.4.0 — Dağıtıcının kuralları</h4>
+                    <span class="text-body"><code>/app/*</code> yalnız <b>POST</b> kabul eder (405), her istekte <b>CSRF jetonu</b> ister (<code>X-CSRF-Token</code> başlığı ya da <code>_token</code> alanı; vnl.js ve VNL Table kendiliğinden ekler — 403 <code>VNL_CSRF</code>) ve <b>girişi varsayılan olarak zorunlu</b> kılar (401 <code>VNL_AUTH</code>). Girişsiz çağrılacak metot sınıfta <code>public const PUBLIC_METHODS = ['login'];</code>, imzasını kendisi doğrulayan webhook <code>public const CSRF_EXEMPT = ['webhook'];</code> ile listelenir. Yalnız <code>public</code>, static olmayan ve <code>__</code> ile başlamayan metotlar çağrılabilir. Her action'ın ilk satırı: <code>Auth::CheckPermission('Kod', 'view|insert|edit|delete');</code>. Ayrıntı: <a href="/docs/security">/docs/security</a>.</span>
+                </div>
+            </div>
+
             <div class="card mb-10">
                 <div class="card-body p-10">
 
@@ -248,8 +256,16 @@ $rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
                                 </thead>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
+                                    <td class="ps-5"><code>Auth::CheckPermission('Kod', 'edit')</code></td>
+                                    <td><b>3.4.0 — her action'ın ilk satırı.</b> Girişsiz → 401 <code>VNL_AUTH</code>, yetkisiz → 403 <code>VNL_PERM</code>; ikisi de isteği koşulsuz bitirir. Yetenekler: <code>view</code>, <code>insert</code>, <code>edit</code>, <code>delete</code>. Karar <code>vnl_can()</code> → <code>helpers/permissions.php</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>Auth::Can('Kod', 'edit')</code></td>
+                                    <td>Durdurmayan hali: <code>bool</code> döner (düğmeyi gizlemek gibi).</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>Auth::CheckLogin()</code></td>
-                                    <td>Kullanıcı giriş yapmamışsa hata fırlatır ve işlemi durdurur. Ölçüt <code>vnl_logged_in()</code>: kaydedilmiş bir kullanıcı kimliği var mı.</td>
+                                    <td>Kullanıcı giriş yapmamışsa hata fırlatır ve işlemi durdurur (3.4.0: 401 <code>VNL_AUTH</code>). Ölçüt <code>vnl_logged_in()</code>. Dağıtıcı girişi zaten varsayılan olarak ister; yetki gereken yerde <code>CheckPermission</code> kullanın.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::User()</code></td>
@@ -257,7 +273,7 @@ $rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::HasPermis([1, 2])</code></td>
-                                    <td>Kullanıcının izin ID'si verilen dizide yoksa hata fırlatır. Girişsiz istek de elenir.</td>
+                                    <td>Kullanıcının rolü (<code>perm_id</code>) verilen dizide yoksa hata fırlatır (3.4.0: 403). Girişsiz istek de elenir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::UserPermis()</code></td>

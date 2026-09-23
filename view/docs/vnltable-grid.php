@@ -486,9 +486,10 @@ $tek      = $t-&gt;matches($satir);         // tek satır sınaması</code></pre
                                 <h6 class="fw-bold mb-2">Sayısal görünen metinler</h6>
                                 <p class="fs-6 text-body mb-0">
                                     Tablonun yanıtları <code>returnSuccessDataOnly()</code> yerine
-                                    kendi JSON yayıcısını kullanır: o, <code>JSON_NUMERIC_CHECK</code>
+                                    kendi JSON yayıcısını kullanır: o (3.4.0'a kadar) <code>JSON_NUMERIC_CHECK</code>
                                     ile "007" stok kodunu <code>7</code> yapıyordu ve istemci onu geri
                                     gönderdiğinde hiçbir satırla eşleşmiyordu. Hücre ne ise o gider.
+                                    3.4.0'da <code>returnSuccessDataOnly()</code> da sayıya çevirmez.
                                 </p>
                             </div>
                         </div>
