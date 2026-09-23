@@ -365,9 +365,9 @@ class action_kullanici
                                     <td>Bilgi mesajı döndürür ve işlemi sonlandırır.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>throwErrorMessage($mesaj, $kod = 400)</code></td>
+                                    <td class="ps-5"><code>throwErrorMessage($mesaj, $kod = 400, $devcode = '')</code></td>
                                     <td><span class="badge badge-soft-danger">400+</span></td>
-                                    <td><code>Exception</code> fırlatır. <code>app.php</code>'nin try-catch bloğu yakalar ve JSON'a dönüştürür. Kodun herhangi bir yerinden hata fırlatmak için idealdir.</td>
+                                    <td><code>VnlHttpException</code> fırlatır (<code>Exception</code>'dan türer). <code>VnlDispatcher</code> yakalar ve kendi durum koduyla JSON'a dönüştürür. Kodun herhangi bir yerinden hata fırlatmak için idealdir. Gövdeye ek alan (<code>errors[]</code>) ya da yanıta başlık (<code>Retry-After</code>) gerekiyorsa <code>VnlHttpException</code>'ı doğrudan fırlatın — 3.4.1, <a href="/docs/errors">/docs/errors</a> §7.</td>
                                 </tr>
                                 </tbody>
                             </table>
