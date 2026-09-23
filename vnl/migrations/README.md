@@ -40,3 +40,22 @@ migration ikinci kez çalıştırılmaz. Ayrıntı için uygulama içindeki
 
 `.sql` dosyaları web sunucusu tarafından servis edilmez (`.htaccess` ve
 `web.config` engeller).
+
+## VNL 3.4.0'a yükseltiyorsanız
+
+`0002`–`0006` hem sıfırdan hem mevcut kurulumda çalışır:
+
+| No | Ne |
+| --- | --- |
+| `0002` | `tbl_users` (yoksa) + eksik sütunlar koşullu (`is_active`, `last_*`, `totp_*`, zaman damgaları), `tbl_permissions` zaman damgaları, `tbl_user_permissions`, `Users` yetki kodu |
+| `0003` | `tbl_vnl_rate_limits` — giriş hız sınırı (`RateLimiter`) |
+| `0004` | `tbl_vnl_audit_log` — denetim kaydı (`Audit::log`) |
+| `0005` | `tbl_vnl_jobs` — iş kuyruğu (`Queue`, `queue:work`) |
+| `0006` | `tbl_vnl_api_tokens` — API jetonları (`Authorization: Bearer`) |
+
+İlk yönetici SQL ile tohumlanmaz (herkesin bildiği parola her kurulumda açık
+kapı olurdu):
+
+```bash
+php vnl.php user:create --username=admin --super
+```

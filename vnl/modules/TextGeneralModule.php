@@ -189,7 +189,7 @@ class TextGeneralModule
         for ($p = 0; $p < $count; $p++) {
             $pass = array();
             for ($i = 0; $i < $length; $i++) {
-                $n = rand(0, $symbols_length); // get a random character from the string with all characters
+                $n = random_int(0, $symbols_length); // kriptografik rastgele (3.4.0: rand() parola üretiyordu)
                 $pass[] = $used_symbols[$n]; // add the character to the password string
             }
             $passwords[] = implode('', $pass);

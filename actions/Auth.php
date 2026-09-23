@@ -7,9 +7,15 @@
  * ============================================================
  *
  * PROJENİNDİR: bu dosya kökte durur, güncelleme ona dokunmaz. "Giriş
- * yapılmış mı" sorusunun cevabı yine de çekirdeğindir — vnl_logged_in()
- * ile vnl/kernel.php'nin uyguladığı ölçütün aynısı sorulur, iki yer
- * birbirinden kaymasın diye.
+ * yapılmış mı" ve "yetkisi var mı" sorularının cevabı yine de çekirdeğindir —
+ * vnl_logged_in() ve vnl_can() sorulur, sayfa ile action aynı ölçütü
+ * kullansın diye.
+ *
+ * 3.4.0: dağıtıcı (VnlDispatcher) girişi VARSAYILAN olarak zorunlu kılar;
+ * PUBLIC_METHODS'ta olmayan metoda girişsiz istek hiç ulaşmaz. Yine de her
+ * action'ın ilk satırı yetki denetimidir:
+ *
+ *   Auth::CheckPermission('Domains', 'edit');
  */
 
 namespace ActionGlobal;
@@ -41,39 +47,78 @@ class Auth
     /**
      * Giriş zorunluluğu. Girişsizse hata fırlatır ve isteği durdurur.
      *
-     * VNL 3.1'e kadar ölçüt `!empty(self::User())` idi: PHP'de bir nesne
-     * hiçbir zaman empty olmadığı ve $CurrentUser koşulsuz kurulduğu için
-     * denetim HER ZAMAN true dönüyordu — yani hiç denetlemiyordu.
-     * Dokümantasyon (/docs/request-handling §5) onu "giriş yapılmamışsa
-     * hata fırlatır" diye tarif ettiğinden action'lar bu satıra güveniyordu.
-     * Ölçüt artık kimliğin kendisi.
+     * VNL 3.1'e kadar ölçüt `!empty(self::User())` idi ve HER ZAMAN true
+     * dönüyordu. 3.2'de ölçüt kimliğin kendisi oldu.
      *
-     * Durum kodu 400'de bırakıldı: vnl.js'in 401 dalı oturumu DÜŞMÜŞ
-     * kullanıcı için yazılmıştır ve VNL_USER_ID sıfırken hiçbir şey
-     * göstermez — girişsiz kullanıcı ekranda sessizlik görürdü.
+     * 3.4.0: durum kodu 401 (VNL_AUTH). 3.2'de 400'de bırakılmıştı çünkü
+     * vnl.js'in 401 dalı girişsiz kullanıcıya hiçbir şey göstermiyordu;
+     * 3.4'ün AJAX kancası mesajı gösterip /login'e yönlendiriyor.
      */
     public static function CheckLogin($throwError = true)
     {
-        $isLogined = vnl_logged_in();
+        $isLogined = \vnl_logged_in();
 
-        if (!$isLogined && $throwError) throwErrorMessage(lang('ERR_LOGIN_FIRST'));
+        if (!$isLogined && $throwError) \throwErrorMessage(\lang('ERR_LOGIN_FIRST'), 401, 'VNL_AUTH');
 
         return $isLogined;
     }
 
     /**
-     * Kullanıcının perm_id'si verilen listede mi?
+     * Kullanıcının perm_id'si (rol) verilen listede mi? Değilse 403.
      *
      * Girişsiz istek burada da elenir: boş modelin null perm_id'si gevşek
      * karşılaştırmada listedeki 0 ya da '' ile eşleşebiliyordu.
      */
     public static function HasPermis(array $perms, $throwError = true)
     {
-        $perm_result = vnl_logged_in() && in_array(self::User()->perm_id, $perms);
+        $perm_result = \vnl_logged_in() && in_array(self::User()->perm_id, $perms);
 
-        if (!$perm_result && $throwError) throwErrorMessage(lang('ERR_PERM'));
+        if (!$perm_result && $throwError) \throwErrorMessage(\lang('ERR_PERM'), 403, 'VNL_PERM');
 
         return $perm_result;
 
+    }
+
+    /**
+     * Kod tabanlı yetki kapısı (3.4.0) — her action'ın ilk satırı.
+     *
+     *   Auth::CheckPermission('Domains');            // görüntüleme
+     *   Auth::CheckPermission('Domains', 'insert');  // insert | edit | delete
+     *
+     * Girişsiz → 401 VNL_AUTH, yetkisiz → 403 VNL_PERM; ikisi de isteği
+     * KOŞULSUZ bitirir (istisna değil: geniş bir try/catch kapıyı yutamaz).
+     * Karar vnl_can() → projenin vnl_project_permission() kancası
+     * (helpers/permissions.php) üzerinden verilir; menü, sayfa ve action
+     * aynı soruyu sorar.
+     */
+    public static function CheckPermission(string $code, string $ability = 'view'): void
+    {
+        if (!\vnl_logged_in()) {
+            self::deny(\lang('ERR_LOGIN_FIRST'), 401, 'VNL_AUTH');
+        }
+
+        if (!\vnl_can($code, $ability)) {
+            self::deny(\lang('ERR_PERM'), 403, 'VNL_PERM');
+        }
+    }
+
+    /** CheckPermission'ın durdurmayan hali: yetki var mı? */
+    public static function Can(string $code, string $ability = 'view'): bool
+    {
+        return \vnl_logged_in() && \vnl_can($code, $ability);
+    }
+
+    /** JSON hata yazar ve betiği bitirir (PHPEXCELMODE'dan bağımsız). */
+    private static function deny(string $message, int $status, string $devcode): never
+    {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        http_response_code($status);
+        \vnl_json_header();
+        echo json_encode(['message' => $message, 'devcode' => $devcode]);
+
+        exit;
     }
 }
