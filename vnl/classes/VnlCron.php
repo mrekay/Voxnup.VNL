@@ -19,7 +19,9 @@
  * Haftanın günü 0–7 (0 ve 7 pazar). Ay ve gün adları desteklenmez.
  *
  * Standart cron kuralı: gün (ayın günü) ve haftanın günü İKİSİ DE
- * kısıtlıysa, ikisinden BİRİ tutması yeterlidir.
+ * kısıtlıysa, ikisinden BİRİ tutması yeterlidir. "Kısıtlı" = alan '*' ile
+ * BAŞLAMIYOR (vixie/cronie DOM_STAR/DOW_STAR): '*\/2' kısıtsız sayılır.
+ * Örnek: '0 0 *\/2 * 1' yalnız tek günlere denk gelen pazartesiler.
  */
 class VnlCron
 {
@@ -55,8 +57,10 @@ class VnlCron
             return false;
         }
 
-        $domRestricted = $fields[2] !== '*';
-        $dowRestricted = $fields[4] !== '*';
+        /* vixie/cronie: '*' ile başlayan alan ('*', '*\/n', '*,5') kısıtsızdır;
+           o zaman iki alan VE ile bağlanır. */
+        $domRestricted = !str_starts_with($fields[2], '*');
+        $dowRestricted = !str_starts_with($fields[4], '*');
 
         $dom = self::matches($fields[2], $values[2], 2);
         $dow = self::matches($fields[4], $values[4], 4) || ($values[4] === 0 && self::matches($fields[4], 7, 4));

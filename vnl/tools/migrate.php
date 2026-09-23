@@ -38,6 +38,9 @@ class VnlMigrate
     private string $table;
     private string $database;
 
+    /** Son appliedRecords() sonucu (çakışma mesajı için). */
+    private ?array $appliedCache = null;
+
     public function __construct(ConfigDefinitions $config)
     {
         $db = $config->getDBInfo();
@@ -215,7 +218,22 @@ class VnlMigrate
                     }
                 }
 
-                $this->record($source, $m);
+                try {
+                    $this->record($source, $m);
+                } catch (PDOException $e) {
+                    /* Ör. aynı anda çalışan ikinci bir migrate --run aynı
+                       numarayı kaydetti. İfadeler uygulandı ama kayıt yok. */
+                    $this->line();
+                    $this->line("  HATA — {$m['file']} uygulandi ama KAYDEDILEMEDI:");
+                    $this->line('    ' . $e->getMessage());
+                    $this->line();
+                    $this->line('  Ayni anda iki migrate --run calistirmayin. Durumu --status ile');
+                    $this->line('  kontrol edin; sonraki migrationlar islenmedi.');
+                    $this->line();
+
+                    return 1;
+                }
+
                 $this->line('    uygulandi.');
                 $ran++;
             }
@@ -388,7 +406,15 @@ class VnlMigrate
     /* Yardımcılar                                                       */
     /* ---------------------------------------------------------------- */
 
-    /** NNNN_ad.sql biçimindeki dosyalar, numaraya göre sıralı. */
+    /**
+     * NNNN_ad.sql biçimindeki dosyalar, numaraya göre sıralı.
+     *
+     * Aynı kaynakta aynı numara iki kez kullanılamaz (3.4.0): kayıt
+     * (kaynak, numara) ile tutulur. Paralel iki dalın ikisi de 0010 eklerse
+     * biri uygulanmış sayılıp SESSİZCE atlanırdı ya da ikincisinin DDL'i
+     * çalışıp kaydı UNIQUE anahtarda patlardı. Araç her komutta (status,
+     * run, dry-run) hiçbir şey çalıştırmadan durur.
+     */
     private function discover(string $source): array
     {
         $dir   = VNL_ROOT . '/' . self::SOURCES[$source];
@@ -412,6 +438,29 @@ class VnlMigrate
 
         usort($found, static fn($a, $b) => strcmp($a['number'], $b['number']));
 
+        $byNumber = [];
+        foreach ($found as $m) {
+            $byNumber[$m['number']][] = $m['file'];
+        }
+
+        foreach ($byNumber as $number => $files) {
+            if (count($files) < 2) {
+                continue;
+            }
+
+            $recorded = $this->appliedCache[$source . ':' . $number]['name'] ?? null;
+
+            $this->fail(
+                'Ayni numarali birden fazla migration (' . self::SOURCES[$source] . "/):\n"
+                . '  ' . implode("\n  ", $files) . "\n\n"
+                . ($recorded !== null
+                    ? "Veritabaninda {$number}_{$recorded}.sql uygulanmis olarak kayitli; DIGERLERINI\n"
+                      . "yeni (bos) numaralara tasiyin. Uygulanmis olani yeniden numaralandirmayin:\n"
+                      . "ikinci kez calisir."
+                    : "Birini bos bir numaraya tasiyin (ornek: modul basina numara blogu).")
+            );
+        }
+
         return $found;
     }
 
@@ -429,7 +478,7 @@ class VnlMigrate
             $map[$row['source'] . ':' . $row['number']] = $row;
         }
 
-        return $map;
+        return $this->appliedCache = $map;
     }
 
     private function orphans(array $applied): array

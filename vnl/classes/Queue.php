@@ -30,7 +30,12 @@
  *
  * Durumlar: queued → running → done | failed | canceled.
  * Yeniden deneme: attempts < max_attempts iken istisna, işi
- * NOW() + 30 sn × attempts sonrasına yeniden kuyruğa koyar.
+ * NOW() + 30 sn × attempts sonrasına yeniden kuyruğa koyar. max_attempts'i
+ * yalnız ikinci kez çalıştırılması güvenli (idempotent) işlerde artırın.
+ *
+ * Uzun ve sessiz adımlar: işçi --stale saniye nabız atmayan işi çökmüş
+ * sayar; dış komutları $job->exec([...]) ile çalıştırın (beklerken nabız
+ * atar) ya da döngüde $job->heartbeat() çağırın.
  *
  * Yük (payload) JSON olarak saklanır: yalnız dizi/sayı/metin koyun;
  * parola ya da gizli anahtar koymayın (tablo yönetim ekranında görünür).
@@ -147,7 +152,11 @@ class Queue
             ]) > 0;
     }
 
-    /** Başarısız ya da iptal edilmiş işi yeniden kuyruğa koyar. */
+    /**
+     * Başarısız ya da iptal edilmiş işi yeniden kuyruğa koyar. Ayırma jetonu
+     * silinir: --stale ile failed'a çekilmiş ama aslında süren eski
+     * çalıştırma artık satıra yazamaz.
+     */
     public static function retry(int $id): bool
     {
         return Database::table(self::TABLE)
@@ -208,23 +217,41 @@ class Queue
     }
 
     /**
-     * Çöken işçinin 'running' bıraktığı işleri kurtarır: $staleSeconds'tan
-     * eski ayırmalar deneme hakkı varsa yeniden kuyruğa, yoksa failed'a.
+     * Çöken işçinin 'running' bıraktığı işleri kurtarır: $staleSeconds
+     * boyunca NABIZ atmamış (updated_at — VnlJob::progress/log/heartbeat/
+     * exec yeniler) işler deneme hakkı varsa yeniden kuyruğa, yoksa failed'a.
+     *
+     * 3.4.0 (gözden geçirme): ölçü eskiden reserved_at'ti, yani işin
+     * BAŞLADIĞI an; ilerleme bildiren sağlıklı uzun bir iş (büyük yedek,
+     * rsync) --stale dolunca ikinci bir işçiye veriliyordu.
+     *
+     * Yeniden kuyruğa konan işin jetonu silinir: eski işçi (hâlâ yaşıyorsa)
+     * artık hiçbir şey yazamaz, bir sonraki progress()/log() çağrısında
+     * VnlJobLostException alır. failed'a çekilen işte jeton KALIR: iş
+     * aslında sürüyorsa geç gelen sonucu yazılabilir; Queue::retry()
+     * jetonu siler.
+     *
+     * Yeniden kuyruk yalnız tekrar çalıştırılması güvenli işler içindir:
+     * max_attempts'i (varsayılan 1) yalnız idempotent işlerde artırın.
      */
     public static function releaseStale(string $queue, int $staleSeconds): int
     {
         $table = self::rawTable();
 
+        /* SET soldan sağa değerlendirilir; hiçbir ifade önce atanan bir
+           sütuna dayanmaz (attempts/max_attempts değişmez). */
         return Database::connection()->update(
             "UPDATE `{$table}`
                 SET `status`      = IF(`attempts` >= `max_attempts`, 'failed', 'queued'),
-                    `error`       = IF(`attempts` >= `max_attempts`, CONCAT(COALESCE(`error`, ''), 'İşçi yanıt vermedi (zaman aşımı).'), `error`),
+                    `error`       = IF(`attempts` >= `max_attempts`,
+                                       CONCAT(COALESCE(CONCAT(`error`, CHAR(10 USING utf8mb4)), ''), 'İşçi yanıt vermedi (zaman aşımı).'),
+                                       `error`),
                     `finished_at` = IF(`attempts` >= `max_attempts`, NOW(), NULL),
-                    `reserved_by` = NULL,
-                    `reserved_at` = NULL,
+                    `reserved_by` = IF(`attempts` >= `max_attempts`, `reserved_by`, NULL),
+                    `reserved_at` = IF(`attempts` >= `max_attempts`, `reserved_at`, NULL),
                     `updated_at`  = NOW()
               WHERE `queue` = ? AND `status` = 'running'
-                AND `reserved_at` < DATE_SUB(NOW(), INTERVAL ? SECOND)",
+                AND COALESCE(`updated_at`, `reserved_at`) < DATE_SUB(NOW(), INTERVAL ? SECOND)",
             [$queue, max(60, $staleSeconds)]
         );
     }

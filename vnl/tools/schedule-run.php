@@ -20,6 +20,11 @@
  * 'command' girdileri AYRI SÜREÇTE (proc_open, argüman dizisi — kabuk yok)
  * paralel çalışır; komut bitene kadar girdinin kilidi tutulur, bir sonraki
  * dakikanın schedule:run'ı hâlâ süren görevi atlar (üst üste binme yok).
+ * Her kilit KENDİ komutu biter bitmez bırakılır (3.4.0 gözden geçirme:
+ * eskiden sırayla proc_close bekleniyordu; listede önce gelen 3 saatlik bir
+ * yedek, arkasındaki 5 dakikalık görevin kilidini de 3 saat tutuyordu).
+ * Kilit dosyaları close-on-exec açılır: alt süreçler başka girdilerin
+ * kilitlerini devralmaz.
  * 'job' girdileri Queue::push ile kuyruğa yazılır.
  *
  * Aynı dakika içinde iki kez çağrılsa da her girdi dakikada bir kez çalışır
@@ -109,7 +114,10 @@ return static function (array $args): int {
         }
 
         $name = isset($entry['command']) ? 'command:' . $entry['command'] : 'job:' . ($entry['job'] ?? '');
-        $lock = fopen($lockDir . '/schedule-' . sha1($cron . '|' . json_encode($entry)) . '.lock', 'c+');
+        /* 'e' = O_CLOEXEC: sonra başlatılan komutlar bu tanıtıcıyı devralmasın
+           (schedule:run öldürülse bile kilit, geride kalan bir alt süreçte
+           asılı kalmaz). Windows'ta yok sayılır. */
+        $lock = fopen($lockDir . '/schedule-' . sha1($cron . '|' . json_encode($entry)) . '.lock', 'c+e');
 
         if ($lock === false) {
             $say("{$name}: kilit dosyasi acilamadi");
@@ -194,17 +202,41 @@ return static function (array $args): int {
         $running[] = [$proc, $lock, $name];
     }
 
-    /* Komutlar paralel çalışır; kilitler her biri bitene kadar tutulur. */
-    foreach ($running as [$proc, $lock, $name]) {
-        $code = proc_close($proc);
-        $say("{$name}: bitti (cikis kodu {$code})");
+    /* Komutlar paralel çalışır. Biten her komutun kilidi HEMEN bırakılır;
+       sırayla proc_close() beklemek, öndeki uzun bir komutun arkadakilerin
+       kilidini de tutması demekti. */
+    while ($running !== []) {
+        foreach ($running as $k => [$proc, $lock, $name]) {
+            $status = proc_get_status($proc);
 
-        if ($code !== 0) {
-            $failures++;
+            if ($status['running']) {
+                continue;
+            }
+
+            /* Çıkış kodu yalnız "bitti"yi bildiren İLK proc_get_status()
+               çağrısında geçerlidir (PHP < 8.3'te proc_close sonra -1 döner). */
+            if (!empty($status['signaled'])) {
+                $code = -1;
+                $say("{$name}: sinyal ile sonlandi (sinyal {$status['termsig']})");
+            } else {
+                $code = (int)$status['exitcode'];
+                $say("{$name}: bitti (cikis kodu {$code})");
+            }
+
+            proc_close($proc);
+
+            if ($code !== 0) {
+                $failures++;
+            }
+
+            flock($lock, LOCK_UN);
+            fclose($lock);
+            unset($running[$k]);
         }
 
-        flock($lock, LOCK_UN);
-        fclose($lock);
+        if ($running !== []) {
+            usleep(200000);
+        }
     }
 
     return $failures > 0 ? 1 : 0;

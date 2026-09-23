@@ -286,10 +286,85 @@ TXT
     $checks[] = $check(
         'eklenti: pcntl (kuyruk iscisi)',
         extension_loaded('pcntl') || DIRECTORY_SEPARATOR === '\\',
-        "queue:work SIGTERM'de eldeki isi bitirip cikamaz; systemd durdururken\n"
-        . "        is yarida kalabilir (--stale sonra kurtarir).",
+        "queue:work SIGTERM'u yakalayamaz, eldeki is yarida kalir (--stale sonra\n"
+        . "        kurtarir). pcntl TEK BASINA yetmez: systemd biriminde KillMode=mixed\n"
+        . "        (yoksa SIGTERM isin alt sureclerini de oldurur) ve en uzun isten uzun\n"
+        . "        TimeoutStopSec gerekir — bkz. /docs/cli-queue.",
         false
     );
+
+    /* queue:work birimleri: KillMode=control-group (varsayılan) SIGTERM'i
+       işin alt süreçlerine de gönderir; iş yarıda kalır. */
+    $unitsWithoutMixed = [];
+    foreach (glob('/etc/systemd/system/*.service') ?: [] as $unitFile) {
+        $unit = (string)@file_get_contents($unitFile);
+
+        if (str_contains($unit, 'queue:work') && !preg_match('/^\s*KillMode\s*=\s*mixed\s*$/mi', $unit)) {
+            $unitsWithoutMixed[] = basename($unitFile);
+        }
+    }
+    $checks[] = $check(
+        'queue:work systemd birimleri KillMode=mixed',
+        $unitsWithoutMixed === [],
+        implode(', ', $unitsWithoutMixed) . ": KillMode=mixed yok. systemctl stop/restart\n"
+        . "        SIGTERM'i isin alt sureclerine (useradd, certbot, rsync) de gonderir.\n"
+        . "        [Service] altina KillMode=mixed ve TimeoutStopSec=<en uzun is> ekleyin.",
+        false
+    );
+
+    /* ---- Veritabanı: bekleyen çekirdek migration'ları (en iyi çaba) ----
+       Uygulama açılmaz; migrate gibi .env + config/definitions.php okunup
+       doğrudan PDO açılır. Bağlanılamazsa yalnız uyarı. Özellikle 0007:
+       uygulanmadan iki adımlı giriş kapalıdır (fail closed). */
+    $pendingCore = null;
+    $dbProblem   = null;
+
+    if (!extension_loaded('pdo_mysql')) {
+        $dbProblem = 'pdo_mysql yok';
+    } elseif (!is_file(VNL_ROOT . '/config/definitions.php')) {
+        $dbProblem = 'config/definitions.php yok';
+    } else {
+        try {
+            require_once VNL_ROOT . '/config/definitions.php';
+            $dbInfo = (new ConfigDefinitions())->getDBInfo();
+
+            if ((string)($dbInfo['database'] ?? '') === '') {
+                throw new RuntimeException('DB_DATABASE bos');
+            }
+
+            $socket = (string)($dbInfo['unix_socket'] ?? '');
+            $dsn    = ($socket !== ''
+                    ? 'mysql:unix_socket=' . $socket
+                    : 'mysql:host=' . $dbInfo['host'] . ((int)($dbInfo['port'] ?? 0) > 0 ? ';port=' . (int)$dbInfo['port'] : ''))
+                . ';dbname=' . $dbInfo['database'] . ';charset=utf8mb4';
+
+            $pdo = new PDO($dsn, (string)$dbInfo['username'], (string)$dbInfo['password'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_TIMEOUT => 3,
+            ]);
+
+            $applied = $pdo->query('SELECT `number` FROM `' . ($dbInfo['prefix'] ?? '') . "tbl_vnl_migrations` WHERE `source` = 'vnl'")
+                ->fetchAll(PDO::FETCH_COLUMN);
+
+            $pendingCore = [];
+            foreach (glob(VNL_PATH . '/migrations/*.sql') ?: [] as $migrationFile) {
+                if (preg_match('/^(\d{4})_/', basename($migrationFile), $mm) && !in_array($mm[1], $applied, true)) {
+                    $pendingCore[] = basename($migrationFile);
+                }
+            }
+        } catch (Throwable $e) {
+            $dbProblem = $e->getMessage();
+        }
+    }
+
+    $checks[] = $pendingCore === null
+        ? $check('Cekirdek migrationlari (veritabani)', false,
+            "Denetlenemedi: {$dbProblem}\n        Elle: php vnl.php migrate --status", false)
+        : $check('Cekirdek migrationlari uygulanmis', $pendingCore === [],
+            'Bekleyen: ' . implode(', ', $pendingCore) . "\n"
+            . "        php vnl.php migrate --run" . (in_array('0007_vnl_totp_replay.sql', $pendingCore, true)
+                ? "\n        0007 uygulanmadan iki adimli dogrulamali kullanicilar giris YAPAMAZ."
+                : ''));
 
     /* ---- Eski sürümden kalıntı ---- */
     $checks[] = $check(
