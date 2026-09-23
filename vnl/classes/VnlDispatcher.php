@@ -23,11 +23,12 @@
  *   3. Sınıf    dosya/sınıf/metot yoksa; metot public
  *               değilse, static ise ya da __ ile başlıyorsa  404
  *   4. Kimlik   Authorization: Bearer varsa jeton     401  VNL_TOKEN / 403 VNL_PERM
- *               yoksa: Origin + CSRF jetonu           403  VNL_CSRF
- *               (sınıfın CSRF_EXEMPT listesi hariç)
+ *               (jetonla gelen istekte 5 ve 6 atlanır)
  *   5. Giriş    sınıfın PUBLIC_METHODS listesinde
  *               değilse ve girişsizse                 401  VNL_AUTH
- *   6. Çağrı    throwErrorMessage → kendi kodu; başka her istisna günlüğe
+ *   6. CSRF     Origin + CSRF jetonu                  403  VNL_CSRF
+ *               (sınıfın CSRF_EXEMPT listesi hariç)
+ *   7. Çağrı    throwErrorMessage → kendi kodu; başka her istisna günlüğe
  *               yazılır, kullanıcıya genel metin      500  VNL_FATAL (+ ref)
  *
  * Action sınıfındaki isteğe bağlı sabitler:
@@ -103,7 +104,7 @@ class VnlDispatcher
         $publicMethods = self::classList($class, 'PUBLIC_METHODS');
         $csrfExempt    = self::classList($class, 'CSRF_EXEMPT');
 
-        /* 4) Kimlik: API jetonu ya da oturum + CSRF. */
+        /* 4) Kimlik: API jetonu ya da oturum (5 giriş, 6 CSRF). */
         $bearer = class_exists('ApiToken') ? ApiToken::fromRequest() : null;
 
         if ($bearer !== null) {
@@ -113,19 +114,24 @@ class VnlDispatcher
                 self::fail($e);   // ör. tablo yok: ayrıntı günlüğe
             }
         } else {
+            /* 5) Varsayılan: giriş zorunlu. CSRF'ten ÖNCE bakılır: oturumu
+                  biten (boşta kalma, GC) sekmenin jetonu da eskimiştir; önce
+                  CSRF'e bakılsaydı istemci 401 yerine 403 VNL_CSRF alır ve
+                  vnl.js onu /login'e hiç göndermezdi. Güvenlik değişmez:
+                  401 yolunda action çalışmaz; PUBLIC_METHODS ve girişli
+                  istekler CSRF denetiminden yine geçer. */
+            if (!in_array($lower, $publicMethods, true) && !vnl_logged_in()) {
+                self::deny(lang('ERR_LOGIN_FIRST'), 401, 'VNL_AUTH');
+            }
+
             if (!in_array($lower, $csrfExempt, true)) {
                 if (!vnl_same_origin() || !vnl_csrf_check()) {
                     self::deny(lang('ERR_CSRF'), 403, 'VNL_CSRF');
                 }
             }
-
-            /* 5) Varsayılan: giriş zorunlu. */
-            if (!in_array($lower, $publicMethods, true) && !vnl_logged_in()) {
-                self::deny(lang('ERR_LOGIN_FIRST'), 401, 'VNL_AUTH');
-            }
         }
 
-        /* 6) Çağrı. */
+        /* 7) Çağrı. */
         try {
             $instance = new $class();
             $reflection->invoke($instance, $req);

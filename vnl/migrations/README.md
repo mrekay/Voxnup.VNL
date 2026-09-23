@@ -43,7 +43,7 @@ migration ikinci kez çalıştırılmaz. Ayrıntı için uygulama içindeki
 
 ## VNL 3.4.0'a yükseltiyorsanız
 
-`0002`–`0006` hem sıfırdan hem mevcut kurulumda çalışır:
+`0002`–`0007` hem sıfırdan hem mevcut kurulumda çalışır:
 
 | No | Ne |
 | --- | --- |
@@ -52,6 +52,7 @@ migration ikinci kez çalıştırılmaz. Ayrıntı için uygulama içindeki
 | `0004` | `tbl_vnl_audit_log` — denetim kaydı (`Audit::log`) |
 | `0005` | `tbl_vnl_jobs` — iş kuyruğu (`Queue`, `queue:work`) |
 | `0006` | `tbl_vnl_api_tokens` — API jetonları (`Authorization: Bearer`) |
+| `0007` | `tbl_users.totp_last_step` — TOTP tekrar kullanım koruması (koşullu). Uygulanmadan iki adımlı giriş kapalı kalır |
 
 İlk yönetici SQL ile tohumlanmaz (herkesin bildiği parola her kurulumda açık
 kapı olurdu):

@@ -7,12 +7,27 @@
  * ============================================================
  *
  * 3.4.0:
- *  - Hız sınırı: IP başına 20, kullanıcı adı başına 5 başarısız deneme /
- *    15 dk (RateLimiter). Aşılınca 429 VNL_RATE.
+ *  - Hız sınırı (RateLimiter, 15 dk pencere, aşılınca 429 VNL_RATE):
+ *      IP başına 20 deneme (IPv6'da /64 öneki — RateLimiter::ipKey),
+ *      hesap + IP başına 5 deneme,
+ *      hesap başına (bütün IP'ler) 100 deneme.
+ *    Deneme kimlik bilgisi denetlenmeden ÖNCE sayılır ve kapı sayımın
+ *    sonucuna bakar: paralel istekler sınırı aşamaz. Başarılı deneme
+ *    IP bütçesinden geri düşülür, hesap sayaçları sıfırlanır.
+ *  - Hesap anahtarı KAYITLI kullanıcı adına bağlanır, girilen metne değil:
+ *    tbl_users.username utf8mb4_unicode_ci'dir, 'ädmin' gibi aksanlı ya da
+ *    tam genişlikli yazımlar da 'admin' satırını bulur. Anahtar girilen
+ *    metinden üretilseydi her yazım ayrı bir 5 deneme hakkı kazanırdı.
+ *  - Sıkı kilit (5) hesap + IP'dir: başka bir adresten 5 yanlış parola
+ *    gerçek yöneticiyi kilitleyemez. Hesap geneli sınır (100) dağıtık
+ *    tahmini frenler; bir adres ona en fazla 5 katkı yapabilir.
  *  - Pasif hesap (is_active = 0) ERR_LOGIN_PASSIVE ile reddedilir — ama
  *    yalnız parola DOĞRUYSA; yanlış parolayla hesabın durumu öğrenilemez.
  *  - İki adımlı doğrulama: totp_enabled kullanıcıda parola adımı oturumu
  *    AÇMAZ, {"data":{"step":"totp"}} döner; kod /app/login/totp'a gelir.
+ *    Aynı kod ikinci kez kabul edilmez (RFC 6238 §5.2): eşleşen adım
+ *    tbl_users.totp_last_step'e yazılır (vnl/migrations/0007). Sütun
+ *    yoksa ikinci adım kapalıdır (fail closed) ve sebep günlüğe düşer.
  *  - Çıkış POST'tur (CSRF'li). GET /logout yalnız onay sayfasıdır.
  *  - Her giriş, başarısız deneme ve çıkış denetim kaydına (Audit) düşer.
  */
@@ -24,10 +39,11 @@ class action_login
     /** Girişsiz çağrılabilen metotlar (VnlDispatcher). CSRF yine zorunlu. */
     public const PUBLIC_METHODS = ['login', 'totp', 'logout'];
 
-    private const IP_MAX_ATTEMPTS   = 20;
-    private const USER_MAX_ATTEMPTS = 5;
-    private const TOTP_MAX_ATTEMPTS = 5;
-    private const WINDOW_SECONDS    = 900;
+    private const IP_MAX_ATTEMPTS      = 20;
+    private const USER_MAX_ATTEMPTS    = 5;     // hesap + IP
+    private const ACCOUNT_MAX_ATTEMPTS = 100;   // hesap, bütün IP'ler
+    private const TOTP_MAX_ATTEMPTS    = 5;
+    private const WINDOW_SECONDS       = 900;
 
     /** Parola ikinci adımı en fazla bu kadar bekler (sn). */
     private const TOTP_PENDING_TTL = 300;
@@ -46,23 +62,31 @@ class action_login
         LoginValidator::validateUsername($username);
         LoginValidator::validatePassword($password);
 
-        $ipKey   = 'login:ip:' . UserModule::CurrentIp();
-        $userKey = 'login:user:' . mb_strtolower($username);
+        $ip    = RateLimiter::ipKey(UserModule::CurrentIp());
+        $ipKey = 'login:ip:' . $ip;
 
-        $this->throttle($ipKey, self::IP_MAX_ATTEMPTS);
-        $this->throttle($userKey, self::USER_MAX_ATTEMPTS);
+        /* IP kapısı kullanıcı aranmadan önce: sayılır, sonra karar verilir. */
+        $this->consume($ipKey, self::IP_MAX_ATTEMPTS);
 
         /* password_hash her çağrıda farklı tuz ürettiği için hash ile
            sorgulanamaz: önce kullanıcı çekilir, sonra doğrulanır. */
         $user_data = User::Select(["username" => $username]);
+
+        /* Hesap anahtarları kayıtlı kimlikten: harmanlamaya (collation)
+           göre eşdeğer her yazım aynı sayacı paylaşır. */
+        [$accountKey, $accountIpKey] = $this->accountKeys(
+            !empty($user_data) ? (string)$user_data->username : $username,
+            $ip
+        );
+
+        $this->consume($accountIpKey, self::USER_MAX_ATTEMPTS);
+        $this->consume($accountKey, self::ACCOUNT_MAX_ATTEMPTS);
 
         $valid = empty($user_data)
             ? (EncryptionModule::PasswordVerify($password, self::TIMING_DUMMY_HASH) && false)
             : EncryptionModule::PasswordVerify($password, $user_data->storedPassword());
 
         if (!$valid) {
-            RateLimiter::hit($ipKey, self::IP_MAX_ATTEMPTS, self::WINDOW_SECONDS);
-            RateLimiter::hit($userKey, self::USER_MAX_ATTEMPTS, self::WINDOW_SECONDS);
             Audit::log('auth.login_failed', 'user', $user_data->id ?? null, ['username' => mb_substr($username, 0, 64)]);
 
             throw new StandartException(lang('ERR_LOGIN_EXCEPTION'));
@@ -91,7 +115,12 @@ class action_login
         LoginValidator::validateUser($user_data);
         LoginValidator::validateActive($user_data);
 
-        RateLimiter::clear($userKey);
+        /* Parola doğru: hesap sayaçları sıfırlanır; bu deneme paylaşılan IP
+           bütçesinden geri düşülür (aynı NAT arkasındaki kullanıcılar
+           birbirinin başarılı girişini ödemesin). */
+        RateLimiter::clear($accountIpKey);
+        RateLimiter::clear($accountKey);
+        RateLimiter::decrement($ipKey);
 
         $remember = !empty($req->post('rememberMe')) && UserModule::rememberDays() > 0;
 
@@ -127,11 +156,13 @@ class action_login
         }
 
         $userId  = (int)$pending['user_id'];
-        $ipKey   = 'login:ip:' . UserModule::CurrentIp();
+        $ip      = RateLimiter::ipKey(UserModule::CurrentIp());
+        $ipKey   = 'login:ip:' . $ip;
         $totpKey = 'login:totp:' . $userId;
 
-        $this->throttle($ipKey, self::IP_MAX_ATTEMPTS);
-        $this->throttle($totpKey, self::TOTP_MAX_ATTEMPTS);
+        /* Kod denetlenmeden önce sayılır (paralel istekler sınırı aşamaz). */
+        $this->consume($ipKey, self::IP_MAX_ATTEMPTS);
+        $this->consume($totpKey, self::TOTP_MAX_ATTEMPTS);
 
         $user = User::Select(['id' => $userId]);
 
@@ -140,19 +171,33 @@ class action_login
             $this->deny(lang('ERR_LOGIN_EXCEPTION'), 400);
         }
 
+        /* Tekrar kullanım koruması olmadan kod kabul edilmez (fail closed). */
+        if (!method_exists($user, 'claimTotpStep') || !$user->hasTotpReplayGuard()) {
+            error_log('[VNL][Auth] tbl_users.totp_last_step yok ya da classes/User.php eski: '
+                . 'iki adımlı giriş kapalı. Çalıştırın: php vnl.php migrate --run');
+            $this->deny(lang('ERR_GENERAL'), 500, 'VNL_FATAL');
+        }
+
         $secret = Totp::decryptSecret($user->totp_secret ?? null);
         $code   = (string)$req->post('code', '');
+        $step   = $secret !== null ? Totp::match($secret, $code) : null;
 
-        if ($secret === null || !Totp::verify($secret, $code)) {
-            RateLimiter::hit($ipKey, self::IP_MAX_ATTEMPTS, self::WINDOW_SECONDS);
-            RateLimiter::hit($totpKey, self::TOTP_MAX_ATTEMPTS, self::WINDOW_SECONDS);
-            Audit::log('auth.totp_failed', 'user', $userId);
+        /* Eşleşen adım koşullu UPDATE ile tüketilir: aynı kod (ya da daha
+           eski bir adımın kodu) ikinci kez geçmez, paralel iki istekten
+           yalnız biri kazanır. Tekrar, başarısız deneme sayılır (sayaçlar
+           yukarıda zaten artırıldı). */
+        if ($step === null || !$user->claimTotpStep($step)) {
+            Audit::log('auth.totp_failed', 'user', $userId, $step !== null ? ['reason' => 'replay'] : []);
 
             $this->deny(lang('ERR_TOTP_INVALID'), 400, 'VNL_TOTP');
         }
 
+        [$accountKey, $accountIpKey] = $this->accountKeys((string)$user->username, $ip);
+
         RateLimiter::clear($totpKey);
-        RateLimiter::clear('login:user:' . mb_strtolower((string)$user->username));
+        RateLimiter::clear($accountKey);
+        RateLimiter::clear($accountIpKey);
+        RateLimiter::decrement($ipKey);
 
         UserModule::CompleteLogin($user, !empty($pending['remember']));
 
@@ -178,14 +223,32 @@ class action_login
 
     /* ---------------------------------------------------------------- */
 
-    /** Sınır dolduysa 429 ile bitirir. */
-    private function throttle(string $key, int $maxAttempts): void
+    /**
+     * Denemeyi sayar; sayımdan sonra sınır aşıldıysa 429 ile bitirir.
+     *
+     * Önce say, sonra karar ver: "oku, başarısızlıkta say" kalıbında aynı
+     * anda gelen istekler aynı düşük sayıyı okuyup hepsi geçerdi.
+     */
+    private function consume(string $key, int $maxAttempts): void
     {
-        if (RateLimiter::tooMany($key, $maxAttempts)) {
+        if (!RateLimiter::hit($key, $maxAttempts, self::WINDOW_SECONDS)) {
             $minutes = max(1, (int)ceil(RateLimiter::availableIn($key) / 60));
 
             $this->deny(lang('ERR_TOO_MANY_ATTEMPTS', $minutes), 429, 'VNL_RATE');
         }
+    }
+
+    /**
+     * Hesap sayaç anahtarları: [hesap geneli, hesap + IP].
+     *
+     * $identity mümkünse veritabanındaki kullanıcı adıdır (girilen metin
+     * değil); totp() aynı anahtarları aynı kimlikten üretir.
+     */
+    private function accountKeys(string $identity, string $ip): array
+    {
+        $account = 'login:user:' . mb_strtolower($identity);
+
+        return [$account, $account . '|' . $ip];
     }
 
     private function deny(string $message, int $status, string $devcode = ''): never

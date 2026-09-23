@@ -1,5 +1,13 @@
 RewriteEngine on
 
+# Authorization başlığını PHP-FPM'e ilet (Bearer API jetonları, F29).
+# Apache mod_proxy_fcgi bu başlığı CGIPassAuth On olmadan FastCGI ortamına
+# koymaz; ApiToken::fromRequest() onu HTTP_AUTHORIZATION ya da (iç
+# yönlendirmeden sonra) REDIRECT_HTTP_AUTHORIZATION olarak okur. [L] yok:
+# aşağıdaki kurallar yine çalışır. nginx'te fastcgi_params zaten iletir.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
 # Nokta ile başlayan her yol parçasını engelle: .env, .git, .htaccess, .idea ...
 # Yönlendirme kurallarından ÖNCE gelmeli; aksi halde var olan dosya
 # (REQUEST_FILENAME -f) doğrudan düz metin olarak servis edilir.

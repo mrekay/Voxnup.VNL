@@ -13,9 +13,28 @@
  * Veritabanı gerektirmez: satırlar bellekte üretilir, filtreleme ve
  * sıralama PHP tarafında yapılır. Gerçek bir tabloda bu işleri
  * TableModel::SelectList() üstlenir; getList sözleşmesi aynıdır.
+ *
+ * 3.4.0: getList girişsiz çağrılabilir (PUBLIC_METHODS) — VNL_PUBLIC_DOCS=true
+ * iken /docs/vnltable* sayfaları anonim ziyaretçiye açıktır ve içlerindeki
+ * tablolar bu uca POST eder; 401 ziyaretçiyi /login'e atıyordu. CSRF yine
+ * zorunludur. Uç veritabanına dokunmaz, düzenlemeleri yalnız çağıranın kendi
+ * oturumunda tutar; oturum dosyası şişirilemesin diye satır anahtarı gerçek
+ * bir satır olmalı ve değer 255 karakterle sınırlıdır.
+ *
+ * GERÇEK bir modülde bunu kopyalamayın: action girişi varsayılan olarak
+ * zorunlu kılar ve her metodun ilk satırı Auth::CheckPermission()'dır.
  */
 class action_vnltable
 {
+    /** Girişsiz çağrılabilen metotlar (VnlDispatcher). CSRF yine zorunlu. */
+    public const PUBLIC_METHODS = ['getList'];
+
+    /** Demo satır sayısı (rows()). */
+    private const ROW_COUNT = 213;
+
+    /** Düzenlenen değerin azami uzunluğu. */
+    private const MAX_VALUE_LENGTH = 255;
+
     private const SEHIRLER = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya'];
     private const DURUMLAR = ['Onaylandı', 'Beklemede', 'İptal'];
 
@@ -125,8 +144,20 @@ class action_vnltable
         $column = $t->editColumn(self::EDITABLE);
         $value  = trim((string)$t->value);
 
+        /* Satır anahtarı istemciden gelir: yalnız var olan satırlar
+           (1..ROW_COUNT). Aksi halde her istek oturuma yeni bir anahtar
+           ekleyebilir ve oturum dosyası sınırsız büyürdü. */
+        $rowKey = filter_var($t->rowKey, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => self::ROW_COUNT]]);
+        if ($rowKey === false) {
+            throwErrorMessage('Kayıt bulunamadı.', 404);
+        }
+
         if ($value === '') {
             throwErrorMessage('Boş bırakılamaz.');
+        }
+
+        if (mb_strlen($value) > self::MAX_VALUE_LENGTH) {
+            throwErrorMessage('En fazla ' . self::MAX_VALUE_LENGTH . ' karakter.');
         }
 
         if ($column === 'tutar') {
@@ -138,7 +169,7 @@ class action_vnltable
         }
 
         $edits = Session::get(self::EDIT_KEY) ?: [];
-        $edits[$t->rowKey][$column] = $value;
+        $edits[$rowKey][$column] = $value;
         Session::set(self::EDIT_KEY, $edits);
 
         /* Normalleştirilmiş değeri geri veriyoruz: kullanıcı "  1500 "
@@ -253,7 +284,7 @@ class action_vnltable
         $edits = Session::get(self::EDIT_KEY) ?: [];
         $rows  = [];
 
-        for ($i = 1; $i <= 213; $i++) {
+        for ($i = 1; $i <= self::ROW_COUNT; $i++) {
             $row = [
                 'id'    => $i,
                 'ad'    => 'Örnek Kayıt ' . str_pad((string)$i, 3, '0', STR_PAD_LEFT),

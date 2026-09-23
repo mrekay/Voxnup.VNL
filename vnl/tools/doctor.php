@@ -203,9 +203,9 @@ TXT
     $checks[] = $check(
         'Yetki kancasi (vnl_project_permission) tanimli',
         $hasPermissionHook,
-        "Kanca yoksa vnl_can() her koda true doner: Auth::CheckPermission()\n"
-        . "        ve vnl_require_permission() girisli herkese izin verir.\n"
-        . "        Sablondaki helpers/permissions.php'yi kopyalayin.",
+        "Kanca yoksa yetki kapilari (Auth::CheckPermission, Auth::Can,\n"
+        . "        vnl_require_permission) KIMSEYE izin vermez, menu ise herkese\n"
+        . "        acik kalir. Sablondaki helpers/permissions.php'yi kopyalayin.",
         false
     );
 
@@ -262,6 +262,16 @@ TXT
         "Eski desen noktali adresleri (/domains/view/ornek.com) index.php'ye\n"
         . "        ulastirmiyor ve config/, vnl/, files/ dizinlerini korumuyor.\n"
         . "        Sablondaki .htaccess ile degistirin (nginx icin nginx.conf.example).",
+        false
+    );
+
+    $checks[] = $check(
+        '.htaccess Authorization basligini iletiyor',
+        !is_string($htaccessRules) || str_contains($htaccessRules, 'HTTP_AUTHORIZATION'),
+        "Apache + PHP-FPM (mod_proxy_fcgi) Authorization basligini PHP'ye\n"
+        . "        iletmez: Bearer API jetonlari 403 VNL_CSRF alir. Sablondaki\n"
+        . "        .htaccess'teki RewriteRule .* - [E=HTTP_AUTHORIZATION:...] satirini\n"
+        . "        ekleyin ya da vhost'ta CGIPassAuth On (Apache 2.4.13+).",
         false
     );
 

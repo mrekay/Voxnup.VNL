@@ -41,9 +41,16 @@ return static function (array $args): int {
         return 1;
     }
 
+    /* Yeni sır (ya da kapatma) ile tekrar kullanım sayacı da sıfırlanır
+       (0007; sütun yoksa dokunulmaz). */
+    $hasLastStep = array_key_exists('totp_last_step', $user->getAttributes());
+
     if (isset($o['disable'])) {
         $user->totp_secret  = null;
         $user->totp_enabled = 0;
+        if ($hasLastStep) {
+            $user->totp_last_step = null;
+        }
         $user->save();
 
         Audit::log('auth.totp_disabled', 'user', $user->id, ['via' => 'cli']);
@@ -66,9 +73,17 @@ return static function (array $args): int {
     }
 
     $user->totp_enabled = 1;
+    if ($hasLastStep) {
+        $user->totp_last_step = null;
+    }
     $user->save();
 
     Audit::log('auth.totp_enabled', 'user', $user->id, ['via' => 'cli']);
+
+    if (!$hasLastStep) {
+        fwrite(STDERR, "\n  UYARI: tbl_users.totp_last_step yok (vnl/migrations/0007). Girisin ikinci\n"
+            . "  adimi migration uygulanana kadar kapali kalir: php vnl.php migrate --run\n");
+    }
 
     fwrite(STDOUT, "\n  Iki adimli dogrulama acildi: {$user->username}\n\n"
         . "  Sir     : {$secret}\n"

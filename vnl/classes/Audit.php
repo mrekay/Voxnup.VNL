@@ -23,9 +23,19 @@
  * ASLA İSTİSNA FIRLATMAZ: denetim kaydı yazılamadı diye asıl işlem (ve
  * kullanıcının isteği) düşmemeli. Hata PHP günlüğüne yazılır.
  *
- * $data içinde adı password / token / secret İÇEREN anahtarlar (iç içe
- * dizilerde de) kayda girmez — parola ya da jeton yanlışlıkla kalıcı
- * hale gelmesin.
+ * $data içinde adı password / token / secret İÇEREN anahtarların değeri (iç
+ * içe dizilerde de, değer dizi olsa bile tamamı) '[redacted]' olarak yazılır
+ * — parola ya da jeton yanlışlıkla kalıcı hale gelmesin, ama alanın var
+ * olduğu kayıtta görünsün.
+ *
+ * $data ANAHTARLARI alan adıdır, veri değil. Veriden türeyen tanımlayıcılar
+ * (izin kodu, alan adı, kullanıcı adı ...) anahtar yapılmaz, kayıt listesi
+ * olarak yazılır:
+ *
+ *   // YANLIŞ: 'ApiTokens' anahtarı süzgece takılır
+ *   Audit::log('user.permissions', 'user', $id, ['permissions' => ['ApiTokens' => ['view']]]);
+ *   // DOĞRU
+ *   Audit::log('user.permissions', 'user', $id, ['permissions' => [['code' => 'ApiTokens', 'abilities' => ['view']]]]);
  *
  * Yerleşik olaylar: auth.login, auth.login_failed, auth.logout,
  * auth.password_changed, auth.totp_enabled, auth.totp_disabled,
@@ -36,7 +46,7 @@ class Audit
 {
     public const TABLE = 'tbl_vnl_audit_log';
 
-    /** Kayda girmeyecek anahtar parçaları (küçük harf). */
+    /** Değeri kayda girmeyecek anahtar parçaları (küçük harf). */
     private const SENSITIVE = ['password', 'token', 'secret'];
 
     private static ?int $actor = null;
@@ -116,6 +126,9 @@ class Audit
 
             foreach (self::SENSITIVE as $needle) {
                 if (str_contains($lower, $needle)) {
+                    /* Değer türü ne olursa olsun (dizi dahil) maskelenir;
+                       anahtar düşürülmez, alanın varlığı kayıtta görünür. */
+                    $clean[$key] = '[redacted]';
                     continue 2;
                 }
             }

@@ -89,7 +89,9 @@ class Auth
      * KOŞULSUZ bitirir (istisna değil: geniş bir try/catch kapıyı yutamaz).
      * Karar vnl_can() → projenin vnl_project_permission() kancası
      * (helpers/permissions.php) üzerinden verilir; menü, sayfa ve action
-     * aynı soruyu sorar.
+     * aynı soruyu sorar. Soru KATIDIR (vnl_can(..., true)): kanca yoksa ya
+     * da kod boşsa yetki yoktur — menünün 3.1 uyumlu açık davranışı bir
+     * güvenlik kapısına taşınmaz.
      */
     public static function CheckPermission(string $code, string $ability = 'view'): void
     {
@@ -97,15 +99,15 @@ class Auth
             self::deny(\lang('ERR_LOGIN_FIRST'), 401, 'VNL_AUTH');
         }
 
-        if (!\vnl_can($code, $ability)) {
+        if (!\vnl_can($code, $ability, true)) {
             self::deny(\lang('ERR_PERM'), 403, 'VNL_PERM');
         }
     }
 
-    /** CheckPermission'ın durdurmayan hali: yetki var mı? */
+    /** CheckPermission'ın durdurmayan hali: yetki var mı? (katı) */
     public static function Can(string $code, string $ability = 'view'): bool
     {
-        return \vnl_logged_in() && \vnl_can($code, $ability);
+        return \vnl_logged_in() && \vnl_can($code, $ability, true);
     }
 
     /** JSON hata yazar ve betiği bitirir (PHPEXCELMODE'dan bağımsız). */

@@ -117,9 +117,16 @@ function vnl_user()
  *       return $user !== null && UserPermissions::CanViewByCode($user->id, $code);
  *   }
  *
- * Proje böyle bir fonksiyon TANIMLAMADIYSA kapı açıktır ve davranış VNL 3.1
- * ile birebir aynıdır — yeni bir çekirdek sürümü kimsenin menüsünü
+ * Proje böyle bir fonksiyon TANIMLAMADIYSA menü kapısı açıktır ve davranış
+ * VNL 3.1 ile birebir aynıdır — yeni bir çekirdek sürümü kimsenin menüsünü
  * boşaltmaz. Tanımlandığı anda kenar çubuğu onu her menü öğesi için çağırır.
+ *
+ * $strict (3.4.0): YETENEK kapıları için. true iken kanca yoksa ya da kod
+ * boşsa cevap HAYIR'dır (fail closed) ve eksik kanca istek başına bir kez
+ * günlüğe yazılır. vnl_require_permission(), Auth::CheckPermission() ve
+ * Auth::Can() katı sorar; yalnız menü görünürlüğü 3.1'in açık davranışını
+ * korur. helpers/permissions.php projenindir ve güncelleme onu getirmez:
+ * dosyası olmayan bir projede güvenlik kapıları artık herkese açılmaz.
  *
  * Kanca istisna fırlatırsa yutulmaz: sessizce "yetkisi yok" saymak, yetki
  * sorgusundaki bir hatayı boş bir menüye çevirip saklardı.
@@ -130,13 +137,25 @@ function vnl_user()
  * Sayfa ve action kapıları da artık aynı soruyu sorar:
  * vnl_require_permission() ve Auth::CheckPermission().
  */
-function vnl_can(?string $permission, string $ability = 'view'): bool
+function vnl_can(?string $permission, string $ability = 'view', bool $strict = false): bool
 {
 	if ($permission === null || trim($permission) === '') {
-		return true;
+		return !$strict;
 	}
 
 	if (!function_exists('vnl_project_permission')) {
+		if ($strict) {
+			static $__vnlHookWarned = false;
+
+			if (!$__vnlHookWarned) {
+				$__vnlHookWarned = true;
+				error_log('[VNL][Auth] vnl_project_permission() tanımlı değil: yetki kapıları '
+					. 'her isteği reddediyor. Şablondaki helpers/permissions.php\'yi kopyalayın.');
+			}
+
+			return false;
+		}
+
 		return true;
 	}
 
@@ -152,7 +171,7 @@ function vnl_can(?string $permission, string $ability = 'view'): bool
  * Girişsiz → /login'e yönlendirir. Yetkisiz → 403 durum koduyla projenin
  * hata sayfasını (controller/403.php varsa o, yoksa 401.php) çizer ve
  * betiği bitirir. Denetleyicinin ilk satırlarında, veri okumadan önce
- * çağrılmalıdır.
+ * çağrılmalıdır. Katıdır: yetki kancası yoksa kimse geçemez.
  */
 function vnl_require_permission(string $code, string $ability = 'view'): void
 {
@@ -160,7 +179,7 @@ function vnl_require_permission(string $code, string $ability = 'view'): void
 		vnl_redirect_login();
 	}
 
-	if (!vnl_can($code, $ability)) {
+	if (!vnl_can($code, $ability, true)) {
 		vnl_abort(403);
 	}
 }

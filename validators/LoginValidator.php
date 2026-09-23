@@ -17,7 +17,7 @@ class LoginValidator
             else return false;
         }
 
-        /* 3.4.0: Session::GetSessionId() hiç tanımlı olmadı → Session::id(). */
+        /* 3.4.0: tanımsız oturum-kimliği yardımcısı yerine Session::id(). */
         if (empty($loginData['session_id']) ||
             ($loginData['session_id'] != Session::id()
                 || $loginData['current_user_id'] != $CurrentUser->id
@@ -51,7 +51,7 @@ class LoginValidator
 	 * Hesap etkin mi? Kullanıcı nesnesi ya da is_active değeri alır.
 	 * 0 (3.4 şeması) ve 2 (2.x geleneği) pasiftir; NULL/sütun yok etkin.
 	 *
-	 * 3.4.0: tanımsız global LogOut(false) yerine UserModule::LogOut().
+	 * 3.4.0: tanımsız global çıkış çağrısı yerine UserModule::LogOut().
 	 */
 	static function validateActive($userOrFlag){
 		$active = is_object($userOrFlag)

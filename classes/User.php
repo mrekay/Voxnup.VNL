@@ -84,6 +84,37 @@ class User extends TableModel
             && !empty($this->getAttributes()['totp_secret'] ?? null);
     }
 
+    /** TOTP tekrar kullanım sütunu (vnl/migrations/0007) bu kayıtta var mı? */
+    public function hasTotpReplayGuard(): bool
+    {
+        return array_key_exists('totp_last_step', $this->getAttributes());
+    }
+
+    /**
+     * Doğrulanan TOTP adımını tüketir (RFC 6238 §5.2: aynı kod ikinci kez
+     * kabul edilmez).
+     *
+     * Tek bir koşullu UPDATE: yalnız kayıtlı son adımdan BÜYÜK bir adım
+     * yazılabilir. Aynı kodla gelen iki paralel istekten yalnız biri bir
+     * satır değiştirir; diğeri (ve sonraki her tekrar) false alır. Sorgu
+     * kurucusunun temel hali kullanılır: updated_at'e dokunulmaz.
+     */
+    public function claimTotpStep(int $step): bool
+    {
+        $claimed = static::query()->toBase()
+            ->where('id', (int)$this->id)
+            ->where(static function ($q) use ($step) {
+                $q->whereNull('totp_last_step')->orWhere('totp_last_step', '<', $step);
+            })
+            ->update(['totp_last_step' => $step]) === 1;
+
+        if ($claimed) {
+            $this->setRawAttributes(['totp_last_step' => $step] + $this->getAttributes(), true);
+        }
+
+        return $claimed;
+    }
+
     /**
      * Son etkinlik — dakikada bir yazılır; zaman damgalarına dokunmaz.
      *

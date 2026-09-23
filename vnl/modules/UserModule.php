@@ -69,9 +69,15 @@ class UserModule
      * Oturumdaki kullanıcıyı $CurrentUser'a yükler.
      *
      * 3.4.0:
-     *  - VNL_SESSION_IDLE saniyeden uzun süre istek gelmemişse oturum biter.
-     *    Cihaz "beni hatırla" ile işaretliyse aynı istekte çerezle yeniden
-     *    açılır; değilse kullanıcı girişsiz kalır ve çekirdek /login'e yollar.
+     *  - VNL_SESSION_IDLE saniyeden uzun süre istek gelmemişse oturum biter
+     *    ve bu cihazın "beni hatırla" jetonu da iptal edilir (F06.3);
+     *    kullanıcı girişsiz kalır, çekirdek /login'e yollar. Oturum verisi
+     *    daha önce silinmişse (tarayıcı kapandı, GC) aynı sınırı
+     *    CheckCookieAuth() jetonun son kullanımına bakarak uygular.
+     *    VNL_IDLE_KEEPS_REMEMBER=true eski davranışı açar: oturum aynı
+     *    istekte çerezle sessizce yeniden açılır.
+     *  - Girişli istek dakikada bir last_seen'i ve bu cihazın jetonunun
+     *    used_at'ini yeniler (boşta kalma ölçüsü jetonda da tutulur).
      *  - Pasif (is_active = 0) ya da silinmiş kullanıcının oturumu kapanır:
      *    hesabı dondurulan kişi açık sekmesiyle çalışmayı sürdüremez.
      *  - SetOnlineToLastActivity() yalnız tanımlıysa çağrılır (3.3.1'de
@@ -89,6 +95,21 @@ class UserModule
         $lastSeen = (int)Session::get('last_seen');
 
         if ($idle > 0 && $lastSeen > 0 && time() - $lastSeen > $idle) {
+            if (!self::idleKeepsRemember()) {
+                /* Tam kapanış: bu cihazın kalıcı jetonu da gider — aksi halde
+                   çerez oturumu aynı istekte yeniden açar ve sınır, "beni
+                   hatırla" diyen her cihazda hiçbir şey yapmazdı. */
+                try {
+                    self::ForgetMe();
+                } catch (Throwable $e) {
+                    error_log('[VNL][Auth] ForgetMe: ' . $e->getMessage());
+                }
+
+                self::EndSession();
+
+                return;
+            }
+
             self::EndSession();
             self::CheckCookieAuth();
 
@@ -113,6 +134,7 @@ class UserModule
            yeniden yazmak gereksiz disk yükü ve kilit demek. */
         if (time() - $lastSeen >= 60) {
             Session::set('last_seen', time());
+            self::touchRememberToken((int)$user->id);
         }
 
         if (method_exists($CurrentUser, 'SetOnlineToLastActivity')) {
@@ -156,6 +178,37 @@ class UserModule
     static function idleLimit(): int
     {
         return max(0, (int)VnlEnv::get('VNL_SESSION_IDLE', self::SESSION_IDLE));
+    }
+
+    /**
+     * Boşta kalan oturum "beni hatırla" jetonuyla sessizce yeniden açılsın
+     * mı? (VNL_IDLE_KEEPS_REMEMBER, varsayılan false.)
+     */
+    static function idleKeepsRemember(): bool
+    {
+        return VnlEnv::get('VNL_IDLE_KEEPS_REMEMBER', false) === true;
+    }
+
+    /**
+     * Bu cihazın kalıcı jetonunun son kullanımını (used_at) yeniler.
+     * SetCurrentUserInfo() dakikada bir çağırır; CheckCookieAuth() boşta
+     * kalma sınırını bu değere göre uygular.
+     */
+    private static function touchRememberToken(int $userId): void
+    {
+        $raw = $_COOKIE[self::rememberCookieName()] ?? '';
+
+        if ($raw === '' || !is_string($raw) || $userId <= 0) {
+            return;
+        }
+
+        try {
+            RememberToken::where('token_hash', RememberToken::hashOf($raw))
+                ->where('user_id', $userId)
+                ->update(['used_at' => date('Y-m-d H:i:s')]);
+        } catch (Throwable $e) {
+            error_log('[VNL][Auth] Jeton kullanımı yazılamadı: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -207,6 +260,22 @@ class UserModule
             self::clearRememberCookie();
 
             return;
+        }
+
+        /* Boşta kalma sınırı jetona da uygulanır (F06): oturum dosyası
+           silinmiş olsa bile (tarayıcı kapandı, GC) gözetimsiz bir tarayıcı
+           VNL_REMEMBER_DAYS boyunca açık kalmaz. Ölçü: jetonun son kullanımı
+           (used_at; hiç yenilenmediyse oluşturulduğu an). */
+        $idle = self::idleLimit();
+        if ($idle > 0 && !self::idleKeepsRemember()) {
+            $lastUse = strtotime((string)($token->used_at ?: $token->created_at));
+
+            if ($lastUse !== false && time() - $lastUse > $idle) {
+                $token->delete();
+                self::clearRememberCookie();
+
+                return;
+            }
         }
 
         $user = User::Select(['id' => $token->user_id]);
@@ -313,8 +382,9 @@ class UserModule
     }
 
     /**
-     * Oturumu bitirir ama cihazın "beni hatırla" jetonuna dokunmaz
-     * (boşta kalma sınırı). Tam çıkış için LogOut().
+     * Oturumu bitirir ama cihazın "beni hatırla" jetonuna dokunmaz.
+     * Boşta kalma sınırı jetonu ayrıca ForgetMe() ile iptal eder
+     * (VNL_IDLE_KEEPS_REMEMBER=true değilse). Tam çıkış için LogOut().
      */
     static function EndSession(): void
     {

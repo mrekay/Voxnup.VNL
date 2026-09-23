@@ -281,6 +281,18 @@ window.vnlHandleAjaxError = function (status, json, settings) {
                 window.location.href = '/login';
             }
         }, 1500);
+    } else if (status == 403 && json.devcode === 'VNL_CSRF') {
+        // 403 VNL_CSRF = sayfadaki jeton eskidi: oturum başka bir sekmede
+        // yenilendi ya da "beni hatırla" aynı istekte yeniden açtı. Yeni
+        // jeton ancak sayfayla gelir. Çerez/depolama kapalı tarayıcıda
+        // sonsuz yenileme olmasın diye 30 sn'de en fazla bir kez.
+        if (!custom) showModalMessage(vnlEscape(message), true);
+        var reloadKey = 'vnl.csrfReloadAt', last = null;
+        try { last = parseInt(window.sessionStorage.getItem(reloadKey) || '0', 10) || 0; } catch (e) { last = null; }
+        if (last !== null && Date.now() - last > 30000) {
+            try { window.sessionStorage.setItem(reloadKey, String(Date.now())); } catch (e) { /* yoksay */ }
+            setTimeout(function () { window.location.reload(); }, 1500);
+        }
     } else if ([400, 403, 404, 405, 419, 422, 429].indexOf(status) !== -1) {
         if (!custom) showModalMessage(vnlEscape(message), true);
     } else if (status >= 500) {

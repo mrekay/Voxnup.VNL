@@ -142,8 +142,10 @@ try {
 }
 
 /* 3.4.0 öncesi public kalıbını kullanan korumalı sayfa: davranış artık
-   login_except_pages'e bağlı; geliştiriciye iz bırakılır. */
-if (!$isExceptPage && !empty($page_config['public']) && vnl_debug()) {
+   login_except_pages'e bağlı; geliştiriciye iz bırakılır. APP_DEBUG'dan
+   bağımsızdır: canlıda sessizce girişe kapanan bir sayfanın tek geçiş
+   işareti bu satırdır (F05.3). İstek başına bir kez. */
+if (!$isExceptPage && !empty($page_config['public'])) {
     error_log('[VNL][Kernel] ' . $currentPage . ': $page_config[public] is deprecated; '
         . 'use login_except_pages / vnl_public_page()');
 }

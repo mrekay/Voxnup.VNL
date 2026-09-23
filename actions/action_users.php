@@ -7,8 +7,8 @@
  * ============================================================
  *
  * 3.4.0'da yeniden yazıldı. Eski dosya PascalCase sütunlar, MSSQL'e özgü
- * NEWID() ve DataTables sözleşmesiyle yazılmıştı; VNL'in hiçbir sürümünde
- * çalışmıyordu. Şimdi 0002 şeması + VNL Table sözleşmesi.
+ * rastgele-GUID sıralaması ve DataTables sözleşmesiyle yazılmıştı; VNL'in
+ * hiçbir sürümünde çalışmıyordu. Şimdi 0002 şeması + VNL Table sözleşmesi.
  *
  * Yetki kodu 'Users' (view / insert / edit / delete). Yetki yükseltmesine
  * karşı kurallar:
@@ -17,6 +17,14 @@
  *  - Kimse kendi hesabını silemez, pasifleştiremez, kendi rolünü ve
  *    yetkilerini değiştiremez.
  *  - Süper olmayan yönetici ancak KENDİSİNDE olan yetenekleri dağıtabilir.
+ *  - Süper olmayan yönetici ancak yetkilerinin TAMAMI kendisinde de olan bir
+ *    kullanıcıyı düzenleyebilir, silebilir ya da yetkilerini değiştirebilir
+ *    (canManage). Aksi halde "Users:edit" yetkisiyle daha yetkili birinin
+ *    parolasını sıfırlayıp onun yerine girmek mümkün olurdu.
+ *
+ * Proje notu: varsayılan kancada perm_id = 1 dışındaki roller hiçbir yetki
+ * vermez; yetkiler kullanıcı başına tbl_user_permissions'tadır. Rolün kendisi
+ * yetki taşıyan bir kanca yazan proje, rol atamasını da ayrıca korumalıdır.
  */
 
 use ActionGlobal\Auth;
@@ -110,6 +118,12 @@ class action_users
             returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
         }
 
+        /* Başka bir kullanıcıyı düzenlemek (parola dahil) yalnız onun bütün
+           yetkilerine sahip olana açıktır — hiçbir alan atanmadan önce. */
+        if ($id > 0 && (int)$user->id !== (int)$me->id && !$this->canManage($me, $user)) {
+            returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
+        }
+
         if ($id > 0 && (int)$user->id === (int)$me->id) {
             if ($isActive === 0 || $permId !== ($user->perm_id !== null ? (int)$user->perm_id : null)) {
                 returnErrorMessage(lang('USERS_ERR_SELF'), 403, 'VNL_PERM');
@@ -155,7 +169,7 @@ class action_users
             returnErrorMessage(lang('USERS_ERR_SELF'), 403, 'VNL_PERM');
         }
 
-        if ($user->isSuperAdmin() && !$me->isSuperAdmin()) {
+        if (!$this->canManage($me, $user)) {
             returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
         }
 
@@ -198,7 +212,9 @@ class action_users
             returnErrorMessage(lang('USERS_ERR_SELF'), 403, 'VNL_PERM');
         }
 
-        if ($user->isSuperAdmin() && !$me->isSuperAdmin()) {
+        /* Daha yetkili birinin yetkilerini daraltmak ya da kaldırmak da
+           yasak: hedefin her yeteneği işlemi yapanda da olmalı. */
+        if (!$this->canManage($me, $user)) {
             returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
         }
 
@@ -224,7 +240,7 @@ class action_users
             /* Süper olmayan, kendisinde olmayan yeteneği dağıtamaz. */
             if (!$me->isSuperAdmin()) {
                 foreach ($abilities as $ability) {
-                    if (!vnl_can($code, $ability)) {
+                    if (!vnl_can($code, $ability, true)) {
                         returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
                     }
                 }
@@ -239,12 +255,49 @@ class action_users
             $applied[$code] = $abilities;
         }
 
-        Audit::log('user.permissions', 'user', $user->id, ['permissions' => $applied]);
+        /* Liste olarak: izin kodları VERİDİR, anahtar değil. Anahtar olarak
+           yazılsaydı Audit'in gizli anahtar süzgeci 'ApiTokens',
+           'DbPasswords' gibi kodları kayıttan düşürürdü. */
+        Audit::log('user.permissions', 'user', $user->id, [
+            'permissions' => array_map(
+                static fn($code) => ['code' => (string)$code, 'abilities' => $applied[$code]],
+                array_keys($applied)
+            ),
+        ]);
 
         returnSuccessMessage(lang('USERS_PERMISSIONS_SAVED'));
     }
 
     /* ---------------------------------------------------------------- */
+
+    /**
+     * $me, $target'ı yönetebilir mi?
+     *
+     * Süper yönetici herkesi yönetir. Süper olmayan: süper bir hedefi asla;
+     * diğerlerini ancak hedefin AÇIK olan her yeteneği kendisinde de varsa
+     * (vnl_can, katı). ForUser() kod => [yetenek => bool] döner; yalnız true
+     * olanlara bakılır.
+     */
+    private function canManage(User $me, User $target): bool
+    {
+        if ($me->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($target->isSuperAdmin()) {
+            return false;
+        }
+
+        foreach (UserPermissions::ForUser((int)$target->id) as $code => $abilities) {
+            foreach ($abilities as $ability => $granted) {
+                if ($granted && !vnl_can((string)$code, (string)$ability, true)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 
     private function find(int $id): User
     {

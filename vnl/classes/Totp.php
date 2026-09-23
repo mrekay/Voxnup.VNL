@@ -23,9 +23,15 @@
  * HMAC-SHA1, 30 saniye, 6 hane. Saat kaymasına karşı ±1 adım (±30 sn) kabul
  * edilir. Karşılaştırma sabit zamanlıdır.
  *
- * Tekrar kullanım (aynı kodun pencere içinde ikinci kez girilmesi) için
- * match() eşleşen adımı döner; çağıran son adımı saklayıp daha küçük ya da
- * eşit bir adımı reddedebilir.
+ * Tekrar kullanım (aynı kodun pencere içinde ikinci kez girilmesi): verify()
+ * YALNIZ kodun doğruluğunu söyler, tekrarı engellemez. Giriş gibi bir kapıda
+ * match() kullanın; eşleşen adımı saklayıp daha küçük ya da eşit bir adımı
+ * reddedin (RFC 6238 §5.2). Şablonun giriş akışı bunu yapar:
+ *
+ *   $step = Totp::match($secret, $code);                       // ?int
+ *   if ($step === null || !$user->claimTotpStep($step)) { ... } // koşullu UPDATE
+ *
+ * (tbl_users.totp_last_step — vnl/migrations/0007, User::claimTotpStep.)
  */
 class Totp
 {

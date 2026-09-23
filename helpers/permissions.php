@@ -16,8 +16,11 @@
  *
  * Yetenekler: view, insert, edit, delete.
  *
- * Bu dosyayı silmek kapıyı AÇAR (kanca yoksa vnl_can() her koda true
- * döner — 3.1 uyumluluğu). `php vnl.php doctor` kancanın varlığını sınar.
+ * Bu dosya silinirse menü 3.1'deki gibi herkese görünür (vnl_can() menü
+ * için true döner), ama yetki KAPILARI kapanır: vnl_require_permission(),
+ * Auth::CheckPermission() ve Auth::Can() katı sorar (vnl_can(..., true)) ve
+ * kanca yokken kimseye izin vermez; sebep günlüğe yazılır.
+ * `php vnl.php doctor` kancanın varlığını sınar.
  */
 
 function vnl_project_permission(string $code, $user, string $ability = 'view'): bool
