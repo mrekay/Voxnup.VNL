@@ -333,14 +333,14 @@ function vnl_project_error_page(Throwable $e): void
                     <div class="separator separator-dashed my-8"></div>
 
                     <!--begin::Section 6-->
-                    <div class="mb-0">
+                    <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">6. <code>throwErrorMessage()</code> mi, Exception mı?</h3>
 
                         <div class="row g-5 mb-6">
                             <div class="col-md-6">
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <h6 class="fw-bold mb-3"><code>throwErrorMessage($msg, $kod)</code></h6>
-                                    <span class="text-body fs-6 d-block mb-3">HTTP kodunu ayarlar ve gerçek bir <code>Exception</code> fırlatır — hiçbir çıktı basmaz. <code>controller/app.php</code>'nin <code>catch</code> bloğu bunu yakalar ve JSON'a çevirir.</span>
+                                    <span class="text-body fs-6 d-block mb-3">Durum kodunu ve geliştirici kodunu taşıyan bir <code>VnlHttpException</code> (<code>Exception</code>'dan türer) fırlatır — hiçbir çıktı basmaz. <code>VnlDispatcher</code> yakalar ve istisnanın kendi koduyla JSON'a çevirir.</span>
                                     <span class="badge badge-soft-success">Yakalanabilir</span>
                                     <span class="badge badge-soft-success">Action içinde tercih edilen</span>
                                 </div>
@@ -355,18 +355,15 @@ function vnl_project_error_page(Throwable $e): void
                             </div>
                         </div>
 
-                        <p class="fs-6 text-body mb-3"><code>controller/app.php</code> yakaladığı istisnanın kaynağına bakarak durum kodunu belirler:</p>
+                        <p class="fs-6 text-body mb-3"><code>VnlDispatcher</code> action'dan çıkan istisnayı türüne göre yanıtlar (<code>controller/app.php</code> yalnız <code>VnlDispatcher::handle()</code> çağırır):</p>
 
                         <div class="vnl-code mb-5">
-                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// controller/app.php
-} catch (Exception $e) {
-    $last_call = $e->getTrace()[0];
-
-    if ($last_call["function"] == "throwErrorMessage") {
-        returnErrorMessage($e->getMessage());        // 400 — beklenen hata
-    } else {
-        returnErrorMessage($e->getMessage(), 500);   // 500 — beklenmeyen
-    }
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// vnl/classes/VnlDispatcher.php — 7. adım (özet)
+} catch (VnlHttpException $e) {      // throwErrorMessage() ve alt sınıfları: beklenen hata
+    // durum ve devcode istisnadan gelir; 3.4.1: headers() gönderilir, extra() gövdeye eklenir
+    // → 404 {"message": "Sipariş bulunamadı.", "devcode": ""}
+} catch (Throwable $e) {              // beklenmeyen: ayrıntı günlüğe
+    // → 500 {"message": "...", "devcode": "VNL_FATAL", "ref": "3f9c0a..."}
 }</code></pre>
                         </div>
 
@@ -404,6 +401,79 @@ class action_siparis
                         </div>
                     </div>
                     <!--end::Section 6-->
+
+                    <div class="separator separator-dashed my-8"></div>
+
+                    <!--begin::Section 7-->
+                    <div class="mb-0">
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. Ek alan ve başlık — <code>extra()</code> / <code>headers()</code> <span class="badge badge-soft-primary align-middle">3.4.1</span></h3>
+
+                        <p class="fs-6 text-body mb-3"><code>VnlHttpException</code> gövdeye <code>message</code> ve <code>devcode</code> dışında alan (alan hataları, kota bilgisi) ve yanıta başlık (<code>Retry-After</code>) taşıyabilir. Kurucunun <code>$previous</code>'tan sonraki iki isteğe bağlı parametresiyle ya da alt sınıfta <code>extra()</code> / <code>headers()</code> ezilerek verilir; dağıtıcıyı kopyalamak gerekmez.</p>
+
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>new VnlHttpException(string $message, int $status = 400, string $devcode = '',
+                     ?Throwable $previous = null, array $extra = [], array $headers = []);
+
+// Tek seferlik
+throw new VnlHttpException('Sunucu meşgul.', 503, 'BUSY', null, [], ['Retry-After' => 5]);
+
+// Projenin kendi istisnası — classes/ValidationError.php
+class ValidationError extends VnlHttpException
+{
+    public function __construct(private array $fieldErrors)
+    {
+        parent::__construct('Form hatalı.', 422, 'VALIDATION');
+    }
+
+    public function extra(): array
+    {
+        return ['errors' => $this->fieldErrors];   // [['field' => 'name', 'message' => '...']]
+    }
+}</code></pre>
+                        </div>
+
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>HTTP/1.1 422
+Content-Type: application/json; charset=utf-8
+
+{"message": "Form hatalı.", "devcode": "VALIDATION", "errors": [{"field": "name", "message": "Zorunlu."}]}</code></pre>
+                        </div>
+
+                        <div class="table-responsive border rounded bg-body-tertiary mb-5">
+                            <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
+                                <thead>
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
+                                    <th class="ps-5 min-w-150px">Kural</th>
+                                    <th class="min-w-350px">Ayrıntı</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-body fw-semibold">
+                                <tr>
+                                    <td class="ps-5">Ne zaman</td>
+                                    <td><code>extra()</code> ve <code>headers()</code> yanıt yazılırken çağrılır. Kendileri istisna fırlatırsa hata beklenmeyen sayılır: 500 <code>VNL_FATAL</code> + <code>ref</code>, ayrıntı günlüğe.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Gövde</td>
+                                    <td><code>['message' =&gt; …, 'devcode' =&gt; …] + extra()</code> — ek alanlar <code>message</code> ve <code>devcode</code>'u ezemez.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Başlıklar</td>
+                                    <td>Adı RFC 9110 token'ı olmayan başlık atlanır; değerdeki satır sonu boşluğa çevrilir. Değer bir listeyse her öğe ayrı satır gider; <code>null</code> ve <code>bool</code> atlanır. <code>Content-Type</code> her zaman JSON'dur.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5">Geriye uyum</td>
+                                    <td>3.4.0 çağrıları (<code>throwErrorMessage()</code>, dört parametreli kurucu) aynı yanıtı üretir. Dağıtıcıyı <code>classes/VnlDispatcher.php</code> ile ezen proje yeni alanları yazmak için <code>catch (VnlHttpException $e)</code> bloğunda <code>$e-&gt;headers()</code> ve <code>$e-&gt;extra()</code>'yı kendisi kullanmalıdır.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="alert alert-primary d-flex align-items-center p-4 mb-0">
+                            <i class="fa-solid fa-lightbulb fs-2 text-primary me-3"></i>
+                            <span class="text-body fs-6">Ön yüzde alan hatası <code>xhr.responseJSON?.errors</code>, bekleme süresi <code>xhr.getResponseHeader('Retry-After')</code> ile okunur. <code>errors</code> alanının biçimi projenindir; çekirdek içine bakmaz.</span>
+                        </div>
+                    </div>
+                    <!--end::Section 7-->
 
                 </div>
             </div>

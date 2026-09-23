@@ -37,6 +37,9 @@ class action_urun
   yardımcı metotları `private` yazın.
 - `throwErrorMessage($mesaj, $kod)` kodunu korur (422 → 422). Başka her istisna
   günlüğe yazılır, kullanıcı genel metin + başvuru kodu görür (500 `VNL_FATAL`).
+- 3.4.1: `VnlHttpException` gövdeye ek alan ve yanıta başlık taşır —
+  `new VnlHttpException($m, 422, 'VALIDATION', null, ['errors' => [...]], ['Retry-After' => 5])`
+  ya da alt sınıfta `extra()` / `headers()`. Ek alanlar `message`/`devcode`'u ezemez.
 - `Authorization: Bearer <jeton>` (API jetonu) oturum + CSRF yerine geçer.
 
 ## Kural: action içinde sorgu kurulmaz

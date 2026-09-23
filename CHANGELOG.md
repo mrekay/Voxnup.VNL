@@ -9,6 +9,84 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.4.1] — 2026-09-23
+
+Küçük, geriye uyumlu yama: **`VnlHttpException` artık JSON gövdesine ek alan
+ve yanıta başlık taşıyabilir** (F30). Kırıcı değişiklik yoktur; 3.4.0'daki her
+çağrı (`throwErrorMessage()`, `new VnlHttpException($m, $kod, $devcode,
+$previous)`) aynı durum kodunu, aynı başlıkları ve bayt bayt aynı gövdeyi
+üretir. Değişen dosyalar: `vnl/classes/VnlHttpException.php`,
+`vnl/classes/VnlDispatcher.php`.
+
+Madde numarası (F30) VNL Panel geliştirici kılavuzunun §12 düzeltme listesine
+karşılık gelir.
+
+### Eklenenler
+
+- **`VnlHttpException` — `$extra` ve `$headers` (F30).** Kurucuya
+  `$previous`'tan sonra iki isteğe bağlı parametre, sınıfa ezilebilir iki
+  metot eklendi:
+
+  ```php
+  new VnlHttpException(string $message, int $status = 400, string $devcode = '',
+                       ?Throwable $previous = null, array $extra = [], array $headers = []);
+
+  $e->extra();    // array — JSON gövdesine eklenir: ['errors' => [...], 'limit' => [...]]
+  $e->headers();  // array — gövdeden önce gönderilir: ['Retry-After' => 5]
+  ```
+
+  `VnlDispatcher` bir `VnlHttpException` yakaladığında önce `headers()`'ı
+  gönderir, sonra gövdeyi `['message' => …, 'devcode' => …] + extra()` olarak
+  yazar. Proje kendi alan istisnalarını (422 + `errors[]`, 409 + `limit`,
+  503 + `Retry-After`) dağıtıcıyı kopyalamadan yanıta çevirebilir:
+
+  ```php
+  class ValidationError extends VnlHttpException
+  {
+      public function __construct(private array $fieldErrors)
+      {
+          parent::__construct('Form hatalı.', 422, 'VALIDATION');
+      }
+
+      public function extra(): array
+      {
+          return ['errors' => $this->fieldErrors];
+      }
+  }
+  // → 422 {"message":"Form hatalı.","devcode":"VALIDATION","errors":[...]}
+  ```
+
+  Kurallar:
+  - `extra()` ve `headers()` **yanıt yazılırken** çağrılır; alt sınıf ikisini
+    de ezebilir. Metodun kendisi istisna fırlatırsa hata beklenmeyen sayılır:
+    500 `VNL_FATAL` + `ref`, ayrıntı günlüğe.
+  - Ek alanlar `message` ve `devcode`'u **ezemez** (dizi birleşimi soldakini
+    korur).
+  - Adı RFC 9110 token'ı olmayan başlık atlanır; değerdeki CR/LF boşluğa
+    çevrilir (başlık enjeksiyonu yok). Değer liste ise aynı başlık her öğe için
+    ayrı satır gider; `null` ve `bool` atlanır. `Content-Type` her durumda
+    `application/json`'dur.
+  - Proje `classes/VnlHttpException.php` ile 3.4.0 sınıfını ezmişse (metotlar
+    yok) dağıtıcı eskisi gibi yalnız `{message, devcode}` yazar.
+
+### Değişenler
+
+- `VnlDispatcher`'ın hata gövdesi `JSON_INVALID_UTF8_SUBSTITUTE` ile
+  kodlanır: geçersiz UTF-8 taşıyan bir mesaj artık boş gövde değil, `U+FFFD`
+  içeren geçerli bir JSON üretir. Geçerli metinde çıktı değişmez.
+- `/docs/errors` §6 3.4.0 dağıtıcısına göre düzeltildi (eski
+  `controller/app.php` örneği kaldırıldı), §7 eklendi; `/docs/request-handling`
+  `throwErrorMessage()` satırı güncellendi.
+
+### Yükseltme
+
+`php vnl.php update --to 3.4.1`. Dağıtıcıyı `classes/VnlDispatcher.php` ile
+ezen proje yeni alanları yazmak için `catch (VnlHttpException $e)` bloğunda
+`$e->headers()` ve `$e->extra()`'yı kendisi kullanmalıdır; ezmeyen projede
+yapılacak bir şey yoktur.
+
+---
+
 ## [3.4.0] — 2026-09-23
 
 Güvenlik ve işletim sürümü. Şablon artık **varsayılan olarak kapalı** gelir:

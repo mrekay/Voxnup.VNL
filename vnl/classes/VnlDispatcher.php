@@ -31,6 +31,10 @@
  *   7. Çağrı    throwErrorMessage → kendi kodu; başka her istisna günlüğe
  *               yazılır, kullanıcıya genel metin      500  VNL_FATAL (+ ref)
  *
+ * VnlHttpException (3.4.1) gövdeye ek alan (extra(): errors[], limit ...) ve
+ * yanıta başlık (headers(): Retry-After ...) taşıyabilir; ikisi de 7. adımda
+ * yazılır. Ek alanlar message/devcode'u ezemez.
+ *
  * Action sınıfındaki isteğe bağlı sabitler:
  *
  *   public const PUBLIC_METHODS = ['login'];     // girişsiz çağrılabilir
@@ -137,7 +141,7 @@ class VnlDispatcher
             $reflection->invoke($instance, $req);
         } catch (VnlHttpException $e) {
             self::cleanBuffers();
-            self::deny($e->getMessage(), $e->status(), $e->devcode());
+            self::respond($e);
         } catch (Throwable $e) {
             /* Projenin ezdiği eski bir throwErrorMessage() düz Exception
                fırlatıyor olabilir: kaynağı yığından tanınır (3.3 davranışı). */
@@ -224,13 +228,67 @@ class VnlDispatcher
      * PHPEXCELMODE tanımlıyken durmaz; bir güvenlik kapısının ardından akışın
      * sürmesi kabul edilemez.
      */
-    private static function deny(string $message, int $status, string $devcode = ''): never
+    private static function deny(string $message, int $status, string $devcode = '', array $extra = [], array $headers = []): never
     {
         http_response_code($status);
+        self::sendHeaders($headers);
         vnl_json_header();
-        echo json_encode(['message' => $message, 'devcode' => $devcode]);
+
+        /* Birleşim (+) soldakini korur: extra message/devcode'u ezemez. */
+        echo json_encode(['message' => $message, 'devcode' => $devcode] + $extra, JSON_INVALID_UTF8_SUBSTITUTE);
 
         exit;
+    }
+
+    /**
+     * VnlHttpException'ı yanıta çevirir (3.4.1: extra + headers).
+     *
+     * extra()/headers() alt sınıfta ezilmiş olabilir ve yanıt yazılırken
+     * çağrılır; kendisi hata verirse beklenmeyen hata sayılır (500 + ref).
+     * Proje classes/VnlHttpException.php ile 3.4.0 sınıfını ezmişse metotlar
+     * yoktur; yanıt 3.4.0'daki gibi yalnız {message, devcode} olur.
+     */
+    private static function respond(VnlHttpException $e): never
+    {
+        try {
+            $extra   = method_exists($e, 'extra') ? $e->extra() : [];
+            $headers = method_exists($e, 'headers') ? $e->headers() : [];
+        } catch (Throwable $inner) {
+            self::fail($inner);
+        }
+
+        self::deny($e->getMessage(), $e->status(), $e->devcode(), $extra, $headers);
+    }
+
+    /**
+     * İstisnanın başlıklarını gönderir. Adı RFC 9110 token'ı olmayan başlık
+     * atlanır; değerdeki satır sonu boşluğa çevrilir (başlık enjeksiyonu yok).
+     * Content-Type ardından vnl_json_header() ile yeniden yazılır.
+     */
+    private static function sendHeaders(array $headers): void
+    {
+        if ($headers === [] || headers_sent()) {
+            return;
+        }
+
+        foreach ($headers as $name => $value) {
+            if (!is_string($name) || !preg_match('/^[A-Za-z0-9!#$%&\'*+.^_`|~-]+$/', $name)) {
+                continue;
+            }
+
+            $replace = true;
+
+            foreach (is_array($value) ? $value : [$value] as $item) {
+                if (is_bool($item) || (!is_scalar($item) && !$item instanceof Stringable)) {
+                    continue;
+                }
+
+                $text = trim(str_replace(["\r", "\n", "\0"], ' ', (string)$item));
+
+                header($name . ': ' . $text, $replace);
+                $replace = false;
+            }
+        }
     }
 
     /** Action yarıda bir şey bastıysa hata gövdesine karışmasın. */
