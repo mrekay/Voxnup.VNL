@@ -21,3 +21,6 @@ dist/
 
 # Claude Code yerel ayarlari — izin listesi makineye ozeldir, depoya girmez
 .claude/
+
+# Uygulama gunlukleri — LogModule (LOG_PATH varsayilani)
+files/logs/

@@ -53,15 +53,22 @@ class VnlMigrate
             $this->fail("DB_DATABASE bos. .env dosyanizi doldurun.");
         }
 
-        /* host "sunucu:port" biçiminde verilebilir. */
-        $host = (string)$db['host'];
-        $port = null;
+        /* 3.4.0: DB_PORT / DB_SOCKET (config/definitions.php'deki port ve
+           unix_socket). Eski "sunucu:port" yazımı geri düşüş olarak durur. */
+        $host   = (string)$db['host'];
+        $port   = isset($db['port']) && (int)$db['port'] > 0 ? (int)$db['port'] : null;
+        $socket = (string)($db['unix_socket'] ?? '');
+
         if (substr_count($host, ':') === 1) {
-            [$host, $port] = explode(':', $host, 2);
+            [$host, $hostPort] = explode(':', $host, 2);
+            if ((int)$hostPort > 0) {
+                $port = (int)$hostPort;
+            }
         }
 
-        $dsn = 'mysql:host=' . $host
-            . ($port !== null ? ';port=' . (int)$port : '')
+        $dsn = ($socket !== ''
+                ? 'mysql:unix_socket=' . $socket
+                : 'mysql:host=' . $host . ($port !== null ? ';port=' . $port : ''))
             . ';dbname=' . $db['database']
             . ';charset=' . ($db['charset'] ?: 'utf8mb4');
 
@@ -220,7 +227,31 @@ class VnlMigrate
             : "  {$ran} migration " . ($dryRun ? 'uygulanacakti.' : 'uygulandi.'));
         $this->line();
 
+        if (!$dryRun) {
+            $this->hintFirstAdmin();
+        }
+
         return 0;
+    }
+
+    /**
+     * Kullanıcı tablosu boşsa ilk yöneticinin nasıl oluşturulacağını söyler.
+     * Parolalı bir tohum kaydı SQL'e gömülmez: herkesin bildiği bir parola
+     * her kurulumda açık kapı olurdu.
+     */
+    private function hintFirstAdmin(): void
+    {
+        try {
+            $count = (int)$this->pdo->query('SELECT COUNT(*) FROM `tbl_users`')->fetchColumn();
+        } catch (PDOException $e) {
+            return;
+        }
+
+        if ($count === 0) {
+            $this->line('  Kullanici tablosu bos. Ilk yoneticiyi olusturun:');
+            $this->line('    php vnl.php user:create --username=admin --super');
+            $this->line();
+        }
     }
 
     /* ---------------------------------------------------------------- */
