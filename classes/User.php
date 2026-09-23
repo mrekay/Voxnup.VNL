@@ -48,14 +48,15 @@ class User extends TableModel
         'password'  => ['name' => 'tbl_users.password'],
     );
 
+    /**
+     * 3.4.0: tbl_permissions artık izin KODLARIDIR (Users, Domains …), rol
+     * tablosu değildir. 3.3'teki "perm_id = p.id" birleştirmesi rolü bir izin
+     * koduyla eşliyordu (yeni kurulumda süper yönetici "Kullanıcılar"
+     * görünüyordu); kaldırıldı.
+     */
     public static function SelectList($filters = [], $extras = [])
     {
-
-        $query = self::selectListQuery(self::$columns,$filters, $extras)->select("tbl_users.*", "p.name as perm_name")
-            ->leftJoin(Permission::tableName("p"), "perm_id", "=", "p.id");
-
-
-        return $query;
+        return self::selectListQuery(self::$columns, $filters, $extras)->select('tbl_users.*');
     }
 
     /** Kullanıcı adı başka bir kayıtta (silinmişler dahil) kullanılıyor mu? */

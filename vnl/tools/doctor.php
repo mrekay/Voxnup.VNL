@@ -269,7 +269,7 @@ TXT
         '.htaccess Authorization basligini iletiyor',
         !is_string($htaccessRules) || str_contains($htaccessRules, 'HTTP_AUTHORIZATION'),
         "Apache + PHP-FPM (mod_proxy_fcgi) Authorization basligini PHP'ye\n"
-        . "        iletmez: Bearer API jetonlari 403 VNL_CSRF alir. Sablondaki\n"
+        . "        iletmez: Bearer API jetonlari 401 VNL_AUTH alir. Sablondaki\n"
         . "        .htaccess'teki RewriteRule .* - [E=HTTP_AUTHORIZATION:...] satirini\n"
         . "        ekleyin ya da vhost'ta CGIPassAuth On (Apache 2.4.13+).",
         false

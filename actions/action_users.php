@@ -320,7 +320,7 @@ class action_users
             'fullname'      => $u->fullname(),
             'email'         => $u->email,
             'perm_id'       => $u->perm_id !== null ? (int)$u->perm_id : null,
-            'perm_name'     => $u->perm_name,
+            'super'         => $u->isSuperAdmin(),
             'is_active'     => (int)($u->is_active ?? 1),
             'totp_enabled'  => (int)($u->totp_enabled ?? 0),
             'last_login_at' => $u->last_login_at !== null ? (string)$u->last_login_at : null,

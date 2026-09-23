@@ -214,7 +214,7 @@ $user-&gt;totp_enabled = 1;</code></pre>
                         </p>
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-4">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
-                            <span class="text-body fs-6"><b>Apache + PHP-FPM:</b> <code>mod_proxy_fcgi</code> <code>Authorization</code> başlığını PHP'ye iletmez; jeton hiç görünmez ve istek 403 <code>VNL_CSRF</code> alır. Şablonun <code>.htaccess</code>'i başlığı <code>RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]</code> ile iletir (eski <code>.htaccess</code>'e bu iki satırı ekleyin; <code>php vnl.php doctor</code> denetler). Alternatif: vhost'ta <code>CGIPassAuth On</code> (Apache 2.4.13+). nginx'te <code>fastcgi_params</code> başlığı zaten iletir.</span>
+                            <span class="text-body fs-6"><b>Apache + PHP-FPM:</b> <code>mod_proxy_fcgi</code> <code>Authorization</code> başlığını PHP'ye iletmez; jeton hiç görünmez ve istek 401 <code>VNL_AUTH</code> alır. Şablonun <code>.htaccess</code>'i başlığı <code>RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]</code> ile iletir (eski <code>.htaccess</code>'e bu iki satırı ekleyin; <code>php vnl.php doctor</code> denetler). Alternatif: vhost'ta <code>CGIPassAuth On</code> (Apache 2.4.13+). nginx'te <code>fastcgi_params</code> başlığı zaten iletir.</span>
                         </div>
                         <div class="vnl-code">
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>php vnl.php token:create --user=admin --name=izleme --abilities=jobs:status --days=90

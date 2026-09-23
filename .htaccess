@@ -20,11 +20,15 @@ RewriteRule (^|/)\.(?!well-known) - [F,L]
 # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # Sunucuda duran ama web'den ASLA okunmaması gereken dizinler (3.4.0).
-# Yalnız VAR OLAN dosya/dizin istekleri engellenir: aynı ada sahip bir
-# SAYFA adresi (ör. /jobs) yönlendirmeye düşmeye devam eder.
+# Yalnız bu dizinlerin İÇİNDEKİ var olan dosya/dizinler engellenir.
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)(/|$) - [F,L]
+RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)/. - [F,L]
+
+# Dizinin kendi adı (/jobs, /config/) bir SAYFA adresidir ve nginx'teki gibi
+# ön denetleyiciye gider. Dizin var olduğu için aşağıdaki !-d koşulu onu
+# atlardı; 3.4.0'ın ilk hâlinde bu adresler 403 dönüyordu.
+RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)/?$ index.php [QSA,L]
 
 # Çekirdek: yalnız vnl/assets/ servis edilir.
 RewriteRule ^vnl/?$ - [F,L]
@@ -61,8 +65,9 @@ RewriteRule ^ index.php [QSA,L]
 </FilesMatch>
 
 # Sunucuda durup tarayıcıya gitmemesi gereken dosyalar. PHP yorumlanır,
-# ama .sql/.log/.lock düz metin olarak servis edilirdi.
-<FilesMatch "\.(sql|log|lock|ini|sh|bak|yml|yaml|md|dist|example)$|^composer\.json$">
+# ama .sql/.log/.lock düz metin olarak servis edilirdi. web.config IIS'in
+# yapılandırmasıdır; Apache onu düz metin olarak veriyordu.
+<FilesMatch "\.(sql|log|lock|ini|sh|bak|yml|yaml|md|dist|example)$|^(composer\.json|web\.config)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

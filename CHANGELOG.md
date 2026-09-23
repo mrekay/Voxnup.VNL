@@ -264,6 +264,28 @@ Güvenlik ve işletim gözden geçirmesinde bulunanlar; hepsi bu sürümde.
   `/docs/theme-sidebar` (menü parçaları), `/docs/languages` (dil parçaları),
   `/docs/security`, `/docs/session`, `/docs/cli-queue`.
 
+### Sunucu testi düzeltmeleri (yayından önce)
+
+Ubuntu 24.04 üzerinde nginx + Apache (`.htaccess`) + PHP 8.3-FPM + MariaDB
+10.11 ve systemd altındaki kuyruk işçisiyle yapılan uçtan uca testte
+bulunanlar.
+
+- **Apache'de dizin adıyla aynı sayfa adresi 403 dönüyordu.** `/jobs`,
+  `/config`, `/commands` gibi adresler şablonda o adla bir dizin olduğu için
+  engelleniyordu; `.htaccess`'teki açıklama ve nginx bunları sayfa olarak
+  ön denetleyiciye veriyordu. Artık yalnız bu dizinlerin İÇİNDEKİ var olan
+  dosya/dizinler engellenir, dizinin kendi adı `index.php`'ye gider.
+- **Apache `web.config`'i düz metin olarak veriyordu.** `.htaccess`
+  `FilesMatch` listesine eklendi.
+- **Kullanıcı listesinde `perm_name` yanlıştı.** `User::SelectList()` rolü
+  (`perm_id`) 3.4.0'da izin kodu tablosu olan `tbl_permissions` ile
+  birleştiriyordu: yeni kurulumda süper yönetici "Kullanıcılar" rolünde
+  görünüyordu. Birleştirme kaldırıldı; `action_users` satırı `perm_name`
+  yerine `super` (bool) taşır.
+- `doctor` ve `/docs/security`: `Authorization` iletilmeyen Apache +
+  PHP-FPM'de Bearer isteği 403 `VNL_CSRF` değil 401 `VNL_AUTH` alır (giriş
+  CSRF'ten önce denetlendiği için); metinler düzeltildi.
+
 ### Yükseltme (3.3.x → 3.4.0)
 
 1. `vnl/` dizinini değiştirin (`php vnl.php update --to 3.4.0`).
