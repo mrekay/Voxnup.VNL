@@ -158,8 +158,43 @@ class Language
      */
     private static function readFile(string $langPos): ?array
     {
-        $path = VNL_ROOT . '/languages/' . basename($langPos) . '.json';
+        $lang  = basename($langPos);
+        $lines = self::readJson(VNL_ROOT . '/languages/' . $lang . '.json');
 
+        /* 3.4.0 — parça dosyalar: languages/<dil>/*.json (ad sırasıyla).
+           Her modül kendi anahtarlarını kendi dosyasında taşır; paralel
+           çalışan geliştiriciler tek bir büyük JSON'da çakışmaz. Aynı
+           anahtar iki yerde varsa SONRAKİ dosya kazanır ve günlüğe yazılır. */
+        $fragments = glob(VNL_ROOT . '/languages/' . $lang . '/*.json') ?: [];
+        sort($fragments, SORT_STRING);
+
+        foreach ($fragments as $fragment) {
+            $part = self::readJson($fragment);
+
+            if ($part === null) {
+                self::$issues[] = "'" . $lang . '/' . basename($fragment) . "' dil parçası okunamadı veya geçersiz.";
+                continue;
+            }
+
+            $lines ??= [];
+
+            $dupes = array_intersect_key($part, $lines);
+            if ($dupes) {
+                self::$issues[] = "'" . $lang . '/' . basename($fragment) . "' daha önce tanımlı anahtarları eziyor: "
+                    . self::summarize(array_keys($dupes));
+            }
+
+            foreach ($part as $key => $value) {
+                $lines[$key] = $value;
+            }
+        }
+
+        return $lines;
+    }
+
+    /** Tek bir JSON dil dosyası; herhangi bir aksaklıkta null. */
+    private static function readJson(string $path): ?array
+    {
         if (!is_file($path) || !is_readable($path)) {
             return null;
         }

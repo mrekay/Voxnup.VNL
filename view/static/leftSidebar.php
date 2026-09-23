@@ -100,6 +100,24 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
+                                "text" => "Güvenlik (3.4)",
+                                'url' => 'docs/security',
+                                'page_name' => 'security.php',
+                                'permission' => '',
+                                'icon' => 'bi bi-shield-lock',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
+                                "text" => "Konsol, Kuyruk ve Zamanlayıcı",
+                                'url' => 'docs/cli-queue',
+                                'page_name' => 'cli-queue.php',
+                                'permission' => '',
+                                'icon' => 'bi bi-terminal',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
+                        [
                                 "text" => "Oturum Yönetimi",
                                 'url' => 'docs/session',
                                 'page_name' => 'session.php',
@@ -303,6 +321,31 @@ $SidebarMenu = array(
 );
 
 $NumberTexts = array('first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'nineth');
+
+/* 3.4.0 — menü parçaları: config/menu/*.php (ad sırasıyla, ör. 100-domains.php).
+   Her dosya tek bir menü öğesi ya da öğe listesi döner; sözleşme yukarıdaki
+   dizinin aynısıdır. Modüller kendi menü girdisini kendi dosyasında taşır,
+   paralel geliştirmede bu dosyada çakışma olmaz. */
+$vnl_menu_files = glob(VNL_ROOT . '/config/menu/*.php') ?: [];
+sort($vnl_menu_files, SORT_STRING);
+foreach ($vnl_menu_files as $vnl_menu_file) {
+    $vnl_menu_entry = require $vnl_menu_file;
+
+    if (!is_array($vnl_menu_entry)) {
+        continue;
+    }
+
+    if (isset($vnl_menu_entry['text'])) {
+        $vnl_menu_entry = [$vnl_menu_entry];
+    }
+
+    foreach ($vnl_menu_entry as $vnl_menu_item) {
+        if (is_array($vnl_menu_item)) {
+            $SidebarMenu[] = $vnl_menu_item;
+        }
+    }
+}
+unset($vnl_menu_files, $vnl_menu_file, $vnl_menu_entry, $vnl_menu_item);
 
 if (!empty($customSideBar)) {
     $SidebarMenu[] = $customSideBar[0];
