@@ -274,7 +274,8 @@ bulunanlar.
   `/config`, `/commands` gibi adresler şablonda o adla bir dizin olduğu için
   engelleniyordu; `.htaccess`'teki açıklama ve nginx bunları sayfa olarak
   ön denetleyiciye veriyordu. Artık yalnız bu dizinlerin İÇİNDEKİ var olan
-  dosya/dizinler engellenir, dizinin kendi adı `index.php`'ye gider.
+  dosya/dizinler engellenir, dizinin kendi adı `index.php`'ye gider (Apache
+  eğik çizgisiz `/jobs`'u önce `/jobs/`'a yönlendirir).
 - **Apache `web.config`'i düz metin olarak veriyordu.** `.htaccess`
   `FilesMatch` listesine eklendi.
 - **Kullanıcı listesinde `perm_name` yanlıştı.** `User::SelectList()` rolü

@@ -27,7 +27,9 @@ RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|f
 
 # Dizinin kendi adı (/jobs, /config/) bir SAYFA adresidir ve nginx'teki gibi
 # ön denetleyiciye gider. Dizin var olduğu için aşağıdaki !-d koşulu onu
-# atlardı; 3.4.0'ın ilk hâlinde bu adresler 403 dönüyordu.
+# atlardı; 3.4.0'ın ilk hâlinde bu adresler 403 dönüyordu. Eğik çizgisiz
+# /jobs'u Apache önce /jobs/'a yönlendirir (mod_dir DirectorySlash; bu
+# istekte mod_rewrite devreye girmez), sayfa oradan açılır.
 RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)/?$ index.php [QSA,L]
 
 # Çekirdek: yalnız vnl/assets/ servis edilir.
