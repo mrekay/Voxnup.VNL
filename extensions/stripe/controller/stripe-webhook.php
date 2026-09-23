@@ -5,7 +5,8 @@
  *
  * URL: /stripe-webhook
  *
- * $page_config['public'] = true sayesinde VNL auth bypass eder.
+ * Girişsiz erişim boot.php'deki vnl_public_page('stripe-webhook') ile açılır
+ * (VNL 3.4.0). İstek Stripe-Signature ile doğrulanır.
  *
  * Stripe Dashboard → Developers → Webhooks → Add endpoint:
  *   https://siteniz.com/stripe-webhook
@@ -18,7 +19,6 @@
  *   customer.subscription.deleted    Abonelik silindi/iptal edildi
  */
 
-$page_config = ['public' => true];
 
 header('Content-Type: application/json; charset=utf-8');
 

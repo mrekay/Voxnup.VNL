@@ -1,11 +1,42 @@
 /*!
  * ============================================================
- *  Voxnup Not Laravel (VNL) 3.0.0 — Standart Script Dosyası
+ *  Voxnup Not Laravel (VNL) — Standart Script Dosyası
  *  Global AJAX yanıt yönetimi, toast/modal yardımcıları ve
  *  ortak istemci fonksiyonları.
  *  Authors: Voxnup Authors
  * ============================================================
  */
+
+/**
+ * CSRF jetonu (3.4.0) — <meta name="csrf-token"> (head-standard.php).
+ *
+ * Aynı kökene giden her jQuery isteğine X-CSRF-Token başlığı eklenir:
+ * $.ajax, $.post, selectReload, deleteItemFromDB. Başlık istek ANINDA
+ * okunur (ajaxSetup'taki sabit değer değil): çıkış/giriş jetonu döndürse
+ * de sayfa yenilenmeden sonraki istek doğru jetonu taşır. Başka kökene
+ * giden isteğe jeton hiç eklenmez.
+ *
+ * VNL Table fetch kullanır; o da aynı fonksiyonu okur (vnltable.js).
+ */
+window.vnlCsrfToken = function () {
+    var m = document.querySelector('meta[name="csrf-token"]');
+    return m ? m.getAttribute('content') : '';
+};
+
+/** Sunucu yeni jeton döndürdüğünde (ör. yanıt başlığı) meta'yı günceller. */
+window.vnlSetCsrfToken = function (token) {
+    var m = document.querySelector('meta[name="csrf-token"]');
+    if (m && token) m.setAttribute('content', token);
+};
+
+if (window.jQuery) {
+    jQuery.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+        if (!options.crossDomain) {
+            var token = vnlCsrfToken();
+            if (token) jqXHR.setRequestHeader('X-CSRF-Token', token);
+        }
+    });
+}
 
 $(document).on('click', '#previewImg', function () {
     Swal.fire({
@@ -127,6 +158,7 @@ function deleteItemFromDB(options) {
         return $.ajax({
             url: options.url,
             type: options.method || 'POST',
+            dataType: 'json',
             data: options.data || {},
             customErrMessage: options.customErrMessage === true
         }).done(function (response) {
@@ -192,42 +224,101 @@ $(document).on('input', '.length-counter', function () {
 })
 
 
-$(document).ajaxComplete(function (event, request, settings) {
-    if (request.status == 406) {
-        showModalMessage(request.responseJSON.message, 2);
-        return;
-    } else if (request.status == 410) {
-        showModalMessage(request.responseJSON.message, 3);
-        return;
-    } else if (request.status == 400) {
-        spinnerHide();
-        if (!settings.customErrMessage) showModalMessage(request.responseJSON.message, true);
-    } else if (request.status == 401) {
-        spinnerHide();
-        // 401 = oturum yok/expired. Yalnızca GİRİŞ YAPMIŞ kullanıcıda anlamlıdır (oturumu düşmüş →
-        // uyar + yeniden yükle). Public sayfalarda ($page_config['public'] veya login_except_pages)
-        // login gerektiren arka-plan AJAX'ları da 401 döner; koşulsuz reload sonsuz yenileme yaratır.
-        if (typeof VNL_USER_ID !== 'undefined' && VNL_USER_ID > 0) {
-            if (!settings.customErrMessage) showModalMessage(request.responseJSON.message, true);
-            setTimeout(function () {
-                window.location.reload();
-            }, 1500);
-        }
-    } else if (request.status == 500) {
-        // Sunucu tarafı fatal. Spinner'ı mutlaka kapat; aksi halde arayüz sonsuza kadar dönüyor.
-        spinnerHide();
+/**
+ * Global AJAX hata kancası (3.4.0).
+ *
+ * Kurallar:
+ *  - Gövde JSON değilse (nginx'in HTML 502'si gibi) konsol hatası yok;
+ *    genel bir metin gösterilir.
+ *  - Sunucu metni HER ZAMAN düz metin olarak basılır (HTML kaçışlı):
+ *    showModalMessage HTML çizer, mesajda kullanıcı girdisi olabilir.
+ *  - settings.customErrMessage === true ise mesajı çağıran gösterir.
+ *
+ *   406 uyarı · 410 bilgi · 400/403/404/405/419/422/429 hata
+ *   401 oturum yok: girişliyken sayfa yenilenir, girişsizken /login'e gidilir
+ *   500+ beklenmeyen hata (varsa başvuru kodu ile)
+ */
+var VNL_GENERIC_ERROR = 'Beklenmeyen bir hata oluştu.';
 
-        var vnlErr = request.responseJSON;
-        var vnlMsg = (vnlErr && vnlErr.message) ? vnlErr.message : 'Sunucu tarafında beklenmeyen bir hata oluştu.';
-
-        if (vnlErr && vnlErr.error) {
-            console.error('[VNL] ' + vnlErr.error.type + ': ' + vnlErr.error.text +
-                ' (' + vnlErr.error.file + ':' + vnlErr.error.line + ')', vnlErr.error.trace);
-        }
-
-        // showModalMessage içeriği html olarak basar; hata metnini kaçışlayarak ver.
-        if (!settings.customErrMessage) showModalMessage($('<div>').text(vnlMsg).html(), true);
+function vnlParseJson(text) {
+    if (!text || typeof text !== 'string') return null;
+    try {
+        var parsed = JSON.parse(text);
+        return (parsed && typeof parsed === 'object') ? parsed : null;
+    } catch (e) {
+        return null;
     }
+}
+
+function vnlEscape(text) {
+    return $('<div>').text(text == null ? '' : String(text)).html();
+}
+
+/**
+ * Bir hata yanıtını kullanıcıya gösterir. jQuery kancası ve VNL Table
+ * (fetch) aynı yolu kullanır. json: çözülmüş gövde ya da null.
+ */
+window.vnlHandleAjaxError = function (status, json, settings) {
+    settings = settings || {};
+    json = json || {};
+
+    var custom = settings.customErrMessage === true;
+    var message = (json && json.message) ? String(json.message) : VNL_GENERIC_ERROR;
+
+    if (status >= 400 && typeof spinnerHide === 'function') spinnerHide();
+
+    if (status == 406) {
+        if (!custom) showModalMessage(vnlEscape(message), 2);
+    } else if (status == 410) {
+        if (!custom) showModalMessage(vnlEscape(message), 3);
+    } else if (status == 401) {
+        // 401 = oturum yok/süresi doldu.
+        if (!custom) showModalMessage(vnlEscape(message), true);
+        setTimeout(function () {
+            if (typeof VNL_USER_ID !== 'undefined' && VNL_USER_ID > 0) {
+                window.location.reload();
+            } else if (!/\/login(\/|$)/.test(window.location.pathname)) {
+                window.location.href = '/login';
+            }
+        }, 1500);
+    } else if ([400, 403, 404, 405, 419, 422, 429].indexOf(status) !== -1) {
+        if (!custom) showModalMessage(vnlEscape(message), true);
+    } else if (status >= 500) {
+        if (json && json.error) {
+            console.error('[VNL] ' + json.error.type + ': ' + json.error.text +
+                ' (' + json.error.file + ':' + json.error.line + ')', json.error.trace);
+        }
+        if (json && json.ref) message += ' (ref: ' + json.ref + ')';
+        if (!custom) showModalMessage(vnlEscape(message), true);
+    }
+};
+
+$(document).ajaxComplete(function (event, request, settings) {
+    if (!request || request.status < 400) return;
+
+    var json = request.responseJSON || vnlParseJson(request.responseText);
+    vnlHandleAjaxError(request.status, json, settings);
+});
+
+/**
+ * Çıkış (3.4.0): POST /app/login/logout — CSRF başlığı prefilter'dan gelir.
+ * data-vnl-logout taşıyan her öğe bunu çağırır (üst çubuk, /logout sayfası).
+ */
+window.vnlLogout = function () {
+    return $.ajax({
+        type: 'POST',
+        dataType: 'json',
+        url: '/app/login/logout',
+        customErrMessage: true
+    }).always(function (response) {
+        var url = (response && response.data && response.data.url) ? response.data.url : '/login';
+        window.location.href = url;
+    });
+};
+
+$(document).on('click', '[data-vnl-logout]', function (e) {
+    e.preventDefault();
+    vnlLogout();
 });
 
 function getOS() {

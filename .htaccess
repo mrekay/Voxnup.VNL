@@ -6,12 +6,28 @@ RewriteEngine on
 # .well-known ACME/Let's Encrypt doğrulaması için açık bırakılır.
 RewriteRule (^|/)\.(?!well-known) - [F,L]
 
-RewriteCond %{HTTPS} on
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L]
+# HTTPS'e yönlendirme (isteğe bağlı). 3.3'teki kural "HTTPS açıksa https'e
+# yönlendir" diyordu, yani hiçbir şey yapmıyordu. Gerekirse açın:
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
+# Sunucuda duran ama web'den ASLA okunmaması gereken dizinler (3.4.0).
+# Yalnız VAR OLAN dosya/dizin istekleri engellenir: aynı ada sahip bir
+# SAYFA adresi (ör. /jobs) yönlendirmeye düşmeye devam eder.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)(/|$) - [F,L]
+
+# Çekirdek: yalnız vnl/assets/ servis edilir.
+RewriteRule ^vnl/?$ - [F,L]
+RewriteRule ^vnl/(?!assets/) - [F,L]
+
+# Ön denetleyici. 3.3'teki desen ([a-zA-z0-9-_/]+) noktalı adresleri
+# (/domains/view/ornek.com) dışarıda bırakıyordu ve A-z aralığı [ \ ] ^ _ `
+# karakterlerini de kapsıyordu. Artık dosya/dizin olmayan her şey index.php'ye.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^([a-zA-z0-9-_/]+)$ index.php [QSA]
+RewriteRule ^ index.php [QSA,L]
 
 # mod_rewrite kapalıysa ikinci savunma hattı
 <FilesMatch "^\.">
@@ -38,7 +54,7 @@ RewriteRule ^([a-zA-z0-9-_/]+)$ index.php [QSA]
 
 # Sunucuda durup tarayıcıya gitmemesi gereken dosyalar. PHP yorumlanır,
 # ama .sql/.log/.lock düz metin olarak servis edilirdi.
-<FilesMatch "\.(sql|log|lock|ini|sh|bak|yml|yaml)$">
+<FilesMatch "\.(sql|log|lock|ini|sh|bak|yml|yaml|md|dist|example)$|^composer\.json$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

@@ -10,7 +10,6 @@ $meta = [
 
 $page_config = [
     'layout' => 'focus',
-    'public' => true,
 ];
 
 require view('static/header');

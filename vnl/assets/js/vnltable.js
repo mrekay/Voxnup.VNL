@@ -3108,15 +3108,36 @@
         }
     };
 
-    /** Ortak POST: tablonun tüm istekleri aynı başlıklar ve gövdeyle gider. */
+    /**
+     * Ortak POST: tablonun tüm istekleri aynı başlıklar ve gövdeyle gider.
+     *
+     * 3.4.0: X-CSRF-Token (vnl.js → vnlCsrfToken) eklenir; sunucu CSRF'siz
+     * POST'u 403 ile reddeder. Hata yanıtları (401/403/429/500 …) vnl.js'in
+     * genel kancasına verilir: fetch jQuery'nin ajaxComplete'inden geçmez,
+     * aksi halde yetkisiz kullanıcı yalnız "yüklenemedi" görürdü.
+     */
     VnlTable.prototype.post = function (url, body) {
         return fetch(url, {
             method:      'POST',
-            headers:     { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            headers:     {
+                'Content-Type':     'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-Token':     (typeof window.vnlCsrfToken === 'function' ? window.vnlCsrfToken() : '')
+            },
             body:        JSON.stringify(body),
             credentials: 'same-origin'
         }).then(function (r) {
-            if (!r.ok) throw new Error('HTTP ' + r.status);
+            if (!r.ok) {
+                var status = r.status;
+                return r.text().then(function (text) {
+                    var json = null;
+                    try { json = JSON.parse(text); } catch (e) { json = null; }
+                    if (typeof window.vnlHandleAjaxError === 'function') {
+                        window.vnlHandleAjaxError(status, json, {});
+                    }
+                    throw new Error('HTTP ' + status);
+                });
+            }
             return r;
         });
     };

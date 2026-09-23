@@ -1,0 +1,58 @@
+# ============================================================
+#  Voxnup Not Laravel (VNL) — nginx örneği (3.4.0)
+#  Önerilen kurulum: yalnız index.php çalışır, yalnız varlıklar servis edilir.
+#  Authors: Voxnup Authors
+# ============================================================
+#
+# root = proje kökü (VNL_ROOT). vnl/, config/, classes/, migrations/, files/
+# kökün içinde durur; bu blok onların hiçbirini servis etmez: .env, *.sql,
+# *.md, languages/*.json, derlenmiş görünümler ve günlükler dışarı çıkmaz.
+#
+# PHP-FPM: projeye özel havuz ve kullanıcı; havuzda
+#   php_admin_flag[display_errors] = off     (ini_set ile ezilemez)
+# ve yazılabilir files/ dizini.
+
+server {
+    listen 443 ssl http2;
+    server_name panel.example.com;
+
+    root /opt/vnl-panel;                       # VNL_ROOT
+    index index.php;
+    client_max_body_size 512m;
+
+    # ssl_certificate     /etc/letsencrypt/live/panel.example.com/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/panel.example.com/privkey.pem;
+
+    # Uygulama da aynı başlıkları gönderir (VNL_SECURITY_HEADERS); statik
+    # dosyalar PHP'den geçmediği için burada da yazılır.
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "same-origin" always;
+
+    # Varlıklar: yalnız bu iki dizin dosya olarak servis edilir.
+    location ^~ /assets/     { try_files $uri =404; }
+    location ^~ /vnl/assets/ { try_files $uri =404; }
+
+    # ACME (Let's Encrypt) doğrulaması
+    location ^~ /.well-known/acme-challenge/ { root /var/www/acme; }
+
+    # Geri kalan HER ŞEY ön denetleyiciye: /config/database.php,
+    # /vnl/boot.php, /files/cache/views/x.php dahil — dosya olarak asla
+    # servis edilmez, yönlendirme 404 döner.
+    location / { rewrite ^ /index.php last; }   # $request_uri ve sorgu dizgisi korunur
+
+    location = /index.php {
+        internal;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
+        fastcgi_param SCRIPT_NAME     /index.php;
+        fastcgi_param HTTPS on;
+        fastcgi_pass unix:/run/php/php8.3-fpm-vnlpanel.sock;
+    }
+}
+
+server {
+    listen 80;
+    server_name panel.example.com;
+    return 301 https://$host$request_uri;
+}

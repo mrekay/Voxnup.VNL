@@ -18,7 +18,11 @@
  * DOCUMENT_ROOT'a ya da çalışma dizinine bakmıyor: ikisi de sürecin
  * nasıl başlatıldığına göre değişiyordu, bu ikisi değişmiyor.
  */
-define('VNL_PATH', __DIR__);
+/* Konsol (vnl/console.php) VNL_PATH'i önceden tanımlar ve uygulamayı
+   gerektiğinde vnl_cli_boot() ile bu dosyadan açar; ikinci define uyarı basardı. */
+if (!defined('VNL_PATH')) {
+    define('VNL_PATH', __DIR__);
+}
 
 if (!defined('VNL_ROOT')) {
     define('VNL_ROOT', dirname(__DIR__));

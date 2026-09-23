@@ -31,9 +31,22 @@ if (php_sapi_name() === 'cli-server') {
         }
     }
 
+    /* 3.4.0: dosya olarak yalnız varlık dizinleri servis edilir (nginx
+       örneğiyle aynı kural). 3.3'te var olan HER dosya doğrudan
+       servis ediliyordu: /config/database.php çalıştırılıyor,
+       /migrations/*.sql ve /languages/*.json düz metin dönüyordu. */
     $file = $root . $url;
     if ($url !== '/' && file_exists($file) && !is_dir($file)) {
-        return false;
+        $isAsset = str_starts_with((string)$url, '/assets/') || str_starts_with((string)$url, '/vnl/assets/');
+
+        if ($isAsset && strtolower(pathinfo($file, PATHINFO_EXTENSION)) !== 'php') {
+            return false;
+        }
+
+        if ($url !== '/index.php') {
+            http_response_code(404);
+            die('404');
+        }
     }
 }
 
