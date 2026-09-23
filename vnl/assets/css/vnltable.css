@@ -536,6 +536,40 @@
 .vnl-align-center { text-align: center; }
 .vnl-align-left   { text-align: left; }
 
+/* ── Hücre biçimlendiricileri ──
+   Sütun 'format' bildirdiğinde hücre ham metin yerine bu düğümleri taşır.
+   Renk sınıfları (badge-soft-*, text-*) temadan gelir; buradaki kurallar
+   yalnız hizalama ve ölçü işini yapar. */
+
+.vnl-cell-dot-wrap,
+.vnl-cell-icon,
+.vnl-cell-bool,
+.vnl-table-el td.vnl-cell-formatted > .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    vertical-align: middle;
+}
+
+/* Nokta rengini metin renginden alır: text-success, text-danger… */
+.vnl-cell-dot {
+    width: .5rem;
+    height: .5rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.vnl-cell-link {
+    color: var(--vnl-table-accent, inherit);
+    text-decoration: none;
+}
+
+.vnl-cell-link:hover {
+    text-decoration: underline;
+}
+
+
 /* ── İkonlar ──
    Yalnızca ikon taşıyan düğmeler kare kalsın; metin karşılığı title ve
    aria-label'da durur. Emoji'ye düşüldüğünde de aynı ölçü korunur. */

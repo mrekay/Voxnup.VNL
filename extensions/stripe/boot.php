@@ -40,7 +40,14 @@ $GLOBALS['stripe_plans'] = $_stripeConfig['plans'] ?? [];
 
 unset($_stripeConfig, $_stripeMode);
 
-// ─── 3. Extension sınıflarını yükle ──────────────────────────────────────────
+// ─── 3. Herkese açık sayfalar (VNL 3.4.0) ────────────────────────────────────
+// Çekirdek, girişsiz isteğe denetleyiciyi ÇALIŞTIRMADAN karar verir;
+// $page_config['public'] artık yetmez. Stripe'ın sunucudan sunucuya çağırdığı
+// webhook girişsiz açılır — imzayı denetleyicinin kendisi doğrular.
+// (success/cancel sayfalarına kullanıcı kendi oturumuyla döner; açılmaz.)
+vnl_public_page('stripe-webhook');
+
+// ─── 4. Extension sınıflarını yükle ──────────────────────────────────────────
 require_once STRIPE_EXT_PATH . '/src/StripeModule.php';
 require_once STRIPE_EXT_PATH . '/src/StripePayment.php';
 require_once STRIPE_EXT_PATH . '/src/StripeSubscription.php';

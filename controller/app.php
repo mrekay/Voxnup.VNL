@@ -1,50 +1,22 @@
 <?php
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — Action Uç Noktası
+ *  POST /app/<modül>/<metot>
+ *  Authors: Voxnup Authors
+ * ============================================================
+ *
+ * 3.4.0: dağıtıcı mantığı çekirdeğe taşındı (vnl/classes/VnlDispatcher.php):
+ * yalnız POST, CSRF, varsayılan olarak giriş zorunlu, güvenli metot
+ * çözümlemesi, durum kodu korunur, istisna ayrıntısı sızmaz. Bu dosya
+ * PROJENİNDİR ama içinde mantık tutmaz; çekirdekteki düzeltmeler böylece
+ * her projeye güncellemeyle ulaşır.
+ *
+ * Action sınıfı sözleşmesi (isteğe bağlı sabitler):
+ *   public const PUBLIC_METHODS = ['login'];   // girişsiz çağrılabilir
+ *   public const CSRF_EXEMPT    = ['webhook']; // imzasını kendisi doğrular
+ */
 
 global $req;
 
-header('Content-Type: application/json; charset=utf-8');
-if (!route(1) || !route(2)) {
-    returnAjaxError('redirect', '', array('url' => '401'));
-}
-$action = route(2);
-
-$action_path = getDocumentRoot() . 'actions/action_' . route(1) . '.php';
-require getDocumentRoot()."actions/Auth.php";
-
-/* Extension action fallback */
-if (!file_exists($action_path)) {
-    foreach (glob(getDocumentRoot() . 'extensions/*/actions/action_' . route(1) . '.php') as $_extAction) {
-        $action_path = $_extAction;
-        break;
-    }
-}
-
-if (!file_exists($action_path)) {
-    try {
-		throwErrorMessage(lang('FUNCTION_NOT_FOUND'), 400);
-    }catch (Exception $e){
-        echo $e->getMessage();
-        die();
-    }
-}
-
-try {
-    require_once $action_path;
-    $class_name = 'action_'.route(1);
-    $action_class = new $class_name;
-    if (method_exists($action_class,$action)){
-        call_user_func([$action_class, $action],$req);
-    }else{
-        returnErrorMessage(lang('FUNCTION_NOT_FOUND'), 400);
-    }
-} catch (Exception $e) {
-    $trace = $e->getTrace();
-    $last_call = $trace[0];
-
-    header('Content-Type: text/html; charset=UTF-8');
-    if ($last_call["function"] == "throwErrorMessage"){
-        returnErrorMessage($e->getMessage());
-    }else{
-        returnErrorMessage($e->getMessage(),500);
-    }
-}
+VnlDispatcher::handle($req);

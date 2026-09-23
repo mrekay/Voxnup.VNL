@@ -9,6 +9,60 @@
  */
 
 /**
+ * Geliştirme kipi açık mı? (.env: APP_DEBUG=true)
+ *
+ * Varsayılan KAPALIDIR. VNL 3.4'e kadar ayrıntılı hata sayfası (kaynak kod,
+ * dosya yolları, yığın izi) ve display_errors koşulsuz açıktı; canlıdaki
+ * her ziyaretçi SQL metnini ve sunucu yollarını görebiliyordu. Artık
+ * ayrıntı yalnız APP_DEBUG=true iken basılır; kapalıyken kullanıcı bir
+ * başvuru kodu görür, ayrıntı sunucu günlüğüne yazılır.
+ *
+ * env.php bu dosyadan sonra yüklenir; fonksiyon çağrıldığı anda VnlEnv
+ * henüz yoksa (önyüklemenin ilk satırlarındaki bir hata) kapalı sayılır.
+ */
+function vnl_debug(): bool
+{
+    if (!class_exists('VnlEnv', false)) {
+        return false;
+    }
+
+    return VnlEnv::get('APP_DEBUG', false) === true;
+}
+
+/**
+ * İstisnayı sunucu günlüğüne yazar ve kullanıcıya gösterilecek başvuru
+ * kodunu döner. Kullanıcı kodu bildirir, geliştirici günlükte arar.
+ */
+function vnl_log_exception(Throwable $e, string $channel = 'VNL'): string
+{
+    $ref = bin2hex(random_bytes(6));
+
+    error_log("[{$channel}][{$ref}] " . get_class($e) . ': ' . $e->getMessage()
+        . ' @ ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString());
+
+    return $ref;
+}
+
+/**
+ * Kullanıcıya gösterilecek genel hata metni. Dil sistemi henüz yüklenmemiş
+ * olabilir (önyükleme hatası); o durumda sabit Türkçe metne düşülür.
+ */
+function vnl_generic_error_message(): string
+{
+    if (function_exists('lang_has') && class_exists('Language', false)) {
+        try {
+            if (lang_has('ERR_UNEXPECTED')) {
+                return lang('ERR_UNEXPECTED');
+            }
+        } catch (Throwable $_e) {
+            // dil sistemi kullanılamıyor — sabit metne düş
+        }
+    }
+
+    return 'Beklenmeyen bir hata oluştu.';
+}
+
+/**
  * İsteğin HTML hata sayfası mı yoksa JSON mı beklediğini belirler.
  */
 function vnl_wants_json(): bool
@@ -68,14 +122,82 @@ function vnl_render_error_json(Throwable $e): never
 }
 
 /**
+ * Canlı kip hata yanıtı: ayrıntısız JSON ya da tek başına duran, yol ve
+ * kaynak kod içermeyen küçük bir HTML sayfası. Başvuru kodu her ikisinde de
+ * görünür; aynı kod sunucu günlüğündeki kaydı işaretler.
+ */
+function vnl_render_error_production(string $ref): never
+{
+    $message = vnl_generic_error_message();
+
+    if (vnl_wants_json()) {
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+        }
+
+        echo json_encode([
+            'message' => $message,
+            'devcode' => 'VNL_FATAL',
+            'ref'     => $ref,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        exit(1);
+    }
+
+    if (!headers_sent()) {
+        header('Content-Type: text/html; charset=utf-8');
+    }
+
+    $_msg = htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $_ref = htmlspecialchars($ref, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+    echo <<<HTML
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{$_msg}</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #0f172a; color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .box { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
+  .card { max-width: 460px; text-align: center; }
+  .code { font-size: 64px; font-weight: 800; color: #f97316; letter-spacing: -.03em; }
+  h1 { font-size: 20px; margin: 12px 0 8px; }
+  p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 20px; }
+  .ref { font-family: ui-monospace, monospace; background: #1e293b; border: 1px solid #334155;
+    border-radius: 6px; padding: 4px 10px; font-size: 13px; color: #e2e8f0; }
+  a { color: #17a65c; }
+</style>
+</head>
+<body>
+<div class="box"><div class="card">
+  <div class="code">500</div>
+  <h1>{$_msg}</h1>
+  <p>Sorun kaydedildi. Destek ile iletişime geçerseniz aşağıdaki kodu iletin.</p>
+  <span class="ref">{$_ref}</span>
+  <p style="margin-top:24px"><a href="/">Ana sayfa</a></p>
+</div></div>
+</body>
+</html>
+HTML;
+
+    exit(1);
+}
+
+/**
  * VNL Error Page
  *
  * Standalone hata sayfası — VNL'in view sistemine bağımlı değildir.
  * set_exception_handler ve extension loader hataları tarafından tetiklenir.
  *
- * Bu sayfa GELİŞTİRİCİ içindir: kaynak kodu, dosya yollarını ve ortam bilgisini
- * basar. Canlıda kullanıcının göreceği ekranı proje belirler — bkz. aşağıdaki
- * vnl_project_error_page() kancası ve /docs/errors.
+ * Ayrıntılı sayfa GELİŞTİRİCİ içindir: kaynak kodu, dosya yollarını ve ortam
+ * bilgisini basar ve YALNIZ APP_DEBUG=true iken gösterilir (3.4.0). Kapalıyken
+ * istisna günlüğe yazılır, kullanıcı başvuru kodlu genel bir sayfa/JSON görür.
+ * Kendi ekranını isteyen proje vnl_project_error_page() kancasını tanımlar —
+ * bkz. /docs/errors.
  */
 function vnl_render_error(Throwable $e): never
 {
@@ -88,6 +210,19 @@ function vnl_render_error(Throwable $e): never
 
     // Tüm önceki çıktıları temizle
     while (ob_get_level()) ob_end_clean();
+
+    /* Konsol (kuyruk işçisi, zamanlayıcı, komutlar): HTML sayfa değil,
+       stderr'e düz metin. Günlüğe de yazılır; systemd/journal ikisini de görür. */
+    if (PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg') {
+        $ref = vnl_log_exception($e);
+        $out = defined('STDERR') ? STDERR : fopen('php://stderr', 'w');
+
+        fwrite($out, "\n  [VNL] " . get_class($e) . ': ' . $e->getMessage() . "\n"
+            . '  ' . $e->getFile() . ':' . $e->getLine() . "  (ref {$ref})\n"
+            . (vnl_debug() ? "\n" . $e->getTraceAsString() . "\n" : '') . "\n");
+
+        exit(1);
+    }
 
     /* Projenin hata ekranı.
      *
@@ -109,7 +244,15 @@ function vnl_render_error(Throwable $e): never
         }
     }
 
-    http_response_code(500);
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+
+    /* Canlı kip: ayrıntı günlüğe, kullanıcıya yalnız başvuru kodu.
+       Kaynak kod, dosya yolu, yığın izi ve SQL metni dışarı çıkmaz. */
+    if (!vnl_debug()) {
+        vnl_render_error_production(vnl_log_exception($e));
+    }
 
     // AJAX/API isteğinde HTML sayfa değil JSON dön — aksi halde ön yüz sessizce takılır
     if (vnl_wants_json()) {

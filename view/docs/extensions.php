@@ -183,8 +183,10 @@ require view('static/footer');                              // VNL layout
                         <i class="fa-solid fa-circle-info fs-2hx text-warning me-4"></i>
                         <div>
                             <strong>Public sayfalar için</strong> (auth gerektirmeyen, örn. webhook):
-                            <code>$page_config = ['public' => true];</code> ayarlanmalıdır.
-                            Login except listesine eklemeye gerek yoktur.
+                            eklentinin <code>boot.php</code>'sinde <code>vnl_public_page('sayfa-adi');</code>
+                            çağrılır (3.4.0). <code>$page_config['public']</code> artık bir şey açmaz.
+                            Eklenti denetleyicileri ve action'ları yalnız <code>extensions.php</code>'de
+                            <code>true</code> işaretliyse çözülür.
                         </div>
                     </div>
                 </div>

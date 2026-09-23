@@ -301,7 +301,7 @@ $.post('/app/stripe/createCheckoutSession', {
                 </div>
                 <div class="card-body pt-2">
                     <p class="fs-5 text-body mb-5">
-                        <code>$page_config['public'] = true</code> sayesinde auth bypass otomatiktir.
+                        Girişsiz erişim <code>boot.php</code>'deki <code>vnl_public_page('stripe-webhook')</code> ile açılır (3.4.0).
                         Stripe imzası <code>STRIPE_WEBHOOK_SECRET</code> ile doğrulanır.
                     </p>
 

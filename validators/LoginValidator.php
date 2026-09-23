@@ -17,13 +17,9 @@ class LoginValidator
             else return false;
         }
 
-        if (empty($loginData)) {
-            if (!$redirect_page) throw new EmptyDataException(lang('ERR_LOGIN_EXCEPTION'));
-            else return false;
-        }
-
+        /* 3.4.0: tanımsız oturum-kimliği yardımcısı yerine Session::id(). */
         if (empty($loginData['session_id']) ||
-            ($loginData['session_id'] != Session::GetSessionId()
+            ($loginData['session_id'] != Session::id()
                 || $loginData['current_user_id'] != $CurrentUser->id
                 || $loginData['user_agent'] != \UserModule::CurrentBrowser()
                 || $loginData['ip_adress'] != \UserModule::CurrentIp()
@@ -41,17 +37,32 @@ class LoginValidator
 		}
 	}
 
+	/**
+	 * 3.4.0: eski koşul (!isset && empty && > 0) hiçbir zaman doğru
+	 * olamıyordu; denetim hiçbir şeyi reddetmiyordu.
+	 */
 	static function validateUser($user){
-        if (!isset($user->id) && empty($user->id) && $user->id > 0){
+		if (empty($user) || empty($user->id)) {
 			throw new StandartException(lang('ERR_LOGIN_EXCEPTION'));
-
 		}
 	}
 
-	static function validateActive($is_active){
-		if ($is_active == 2){
-			LogOut(false);
-			throw new StandartException(lang('ERR_LOGIN_PASSIVE'));
+	/**
+	 * Hesap etkin mi? Kullanıcı nesnesi ya da is_active değeri alır.
+	 * 0 (3.4 şeması) ve 2 (2.x geleneği) pasiftir; NULL/sütun yok etkin.
+	 *
+	 * 3.4.0: tanımsız global çıkış çağrısı yerine UserModule::LogOut().
+	 */
+	static function validateActive($userOrFlag){
+		$active = is_object($userOrFlag)
+			? UserModule::IsActiveUser($userOrFlag)
+			: ($userOrFlag === null || !in_array((int)$userOrFlag, [0, 2], true));
+
+		if (!$active){
+			if (vnl_logged_in()) {
+				UserModule::LogOut();
+			}
+			throw new StandartException(lang('ERR_LOGIN_PASSIVE'), 403);
 		}
 	}
 

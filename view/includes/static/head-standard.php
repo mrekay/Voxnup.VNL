@@ -41,6 +41,8 @@ $vnl_skin = $page_config['skin'] ?? ($vnl_theme_defaults['skin'] ?? null);
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
+<!-- CSRF jetonu (3.4.0): vnl.js ve VNL Table her POST'a X-CSRF-Token olarak ekler. -->
+<meta name="csrf-token" content="<?= vnl_e(vnl_csrf_token()) ?>">
 
 <title><?php echo $meta['title'] ?? $cDefinitions->appName(); ?></title>
 <meta name="keywords" content="<?php echo $meta['keywords'] ?? ''; ?>">

@@ -356,7 +356,7 @@ public function detay($req)
     $satis = Satis::find($t-&gt;rowKey);
     if (!$satis) throwErrorMessage('Kayit bulunamadi.');
 
-    $t-&gt;respondDetail(render('parts/satis-detay', ['satis' =&gt; $satis]));
+    $t-&gt;respondDetail(vnl_render('parts/satis-detay', ['satis' =&gt; $satis]));
 }</code></pre>
                         </div>
 

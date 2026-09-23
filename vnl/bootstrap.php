@@ -7,31 +7,94 @@
  * ============================================================
  */
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL ^ E_WARNING);
-ini_set('session.gc_maxlifetime', 3600);
-set_time_limit(20);
+/**
+ * Hata gösterimi (3.4.0).
+ *
+ * VNL 3.4'e kadar display_errors koşulsuz açıktı: canlıda her uyarı, dosya
+ * yoluyla birlikte sayfaya ve JSON yanıtlarının ortasına basılıyordu. Artık
+ * yalnız APP_DEBUG=true iken gösterilir; kapalıyken her şey günlüğe gider.
+ * PHP 8.4'te vendor'ın E_DEPRECATED uyarıları da canlıda susturulur.
+ */
+ini_set('display_errors', vnl_debug() ? '1' : '0');
+ini_set('log_errors', '1');
+error_reporting(vnl_debug() ? E_ALL : (E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_NOTICE));
+
+/* Boşta kalma sınırı (UserModule::SetCurrentUserInfo uygular). Çöp toplayıcı
+   oturumu bu süreden önce silmemeli, yoksa sınır anlamını yitirir. */
+ini_set('session.gc_maxlifetime', (string)max(3600, (int)VnlEnv::get('VNL_SESSION_IDLE', 3600)));
+
+/* Web isteği başına 20 sn PHP çalışma süresi. Uzun işler kuyruğa gider
+   (php vnl.php queue:work); konsol sınırı vnl_cli_boot() kaldırır. */
+if (PHP_SAPI !== 'cli') {
+    set_time_limit(20);
+}
 
 /**
- * Oturum çerezi.
- *
- * secure ve samesite SABİT olamaz: SameSite=None, Secure'u zorunlu kılar
- * ve Secure çerez HTTP üzerinde tarayıcı tarafından hiç saklanmaz. İkisi
- * birden açıkken yerel http geliştirmede oturum hiç kurulmuyordu — giriş
- * dahil. Bağlantı gerçekten TLS ise eski davranış aynen sürer.
+ * Bağlantı TLS mi? Vekil sunucu arkasında X-Forwarded-Proto okunur.
+ * Sonuç VNL_HTTPS sabitinde durur; çerez yazan her yer ona bakar.
  */
 $isSecure = (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off')
-    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    || (strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
     || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443);
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'domain' => '', // Gerekirse belirtebilirsiniz
-    'secure' => $isSecure,
-    'httponly' => true,
-    'samesite' => $isSecure ? 'None' : 'Lax',
-]);
+if (!defined('VNL_HTTPS')) {
+    define('VNL_HTTPS', $isSecure);
+}
+
+/**
+ * Oturum çerezi (3.4.0).
+ *
+ * SameSite varsayılanı her zaman Lax. VNL 3.3'e kadar TLS'te 'None'
+ * yazılıyordu: tarayıcı oturum çerezini BAŞKA sitelerden gelen POST'lara
+ * da ekliyordu ve CSRF koruması olmadığı için herhangi bir site, yöneticinin
+ * oturumuyla panelde işlem yaptırabiliyordu. Lax, üst düzey GET
+ * gezinmelerinde çerezi göndermeye devam eder (dış bağlantıdan gelen
+ * kullanıcı girişli kalır), siteler arası POST/fetch'te göndermez.
+ *
+ * VNL_SESSION_SAMESITE=Strict|Lax|None ile değiştirilebilir. None, Secure
+ * olmadan tarayıcıda reddedildiği için düz HTTP'de Lax'a düşer.
+ *
+ * use_strict_mode: sunucuda karşılığı olmayan, dışarıdan dayatılmış bir
+ * oturum kimliği kabul edilmez; PHP yenisini üretir (session fixation).
+ */
+$vnl_samesite = ucfirst(strtolower((string)VnlEnv::get('VNL_SESSION_SAMESITE', 'Lax')));
+if (!in_array($vnl_samesite, ['Lax', 'Strict', 'None'], true) || ($vnl_samesite === 'None' && !$isSecure)) {
+    $vnl_samesite = 'Lax';
+}
+
+if (PHP_SAPI !== 'cli') {
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.use_trans_sid', '0');
+    ini_set('session.cookie_httponly', '1');
+
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'domain'   => '', // Gerekirse belirtebilirsiniz
+        'secure'   => $isSecure,
+        'httponly' => true,
+        'samesite' => $vnl_samesite,
+    ]);
+}
+unset($vnl_samesite);
+
+/**
+ * Güvenlik başlıkları (3.4.0) — VNL_SECURITY_HEADERS=false ile kapatılır.
+ *
+ * CSP bilerek YOK: tema ve sayfalar satır içi <script> kullanıyor; nonce'suz
+ * bir CSP ya hiçbir şeyi engellemez ya da her sayfayı kırar. İleri iş.
+ */
+if (PHP_SAPI !== 'cli' && !headers_sent() && VnlEnv::get('VNL_SECURITY_HEADERS', true) !== false) {
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: same-origin');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+
+    if ($isSecure) {
+        header('Strict-Transport-Security: max-age=31536000');
+    }
+}
 
 $cDefinitions = new ConfigDefinitions();
 
@@ -96,10 +159,19 @@ spl_autoload_register('loadClass');
 vnl_load_dir('helpers');
 
 ob_start();
-date_default_timezone_set('Europe/Istanbul');//'America/Los_Angeles'
+
+/* PHP saat dilimi (.env: APP_TIMEZONE). MySQL oturumunun saat dilimine
+   dokunulmaz: ikisi bağımsızdır; NOW() ile date() farklı dilimde olabilir. */
+$vnl_tz = (string)VnlEnv::get('APP_TIMEZONE', 'Europe/Istanbul');
+if (!@date_default_timezone_set($vnl_tz)) {
+    error_log('[VNL][Boot] APP_TIMEZONE geçersiz (' . $vnl_tz . '); Europe/Istanbul kullanılıyor.');
+    date_default_timezone_set('Europe/Istanbul');
+}
+unset($vnl_tz);
 
 $assets_address = $cDefinitions->getAssetsUrl();
-define('SITE_HTTP', (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https://' : 'http://'));
+/* TLS'i sonlandıran bir vekil (nginx → php-fpm) arkasında da doğru şema. */
+define('SITE_HTTP', VNL_HTTPS ? 'https://' : 'http://');
 define('SITE_URL_NON_HTTP', $_SERVER["HTTP_HOST"] ?? '');
 define('MAIN_SITE_URL', $cDefinitions->getMasterSiteUrl());
 define('SITE_URL', $cDefinitions->getSiteUrl());

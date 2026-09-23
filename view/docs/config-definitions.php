@@ -333,12 +333,10 @@ $this->db_info = [
 
                         <div class="vnl-code mb-4">
                             <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $login_except_pages = [
-    // Sistem sayfaları (değiştirmeyin)
-    "app",          // AJAX/Action endpoint
+    // Sistem sayfaları (3.4.0 varsayılanı — değiştirmeyin)
+    "app",          // Action dağıtıcısı: girişi kendisi denetler (PUBLIC_METHODS)
     "login",        // Giriş sayfası
-    "logout",       // Çıkış
-    "register",     // Kayıt sayfası
-    "index",        // Ana sayfa (giriş öncesi)
+    "logout",       // Çıkış onay sayfası (çıkışın kendisi POST /app/login/logout)
 
     // Özel public sayfalar (buraya ekleyin)
     "hakkimizda",                   // site.com/hakkimizda
@@ -350,7 +348,7 @@ $this->db_info = [
 
                         <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
-                            <span class="text-body fs-6">Sadece belirli bir controller dosyasını public yapmak istiyorsanız <code>$login_except_pages</code> yerine o controller'da <code>$page_config['public'] = true</code> kullanmak daha temiz bir yaklaşımdır. İkisi de çalışır ama <code>public=true</code> yapılandırmayı controller'da localize eder.</span>
+                            <span class="text-body fs-6">3.4.0: karar denetleyici çalışmadan verildiği için <code>$page_config['public'] = true</code> artık bir sayfayı açmaz. Eklentiler kendi sayfalarını <code>vnl_public_page('ad')</code> ile açar. Doküman sayfaları <code>.env</code>'de <code>VNL_PUBLIC_DOCS=true</code> iken listeye eklenir.</span>
                         </div>
                     </div>
                     <!--end::Section 6-->

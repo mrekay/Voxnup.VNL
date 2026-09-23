@@ -39,12 +39,14 @@ Yayına çıkarken `php vnl.php release` onu tazeler.
 ## Yerleşim
 
 ```
-boot.php       önyükleme       kernel.php     yönlendirme + giriş denetimi
+boot.php       önyükleme       kernel.php     yönlendirme + giriş denetimi (denetleyiciden ÖNCE)
 bootstrap.php  otomatik yükleyici, oturum, kademeli yükleme
 env.php        .env okuyucu    error.php      hata sayfası
 template.php   {{ }} derleyicisi
 console.php    komut dağıtıcısı — komutlar tools/ altında
 classes/  modules/  helpers/  validators/  exceptions/
+           classes/VnlDispatcher   /app/* dağıtıcısı (POST, CSRF, varsayılan giriş)
+           classes/RateLimiter Audit Totp Queue VnlJob VnlCron ApiToken (3.4.0)
 assets/   theme/ (VNL-THEME derleme çıktısı) + js/ + css/
 migrations/    VNL'in şeması (projeninki kökteki migrations/)
 tools/         migrate, update, doctor, release, version, serve, tar, dev-router
@@ -55,5 +57,7 @@ vendor/        Illuminate/Eloquent, PHPMailer
 olmamalıdır: düzen ile metin her projede değişir, herkesin ezdiği bir varsayılanın
 sahibi olmak sahte sahipliktir.
 
-Yeni komut eklemek için `tools/<ad>.php` açın (`return function (array $args): int`
-döndürsün) ve `console.php`'deki listeye bir satır yazın.
+Yeni ÇEKİRDEK komutu eklemek için `tools/<ad>.php` açın (`return function (array $args): int`
+döndürsün) ve `console.php`'deki listeye bir satır yazın. Uygulamaya ihtiyacı olan
+komut ilk satırında `vnl_cli_boot()` çağırır. Proje komutları buraya değil kökteki
+`commands/` dizinine girer (3.4.0).

@@ -70,6 +70,361 @@ function route($index)
 	return isset($route[$index]) ? $route[$index] : false;
 }
 
+/* ------------------------------------------------------------------ *
+ *  Kimlik ve yetki
+ * ------------------------------------------------------------------ */
+
+/**
+ * Oturum açılmış mı?
+ *
+ * $CurrentUser her istekte KOŞULSUZ kurulur (config/database.php'deki
+ * `new User()`); girişsiz istekte bile elde boş bir model durur. PHP'de
+ * nesne asla empty olmadığı için `!empty($CurrentUser)` bir giriş denetimi
+ * DEĞİLDİR — her zaman doğru döner. Tek geçerli ölçüt kimliğin kendisidir;
+ * vnl/kernel.php girişsizi ($CurrentUser->id <= 0) zaten böyle tanıyor,
+ * bu fonksiyon aynı ölçütü tek isim altında toplar.
+ */
+function vnl_logged_in(): bool
+{
+	global $CurrentUser;
+
+	return isset($CurrentUser) && !empty($CurrentUser->id) && (int)$CurrentUser->id > 0;
+}
+
+/**
+ * Oturum açmış kullanıcı — girişsizde null.
+ *
+ * $CurrentUser ile farkı boşluğun ayıklanmış olmasıdır: vnl_user()?->id
+ * yazan kod girişsiz istekte kimlik yerine null görür, boş bir model değil.
+ */
+function vnl_user()
+{
+	global $CurrentUser;
+
+	return vnl_logged_in() ? $CurrentUser : null;
+}
+
+/**
+ * Yetki kapısı — menü ve sayfa aynı soruyu buradan sorar.
+ *
+ * Yetki ŞEMASI projenindir: VNL'in tbl_permissions'ı bir örnektir, gerçek
+ * kurulumlar rol, kiracı, ürün gibi kendi eksenlerini katar. O yüzden
+ * çekirdek burada karar vermez, PROJEYE SORAR:
+ *
+ *   // helpers/yetki.php  —  vnl_load_dir('helpers') kendiliğinden yükler
+ *   function vnl_project_permission(string $code, $user): bool
+ *   {
+ *       return $user !== null && UserPermissions::CanViewByCode($user->id, $code);
+ *   }
+ *
+ * Proje böyle bir fonksiyon TANIMLAMADIYSA menü kapısı açıktır ve davranış
+ * VNL 3.1 ile birebir aynıdır — yeni bir çekirdek sürümü kimsenin menüsünü
+ * boşaltmaz. Tanımlandığı anda kenar çubuğu onu her menü öğesi için çağırır.
+ *
+ * $strict (3.4.0): YETENEK kapıları için. true iken kanca yoksa ya da kod
+ * boşsa cevap HAYIR'dır (fail closed) ve eksik kanca istek başına bir kez
+ * günlüğe yazılır. vnl_require_permission(), Auth::CheckPermission() ve
+ * Auth::Can() katı sorar; yalnız menü görünürlüğü 3.1'in açık davranışını
+ * korur. helpers/permissions.php projenindir ve güncelleme onu getirmez:
+ * dosyası olmayan bir projede güvenlik kapıları artık herkese açılmaz.
+ *
+ * Kanca istisna fırlatırsa yutulmaz: sessizce "yetkisi yok" saymak, yetki
+ * sorgusundaki bir hatayı boş bir menüye çevirip saklardı.
+ *
+ * 3.4.0: yetenek (ability) argümanı — 'view', 'insert', 'edit', 'delete'.
+ * Kancaya üçüncü argüman olarak geçer; iki parametreli eski kancalar onu
+ * görmezden gelir (PHP fazla argümanı sessizce yutar), davranışları değişmez.
+ * Sayfa ve action kapıları da artık aynı soruyu sorar:
+ * vnl_require_permission() ve Auth::CheckPermission().
+ */
+function vnl_can(?string $permission, string $ability = 'view', bool $strict = false): bool
+{
+	if ($permission === null || trim($permission) === '') {
+		return !$strict;
+	}
+
+	if (!function_exists('vnl_project_permission')) {
+		if ($strict) {
+			static $__vnlHookWarned = false;
+
+			if (!$__vnlHookWarned) {
+				$__vnlHookWarned = true;
+				error_log('[VNL][Auth] vnl_project_permission() tanımlı değil: yetki kapıları '
+					. 'her isteği reddediyor. Şablondaki helpers/permissions.php\'yi kopyalayın.');
+			}
+
+			return false;
+		}
+
+		return true;
+	}
+
+	return (bool)vnl_project_permission($permission, vnl_user(), $ability);
+}
+
+/**
+ * Sayfa denetleyicisi için yetki kapısı (3.4.0).
+ *
+ *   vnl_require_permission('Domains');            // görüntüleme
+ *   vnl_require_permission('Domains', 'edit');
+ *
+ * Girişsiz → /login'e yönlendirir. Yetkisiz → 403 durum koduyla projenin
+ * hata sayfasını (controller/403.php varsa o, yoksa 401.php) çizer ve
+ * betiği bitirir. Denetleyicinin ilk satırlarında, veri okumadan önce
+ * çağrılmalıdır. Katıdır: yetki kancası yoksa kimse geçemez.
+ */
+function vnl_require_permission(string $code, string $ability = 'view'): void
+{
+	if (!vnl_logged_in()) {
+		vnl_redirect_login();
+	}
+
+	if (!vnl_can($code, $ability, true)) {
+		vnl_abort(403);
+	}
+}
+
+/**
+ * Giriş sayfasına yönlendirir ve betiği bitirir. APP_URL tanımlı değilse
+ * göreli adres kullanılır ("http:///login" gibi kırık bir adres yerine).
+ */
+function vnl_redirect_login(): never
+{
+	global $cDefinitions;
+
+	$base = (isset($cDefinitions) && (string)VnlEnv::get('APP_URL', '') !== '')
+		? rtrim($cDefinitions->getSiteUrl(), '/')
+		: '';
+
+	header('Location: ' . $base . '/login');
+	exit;
+}
+
+/**
+ * Projenin hata sayfasını (controller/<kod>.php) GLOBAL kapsamda çizip
+ * betiği bitirir. 403 sayfası yoksa 401'e düşülür; durum kodu yine istenen
+ * koddur. Denetleyiciler global değişkenlere ($cDefinitions, $CurrentUser,
+ * $meta ...) doğrudan eriştiği için hepsi bu kapsama bağlanır.
+ */
+function vnl_abort(int $status, ?string $page = null): never
+{
+	/* Parametreler global'lerle çakışmayan adlara alınır: aşağıdaki döngü
+	   $page ya da $status adlı bir global'i bu kapsama bağlayabilir. */
+	$__vnlStatus = $status;
+	$__vnlPage   = $page ?? (string)$status;
+
+	if (!is_file(controller($__vnlPage))) {
+		$__vnlPage = $__vnlStatus === 404 ? '404' : '401';
+	}
+
+	foreach (array_keys($GLOBALS) as $__vnlKey) {
+		if (!in_array($__vnlKey, ['GLOBALS', '__vnlKey', '__vnlStatus', '__vnlPage'], true)) {
+			global $$__vnlKey;
+		}
+	}
+
+	/* Yarım kalmış sayfanın başlık/düzen ayarları hata sayfasına taşınmasın;
+	   unset yalnız yerel bağı koparır, global'e dokunmaz. */
+	unset($meta, $page_config);
+
+	/* Denetleyici bir şey basmışsa hata sayfasının önüne düşmesin. */
+	while (ob_get_level() > 0) {
+		ob_end_clean();
+	}
+	ob_start();
+
+	require controller($__vnlPage);
+
+	if (!headers_sent()) {
+		http_response_code($__vnlStatus);
+	}
+
+	exit;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Herkese açık sayfalar (3.4.0)
+ * ------------------------------------------------------------------ */
+
+/**
+ * Bir sayfayı girişsiz erişime açar: 'sayfa' ya da 'grup/sayfa'.
+ *
+ * config/definitions.php'deki $login_except_pages'e yazamayan kodun
+ * (eklenti boot.php'si gibi) yolu budur. Çekirdek sayfanın açık olup
+ * olmadığına denetleyiciyi ÇALIŞTIRMADAN karar verir; bu yüzden
+ * $page_config['public'] artık yetmez — kayıt buradan yapılır.
+ */
+function vnl_public_page(string $page): void
+{
+	$page = trim($page, '/');
+
+	if ($page !== '') {
+		$GLOBALS['__vnl_public_pages'][$page] = true;
+	}
+}
+
+/** vnl_public_page() ile kaydedilmiş sayfalar. */
+function vnl_public_pages(): array
+{
+	return array_keys($GLOBALS['__vnl_public_pages'] ?? []);
+}
+
+/**
+ * extensions/extensions.php'de true işaretli eklentilerin adları (3.4.0).
+ *
+ * Denetleyici ve action geri düşüşleri artık yalnız ETKİN eklentilerde
+ * arar: kapalı bir eklentinin uç noktaları (kendi boot.php'si yüklenmeden,
+ * yarım yapılandırmayla) dışarıdan çağrılamaz.
+ */
+function vnl_enabled_extensions(): array
+{
+	static $enabled = null;
+
+	if ($enabled === null) {
+		$manifest = VNL_ROOT . '/extensions/extensions.php';
+		$list     = is_file($manifest) ? (require $manifest) : [];
+		$enabled  = [];
+
+		foreach (is_array($list) ? $list : [] as $name => $on) {
+			if ($on === true && is_string($name) && preg_match('/^[A-Za-z0-9_-]+$/', $name)) {
+				$enabled[] = $name;
+			}
+		}
+	}
+
+	return $enabled;
+}
+
+/* ------------------------------------------------------------------ *
+ *  CSRF (3.4.0)
+ * ------------------------------------------------------------------ */
+
+/**
+ * Oturumun CSRF jetonu; yoksa üretilir.
+ *
+ * Tek jeton oturum boyunca geçerlidir (sayfa başına değil): aynı kullanıcının
+ * birden çok sekmesi birbirinin jetonunu bozmasın. Girişte ve çıkışta
+ * vnl_csrf_rotate() ile yenilenir.
+ */
+function vnl_csrf_token(): string
+{
+	$token = Session::get('_vnl_csrf');
+
+	if (!is_string($token) || strlen($token) !== 64) {
+		$token = bin2hex(random_bytes(32));
+		Session::set('_vnl_csrf', $token);
+	}
+
+	return $token;
+}
+
+/** Formlar için gizli alan: <?= vnl_csrf_field() ?> */
+function vnl_csrf_field(): string
+{
+	return '<input type="hidden" name="_token" value="'
+		. htmlspecialchars(vnl_csrf_token(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">';
+}
+
+/**
+ * İstekle gelen jeton oturumdakiyle aynı mı?
+ *
+ * Kaynak sırası: X-CSRF-Token başlığı (vnl.js ve VnlTable her isteğe ekler),
+ * sonra gövdedeki _token alanı (düz form gönderimi). Karşılaştırma sabit
+ * zamanlıdır.
+ */
+function vnl_csrf_check(): bool
+{
+	global $req;
+
+	$sent = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+
+	if ($sent === '' && isset($req) && $req instanceof Request) {
+		$sent = $req->post('_token', '');
+	}
+
+	if ($sent === '' || !is_string($sent)) {
+		$sent = is_string($_POST['_token'] ?? null) ? $_POST['_token'] : '';
+	}
+
+	$token = Session::get('_vnl_csrf');
+
+	if (!is_string($token) || $token === '' || !is_string($sent) || $sent === '') {
+		return false;
+	}
+
+	return hash_equals($token, $sent);
+}
+
+/** Yeni jeton üretir. Girişte ve çıkışta çağrılır. */
+function vnl_csrf_rotate(): void
+{
+	Session::set('_vnl_csrf', bin2hex(random_bytes(32)));
+}
+
+/**
+ * Tarayıcının bildirdiği köken (Origin) bu sunucu mu?
+ *
+ * Başlık yoksa (eski tarayıcı, sunucudan sunucuya istek) karar CSRF
+ * jetonuna bırakılır ve true döner. Varsa ana makine adı ve port
+ * Host başlığıyla birebir eşleşmelidir; "null" köken reddedilir.
+ */
+function vnl_same_origin(): bool
+{
+	$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+	if ($origin === '') {
+		return true;
+	}
+
+	$parts = parse_url($origin);
+	if (!is_array($parts) || empty($parts['host'])) {
+		return false;
+	}
+
+	$host = strtolower($parts['host']) . (isset($parts['port']) ? ':' . $parts['port'] : '');
+	$self = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
+
+	if ($host === $self) {
+		return true;
+	}
+
+	/* Varsayılan port Host başlığında yazılmayabilir, Origin'de yazılabilir. */
+	$scheme = strtolower($parts['scheme'] ?? '');
+	$default = $scheme === 'https' ? ':443' : ($scheme === 'http' ? ':80' : '');
+
+	return $default !== '' && ($host === $self . $default || $host . $default === $self);
+}
+
+/* ------------------------------------------------------------------ *
+ *  Görünüm
+ * ------------------------------------------------------------------ */
+
+/**
+ * Bir görünümü çizip HTML'ini dizge olarak döner (3.4.0).
+ *
+ *   $t->respondDetail(vnl_render('parts/satis-detay', ['satis' => $satis]));
+ *
+ * $vars görünümde yerel değişken olur (mevcut adları ezmez). Görünüm bir
+ * FONKSİYON kapsamında çalışır: $CurrentUser, $cDefinitions gibi global'ler
+ * gerekiyorsa görünümün içinde `global $CurrentUser;` diye alınmalıdır.
+ */
+function vnl_render(string $view, array $vars = []): string
+{
+	extract($vars, EXTR_SKIP);
+
+	ob_start();
+
+	try {
+		require view($view);
+	} catch (Throwable $e) {
+		ob_end_clean();
+
+		throw $e;
+	}
+
+	return (string)ob_get_clean();
+}
+
 /**
  * Uygulama içi tam adres.
  *
@@ -118,11 +473,18 @@ function vnl_core_styles(?string $skin = null): array
 	$styles[] = vnl_asset('theme/css/bi.min.css');
 	$styles[] = vnl_asset('theme/css/fa.min.css');
 	$styles[] = vnl_asset('css/vnltable.css');
+	$styles[] = vnl_asset('css/vnl-date.css');
 
 	return $styles;
 }
 
-/** Çekirdeğin script'leri, doğru sırayla. @see vnl_core_styles() */
+/**
+ * Çekirdeğin script'leri, doğru sırayla. @see vnl_core_styles()
+ *
+ * flatpickr, VNL Date'in taşıyıcısıdır ve vnl-date.js ondan sonra gelmek
+ * zorundadır. Tema paketine (vendors.min.js) konmadı: o dosya VNL-THEME
+ * deposunda derlenir, çekirdek sürümü tema derlemesine bağlanmasın.
+ */
 function vnl_core_scripts(): array
 {
 	return [
@@ -130,6 +492,8 @@ function vnl_core_scripts(): array
 		vnl_asset('theme/js/vnl.min.js'),
 		vnl_asset('js/vnl.js'),
 		vnl_asset('js/vnltable.js'),
+		vnl_asset('js/flatpickr.min.js'),
+		vnl_asset('js/vnl-date.js'),
 	];
 }
 
@@ -251,10 +615,21 @@ function getPath(): string
     return VNL_ROOT;
 }
 
-function throwErrorMessage($errorMessage, $status = 400)
+/**
+ * Yakalanabilir hata fırlatır; action dağıtıcısı onu {message, devcode}
+ * JSON'una çevirir.
+ *
+ * 3.4.0: durum kodu istisnanın içinde taşınır (VnlHttpException). 3.3'e
+ * kadar dağıtıcı kodu kaybediyor, her şeyi 400 yapıyordu —
+ * throwErrorMessage('x', 404) istemciye 400 olarak ulaşıyordu. Sınıf
+ * Exception'dan türediği için `catch (Exception $e)` yazan kod aynen çalışır.
+ */
+function throwErrorMessage($errorMessage, $status = 400, $devcode = '')
 {
+    $status = (int)$status >= 400 && (int)$status <= 599 ? (int)$status : 400;
+
     http_response_code($status);
-    throw new Exception($errorMessage);
+    throw new VnlHttpException((string)$errorMessage, $status, (string)$devcode);
 }
 
 /**
@@ -271,8 +646,17 @@ function throwErrorMessage($errorMessage, $status = 400)
  * kendi Excel çıktısı (VnlTableExport) buna ihtiyaç duymaz, kendi exit'ini
  * çağırır.
  */
+/** JSON yanıt başlığı — gövde basılmadan önce, bir kez. */
+function vnl_json_header(): void
+{
+    if (!headers_sent()) {
+        header('Content-Type: application/json; charset=utf-8');
+    }
+}
+
 function returnErrorMessage($message, $error_code = 400,$devcode=""){
     http_response_code($error_code);
+    vnl_json_header();
     $json = json_encode(['message' => $message, 'devcode' => $devcode]);
     echo $json;
     if (!defined("PHPEXCELMODE"))  die;
@@ -280,12 +664,14 @@ function returnErrorMessage($message, $error_code = 400,$devcode=""){
 
 function returnWarningMessage($message, $code = 406){
     http_response_code($code);
+    vnl_json_header();
     $json = json_encode(['message' => $message]);
     echo $json;
     if (!defined("PHPEXCELMODE"))  die;
 }
 function returnInfoMessage($message, $code = 410){
     http_response_code($code);
+    vnl_json_header();
     $json = json_encode(['message' => $message]);
     echo $json;
     if (!defined("PHPEXCELMODE")) die;
@@ -294,14 +680,24 @@ function returnInfoMessage($message, $code = 410){
 function returnSuccessMessage($message, $data = [])
 {
     http_response_code(200);
+    vnl_json_header();
     $json = json_encode(['message' => $message, 'data' => $data]);
     echo $json;
 }
 
+/**
+ * Ham veri yanıtı (zarf yok).
+ *
+ * 3.4.0: JSON_NUMERIC_CHECK kaldırıldı. O bayrak sayıya benzeyen her
+ * dizgiyi sayıya çeviriyordu: "0755" → 755 (dosya kipi), "1.10" → 1.1
+ * (sürüm), uzun kimlikler hassasiyet kaybediyordu. Değerler artık
+ * gönderildiği tipte gider; sayı isteyen (int) ile döndürür.
+ */
 function returnSuccessDataOnly($data = [])
 {
     http_response_code(200);
-    $json = json_encode($data, JSON_NUMERIC_CHECK);
+    vnl_json_header();
+    $json = json_encode($data, JSON_UNESCAPED_UNICODE);
     echo $json;
     if (!defined("PHPEXCELMODE")) die;
 }

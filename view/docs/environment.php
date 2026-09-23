@@ -128,6 +128,21 @@
                                     <td><span class="badge badge-soft-danger me-2">Kritik</span><code>safeEncrypt()</code> / <code>safeDecrypt()</code> anahtarı — base64 kodlanmış 32 bayt. Değiştirmek daha önce şifrelenmiş <b>her veriyi</b> çözülemez hâle getirir.</td>
                                 </tr>
                                 <tr>
+                                    <td class="ps-5"><code>APP_DEBUG</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td><code>false</code></td>
+                                    <td>Yalnız <code>true</code> iken ayrıntılı hata sayfası/JSON (kaynak, yol, yığın izi) ve <code>display_errors</code> açıktır. Canlıda <code>false</code>: kullanıcı başvuru kodu (<code>ref</code>) görür, ayrıntı <code>error_log</code>'a gider. Bkz. <a href="/docs/errors">/docs/errors</a>.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>APP_TIMEZONE</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td><code>Europe/Istanbul</code></td>
+                                    <td>PHP'nin saat dilimi (<code>date_default_timezone_set</code>). <b>MySQL oturumunun saat dilimine dokunulmaz</b>: PHP ile veritabanı saat dilimleri birbirinden bağımsızdır. <code>date()</code> ile yazılan zamanlar PHP diliminde, <code>NOW()</code> ile yazılanlar sunucunun diliminde olur; çekirdeğin kuyruk ve hız sınırı tabloları bu yüzden her zaman <code>NOW()</code> kullanır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>LOG_PATH</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td><code>files/logs</code></td>
+                                    <td><code>LogModule</code> ve <code>schedule:run</code> günlük dizini (0750, dosyalar 0640). Web kökünün dışında bir yol önerilir.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>APP_SALT</code></td>
                                     <td><code>""</code></td>
                                     <td>Ayrılmış alan; <code>$cDefinitions->getSaltText()</code> ile okunabilir. <b>VNL çekirdeği bu değeri hiçbir yerde kullanmaz</b> — parolalar bcrypt'in kendi tuzuyla, "beni hatırla" jetonları SHA-256 ile korunur. Kendi imzalama ihtiyacınız için kullanabilirsiniz.</td>
@@ -160,7 +175,17 @@
                                 <tr>
                                     <td class="ps-5"><code>DB_HOST</code></td>
                                     <td><code>localhost</code></td>
-                                    <td>Veritabanı sunucusu.</td>
+                                    <td>Veritabanı sunucusu. Portu buraya yazmayın (<code>host:port</code> PDO'da çalışmaz); <code>DB_PORT</code> kullanın.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>DB_PORT</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td><code>3306</code></td>
+                                    <td>TCP portu. Web ve <code>php vnl.php migrate</code> aynı değeri kullanır (eski <code>host:port</code> yazımı <code>migrate</code>'te geri düşüş olarak okunur).</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>DB_SOCKET</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td><code>""</code></td>
+                                    <td>Unix soketi (ör. <code>/run/mysqld/mysqld.sock</code>). Doluysa <code>DB_HOST</code>/<code>DB_PORT</code> yerine soket kullanılır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>DB_DATABASE</code> · <code>DB_USERNAME</code> · <code>DB_PASSWORD</code></td>
@@ -169,8 +194,8 @@
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>DB_CHARSET</code> · <code>DB_COLLATION</code></td>
-                                    <td><code>utf8</code> · <code>utf8_unicode_ci</code></td>
-                                    <td>Emoji ve tam Unicode desteği için <code>utf8mb4</code> / <code>utf8mb4_unicode_ci</code> önerilir.</td>
+                                    <td><code>utf8mb4</code> · <code>utf8mb4_unicode_ci</code></td>
+                                    <td>3.4.0 varsayılanı <code>utf8mb4</code> (3.3: <code>utf8</code> = utf8mb3, emoji ve 4 baytlık karakterleri kesiyordu). <code>.env</code>'de tanımlıysa o geçerlidir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>DB_PREFIX</code></td>
@@ -181,6 +206,51 @@
                                     <td class="ps-5"><code>DB_MASTER</code></td>
                                     <td><code>""</code></td>
                                     <td>Çok kiracılı yapılarda merkezi veritabanı adı.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h5 class="fw-bold text-body-emphasis mb-3">Oturum ve güvenlik (3.4.0)</h5>
+                        <div class="table-responsive border rounded bg-body-tertiary mb-6">
+                            <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
+                                <thead>
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
+                                    <th class="ps-5 min-w-250px">Anahtar</th>
+                                    <th class="min-w-150px">Varsayılan</th>
+                                    <th class="min-w-350px">Açıklama</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-body fw-semibold">
+                                <tr>
+                                    <td class="ps-5"><code>VNL_SESSION_IDLE</code></td>
+                                    <td><code>3600</code></td>
+                                    <td>Boşta kalma sınırı (sn); <code>0</code> kapatır. Aşılınca oturum biter ve bu cihazın "beni hatırla" jetonu da iptal edilir.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_IDLE_KEEPS_REMEMBER</code></td>
+                                    <td><code>false</code></td>
+                                    <td><code>true</code>: boşta kalan oturum "beni hatırla" jetonuyla aynı istekte sessizce yeniden açılır (3.4.0 öncesi davranış).</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_REMEMBER_DAYS</code></td>
+                                    <td><code>30</code></td>
+                                    <td>"Beni hatırla" jetonunun ömrü (gün); <code>0</code> özelliği tamamen kapatır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_SESSION_SAMESITE</code></td>
+                                    <td><code>Lax</code></td>
+                                    <td>Oturum çerezinin SameSite değeri (<code>Lax</code> | <code>Strict</code> | <code>None</code>).</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_SECURITY_HEADERS</code></td>
+                                    <td><code>true</code></td>
+                                    <td><code>X-Frame-Options</code>, <code>nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, TLS'te HSTS.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_PUBLIC_DOCS</code> · <code>VNL_PUBLIC_CAPTURE</code></td>
+                                    <td><code>false</code></td>
+                                    <td>Doküman sayfalarını girişsiz aç · 3.3'ün <code>$page_config['public']</code> geçiş kipi (güvenli değil).</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -426,6 +496,10 @@ if ($anahtar === '') {
                                     <td><code>NNNN_kisa_aciklama.sql</code> — numara dört haneli ve artan.</td>
                                 </tr>
                                 <tr>
+                                    <td class="ps-5">Tek numara (3.4.0)</td>
+                                    <td>Aynı dizinde aynı numara iki kez kullanılamaz: kayıt (kaynak, numara) ile tutulur. <code>migrate</code> çakışmayı görünce hiçbir şey çalıştırmadan durur ve veritabanında kayıtlı olanı adıyla söyler — <b>diğerini</b> yeniden numaralandırın. Paralel geliştirmede modül başına numara bloğu ayırın (ör. alan adları <code>0100–0199</code>).</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5">Değiştirilmezlik</td>
                                     <td>Yayımlanmış bir migration <b>düzenlenmez</b>; düzeltme için yeni numara açılır. Başkasının veritabanında zaten çalışmış olabilir.</td>
                                 </tr>
@@ -443,7 +517,8 @@ if ($anahtar === '') {
 
                         <h5 class="fw-bold text-body-emphasis mb-3">Çalıştırma</h5>
                         <div class="vnl-code mb-6">
-                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>mysql -u KULLANICI -p VERITABANI &lt; migrations/0001_vnl_3_0_upgrade.sql</code></pre>
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>php vnl.php migrate --status   # ne uygulanmış, ne bekliyor
+php vnl.php migrate --run      # önce çekirdek (vnl/migrations), sonra proje (migrations)</code></pre>
                         </div>
 
                         <div class="alert alert-danger d-flex align-items-center p-5 mb-0">

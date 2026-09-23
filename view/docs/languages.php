@@ -5,7 +5,7 @@
             <div class="vnl-page-hero mb-12 mt-6">
                 <div class="vnl-overline mb-3">// docs/languages</div>
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Dil ve Çoklu Dil Desteği (i18n)</h1>
-                <div class="vnl-lead">VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong>; aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.</div>
+                <div class="vnl-lead">VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong> — ana dosya (<code>languages/tr.json</code>) artı 3.4.0'dan beri modül başına parçalar (<code>languages/tr/*.json</code>); aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.</div>
             </div>
 
             <div class="alert alert-info d-flex flex-column flex-sm-row p-5 mb-10">
@@ -44,7 +44,8 @@ $yuklu = Language::current();
                                     <i class="bi bi-filetype-json fs-2x text-warning mb-3 d-block"></i>
                                     <h6 class="fw-bold mb-2">JSON Dosyaları</h6>
                                     <code class="fs-7">languages/tr.json</code><br>
-                                    <code class="fs-7">languages/en.json</code>
+                                    <code class="fs-7">languages/en.json</code><br>
+                                    <code class="fs-7">languages/&lt;dil&gt;/*.json</code> <span class="text-muted fs-8">(parçalar, 3.4.0)</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -138,6 +139,20 @@ Language::set(Languages::EN); // İngilizce yükle
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">Bir anahtar ikinci dilde eksikse metin <strong>temel dilden</strong> karşılanır ve durum hata günlüğüne yazılır — boş metin görünmez. Ayrıntı için 9. bölüme bakın.</span>
                         </div>
+
+                        <h5 class="fw-bold text-body-emphasis mt-8 mb-3">Dil parçaları — <code>languages/&lt;dil&gt;/*.json</code> (3.4.0)</h5>
+                        <p class="fs-6 text-body mb-4">
+                            Tek dil dosyası, paralel çalışan her modülün aynı dosyada çakışması demekti. <code>Language</code> ana dosyayı (<code>languages/tr.json</code>) okuduktan sonra <code>languages/tr/</code> altındaki her <code>*.json</code>'u <b>ad sırasıyla</b> sözlüğe ekler. Biçim ana dosyayla aynıdır. Aynı anahtar iki yerde varsa <b>sonra okunan dosya kazanır</b> ve günlüğe <code>[VNL][Language]</code> uyarısı düşer. Her parçanın öbür dillerde de karşılığı olmalıdır (<code>languages/en/domains.json</code>).
+                        </p>
+                        <div class="vnl-code mb-0">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>languages/
+├── tr.json            ← ortak anahtarlar (BTN_SAVE, ERR_CSRF ...)
+├── en.json
+├── tr/
+│   └── domains.json   ← { "DOMAINS_TITLE": "Alan adları", ... }
+└── en/
+    └── domains.json   ← { "DOMAINS_TITLE": "Domains", ... }</code></pre>
+                        </div>
                     </div>
                     <!--end::Section 3-->
 
@@ -195,7 +210,7 @@ echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">5. Dil Anahtarları</h3>
                         <p class="fs-5 text-body mb-4">
-                            Sözlüğün tek doğruluk kaynağı dosyanın kendisidir; <code>languages/tr.json</code> şu an <b>132 anahtar</b> taşıyor. Aşağıdaki tablo onların tamamı değil, <b>çekirdeğin kendi çağırdıklarından</b> bir seçki — bunlar bir projede eksik kalırsa doğrulama ve hata mesajları anahtar adını basar.
+                            Sözlüğün tek doğruluk kaynağı dosyanın kendisidir; <code>languages/tr.json</code> şu an <b>171 anahtar</b> taşıyor (3.4.0). Aşağıdaki tablo onların tamamı değil, <b>çekirdeğin kendi çağırdıklarından</b> bir seçki — bunlar bir projede eksik kalırsa doğrulama ve hata mesajları anahtar adını basar.
                         </p>
 
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-5">

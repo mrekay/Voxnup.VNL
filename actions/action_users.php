@@ -1,226 +1,330 @@
 <?php
+/*!
+ * ============================================================
+ *  Voxnup Not Laravel (VNL) — Kullanıcı Yönetimi
+ *  POST /app/users/<getList|get|save|delete|permissions|setPermissions>
+ *  Authors: Voxnup Authors
+ * ============================================================
+ *
+ * 3.4.0'da yeniden yazıldı. Eski dosya PascalCase sütunlar, MSSQL'e özgü
+ * rastgele-GUID sıralaması ve DataTables sözleşmesiyle yazılmıştı; VNL'in
+ * hiçbir sürümünde çalışmıyordu. Şimdi 0002 şeması + VNL Table sözleşmesi.
+ *
+ * Yetki kodu 'Users' (view / insert / edit / delete). Yetki yükseltmesine
+ * karşı kurallar:
+ *  - Süper yönetici (perm_id = 1) atamak ya da bir süper yöneticiyi
+ *    değiştirmek yalnız süper yöneticinin işidir.
+ *  - Kimse kendi hesabını silemez, pasifleştiremez, kendi rolünü ve
+ *    yetkilerini değiştiremez.
+ *  - Süper olmayan yönetici ancak KENDİSİNDE olan yetenekleri dağıtabilir.
+ *  - Süper olmayan yönetici ancak yetkilerinin TAMAMI kendisinde de olan bir
+ *    kullanıcıyı düzenleyebilir, silebilir ya da yetkilerini değiştirebilir
+ *    (canManage). Aksi halde "Users:edit" yetkisiyle daha yetkili birinin
+ *    parolasını sıfırlayıp onun yerine girmek mümkün olurdu.
+ *
+ * Proje notu: varsayılan kancada perm_id = 1 dışındaki roller hiçbir yetki
+ * vermez; yetkiler kullanıcı başına tbl_user_permissions'tadır. Rolün kendisi
+ * yetki taşıyan bir kanca yazan proje, rol atamasını da ayrıca korumalıdır.
+ */
 
 use ActionGlobal\Auth;
 
 class action_users
 {
+    private const PERM = 'Users';
 
+    private const MIN_PASSWORD = 10;
+
+    /** VNL Table veri ucu. Satırlar ham değer taşır; parola/TOTP sırrı asla. */
     public function getList($req)
     {
-        Auth::CheckLogin();
-        $page_length = intval($req->post('length'));
-        $page_start = $req->post('start');
+        Auth::CheckPermission(self::PERM, 'view');
 
-        $columns = $req->post('columns');
-        $orders = $req->post('order');
+        $t = VnlTableRequest::from($req);
 
-        $order_by = "InsertDate";
-        $order = "Desc";
-        if (!empty($orders)) {
-            $order_by = $columns[intval($orders[0]['column'])]['name'];
-            $order = $orders[0]['dir'];
+        $filters = $t->search !== '' ? ['name' => $t->search] : [];
+
+        $rows = User::SelectList($filters, $t->extras('id', 'desc'))->get()
+            ->map(fn(User $u) => $this->row($u))->all();
+
+        if ($t->op === VnlTableRequest::OP_EXPORT) {
+            $all = User::SelectList($filters, ['order' => 'id'])->get()
+                ->map(fn(User $u) => $this->row($u))->all();
+
+            $t->exportXlsx($all, [
+                'id'            => 'ID',
+                'username'      => lang('USERS_COL_USERNAME'),
+                'fullname'      => lang('USERS_COL_NAME'),
+                'email'         => lang('USERS_COL_EMAIL'),
+                'is_active'     => lang('USERS_COL_STATUS'),
+                'last_login_at' => lang('USERS_COL_LAST_LOGIN'),
+            ], 'users');
         }
 
-
-        $extras = [
-            'begin' => $page_start,
-            'limit' => intval($page_length),
-            'search' => '',
-            'order' => $order_by,
-            'order_by' => $order
-        ];
-        $filters = array();
-        foreach ($columns as $col) {
-            if (isset($col['search']['value']) && $col['search']['value'] != null)
-                $filters[$col['name']] = $col['search']['value'];
-        }
-
-        $ulist = User::SelectList($filters, $extras)->get();
-        $filter_count = User::SelectList($filters, null)->count();
-        $total_count = User::SelectList(null, null)->count();
-
-        $data = [];
-        $i = $page_start + 1;
-
-        foreach ($ulist as $u) {
-
-
-            $data[] =
-                array(
-                    "id" => $u->Id,
-                    "no" => '<span class="ps-10">' . $i . '</span>  <input type="hidden" class="row_id" value="' . $u->Id . '">',
-                    "Username" => $u->Username,
-                    "Name" => $u->Name,
-                    "Surname" => $u->Surname,
-                    "Email" => $u->Email,
-                    "AuthenticationCode" => $u->AuthenticationCode,
-                    "InsertDate" => date("Y-m-d H:i:s", strtotime($u->InsertDate)),
-                    "UpdateDate" => empty($u->UpdateDate) ? '-' : date("Y-m-d H:i:s", strtotime($u->UpdateDate)),
-
-                );
-            $i++;
-
-
-        }
-
-
-        $jsondata = array(
-            "recordsTotal" => $total_count,
-            "recordsFiltered" => $filter_count,
-            "data" => $data
+        $t->respond(
+            $rows,
+            User::SelectList([], null)->count(),
+            User::SelectList($filters, null)->count()
         );
-        returnSuccessDataOnly($jsondata);
-
     }
 
-    public function searchPersonnel($req)
+    /** Tek kayıt (düzenleme modalı). */
+    public function get($req)
     {
-        Auth::CheckLogin();
+        Auth::CheckPermission(self::PERM, 'view');
 
-        $query = $req->post('query');
+        $user = $this->find((int)$req->post('id'));
 
-        $users = User::SelectList(["Fullname" => $query], ['limit' => 10, 'order' => 'Id', 'order_by' => 'asc'])->get();
-        $returnData = [];
-        foreach ($users as $u) {
-            $returnData[] = [
-                'Id' => $u->Id,
-                'Username' => $u->Username,
-                'Fullname' => $u->Name . ' ' . $u->Surname,
-                'Name' => $u->Name,
-                'Surname' => $u->Surname,
-            ];
-        }
-
-        returnSuccessDataOnly(["data" => $returnData]);
+        returnSuccessMessage('', $this->row($user) + [
+            'name'    => (string)$user->name,
+            'surname' => (string)$user->surname,
+            'perm_id' => $user->perm_id !== null ? (int)$user->perm_id : null,
+        ]);
     }
 
-    public function deleteUser($req){
-        Auth::CheckLogin();
-        $password = $req->post('password');
-        $user_id = $req->post('user_id');
-        DefaultValidator::validateEmpty($password, "Parola");
-        $currentUser = Auth::User();
-        if(EncryptionModule::PasswordVerify($password, $currentUser->storedPassword())){
-            User::where('Id', $user_id)->update(['DeleteUser' => $currentUser->Id]);
-            if (User::where('Id',$user_id)->delete()){
-                returnSuccessMessage("Kullanıcı silindi.");
-            }else{
-                returnErrorMessage("Kullanıcı silinemedi.");
-            }
-        }else{
-            returnErrorMessage("Parola doğrulanamadı.");
-        }
-    }
-
-    public function getPersonelDetails($req)
-    {
-        Auth::CheckLogin();
-        $user_id = $req->post('uID');
-
-        DefaultValidator::validateEmpty($user_id, "Kullanıcı");
-
-        $user = User::SelectList(['id' => $user_id], [])->first();
-        $user_permissions = UserPermissions::SelectList(['UserId' => $user->Id], [])->get();
-
-        returnSuccessDataOnly(["user" => $user, "permissions" => $user_permissions]);
-    }
-
+    /** Ekle / güncelle. Parola yeni kayıtta zorunlu, güncellemede isteğe bağlı. */
     public function save($req)
     {
-        Auth::CheckLogin();
-        $user_id = $req->post('user_id');
-        $username = $req->post('username');
-        $password = $req->post('password');
-        $first_name = $req->post('first_name');
-        $last_name = $req->post('last_name');
-        $email = $req->post('email');
-        $erp_user = $req->post('erp_user');
+        $id = (int)$req->post('id', 0);
+        Auth::CheckPermission(self::PERM, $id > 0 ? 'edit' : 'insert');
 
-        $selectedPermissions = $req->post('permissions');
-        $definitionPermissions = $req->post('usercontrol_permissions') ?? [];
+        $me       = vnl_user();
+        $username = trim((string)$req->post('username', ''));
+        $password = (string)$req->post('password', '');
+        $permId   = $req->post('perm_id');
+        $permId   = ($permId === null || $permId === '' || $permId === '0') ? null : (int)$permId;
+        $isActive = $req->post('is_active', 1) ? 1 : 0;
 
-
-        DefaultValidator::validateEmpty($username, "Kullanıcı Adı");
-        DefaultValidator::validateEmpty($first_name, "Adı");
-        DefaultValidator::validateEmpty($last_name, "Soyadı");
-        DefaultValidator::validateEmpty($email, "Email");
-
-        if (empty($user_id) && empty($password)) returnErrorMessage("Parola alanı boş olamaz");
-
-        $user = new User();
-        if ($user_id > 0) {
-            $user = User::Select(["id" => $user_id]);
+        DefaultValidator::validateTextLength($username, 64, 3, lang('USERS_COL_USERNAME'));
+        if (!preg_match('/^[A-Za-z0-9._@-]+$/', $username)) {
+            returnErrorMessage(lang('USERS_ERR_USERNAME'));
         }
 
-        $user->Username = $username;
-        if (!empty($password)) $user->setStoredPassword(EncryptionModule::PasswordHash($password));
-        $user->Name = $first_name;
-        $user->Surname = $last_name;
-        $user->Email = $email;
-        if (empty($user_id)) {
-            $user->UserReferenceId = empty($erp_user) ? '00000000-0000-0000-0000-000000000000' : $erp_user;
-            $user->InsertDate = date("Y-m-d H:i:s");
-            $user->InsertUser = Auth::User()->Id;
-            $user->AuthenticationCode = Database::raw("NEWID()");
-        }
-
-        $user_save_status = $user->save();
-
-        /* eğer yeni kullanıcı oluşturuluyorsa onun için tüm yetkileri oluştur */
-        if (empty($user_id) || $user_id <= 0) {
-            $allPermissions = Permission::SelectList([], [])->get();
-
-            foreach ($allPermissions as $perm) {
-                $userperm = new UserPermissions();
-                $userperm->Insert([
-                    "UserId" => $user->Id,
-                    "PermissionId" => $perm->Id,
-                    "InsertDate" => date("Y-m-d H:i:s"),
-                    "InsertUser" => Auth::User()->Id,
-                    "CanView" => 0,
-                    "CanEdit" => 0,
-                    "CanInsert" => 0,
-                    "CanDelete" => 0,
-                ]);
-
-
+        if ($id === 0 || $password !== '') {
+            if (mb_strlen($password) < self::MIN_PASSWORD) {
+                returnErrorMessage(lang('ERR_PASSWORD_TOO_SHORT', self::MIN_PASSWORD));
             }
         }
 
-        /* tüm yetkileri sıfırla */
-        UserPermissions::where('UserId', $user->Id)->update([
-            'CanView' => 0,
-            'CanInsert' => 0,
-            'CanEdit' => 0,
-            'CanDelete' => 0,
+        if (User::usernameExists($username, $id)) {
+            returnErrorMessage(lang('USERS_ERR_EXISTS', $username));
+        }
+
+        $user = $id > 0 ? $this->find($id) : new User();
+
+        /* Yetki yükseltmesi kapıları. */
+        $superTouched = $permId === User::SUPER_ADMIN || ($id > 0 && $user->isSuperAdmin());
+        if ($superTouched && !$me->isSuperAdmin()) {
+            returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
+        }
+
+        /* Başka bir kullanıcıyı düzenlemek (parola dahil) yalnız onun bütün
+           yetkilerine sahip olana açıktır — hiçbir alan atanmadan önce. */
+        if ($id > 0 && (int)$user->id !== (int)$me->id && !$this->canManage($me, $user)) {
+            returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
+        }
+
+        if ($id > 0 && (int)$user->id === (int)$me->id) {
+            if ($isActive === 0 || $permId !== ($user->perm_id !== null ? (int)$user->perm_id : null)) {
+                returnErrorMessage(lang('USERS_ERR_SELF'), 403, 'VNL_PERM');
+            }
+        }
+
+        $user->username  = $username;
+        $user->name      = trim((string)$req->post('name', ''));
+        $user->surname   = trim((string)$req->post('surname', ''));
+        $user->email     = trim((string)$req->post('email', '')) ?: null;
+        $user->perm_id   = $permId;
+        $user->is_active = $isActive;
+
+        if ($password !== '') {
+            $user->setStoredPassword(EncryptionModule::PasswordHash($password));
+        }
+
+        $user->save();
+
+        if ($id > 0 && $password !== '') {
+            UserModule::ForgetAllDevices($user->id);   // eski "beni hatırla" jetonları geçersiz
+            Audit::log('auth.password_changed', 'user', $user->id);
+        }
+
+        Audit::log($id > 0 ? 'user.update' : 'user.create', 'user', $user->id, [
+            'username'  => $username,
+            'perm_id'   => $permId,
+            'is_active' => $isActive,
         ]);
 
-        /* ilgili kullanıcı yetkilerini 1 yap */
-        if (!empty($selectedPermissions)) {
-            UserPermissions::where('UserId', $user->Id)
-                ->whereIn('PermissionId', $selectedPermissions)
-                ->update(['CanView' => 1]);
-        }
-
-        foreach ($definitionPermissions as $permId => $actions) {
-            UserPermissions::where('UserId', $user->Id)
-                ->where('PermissionId', $permId)
-                ->update([
-                    'CanView' => isset($actions['CanView']) ? 1 : 0,
-                    'CanInsert' => isset($actions['CanInsert']) ? 1 : 0,
-                    'CanEdit' => isset($actions['CanEdit']) ? 1 : 0,
-                    'CanDelete' => isset($actions['CanDelete']) ? 1 : 0,
-                ]);
-        }
-
-        if ($user_save_status) {
-            returnSuccessMessage("Kullanıcı kayıt edildi");
-        } else {
-            returnErrorMessage("Kullanıcı kayıt edilemedi.");
-        }
-
-
+        returnSuccessMessage(lang('USERS_SAVED'), ['id' => (int)$user->id]);
     }
 
+    /** Yumuşak silme. Kendi hesabını ve (süper değilsen) süper yöneticiyi silemezsin. */
+    public function delete($req)
+    {
+        Auth::CheckPermission(self::PERM, 'delete');
 
+        $user = $this->find((int)$req->post('id'));
+        $me   = vnl_user();
+
+        if ((int)$user->id === (int)$me->id) {
+            returnErrorMessage(lang('USERS_ERR_SELF'), 403, 'VNL_PERM');
+        }
+
+        if (!$this->canManage($me, $user)) {
+            returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
+        }
+
+        $user->delete();
+        UserModule::ForgetAllDevices($user->id);
+        UserPermissions::RevokeAll((int)$user->id);
+
+        Audit::log('user.delete', 'user', $user->id, ['username' => $user->username]);
+
+        returnSuccessMessage(lang('USERS_DELETED'));
+    }
+
+    /** Kullanıcının kod tabanlı yetkileri: {kod: {view, insert, edit, delete}} */
+    public function permissions($req)
+    {
+        Auth::CheckPermission(self::PERM, 'view');
+
+        $user = $this->find((int)$req->post('id'));
+
+        returnSuccessMessage('', [
+            'user_id'     => (int)$user->id,
+            'super'       => $user->isSuperAdmin(),
+            'permissions' => UserPermissions::ForUser((int)$user->id),
+        ]);
+    }
+
+    /**
+     * Yetkileri toplu yazar.
+     *   permissions: {"Domains": ["view","edit"], "Users": []}
+     * Boş liste o kodu kaldırır. Listede olmayan kodlara dokunulmaz.
+     */
+    public function setPermissions($req)
+    {
+        Auth::CheckPermission(self::PERM, 'edit');
+
+        $user = $this->find((int)$req->post('id'));
+        $me   = vnl_user();
+
+        if ((int)$user->id === (int)$me->id) {
+            returnErrorMessage(lang('USERS_ERR_SELF'), 403, 'VNL_PERM');
+        }
+
+        /* Daha yetkili birinin yetkilerini daraltmak ya da kaldırmak da
+           yasak: hedefin her yeteneği işlemi yapanda da olmalı. */
+        if (!$this->canManage($me, $user)) {
+            returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
+        }
+
+        $input = $req->post('permissions', []);
+        if (is_string($input)) {
+            $input = json_decode($input, true);
+        }
+        if (!is_array($input)) {
+            returnErrorMessage(lang('ERR_INVALID_PARAMETERS_SENT'));
+        }
+
+        $applied = [];
+
+        foreach ($input as $code => $abilities) {
+            $code = (string)$code;
+
+            if (!preg_match('/^[A-Za-z0-9_.:-]{1,100}$/', $code) || !is_array($abilities)) {
+                returnErrorMessage(lang('ERR_INVALID_PARAMETERS_SENT'));
+            }
+
+            $abilities = array_values(array_intersect(UserPermissions::ABILITIES, array_map('strval', $abilities)));
+
+            /* Süper olmayan, kendisinde olmayan yeteneği dağıtamaz. */
+            if (!$me->isSuperAdmin()) {
+                foreach ($abilities as $ability) {
+                    if (!vnl_can($code, $ability, true)) {
+                        returnErrorMessage(lang('ERR_PERM'), 403, 'VNL_PERM');
+                    }
+                }
+            }
+
+            if ($abilities === []) {
+                UserPermissions::Revoke((int)$user->id, $code);
+            } else {
+                UserPermissions::Grant((int)$user->id, $code, $abilities);
+            }
+
+            $applied[$code] = $abilities;
+        }
+
+        /* Liste olarak: izin kodları VERİDİR, anahtar değil. Anahtar olarak
+           yazılsaydı Audit'in gizli anahtar süzgeci 'ApiTokens',
+           'DbPasswords' gibi kodları kayıttan düşürürdü. */
+        Audit::log('user.permissions', 'user', $user->id, [
+            'permissions' => array_map(
+                static fn($code) => ['code' => (string)$code, 'abilities' => $applied[$code]],
+                array_keys($applied)
+            ),
+        ]);
+
+        returnSuccessMessage(lang('USERS_PERMISSIONS_SAVED'));
+    }
+
+    /* ---------------------------------------------------------------- */
+
+    /**
+     * $me, $target'ı yönetebilir mi?
+     *
+     * Süper yönetici herkesi yönetir. Süper olmayan: süper bir hedefi asla;
+     * diğerlerini ancak hedefin AÇIK olan her yeteneği kendisinde de varsa
+     * (vnl_can, katı). ForUser() kod => [yetenek => bool] döner; yalnız true
+     * olanlara bakılır.
+     */
+    private function canManage(User $me, User $target): bool
+    {
+        if ($me->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($target->isSuperAdmin()) {
+            return false;
+        }
+
+        foreach (UserPermissions::ForUser((int)$target->id) as $code => $abilities) {
+            foreach ($abilities as $ability => $granted) {
+                if ($granted && !vnl_can((string)$code, (string)$ability, true)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private function find(int $id): User
+    {
+        $user = $id > 0 ? User::Select(['id' => $id]) : null;
+
+        if (empty($user)) {
+            returnErrorMessage(lang('USERS_ERR_NOT_FOUND'), 404);
+            exit;
+        }
+
+        return $user;
+    }
+
+    /** Tablo satırı: yalnız HAM değerler. */
+    private function row(User $u): array
+    {
+        return [
+            'id'            => (int)$u->id,
+            'username'      => (string)$u->username,
+            'fullname'      => $u->fullname(),
+            'email'         => $u->email,
+            'perm_id'       => $u->perm_id !== null ? (int)$u->perm_id : null,
+            'super'         => $u->isSuperAdmin(),
+            'is_active'     => (int)($u->is_active ?? 1),
+            'totp_enabled'  => (int)($u->totp_enabled ?? 0),
+            'last_login_at' => $u->last_login_at !== null ? (string)$u->last_login_at : null,
+            'created_at'    => $u->created_at !== null ? (string)$u->created_at : null,
+        ];
+    }
 }

@@ -1,6 +1,6 @@
 # VNL
 
-![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
@@ -30,6 +30,13 @@ konsol ve kendi tema katmanı hazır gelir; kurulumda ne composer ne npm gerekir
   tek bir dizini değiştirmekten ibarettir.
 * **Hızlı Veritabanı Erişimi:** Eloquent ile hızlı kurulum ve kullanım.
 * **VNL Theme:** Bootstrap 5.3 tabanlı, koyu-varsayılanlı, layout preset'li kendi tema katmanı.
+* **Varsayılan olarak güvenli (3.4):** CSRF jetonu, yalnız-POST action'lar, girişi
+  varsayılan olarak zorunlu kılan dağıtıcı, sayfa/action yetki kapıları
+  (`vnl_require_permission()`, `Auth::CheckPermission()`), giriş hız sınırı, iki adımlı
+  doğrulama (TOTP), denetim kaydı (`Audit::log()`), canlıda ayrıntısız hata sayfası.
+* **Kuyruk ve zamanlayıcı (3.4):** `Queue::push()` + `php vnl.php queue:work`,
+  `config/schedule.php` + `php vnl.php schedule:run`, projenin kendi konsol komutları
+  (`commands/`).
 
 ## 🎨 VNL Theme
 
@@ -43,6 +50,8 @@ inşa edilen **VNL Theme** ile gelir:
   `$page_config['layout'] = 'app';`
 - **Self-host her şey** — Inter variable (latin-ext dahil), Font Awesome Free 7, jQuery 3.7,
   SweetAlert2 v11, SlimSelect. Hiçbir CDN'e istek atılmaz.
+- **Tarih ve saat seçici** — `<input data-vnl-date>` (tarih, saat, ay, aralık); ekranda Türkçe,
+  sunucuya ISO. Altyapı flatpickr, çekirdekle gelir, tema token'larını okur.
 - **Derlenmiş çıktı repodadır** (`vnl/assets/theme/`) — kurulumda Node/npm/build **gerekmez**.
 
 Tema kaynağı ayrı bir depodadır: **[VNL-THEME](https://github.com/mrekay/VNL-THEME)**.
@@ -110,7 +119,7 @@ altındadır; numaraları bağımsız yürür, bir VNL yükseltmesi sizin sıran
 
 ```bash
 php vnl.php update --check      # yeni sürüm var mı, neler değişti
-php vnl.php update --to 3.1.0   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
+php vnl.php update --to 3.4.0   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
 php vnl.php doctor              # proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run       # şemayı güncelle
 ```
@@ -124,10 +133,16 @@ Ayrıntılar **/docs/versioning** sayfasında.
 ## 🖥️ Konsol
 
 ```bash
-php vnl.php              # komut listesi
-php vnl.php serve        # yerel geliştirme sunucusu
-php vnl.php version      # çekirdek ve proje sürümleri
+php vnl.php                                   # komut listesi (çekirdek + commands/)
+php vnl.php serve                             # yerel geliştirme sunucusu
+php vnl.php version                           # çekirdek ve proje sürümleri
+php vnl.php user:create --username=admin --super   # ilk yönetici
+php vnl.php queue:work --queue=default        # kuyruk işçisi (systemd altında)
+php vnl.php schedule:run                      # cron: * * * * *
 ```
+
+Projenin kendi komutları `commands/<ad>.php` dosyalarıdır (`backup:prune` →
+`commands/backup-prune.php`); sözleşme `commands/README.md`'de.
 
 Windows'ta `vnl.cmd` kısayolu vardır (`vnl migrate --run`; PowerShell'de
 `.\vnl`), Unix'te `chmod +x vnl.php` sonrası `./vnl.php`. Adı düz `vnl` olamaz:
@@ -135,8 +150,8 @@ bir dizinde aynı adı taşıyan dosya ve dizin bir arada bulunamaz.
 
 ## 🚀 Gereksinimler
 
-* PHP 8.2 veya üzeri
-* Veritabanı (opsiyonel — dokümantasyon sayfaları veritabanısız da çalışır)
+* PHP 8.2 veya üzeri (`mbstring`, `pdo_mysql`, `openssl`; kuyruk işçisi için `pcntl` önerilir)
+* MySQL 5.7+ / MariaDB 10.3+ (giriş, yetki, kuyruk ve denetim kaydı veritabanındadır)
 * Node.js 20+ (opsiyonel — yalnızca [VNL-THEME](https://github.com/mrekay/VNL-THEME)
   deposundan temayı yeniden derlemek isteyenler için)
 
@@ -146,9 +161,20 @@ bir dizinde aynı adı taşıyan dosya ve dizin bir arada bulunamaz.
 # Projeyi klonlayın
 git clone https://github.com/mrekay/VNL-TEMPLATE.git .
 
-# config/definitions.php içindeki tanımları projenize göre düzenleyin
-# ve web sunucunuzun kökünü proje dizinine yönlendirin.
+# Ortam: veritabanı, APP_URL, APP_ENCRYPTION_KEY (APP_DEBUG canlıda false)
+cp .env.example .env
+
+# Şema ve ilk yönetici (parola bir kez basılır)
+php vnl.php migrate --run
+php vnl.php user:create --username=admin --super
+
+# Kurulum denetimi
+php vnl.php doctor
 ```
+
+Web sunucusu: Apache için `.htaccess` hazır gelir; nginx için `nginx.conf.example`
+(yalnız `index.php` çalışır, yalnız `assets/` ve `vnl/assets/` servis edilir).
+Doküman sayfaları varsayılan olarak giriş ister; `VNL_PUBLIC_DOCS=true` açar.
 
 Yerelde hızlıca denemek için (PHP kuruluysa ya da Docker ile):
 

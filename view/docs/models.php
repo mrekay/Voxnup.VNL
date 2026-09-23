@@ -195,7 +195,7 @@ class Urun extends TableModel
         'ad'       => ['name' => 'tbl_urunler.ad', 'operator' => 'like'],
         'fiyat'    => ['name' => 'tbl_urunler.fiyat'],
         'stok'     => ['name' => 'tbl_urunler.stok'],
-        'aktif'    => ['name' => 'tbl_urunler.aktif'],
+        'aktif'    => ['name' => 'tbl_urunler.aktif', 'zero' => true],   // 0 da geçerli filtre (3.4.0)
         'kategori' => ['name' => 'tbl_urunler.kategori_id'],
     ];
 
@@ -264,7 +264,20 @@ $filters = [
 
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-5">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
-                            <span class="text-body fs-6"><b>Filtre anahtarı <code>$columns</code>'ta tanımlı değilse istek düşer.</b> <code>setFilterDefault()</code> tanımadığı her anahtar için <code>throwErrorMessage("İç Veritabanı Hatası : Geçerli Filtre Gelmedi (...)")</code> fırlatır. Bu bilinçlidir: dışarıdan gelen bir ad doğrudan sütun adına çevrilseydi, filtre listesi bir SQL enjeksiyon yüzeyi olurdu. Değeri boş olan filtreler ise sessizce atılır, sorguya hiç girmez.</span>
+                            <span class="text-body fs-6"><b>Filtre anahtarı <code>$columns</code>'ta tanımlı değilse istek düşer.</b> <code>setFilterDefault()</code> tanımadığı her anahtar için <code>throwErrorMessage("İç Veritabanı Hatası : Geçerli Filtre Gelmedi (...)")</code> fırlatır. Bu bilinçlidir: dışarıdan gelen bir ad doğrudan sütun adına çevrilseydi, filtre listesi bir SQL enjeksiyon yüzeyi olurdu. Değeri boş olan filtreler ise sessizce atılır, sorguya hiç girmez — <code>null</code>, <code>''</code> ve <code>[]</code> her zaman; <code>0</code>, <code>'0'</code> ve <code>false</code> ise anahtarda <code>'zero' =&gt; true</code> yoksa (aşağıya bakın).</span>
+                        </div>
+
+                        <h5 class="fw-bold text-body-emphasis mb-3">Sıfır değerli filtreler — <code>'zero' =&gt; true</code> (3.4.0)</h5>
+                        <p class="fs-6 text-body mb-4">
+                            3.3'e kadar <code>['aktif' =&gt; 0]</code> filtresi "boş" sayılıp atılıyor ve <b>bütün</b> satırlar dönüyordu. Seçim kutularının çoğu "hepsi" için <code>"0"</code> gönderdiğinden kural genel olarak değiştirilmedi; sıfırın gerçek bir değer olduğu anahtar filtre haritasında bunu kendisi söyler. O anahtar için <code>0</code>, <code>'0'</code> ve <code>false</code> geçerli değerdir; <code>null</code>, <code>''</code> ve <code>[]</code> yine atılır. Karar <code>TableModel::filterHasValue()</code>'dadır.
+                        </p>
+                        <div class="vnl-code mb-5">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>protected static $columns = [
+    'status' =&gt; ['name' =&gt; 'tbl_x.status', 'zero' =&gt; true],
+];
+
+X::SelectList(['status' =&gt; 0])-&gt;get();   // yalnız status = 0 olanlar
+X::SelectList(['status' =&gt; ''])-&gt;get();  // filtre yok — hepsi</code></pre>
                         </div>
 
                         <h5 class="fw-bold text-body-emphasis mb-3">Desteklenen Operatörler</h5>

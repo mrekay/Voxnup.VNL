@@ -4,19 +4,40 @@
 sınıfın adı dosyanın adıyla aynıdır.
 
 ```php
+use ActionGlobal\Auth;
+
 class action_urun
 {
     public function kaydet($req)
     {
-        Auth::CheckLogin();
+        Auth::CheckPermission('Urunler', 'insert');   // 401 girişsiz, 403 yetkisiz
         DefaultValidator::validateEmpty($req->post('ad'), 'Ad');
 
-        Urun::create(['ad' => $req->post('ad')]);
+        $urun = Urun::create(['ad' => $req->post('ad')]);
+        Audit::log('urun.create', 'urun', $urun->id);
 
         returnSuccessMessage('Kaydedildi.');
     }
 }
 ```
+
+## Dağıtıcının kuralları (3.4.0, `vnl/classes/VnlDispatcher.php`)
+
+- **Yalnız POST.** GET/PUT/… → 405 `VNL_METHOD`.
+- **CSRF zorunlu.** `X-CSRF-Token` başlığı (vnl.js ve VNL Table her isteğe ekler)
+  ya da gövdede `_token` (`<?= vnl_csrf_field() ?>`). Yoksa 403 `VNL_CSRF`.
+- **Giriş varsayılan olarak zorunlu.** Girişsiz çağrılacak metot sınıf sabitinde
+  listelenir; imzasını kendisi doğrulayan webhook CSRF'ten muaf tutulur:
+
+  ```php
+  public const PUBLIC_METHODS = ['login'];
+  public const CSRF_EXEMPT    = ['webhook'];
+  ```
+- Yalnız `public`, static olmayan, `__` ile başlamayan metotlar çağrılabilir;
+  yardımcı metotları `private` yazın.
+- `throwErrorMessage($mesaj, $kod)` kodunu korur (422 → 422). Başka her istisna
+  günlüğe yazılır, kullanıcı genel metin + başvuru kodu görür (500 `VNL_FATAL`).
+- `Authorization: Bearer <jeton>` (API jetonu) oturum + CSRF yerine geçer.
 
 ## Kural: action içinde sorgu kurulmaz
 
@@ -39,9 +60,9 @@ tek sınıf güncellenir. Model sözleşmesi için `classes/CLAUDE.md`.
 
 ```php
 returnSuccessMessage($mesaj, $data)   // 200  {message, data}
-returnSuccessDataOnly($data)          // 200  ham veri
+returnSuccessDataOnly($data)          // 200  ham veri (3.4: sayıya çevirmez, "0755" dizge kalır)
 returnErrorMessage($mesaj, $kod)      // 400  {message, devcode}
-throwErrorMessage($mesaj, $kod)       // istisna fırlatır, dağıtıcı JSON'a çevirir
+throwErrorMessage($mesaj, $kod)       // istisna fırlatır, dağıtıcı JSON'a çevirir (kod korunur)
 ```
 
 `StandartException` ve `EmptyDataException` da `returnErrorMessage()` üzerinden

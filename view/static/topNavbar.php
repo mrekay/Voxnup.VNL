@@ -82,13 +82,14 @@ if ($page_config['topbar'] != false){
                         </span>
                         <div class="min-w-0">
                             <div class="fw-semibold text-truncate">{{ $CurrentUser->fullname() }}</div>
-                            <div class="fs-8 text-body-secondary text-truncate">{{ $CurrentUser->Username }}</div>
+                            <div class="fs-8 text-body-secondary text-truncate">{{ $CurrentUser->username }}</div>
                         </div>
                     </div>
                     <hr class="dropdown-divider">
-                    <a class="dropdown-item d-flex align-items-center gap-2" href="/logout">
+                    <!-- Çıkış POST + CSRF ile yapılır (vnl.js: data-vnl-logout → vnlLogout()). -->
+                    <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-vnl-logout>
                         <i class="bi bi-box-arrow-right"></i><?= lang('LBL_SIGN_OUT') ?>
-                    </a>
+                    </button>
                 </div>
             </div>
         <?php } else { ?>

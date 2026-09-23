@@ -1,17 +1,47 @@
 RewriteEngine on
 
+# Authorization başlığını PHP-FPM'e ilet (Bearer API jetonları, F29).
+# Apache mod_proxy_fcgi bu başlığı CGIPassAuth On olmadan FastCGI ortamına
+# koymaz; ApiToken::fromRequest() onu HTTP_AUTHORIZATION ya da (iç
+# yönlendirmeden sonra) REDIRECT_HTTP_AUTHORIZATION olarak okur. [L] yok:
+# aşağıdaki kurallar yine çalışır. nginx'te fastcgi_params zaten iletir.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
 # Nokta ile başlayan her yol parçasını engelle: .env, .git, .htaccess, .idea ...
 # Yönlendirme kurallarından ÖNCE gelmeli; aksi halde var olan dosya
 # (REQUEST_FILENAME -f) doğrudan düz metin olarak servis edilir.
 # .well-known ACME/Let's Encrypt doğrulaması için açık bırakılır.
 RewriteRule (^|/)\.(?!well-known) - [F,L]
 
-RewriteCond %{HTTPS} on
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L]
+# HTTPS'e yönlendirme (isteğe bağlı). 3.3'teki kural "HTTPS açıksa https'e
+# yönlendir" diyordu, yani hiçbir şey yapmıyordu. Gerekirse açın:
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
+# Sunucuda duran ama web'den ASLA okunmaması gereken dizinler (3.4.0).
+# Yalnız bu dizinlerin İÇİNDEKİ var olan dosya/dizinler engellenir.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)/. - [F,L]
+
+# Dizinin kendi adı (/jobs, /config/) bir SAYFA adresidir ve nginx'teki gibi
+# ön denetleyiciye gider. Dizin var olduğu için aşağıdaki !-d koşulu onu
+# atlardı; 3.4.0'ın ilk hâlinde bu adresler 403 dönüyordu. Eğik çizgisiz
+# /jobs'u Apache önce /jobs/'a yönlendirir (mod_dir DirectorySlash; bu
+# istekte mod_rewrite devreye girmez), sayfa oradan açılır.
+RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)/?$ index.php [QSA,L]
+
+# Çekirdek: yalnız vnl/assets/ servis edilir.
+RewriteRule ^vnl/?$ - [F,L]
+RewriteRule ^vnl/(?!assets/) - [F,L]
+
+# Ön denetleyici. 3.3'teki desen ([a-zA-z0-9-_/]+) noktalı adresleri
+# (/domains/view/ornek.com) dışarıda bırakıyordu ve A-z aralığı [ \ ] ^ _ `
+# karakterlerini de kapsıyordu. Artık dosya/dizin olmayan her şey index.php'ye.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^([a-zA-z0-9-_/]+)$ index.php [QSA]
+RewriteRule ^ index.php [QSA,L]
 
 # mod_rewrite kapalıysa ikinci savunma hattı
 <FilesMatch "^\.">
@@ -37,8 +67,9 @@ RewriteRule ^([a-zA-z0-9-_/]+)$ index.php [QSA]
 </FilesMatch>
 
 # Sunucuda durup tarayıcıya gitmemesi gereken dosyalar. PHP yorumlanır,
-# ama .sql/.log/.lock düz metin olarak servis edilirdi.
-<FilesMatch "\.(sql|log|lock|ini|sh|bak|yml|yaml)$">
+# ama .sql/.log/.lock düz metin olarak servis edilirdi. web.config IIS'in
+# yapılandırmasıdır; Apache onu düz metin olarak veriyordu.
+<FilesMatch "\.(sql|log|lock|ini|sh|bak|yml|yaml|md|dist|example)$|^(composer\.json|web\.config)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

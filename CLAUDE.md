@@ -97,6 +97,22 @@ require view('static/footer');
 Eylem `/app/<dosya>/<metot>` adresine düşer — ayrıntı ve kurallar için
 `actions/CLAUDE.md`, model sözleşmesi için `classes/CLAUDE.md`.
 
+## Güvenlik varsayılanları (3.4.0)
+
+- **Sayfalar girişe kapalıdır.** Girişsiz açılacak sayfa ya
+  `config/definitions.php` → `$login_except_pages`'e yazılır ya da (eklentide)
+  `vnl_public_page('ad')` ile kaydedilir. Karar denetleyici ÇALIŞMADAN verilir;
+  `$page_config['public']` artık bir şey açmaz.
+- **Denetleyici yan etkisizdir** ve yetki gerekiyorsa ilk satırı
+  `vnl_require_permission('Kod', 'view');` olur.
+- **Action'lar yalnız POST + CSRF** kabul eder ve girişi varsayılan olarak
+  zorunlu kılar (`VnlDispatcher`). Her action'ın ilk satırı
+  `Auth::CheckPermission('Kod', 'view|insert|edit|delete');`.
+- Durum değiştiren her işlem `Audit::log('modul.islem', 'tur', $id, [...])` yazar.
+- Uzun/ayrıcalıklı iş web isteğinde yapılmaz: `Queue::push('tur', [...])`,
+  işleyicisi `jobs/<tur>.php`.
+- `APP_DEBUG=false` canlıdadır: hata sayfası ayrıntı basmaz, başvuru kodu gösterir.
+
 ## Konsol
 
 ```
@@ -104,7 +120,14 @@ php vnl.php migrate --run     bekleyen şema değişikliklerini uygula
 php vnl.php update --check    yeni çekirdek sürümü var mı
 php vnl.php doctor            kurulumu çekirdeğin beklentisine karşı sına
 php vnl.php serve             yerel geliştirme sunucusu
+php vnl.php user:create --username=admin --super    ilk yönetici
+php vnl.php queue:work        kuyruk işçisi      php vnl.php schedule:run   zamanlayıcı
 ```
+
+Projenin kendi komutları `commands/<ad>.php` (`commands/README.md`), kuyruk
+işleyicileri `jobs/<tür>.php` (`jobs/README.md`), zamanlanmış görevler
+`config/schedule.php`. Menü ve dil parçaları: `config/menu/*.php`,
+`languages/<dil>/*.json` — paralel çalışırken ortak dosyaya yazmayın.
 
 `vnl/migrations/` VNL'in şeması, `migrations/` sizinki; sayaçlar bağımsız yürür.
 MySQL'de `ALTER TABLE`'ın `IF EXISTS`'i olmadığı için var olmayabilecek bir tabloyu

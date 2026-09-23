@@ -46,6 +46,27 @@ class VnlTable
      */
     const WORKBENCH = 'workbench';
 
+    /**
+     * Hücre biçimlendirici türleri.
+     *
+     * Listenin karşılığı vnltable.js içindeki formatNode()'dur; ikisi
+     * birlikte değişir. Sunucu yalnız NİYETİ bildirir, çizimi istemci
+     * yapar — hücredeki değer ham kalsın diye (bkz. normalizeFormat).
+     */
+    const FORMATS = ['badge', 'dot', 'icon', 'bool', 'link'];
+
+    /**
+     * İzin verilen renk adları.
+     *
+     * Doğrudan CSS sınıfına dönüştükleri için beyaz listedir: hem yazım
+     * hatası tanımda yakalanır hem de sınıf adına dışarıdan bir şey
+     * sızamaz. Bootstrap'ın tema renkleriyle aynı liste.
+     */
+    const VARIANTS = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
+
+    /** Bağlantı biçimlendiricisinde izin verilen şemalar. */
+    const LINK_SCHEMES = ['http', 'https', 'mailto', 'tel'];
+
     private string $id;
     private string $url       = '';
     private string $exportUrl = '';
@@ -352,6 +373,10 @@ class VnlTable
      *   title    başlık; verilmezse name kullanılır
      *   type     text | number | date | datetime | bool — hizalama ve sıralama
      *   render   text | html — html yalnızca gerçekten HTML dönen sütunlar için
+     *   format   hücre biçimlendirici (rozet, nokta, ikon, evet/hayır,
+     *            bağlantı) — bkz. normalizeFormat()
+     *   formatter  sayfanın vnlTable.formatter() ile kaydettiği biçimlendirici
+     *            adı; bildirimsel sözlüğün yetmediği hâller için
      *   sortable sıralanabilir mi
      *   visible  tanımdan tamamen çıkarılır mı (istemciye hiç gitmez)
      *   hideable kullanıcı sütun menüsünden gizleyebilir mi
@@ -381,6 +406,7 @@ class VnlTable
 
         $type = $column['type'] ?? 'text';
         $agg  = $column['agg'] ?? null;
+        $name = (string)$column['name'];
 
         if ($agg !== null && !in_array($agg, VnlTableRequest::AGGS, true)) {
             throwErrorMessage(
@@ -389,11 +415,38 @@ class VnlTable
             );
         }
 
+        $render    = ($column['render'] ?? 'text') === 'html' ? 'html' : 'text';
+        $format    = $this->normalizeFormat($column['format'] ?? null, $name);
+        $formatter = isset($column['formatter']) && $column['formatter'] !== ''
+            ? (string)$column['formatter']
+            : null;
+
+        /* Üç yol da aynı hücreyi yazar; ikisini birden vermek "hangisi
+           kazanır" sorusunu doğurur. Sessizce birini seçmek yerine tanımda
+           duruyoruz — yanlış olan hücre değil, tanımın kendisi. */
+        if ($format !== null && $formatter !== null) {
+            throwErrorMessage(
+                'VnlTable "' . $this->id . '": sütun "' . $name
+                . '" hem format hem formatter veriyor; yalnız biri olabilir.'
+            );
+        }
+
+        if ($render === 'html' && ($format !== null || $formatter !== null)) {
+            throwErrorMessage(
+                'VnlTable "' . $this->id . '": sütun "' . $name
+                . '" render:html ile biçimlendiriciyi birlikte kullanıyor. '
+                . "render:'html' sunucunun ürettiği HTML'i basar; biçimlendirici ise ham değeri "
+                . 'çizer — ikisi aynı anda anlamlı değil.'
+            );
+        }
+
         return [
-            'name'     => (string)$column['name'],
+            'name'     => $name,
             'title'    => (string)($column['title'] ?? $column['name']),
             'type'     => $type,
-            'render'   => ($column['render'] ?? 'text') === 'html' ? 'html' : 'text',
+            'render'   => $render,
+            'format'    => $format,
+            'formatter' => $formatter,
             'sortable' => (bool)($column['sortable'] ?? true),
             'visible'  => (bool)($column['visible'] ?? true),
             'hideable' => (bool)($column['hideable'] ?? true),
@@ -406,6 +459,182 @@ class VnlTable
             'editable'  => (bool)($column['editable'] ?? false),
             'editOptions' => self::editOptions($column['editOptions'] ?? null),
         ];
+    }
+
+    /**
+     * Hücre biçimlendiricisi.
+     *
+     * NEDEN VAR. Hücre HAM DEĞER taşır — sıralama, filtreleme, gruplama,
+     * pivot ve Excel çıktısı ham değer olmadan doğru çalışamaz. Bu kural
+     * yüzünden VNL 3.1'e kadar bir hücrede rozet göstermenin tek yolu
+     * değerin YERİNE HTML göndermekti (render:'html'): veri biçime feda
+     * ediliyor, kaçış sorumluluğu da her eylem dosyasına dağılıyordu.
+     *
+     * format o dengeyi tersine çevirir: değer ham kalır, sunucu yalnız
+     * NİYETİ bildirir, çizimi vnltable.js yapar. Ham HTML'i genişletmek
+     * çözüm değildi — sorun zaten sunucunun HTML üretmek zorunda kalması.
+     *
+     *   'format' => 'badge'                       değeri nötr rozet olarak bas
+     *
+     *   'format' => [                             değere göre renk ve etiket
+     *       'kind'    => 'badge',                 badge | dot | icon | bool | link
+     *       'map'     => ['Onaylandı' => 'success', 'İptal' => 'danger'],
+     *       'labels'  => ['1' => 'Aktif', '0' => 'Pasif'],
+     *       'default' => 'secondary',             eşlemede olmayan değerin rengi
+     *       'soft'    => true,                    badge-soft-* yerine bg-* için false
+     *   ]
+     *
+     *   'format' => ['kind' => 'bool',            type:'bool' sütununun hücresi
+     *                'onLabel' => 'Evet', 'offLabel' => 'Hayır']
+     *
+     *   'format' => ['kind' => 'icon',            değer → ikon sınıfı
+     *                'icons' => ['acik' => 'bi bi-unlock', 'kapali' => 'bi bi-lock']]
+     *
+     *   'format' => ['kind' => 'link',            satırdan adres kurar
+     *                'href' => '/kayit/{id}', 'target' => '_blank']
+     *
+     * map/labels anahtarları değerin METİN hâliyle karşılaştırılır (JSON'da
+     * ne geldiyse onun String() karşılığı). Mantıksal sütunlarda bu yüzden
+     * eşleme yerine kind:'bool' kullanın.
+     *
+     * Sözlüğün yetmediği yer için ikinci bir yol var: sütunun 'formatter'
+     * anahtarı, sayfanın vnlTable.formatter() ile kaydettiği bir fonksiyonu
+     * adlandırır. O fonksiyon metin ya da DOM düğümü döndürür, HTML metni
+     * DÖNDÜREMEZ — kaçış sorusunun hiç doğmaması için.
+     *
+     * Biçimlendirici YALNIZ EKRANDIR: satırdaki değere, sıralamaya, filtreye
+     * ve Excel çıktısına dokunmaz.
+     */
+    private function normalizeFormat($spec, string $column): ?array
+    {
+        if ($spec === null || $spec === false || $spec === '') {
+            return null;
+        }
+
+        if (is_string($spec)) {
+            $spec = ['kind' => $spec];
+        }
+
+        if (!is_array($spec)) {
+            throwErrorMessage(
+                'VnlTable "' . $this->id . '": sütun "' . $column . '" için format bir tür adı ya da dizi olmalı.'
+            );
+        }
+
+        $kind = (string)($spec['kind'] ?? '');
+
+        if (!in_array($kind, self::FORMATS, true)) {
+            throwErrorMessage(
+                'VnlTable "' . $this->id . '": sütun "' . $column . '" için geçersiz biçim "' . $kind
+                . '". Beklenen: ' . implode(', ', self::FORMATS)
+            );
+        }
+
+        $out = [
+            'kind'    => $kind,
+            'default' => $this->variant($spec['default'] ?? 'secondary', $column),
+        ];
+
+        if (isset($spec['map'])) {
+            $map = [];
+
+            foreach ((array)$spec['map'] as $value => $variant) {
+                $map[(string)$value] = $this->variant($variant, $column);
+            }
+
+            /* Nesne olarak kodlanır: ['0' => .., '1' => ..] PHP'de bir liste
+               sayılır ve json_encode onu diziye çevirirdi. */
+            $out['map'] = (object)$map;
+        }
+
+        if (isset($spec['labels'])) {
+            $out['labels'] = (object)self::stringMap($spec['labels']);
+        }
+
+        switch ($kind) {
+            case 'badge':
+                $out['soft'] = (bool)($spec['soft'] ?? true);
+                break;
+
+            case 'icon':
+                if (isset($spec['icons'])) {
+                    $out['icons'] = (object)self::stringMap($spec['icons']);
+                }
+
+                if (!empty($spec['icon'])) {
+                    $out['icon'] = (string)$spec['icon'];
+                }
+
+                if (!isset($out['icons']) && !isset($out['icon'])) {
+                    throwErrorMessage(
+                        'VnlTable "' . $this->id . '": sütun "' . $column
+                        . '" icon biçimi "icon" (sabit) ya da "icons" (değere göre) ister.'
+                    );
+                }
+                break;
+
+            case 'bool':
+                $out['onLabel']    = isset($spec['onLabel'])  ? (string)$spec['onLabel']  : null;
+                $out['offLabel']   = isset($spec['offLabel']) ? (string)$spec['offLabel'] : null;
+                $out['onVariant']  = $this->variant($spec['onVariant']  ?? 'success', $column);
+                $out['offVariant'] = $this->variant($spec['offVariant'] ?? 'danger', $column);
+                break;
+
+            case 'link':
+                $href = trim((string)($spec['href'] ?? ''));
+
+                if ($href === '') {
+                    throwErrorMessage(
+                        'VnlTable "' . $this->id . '": sütun "' . $column
+                        . '" link biçimi bir "href" ister, örn. \'/kayit/{id}\'.'
+                    );
+                }
+
+                /* Şema burada da sınanır. İstemci tarafı zaten aynı denetimi
+                   yapıyor ama tanımdaki bir hata ekrana değil, geliştiriciye
+                   düşmeli. */
+                if (preg_match('~^\s*([a-z][a-z0-9+.-]*):~i', $href, $m)
+                    && !in_array(strtolower($m[1]), self::LINK_SCHEMES, true)) {
+                    throwErrorMessage(
+                        'VnlTable "' . $this->id . '": sütun "' . $column . '" için geçersiz bağlantı şeması "'
+                        . $m[1] . '". Beklenen: ' . implode(', ', self::LINK_SCHEMES) . ' ya da göreli adres.'
+                    );
+                }
+
+                $out['href']   = $href;
+                $target        = (string)($spec['target'] ?? '');
+                $out['target'] = in_array($target, ['_self', '_blank', '_parent', '_top'], true) ? $target : null;
+                break;
+        }
+
+        return $out;
+    }
+
+    /** Renk adı; beyaz listede yoksa tanım hatasıdır. */
+    private function variant($value, string $column): string
+    {
+        $value = strtolower(trim((string)$value));
+
+        if (!in_array($value, self::VARIANTS, true)) {
+            throwErrorMessage(
+                'VnlTable "' . $this->id . '": sütun "' . $column . '" için geçersiz renk "' . $value
+                . '". Beklenen: ' . implode(', ', self::VARIANTS)
+            );
+        }
+
+        return $value;
+    }
+
+    /** Anahtar ve değerleri metne indirilmiş eşleme. */
+    private static function stringMap($map): array
+    {
+        $out = [];
+
+        foreach ((array)$map as $key => $value) {
+            $out[(string)$key] = (string)$value;
+        }
+
+        return $out;
     }
 
     /**

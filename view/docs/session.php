@@ -42,7 +42,7 @@
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">4</span>
                                 <div>
                                     <span class="fw-bold text-body">Sayfa Erişim Kontrolü (<code>vnl/kernel.php</code>)</span>
-                                    <p class="text-body-secondary fs-6 mb-0 mt-1">İstenen sayfa <code>$login_except_pages</code>'de değilse ve <code>$CurrentUser->id</code> sıfır veya negatifse, controller çalıştırılır ama çıktı yakalanır. <code>$page_config['public']</code> tanımlı değilse kullanıcı <code>/login</code>'e yönlendirilir.</p>
+                                    <p class="text-body-secondary fs-6 mb-0 mt-1">İstenen sayfa <code>$login_except_pages</code>'de (ya da <code>vnl_public_page()</code> ile kayıtlı) değilse ve kullanıcı giriş yapmamışsa denetleyici <b>hiç çalıştırılmadan</b> <code>/login</code>'e yönlendirilir (AJAX isteğine 401 <code>VNL_AUTH</code>). 3.4.0: boşta kalma sınırı (<code>VNL_SESSION_IDLE</code>) aşılmışsa ya da hesap pasifleşmişse oturum burada kapanır; boşta kalmada bu cihazın "beni hatırla" jetonu da iptal edilir (<code>VNL_IDLE_KEEPS_REMEMBER=true</code> eski sessiz yeniden girişi açar).</p>
                                 </div>
                             </div>
                         </div>
@@ -244,15 +244,15 @@ if ($CurrentUser->id > 0) {
                                     <div class="card-body p-6">
                                         <div class="d-flex align-items-center mb-4">
                                             <span class="badge badge-circle badge-primary me-3">B</span>
-                                            <h5 class="mb-0 fw-bold">Yöntem 2 — <code>$page_config['public']</code></h5>
+                                            <h5 class="mb-0 fw-bold">Yöntem 2 — <code>vnl_public_page()</code> (3.4.0)</h5>
                                         </div>
                                         <p class="fs-6 text-body mb-3">
-                                            Controller dosyanızda <code>$page_config['public'] = true</code> tanımlayın. <code>vnl/kernel.php</code> controller çıktısını yakalar; <code>public</code> tanımlıysa ekrana basar, yoksa login'e yönlendirir.
+                                            Listeye yazamayan kod (eklentinin <code>boot.php</code>'si) sayfayı çalışma anında kaydeder. Karar yine denetleyici <b>çalışmadan</b> verilir.
                                         </p>
                                         <div class="bg-body-tertiary rounded p-3">
-                                            <code class="fs-7">$page_config = [<br>&nbsp;&nbsp;'public' => true,<br>&nbsp;&nbsp;'leftsidebar' => false,<br>];</code>
+                                            <code class="fs-7">vnl_public_page('stripe-webhook');</code>
                                         </div>
-                                        <p class="text-muted fs-7 mt-3 mb-0">Kullanıcı giriş yapmışsa <code>$CurrentUser</code> bu sayfada da dolu gelir.</p>
+                                        <p class="text-muted fs-7 mt-3 mb-0">3.3'teki <code>$page_config['public'] = true</code> artık bir şey açmaz (geçiş kipi: <code>VNL_PUBLIC_CAPTURE=true</code>).</p>
                                     </div>
                                 </div>
                             </div>
@@ -262,7 +262,7 @@ if ($CurrentUser->id > 0) {
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <div>
                                 <span class="text-body fs-6 fw-bold">İki Yöntem Arasındaki Fark:</span>
-                                <span class="text-body fs-6 ms-2"><code>login_except_pages</code> controller çalıştırılmadan erişim verir. <code>public=true</code> ise controller'ı çalıştırır ve çıktıyı yakalar — bu yöntem <code>$CurrentUser</code>'ın dolu gelmesi gereken yarı-korumalı sayfalar için uygundur.</span>
+                                <span class="text-body fs-6 ms-2">3.3'e kadar <code>public=true</code> yöntemi korumalı denetleyiciyi girişsiz istekte de <b>çalıştırıyordu</b> — denetleyicideki her yan etki anonim ziyaretçi için gerçekleşiyordu. 3.4.0'da girişsiz istek korumalı denetleyiciye hiç ulaşmaz. Giriş yapılmışsa <code>$CurrentUser</code> açık sayfalarda da dolu gelir. Ayrıntı: <a href="/docs/security">/docs/security</a>.</span>
                             </div>
                         </div>
                     </div>
@@ -384,7 +384,7 @@ if ($CurrentUser->id > 0) {
                                         <i class="fa-solid fa-lock fs-2 text-primary me-3"></i>
                                         <h6 class="mb-0 fw-bold">Çerez bayrakları</h6>
                                     </div>
-                                    <span class="text-body fs-6"><code>httponly</code> (JavaScript okuyamaz), <code>samesite=Lax</code>, HTTPS üzerinden geldiyse <code>secure</code>. Ömür <code>UserModule::REMEMBER_DAYS</code> ile 30 gündür.</span>
+                                    <span class="text-body fs-6"><code>httponly</code> (JavaScript okuyamaz), <code>samesite=Lax</code>, HTTPS üzerinden geldiyse <code>secure</code>. Ömür <code>VNL_REMEMBER_DAYS</code> (varsayılan 30 gün; <code>0</code> kapatır); boşta kalma sınırı jetona da uygulanır.</span>
                                 </div>
                             </div>
                         </div>
@@ -402,8 +402,8 @@ if ($CurrentUser->id > 0) {
                             </div>
                             <div class="d-flex align-items-start mb-4">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">3</span>
-                                <div><span class="fw-bold text-body">Süre ve kullanıcı doğrulanır.</span>
-                                    <p class="text-body-secondary fs-6 mb-0 mt-1">Jeton süresi geçmişse veya kullanıcı silinmişse satır ve çerez birlikte temizlenir.</p></div>
+                                <div><span class="fw-bold text-body">Süre, boşta kalma ve kullanıcı doğrulanır.</span>
+                                    <p class="text-body-secondary fs-6 mb-0 mt-1">Jeton süresi geçmişse, kullanıcı silinmiş ya da pasifse satır ve çerez birlikte temizlenir. 3.4.0: jetonun son kullanımı (<code>used_at</code> — girişli istek dakikada bir yeniler; hiç yenilenmediyse <code>created_at</code>) <code>VNL_SESSION_IDLE</code>'dan eskiyse de jeton reddedilir. Oturum dosyası silinmiş olsa bile (tarayıcı kapandı, GC) gözetimsiz bir tarayıcı 30 gün açık kalmaz. Eski davranış: <code>VNL_IDLE_KEEPS_REMEMBER=true</code> ya da <code>VNL_SESSION_IDLE=0</code>.</p></div>
                             </div>
                             <div class="d-flex align-items-start mb-0">
                                 <span class="badge badge-circle badge-success me-4 mt-1 flex-shrink-0">4</span>

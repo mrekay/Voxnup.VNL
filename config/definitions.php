@@ -37,7 +37,22 @@ class ConfigDefinitions
         'submenu'     => 'flyout',
         'skin'        => null,
     ];
-    private $login_except_pages = ["app","login","register","logout","index","getting-started","routing","request-handling","docs/overview","overview","docs/getting-started","docs/architecture","docs/versioning","docs/theme","docs/theme-layout","docs/theme-sidebar","docs/theme-design","docs/theme-components","docs/theme-forms","docs/theme-icons","docs/theme-modals","docs/theme-js","docs/theme-migration","docs/routing","docs/templating","docs/request-handling","docs/errors","docs/environment","docs/modals","docs/session","docs/config-definitions","docs/models","docs/validators","docs/languages","docs/vnltable","docs/sdtable","docs/excel-export","docs/modules","docs/view-includes","docs/extensions","docs/stripe"];
+    /**
+     * Girişsiz açılabilen sayfalar: 'sayfa' ya da 'grup/sayfa'.
+     *
+     * 3.4.0: varsayılan yalnız giriş akışıdır. 'app' action dağıtıcısıdır ve
+     * kendi kimlik denetimini yapar (PUBLIC_METHODS dışında giriş ister).
+     * 3.3'te 'index', 'register', 'overview' ve bütün docs/* sayfaları da
+     * buradaydı — yani şablondan türeyen her proje açılış sayfasını ve
+     * dokümanı herkese açık getiriyordu. Doküman sayfaları .env'de
+     * VNL_PUBLIC_DOCS=true iken aşağıda eklenir.
+     *
+     * Eklentiler kendi sayfalarını boot.php'de vnl_public_page() ile açar.
+     */
+    private $login_except_pages = ["app", "login", "logout"];
+
+    /** VNL_PUBLIC_DOCS=true iken girişsiz açılan doküman sayfaları. */
+    private $public_docs_pages = ["docs/overview","docs/getting-started","docs/architecture","docs/versioning","docs/theme","docs/theme-layout","docs/theme-sidebar","docs/theme-design","docs/theme-components","docs/theme-forms","docs/theme-dates","docs/theme-icons","docs/theme-modals","docs/theme-js","docs/theme-migration","docs/routing","docs/templating","docs/request-handling","docs/errors","docs/environment","docs/modals","docs/session","docs/config-definitions","docs/models","docs/validators","docs/languages","docs/vnltable","docs/vnltable-grid","docs/vnltable-workbench","docs/sdtable","docs/excel-export","docs/modules","docs/view-includes","docs/extensions","docs/stripe","docs/security","docs/cli-queue"];
 
     /**
      * Ortama göre değişen ve gizli olan her şey .env'den gelir; kopyası
@@ -49,16 +64,29 @@ class ConfigDefinitions
      */
     public function __construct()
     {
+        /* 3.4.0: DB_PORT / DB_SOCKET ayrı anahtarlar ("host:port" PDO'da
+           çalışmıyordu); varsayılan karakter kümesi utf8mb4 (utf8 = utf8mb3,
+           emoji ve 4 baytlık karakterleri kesiyordu). */
         $this->db_info = [
             'driver'    => (string)VnlEnv::get('DB_DRIVER', 'mysql'),
             'host'      => (string)VnlEnv::get('DB_HOST', 'localhost'),
+            'port'      => (int)VnlEnv::get('DB_PORT', 3306),
             'database'  => (string)VnlEnv::get('DB_DATABASE', ''),
             'username'  => (string)VnlEnv::get('DB_USERNAME', ''),
             'password'  => (string)VnlEnv::get('DB_PASSWORD', ''),
-            'charset'   => (string)VnlEnv::get('DB_CHARSET', 'utf8'),
-            'collation' => (string)VnlEnv::get('DB_COLLATION', 'utf8_unicode_ci'),
+            'charset'   => (string)VnlEnv::get('DB_CHARSET', 'utf8mb4'),
+            'collation' => (string)VnlEnv::get('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix'    => (string)VnlEnv::get('DB_PREFIX', ''),
         ];
+
+        $socket = (string)VnlEnv::get('DB_SOCKET', '');
+        if ($socket !== '') {
+            $this->db_info['unix_socket'] = $socket;
+        }
+
+        if (VnlEnv::get('VNL_PUBLIC_DOCS', false) === true) {
+            $this->login_except_pages = array_merge($this->login_except_pages, $this->public_docs_pages);
+        }
 
         $this->master_db       = (string)VnlEnv::get('DB_MASTER', '');
         $this->cookie_prefix   = (string)VnlEnv::get('APP_COOKIE_PREFIX', 'vnl');

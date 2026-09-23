@@ -11,7 +11,6 @@ $page_config = [
     'topbar'        => true,
     'leftsidebar'   => true,
     'contentheader' => true,
-    'public'        => true,
 ];
 
 require view('static/header');

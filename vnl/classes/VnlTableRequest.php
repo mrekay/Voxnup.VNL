@@ -636,7 +636,7 @@ class VnlTableRequest
      *
      *   if ($t->op === VnlTableRequest::OP_DETAIL) {
      *       $kayit = Kayit::find($t->rowKey);
-     *       $t->respondDetail(render('parts/kayit-detay', ['kayit' => $kayit]));
+     *       $t->respondDetail(vnl_render('parts/kayit-detay', ['kayit' => $kayit]));
      *   }
      */
     public function respondDetail(string $html): void
