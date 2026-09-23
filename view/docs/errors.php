@@ -190,8 +190,8 @@
                         <div class="alert alert-danger d-flex align-items-center p-5 mb-0">
                             <i class="fa-solid fa-circle-exclamation fs-2hx text-danger me-4"></i>
                             <div class="d-flex flex-column">
-                                <h5 class="mb-1 text-danger">Üretimde açık bırakmayın</h5>
-                                <span class="text-body">Hata sayfası <b>ortam ayrımı yapmaz</b>: geliştirme ile üretim arasında fark gözetmeden dosya yollarını, kaynak kod parçalarını ve çağrı zincirini gösterir. Bu, geliştirme sırasında büyük kolaylık, canlıda ise bilgi sızıntısıdır. Canlıya çıkarken <code>vnl/boot.php</code>'deki handler'ı kendi ortam bayrağınızla sarın (aşağıdaki örnek) ve hatayı <code>error_log</code>'a yazdırın.</span>
+                                <h5 class="mb-1 text-danger">Ayrıntılı sayfa yalnız <code>APP_DEBUG=true</code> iken (3.4.0)</h5>
+                                <span class="text-body">Yukarıdaki ayrıntılı sayfa ve <code>error</code> alanlı JSON (dosya yolları, kaynak kod, çağrı zinciri, SQL) <b>yalnız</b> <code>.env</code>'de <code>APP_DEBUG=true</code> iken gösterilir. Varsayılan (<code>false</code>, canlı) kipte istisna <code>[VNL][ref]</code> başvuru koduyla ve yığın iziyle <code>error_log</code>'a yazılır; kullanıcı ayrıntısız genel bir sayfa ya da <code>{"message", "devcode": "VNL_FATAL", "ref"}</code> görür — destek talebinde <code>ref</code> ile günlükte aranır. <code>vnl/boot.php</code>'deki handler'ı sarmanız gerekmez (çekirdek dosyası zaten güncellemede değişir); kendi ekranınız için aşağıdaki <code>vnl_project_error_page()</code> kancasını kullanın. Canlıda <code>php vnl.php doctor</code> <code>APP_DEBUG</code>'ın kapalı olduğunu sınar.</span>
                             </div>
                         </div>
                     </div>
@@ -206,7 +206,7 @@
                             Ayrıntılı sayfa <b>geliştirici içindir</b>: kaynak kodu, dosya yollarını, SQL cümlesini ve ortam bilgisini basar. Canlıda kullanıcının göreceği ekranı proje belirler.
                         </p>
                         <p class="fs-5 text-body mb-4">
-                            <code>vnl_render_error()</code> çıktısını basmadan önce projede <code>vnl_project_error_page()</code> diye bir fonksiyon var mı diye bakar. Varsa ekranı o üretir ve istek orada biter; <b>dönerse</b> çekirdeğin ayrıntılı sayfası basılır — geliştirme makinesinde ayrıntı böyle korunur. Fonksiyonu <code>helpers/</code> altında bir dosyada tanımlayın, <code>vnl_load_dir('helpers')</code> onu kendiliğinden yükler: çekirdeğe dokunmak gerekmez.
+                            <code>vnl_render_error()</code> çıktısını basmadan önce projede <code>vnl_project_error_page()</code> diye bir fonksiyon var mı diye bakar. Varsa ekranı o üretir ve istek orada biter; <b>dönerse</b> çekirdek kendi ekranını basar: <code>APP_DEBUG=true</code> iken ayrıntılı sayfa (geliştirme makinesinde ayrıntı böyle korunur), değilse başvuru kodlu genel sayfa/JSON. Fonksiyonu <code>helpers/</code> altında bir dosyada tanımlayın, <code>vnl_load_dir('helpers')</code> onu kendiliğinden yükler: çekirdeğe dokunmak gerekmez.
                         </p>
 
                         <div class="vnl-code mb-5">
@@ -215,8 +215,8 @@
 
 function vnl_project_error_page(Throwable $e): void
 {
-    // Dönmek = "sen bas": konsolda ve geliştirmede ayrıntılı sayfa kalsın.
-    if (PHP_SAPI === 'cli' || VnlEnv::get('APP_DEBUG', false)) {
+    // Dönmek = "sen bas": konsolda ve geliştirmede çekirdeğin ekranı kalsın.
+    if (PHP_SAPI === 'cli' || vnl_debug()) {
         return;
     }
 
@@ -246,7 +246,7 @@ function vnl_project_error_page(Throwable $e): void
                                 </tr>
                                 <tr>
                                     <td><b>Dönerse</b></td>
-                                    <td>Çekirdeğin ayrıntılı sayfası basılır. Kancayı kapatmanın yolu budur: <code>if (...) return;</code>.</td>
+                                    <td>Çekirdeğin ekranı basılır: <code>APP_DEBUG=true</code> iken ayrıntılı sayfa, değilse başvuru kodlu (<code>ref</code>) genel sayfa ya da JSON. Kancayı kapatmanın yolu budur: <code>if (...) return;</code>.</td>
                                 </tr>
                                 <tr>
                                     <td><b>İstisna fırlatırsa</b></td>
@@ -284,8 +284,8 @@ function vnl_project_error_page(Throwable $e): void
                         <div class="alert alert-warning d-flex align-items-center p-5 mb-6">
                             <i class="fa-solid fa-circle-exclamation fs-2hx text-warning me-4"></i>
                             <div class="d-flex flex-column">
-                                <h5 class="mb-1 text-warning">Constructor yanıtı basar ve süreci bitirir</h5>
-                                <span class="text-body">Bu sınıflar <b>constructor'ında</b> <code>returnErrorMessage()</code> çağırır; o fonksiyon da JSON'u basıp <code>die</code> eder. Yani <code>new StandartException('...')</code> yazdığınız an — <code>throw</code> etmeseniz bile — yanıt gönderilmiş ve istek sonlanmış olur. Sonuç: <b>bu istisnaları <code>try/catch</code> ile yakalayamazsınız.</b> Yakalamak istediğiniz bir hata varsa <code>throwErrorMessage()</code> kullanın.</span>
+                                <h5 class="mb-1 text-warning">Constructor yanıtı basar ve süreci bitirir (web)</h5>
+                                <span class="text-body">Bu sınıflar <b>constructor'ında</b> <code>returnErrorMessage()</code> çağırır; o fonksiyon da JSON'u basıp <code>die</code> eder. Yani web isteğinde <code>new StandartException('...')</code> yazdığınız an — <code>throw</code> etmeseniz bile — yanıt gönderilmiş ve istek sonlanmış olur. Sonuç: <b>bu istisnaları web'de <code>try/catch</code> ile yakalayamazsınız.</b> Yakalamak istediğiniz bir hata varsa <code>throwErrorMessage()</code> kullanın. <b>3.4.0 — komut satırında</b> (kuyruk işi, zamanlayıcı, <code>commands/</code>) constructor hiçbir şey basmaz ve süreci öldürmez; istisna normal fırlatılır: işte kullanılan <code>DefaultValidator</code> işi gerçek mesajıyla başarısız sayar, komutta çıkış kodu 1 olur.</span>
                             </div>
                         </div>
 

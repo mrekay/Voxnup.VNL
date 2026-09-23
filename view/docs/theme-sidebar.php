@@ -7,8 +7,10 @@
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Sidebar ve Menü</h1>
                 <div class="vnl-lead">
                     Menü tanımı VNL 2.x'ten beri aynı dizidir: <code>view/static/leftSidebar.php</code>
-                    içindeki <code>$SidebarMenu</code>. Tema yalnız üretilen markup'ı ve davranışı yeniler:
-                    iki daraltma modu, iki alt menü modu ve mobilde native offcanvas.
+                    içindeki <code>$SidebarMenu</code>. 3.4.0'dan beri modüller kendi öğelerini ayrı
+                    dosyalarda tanımlayabilir: <code>config/menu/*.php</code> (menü parçaları).
+                    Tema yalnız üretilen markup'ı ve davranışı yeniler: iki daraltma modu, iki alt menü
+                    modu ve mobilde native offcanvas.
                 </div>
             </div>
 
@@ -49,6 +51,31 @@
                             (bkz. <a href="/docs/extensions">Extension Sistemi</a>). Aktif sayfa tespiti
                             URL üzerinden otomatiktir; aktif dalın başlığı ve linki işaretlenir.
                         </p>
+
+                        <h5 class="fw-bold text-body-emphasis mt-8 mb-3">Menü parçaları — <code>config/menu/*.php</code> (3.4.0)</h5>
+                        <p class="text-body mb-4">
+                            Tek bir <code>$SidebarMenu</code> dizisi, paralel çalışan geliştiricilerin (ya da ajanların) aynı
+                            dosyada çakışması demekti. <code>leftSidebar.php</code> temel diziden sonra <code>config/menu/</code>
+                            altındaki her <code>*.php</code> dosyasını <b>ad sırasıyla</b> okur ve döndürdüğünü menüye ekler.
+                            Dosya tek bir öğe (<code>text</code> anahtarı olan dizi) ya da öğe listesi dönebilir. Sözleşme
+                            yukarıdaki tablonun aynısıdır; <code>permission</code> anahtarı <code>vnl_can()</code>'a sorulur,
+                            yetkisi olmayana öğe görünmez. Sırayı dosya adındaki numara belirler.
+                        </p>
+                        <div class="vnl-code"><pre><code>// config/menu/100-domains.php
+return [
+    'text'       =&gt; lang('DOMAINS_TITLE'),
+    'url'        =&gt; 'domains',
+    'permission' =&gt; 'Domains',
+    'icon'       =&gt; 'bi bi-globe2',
+    'showmenu'   =&gt; 2,
+    'child'      =&gt; [],
+];
+
+// config/menu/200-mail.php — birden fazla öğe
+return [
+    ['text' =&gt; 'Posta', 'url' =&gt; 'mail', 'permission' =&gt; 'Mail', 'icon' =&gt; 'bi bi-envelope', 'showmenu' =&gt; 2, 'child' =&gt; []],
+    ['text' =&gt; 'Listeler', 'url' =&gt; 'mail/lists', 'permission' =&gt; 'MailLists', 'icon' =&gt; 'bi bi-list', 'showmenu' =&gt; 2, 'child' =&gt; []],
+];</code></pre></div>
                     </div>
 
                     <div class="separator separator-dashed my-8"></div>

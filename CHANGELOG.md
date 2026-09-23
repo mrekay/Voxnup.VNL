@@ -62,6 +62,21 @@ listesine karşılık gelir.
     çalışmamıştı (hedef dosya yoktu).
 12. **Varsayılan karakter kümesi `utf8mb4` (F14).** `.env`'de `DB_CHARSET`
     tanımlıysa o geçerlidir.
+13. **Boşta kalma "beni hatırla"yı da bitirir (F06.3).** `VNL_SESSION_IDLE`
+    aşılınca bu cihazın kalıcı jetonu iptal edilir; oturum dosyası silinmiş
+    olsa bile jetonun son kullanımı (`used_at`) aynı sınırla denetlenir.
+    Eski sessiz yeniden giriş: `VNL_IDLE_KEEPS_REMEMBER=true` (ya da
+    `VNL_SESSION_IDLE=0`).
+14. **Yetki kapıları kanca yokken KAPALI.** `vnl_require_permission()`,
+    `Auth::CheckPermission()` ve `Auth::Can()` katı sorar
+    (`vnl_can($kod, $yetenek, true)`): `helpers/permissions.php` yoksa ya da
+    kod boşsa kimse geçemez. Menü görünürlüğü 3.1 uyumlu kalır.
+15. **İki adımlı giriş `0007` ister.** `tbl_users.totp_last_step` yoksa
+    TOTP'li kullanıcı ikinci adımda 500 alır (fail closed, sebep günlükte):
+    `php vnl.php migrate --run`.
+16. **Kuyruk: asılı iş ölçüsü nabızdır.** `--stale` artık işin başlangıcından
+    değil son `progress()/log()/heartbeat()`'ten sayılır; eski işçinin
+    yazmaları ayırma jetonuna bağlıdır (`VnlJobLostException`).
 
 ### Eklenenler
 
@@ -91,16 +106,17 @@ listesine karşılık gelir.
   (0 = kapalı); pasifleşen hesabın açık oturumu kapanır; `use_strict_mode`.
   `Session` yalnız statik (kurucu/yıkıcı yan etkisi yok), `setMany()`,
   `id()`, komut satırında oturum deposuna dokunmaz; dosya LF.
-- **Hız sınırı (F07):** `RateLimiter::hit/tooMany/attempts/availableIn/clear/purge`
-  (`0003`, atomik upsert, anahtar özeti). Giriş: IP 20 / kullanıcı 5 deneme
-  / 15 dk → 429 `VNL_RATE`. Kullanıcı yokken de bcrypt doğrulaması yapılır
+- **Hız sınırı (F07):** `RateLimiter::hit/tooMany/attempts/availableIn/clear/purge/decrement/ipKey`
+  (`0003`, atomik upsert, anahtar özeti; kapı `hit()`'in dönüşüdür). Giriş:
+  IP 20 (IPv6 /64) / hesap + IP 5 / hesap 100 deneme / 15 dk → 429 `VNL_RATE`. Kullanıcı yokken de bcrypt doğrulaması yapılır
   (süre farkı kullanıcının varlığını ele vermez).
 - **Denetim kaydı (F10):** `Audit::log()`, `Audit::query()`,
   `Audit::actingAs()` (`0004`); asla istisna fırlatmaz, gizli anahtarları
   ayıklar. Giriş, başarısız giriş, çıkış, parola, TOTP, kullanıcı ve jeton
   olayları yazılır.
 - **Kuyruk, işçi, zamanlayıcı, proje komutları (F11):** `Queue::push/find/
-  status/cancel/retry/query`, `VnlJob` (`progress()`, `log()`), `0005`;
+  status/cancel/retry/query`, `VnlJob` (`progress()`, `log()`, `heartbeat()`,
+  `exec()`, `reservation()`), `VnlJobLostException`, `0005`;
   `php vnl.php queue:work` (atomik ayırma, yeniden deneme 30 sn × deneme,
   asılı iş kurtarma, SIGTERM'de temiz çıkış, süre/iş/bellek sınırları);
   `php vnl.php schedule:run` + `config/schedule.php` (`VnlCron`, paralel
@@ -108,7 +124,8 @@ listesine karşılık gelir.
   komutları, `vnl_cli_boot()`, `vnl_cli_options()`.
 - **İki adımlı doğrulama (F28):** `Totp::generateSecret/verify/match/code/uri/
   encryptSecret/decryptSecret` (RFC 6238); giriş iki adımlı
-  (`/app/login/totp`, 5 dk, hız sınırlı); `php vnl.php user:totp`.
+  (`/app/login/totp`, 5 dk, hız sınırlı, kod tek kullanımlık — `0007`,
+  `User::claimTotpStep()`); `php vnl.php user:totp`.
 - **API jetonları (F29):** `ApiToken::issue/authenticate/allows/revoke/forUser`
   (`0006`); `Authorization: Bearer vnl_…` dağıtıcıda oturum + CSRF yerine
   geçer; `token:create`, `token:revoke`.
@@ -170,6 +187,83 @@ listesine karşılık gelir.
   dalı hiç çalışmıyordu, temizliği görünüm yapıyordu) ve `$CurrentUser`'ı
   sıfırlar.
 
+### Gözden geçirme düzeltmeleri (yayından önce)
+
+Güvenlik ve işletim gözden geçirmesinde bulunanlar; hepsi bu sürümde.
+
+- **Giriş hız sınırı eşzamanlı isteklerle aşılıyordu.** `tooMany()` yalnız
+  okuyordu, sayaç başarısız bcrypt'ten sonra artıyordu: aynı anda gelen N
+  istek N tahmin hakkı kazanıyordu. Artık deneme denetimden ÖNCE
+  `RateLimiter::hit()` ile sayılır ve kapı sayımın sonucuna bakar (giriş ve
+  TOTP). Başarılı deneme IP bütçesinden `RateLimiter::decrement()` ile geri
+  düşülür.
+- **Kullanıcı adı yazımlarıyla hesap sınırı atlatılıyordu.**
+  `tbl_users.username` `utf8mb4_unicode_ci`'dir: `ädmin`, `ádmin`, tam
+  genişlikli yazımlar `admin` satırını bulur ama her biri ayrı sayaç
+  anahtarı alıyordu. Hesap anahtarı artık kayıtlı kullanıcı adından.
+- **Başka bir adresten 5 yanlış parola yöneticiyi kilitliyordu.** Sıkı kilit
+  (5) hesap + IP'ye, hesap geneli sınır 100'e (bir adres en fazla 5 katkı)
+  taşındı.
+- **IPv6 istemci bütün bir /64 ile IP sınırını atlatıyordu.**
+  `RateLimiter::ipKey()`: IPv6 → /64 öneki, IPv4 ve `::ffff:` ile gelen IPv4
+  → tam adres.
+- **TOTP kodu pencere içinde yeniden kullanılabiliyordu** (RFC 6238 §5.2).
+  `0007` + `User::claimTotpStep()` (koşullu UPDATE; paralel iki istekten
+  biri kazanır); tekrar başarısız deneme sayılır.
+- **`Users:edit` yetkili yönetici daha yetkili birinin parolasını
+  sıfırlayıp onun yerine girebiliyordu.** `action_users::canManage()`:
+  süper olmayan yönetici yalnız bütün yetenekleri kendisinde de olan
+  kullanıcıyı düzenler, siler ya da yetkilerini değiştirir.
+- **Yetki kancası silinince bütün kapılar açılıyordu.** Katı `vnl_can()`
+  (bkz. kırıcı değişiklik 14); eksik kanca günlüğe yazılır.
+- **Boşta kalma sınırı "beni hatırla" cihazlarında işlemiyordu** (F06.3;
+  kırıcı değişiklik 13).
+- **Denetim kaydı `ApiTokens`, `DbPasswords` gibi izin kodlarını düşürüyordu.**
+  `user.permissions` artık `[{code, abilities}]` listesi yazar;
+  `Audit` hassas anahtarın değerini düşürmek yerine `[redacted]` yazar
+  (dizi değerler de).
+- **Süresi dolan sekme 401 yerine 403 `VNL_CSRF` alıyordu.** Dağıtıcı girişi
+  CSRF'ten önce denetler; vnl.js 403 `VNL_CSRF`'te sayfayı bir kez yeniler
+  (başka sekmede giriş, "beni hatırla" yenilemesi).
+- **`VNL_PUBLIC_DOCS=true` iken VNL Table demoları ziyaretçiyi `/login`'e
+  atıyordu.** `action_vnltable::getList` `PUBLIC_METHODS`'ta; satır anahtarı
+  ve değer uzunluğu denetlenir (oturum şişirilemez).
+- **Apache + PHP-FPM'de Bearer jetonu PHP'ye ulaşmıyordu (F29).** `.htaccess`
+  `Authorization` başlığını iletir; `doctor` denetler.
+- **`$page_config['public']` uyarısı yalnız `APP_DEBUG=true` iken yazılıyordu
+  (F05.3).** Artık her zaman.
+- **Kuyruk: uzun iş ikinci işçiye veriliyor, eski işçinin sonucu yenisini
+  eziyordu.** Asılı iş ölçüsü nabız (`updated_at`); bütün yazmalar ayırma
+  jetonuna bağlı (`VnlJob::reservation()`, `VnlJobLostException`);
+  `VnlJob::heartbeat()` ve beklerken nabız atan `VnlJob::exec()`.
+- **Doğrulayıcılar kuyruk işçisini çıkış kodu 0 ile öldürüyordu.**
+  `StandartException`, `EmptyDataException`, `AuthException` komut satırında
+  yanıt basmaz, istisna fırlatır. İşçi ayrıca `exit`/`die`/ölümcül hata
+  (bellek dahil) durumunda eldeki işi başarısız deneme olarak yazar.
+- **İşleyici dosyası her işte yeniden `require` ediliyordu** — dosya
+  düzeyinde fonksiyon tanımlayan işleyici ikinci işte "Cannot redeclare" ile
+  işçiyi düşürüyordu. Artık süreç başına bir kez. Yetki önbelleği her işte
+  sıfırlanır.
+- **`schedule:run` kısa görevlerin kilidini öndeki uzun görev bitene kadar
+  tutuyordu.** Her kilit kendi komutu biter bitmez bırakılır; kilit
+  dosyaları close-on-exec.
+- **`VnlCron` `*/n` gün alanını kısıtlı sayıyordu.** vixie/cronie gibi: `*`
+  ile başlayan alan kısıtsız, `0 0 */2 * 1` yalnız tek günlere denk gelen
+  pazartesiler.
+- **`migrate` aynı numaralı ikinci migration'ı sessizce atlıyordu.** Aynı
+  kaynakta tekrarlanan numara her komutu DDL çalışmadan durdurur ve
+  uygulanmış olanı adıyla söyler; `record()` hatası ölümcül değil.
+- **Belgelenen systemd birimi SIGTERM'i işin alt süreçlerine de
+  gönderiyordu.** `KillMode=mixed`, `TimeoutStopSec`; `doctor` denetler.
+- `doctor`: bekleyen çekirdek migration'ları (veritabanına bağlanabilirse),
+  `.htaccess` Authorization iletimi, `queue:work` birimlerinde
+  `KillMode=mixed`.
+- Dokümanlar: `/docs/errors` (canlı/debug ayrımı), `/docs/models`
+  (`'zero' => true`), `/docs/environment` (`APP_DEBUG`, `APP_TIMEZONE`,
+  `DB_PORT`, `DB_SOCKET`, `LOG_PATH`, oturum anahtarları, `utf8mb4`),
+  `/docs/theme-sidebar` (menü parçaları), `/docs/languages` (dil parçaları),
+  `/docs/security`, `/docs/session`, `/docs/cli-queue`.
+
 ### Yükseltme (3.3.x → 3.4.0)
 
 1. `vnl/` dizinini değiştirin (`php vnl.php update --to 3.4.0`).
@@ -191,11 +285,17 @@ listesine karşılık gelir.
    çağrılan metotlar `PUBLIC_METHODS`'a; yardımcı metotlar `private`.
 4. Kendi `fetch`/form POST'larınıza CSRF jetonu.
 5. `$page_config['public']` kullanan sayfaları `$login_except_pages`'e taşıyın.
-6. `php vnl.php migrate --run`, sonra kullanıcı yoksa
+6. `php vnl.php migrate --run` (`0002`–`0007`; `0007` olmadan iki adımlı
+   giriş kapalıdır), sonra kullanıcı yoksa
    `php vnl.php user:create --username=admin --super`.
-7. `.env`: `APP_DEBUG=false` (canlı), `APP_ENCRYPTION_KEY` (TOTP için).
+7. `.env`: `APP_DEBUG=false` (canlı), `APP_ENCRYPTION_KEY` (TOTP için);
+   "beni hatırla" boşta kalmada da sürsün isteniyorsa
+   `VNL_IDLE_KEEPS_REMEMBER=true`.
 8. İsteğe bağlı: `* * * * * php vnl.php schedule:run` cron satırı ve
-   `php vnl.php queue:work` için bir systemd birimi.
+   `php vnl.php queue:work` için bir systemd birimi — `KillMode=mixed` ve
+   en uzun işten uzun `TimeoutStopSec` ile (`/docs/cli-queue`).
+9. Apache + PHP-FPM'de API jetonları için `.htaccess`'teki
+   `Authorization` iletim satırları (ya da `CGIPassAuth On`).
 
 ---
 

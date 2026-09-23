@@ -53,14 +53,22 @@ Queue::retry($jobId);    // failed/canceled → yeniden kuyruğa
 // jobs/domain.provision.php
 return function (array $payload, VnlJob $job): void {
     $job-&gt;progress(20, 'Sistem kullanıcısı');   // 0–100
+    $r = $job-&gt;exec(['useradd', '--create-home', $payload['user']]);   // kabuksuz, nabız atar
+    if ($r['code'] !== 0) {
+        throw new RuntimeException('useradd: ' . $r['stderr']);
+    }
     $job-&gt;log('useradd tamam');                  // çıktıya satır
     // hata = istisna: max_attempts dolana kadar 30 sn × deneme sonra yeniden
 };</code></pre>
                         </div>
                         <ul class="fs-6 text-body mb-0">
                             <li class="mb-2">Durumlar: <code>queued → running → done | failed | canceled</code>. Tablo: <code>tbl_vnl_jobs</code>; zamanlar veritabanı saatiyle yazılır.</li>
-                            <li class="mb-2">Ayırma atomiktir (<code>UPDATE … ORDER BY id LIMIT 1</code>): aynı kuyruğu dinleyen iki işçi aynı işi alamaz. Çöken işçinin bıraktığı <code>running</code> işler <code>--stale</code> saniye sonra kurtarılır.</li>
-                            <li class="mb-2">İşleyici <b>exit/die çağırmaz</b> ve <code>returnErrorMessage()</code> kullanmaz; dış komut gerekiyorsa <code>proc_open([...])</code> argüman dizisiyle — kabuk dizgisi asla.</li>
+                            <li class="mb-2">Ayırma atomiktir (<code>UPDATE … ORDER BY id LIMIT 1</code>): aynı kuyruğu dinleyen iki işçi aynı işi alamaz. <code>--stale</code> saniye boyunca <b>nabız atmayan</b> <code>running</code> iş çökmüş sayılır ve kurtarılır (deneme hakkı varsa yeniden kuyruğa, yoksa <code>failed</code>). Nabız: <code>progress()</code>, <code>log()</code>, <code>heartbeat()</code> ve <code>exec()</code>'in bekleme döngüsü.</li>
+                            <li class="mb-2"><b>Uzun ve sessiz adımlar</b> (büyük <code>mysqldump</code>, <code>rsync</code>, <code>tar</code>): <code>$job-&gt;exec([...], ['timeout' =&gt; 3600])</code> ile çalıştırın ya da döngüde <code>$job-&gt;heartbeat()</code> çağırın. <code>--stale</code> en uzun sessiz adımdan uzun olmalıdır.</li>
+                            <li class="mb-2"><b>Ayırma çiti:</b> işin bütün yazmaları ayırma jetonuna bağlıdır. İş elinden alınmışsa (başka işçi, yeniden kuyruk, <code>Queue::retry()</code>) <code>progress()</code>/<code>log()</code>/<code>heartbeat()</code> <code>VnlJobLostException</code> fırlatır — yan etkileri sürdürmemek için; bu istisnayı yutmayın. Eski işçinin sonucu yeni sahibin durumunu ezmez.</li>
+                            <li class="mb-2"><code>max_attempts</code>'i (varsayılan 1) yalnız ikinci kez çalıştırılması güvenli (idempotent) işlerde artırın: kurtarılan iş baştan çalışır.</li>
+                            <li class="mb-2">İşleyici <b>exit/die çağırmaz</b> ve <code>returnErrorMessage()</code> kullanmaz; yine de çağırırsa ya da süreç ölümcül hatayla (bellek dahil) biterse işçi kapanırken iş başarısız deneme olarak yazılır. Doğrulayıcılar (<code>DefaultValidator</code>, <code>StandartException</code> …) komut satırında yanıt basmaz, istisna fırlatır: iş gerçek mesajıyla başarısız olur. Dış komut: <code>$job-&gt;exec([...])</code> ya da <code>proc_open([...])</code> argüman dizisiyle — kabuk dizgisi asla.</li>
+                            <li class="mb-2">İşleyici dosyası işçi süreci başına <b>bir kez</b> yüklenir: dosya düzeyindeki fonksiyon/sınıf tanımları güvenlidir; kod değişikliği işçi yeniden başlayınca (<code>--max-time</code>) gelir. Yetki önbelleği her işte sıfırlanır.</li>
                             <li>Yük yönetim ekranında görünür: parola ya da gizli anahtar koymayın.</li>
                         </ul>
                     </div>
@@ -75,16 +83,34 @@ return function (array $payload, VnlJob $job): void {
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>php vnl.php queue:work [--queue=default] [--once] [--sleep=3] [--max-time=3600]
                        [--max-jobs=0] [--stale=3600] [--memory=256]
 
-# /etc/systemd/system/vnl-worker.service
+# /etc/systemd/system/vnl-worker-system.service
+[Unit]
+Description=VNL kuyruk iscisi (system)
+After=network.target mysql.service
+
 [Service]
 ExecStart=/usr/bin/php /opt/vnl-panel/vnl.php queue:work --queue=system
 Restart=always
-KillSignal=SIGTERM</code></pre>
+RestartSec=2
+KillMode=mixed          # SIGTERM yalnız PHP'ye; işin alt süreçleri yarıda ölmesin
+KillSignal=SIGTERM
+TimeoutStopSec=3600     # en uzun işten uzun (varsayılan 90 sn sonra SIGKILL)
+# Ayrıcalıksız bir kuyruk için: User=www-data / Group=www-data
+# ('system' kuyruğu useradd, certbot, systemctl için root çalışır)
+
+[Install]
+WantedBy=multi-user.target</code></pre>
                         </div>
                         <p class="fs-6 text-body mb-0">
                             SIGTERM/SIGINT gelince (<code>pcntl</code> varsa) eldeki işi bitirip çıkar; <code>--max-time</code> ya da bellek
-                            sınırı dolunca da temiz çıkar, systemd yeniden başlatır. Her iş temiz bir kimlikle başlar; denetim kaydı işi
-                            kuyruğa yazan kullanıcıya düşer (<code>$job-&gt;createdBy()</code>).
+                            sınırı dolunca da temiz çıkar, systemd yeniden başlatır. <b><code>KillMode=mixed</code> şarttır:</b> systemd'nin
+                            varsayılanı (<code>control-group</code>) <code>systemctl stop/restart</code>'ta SIGTERM'i birimin bütün süreçlerine
+                            aynı anda gönderir — işin başlattığı <code>useradd</code>/<code>certbot</code>/<code>rsync</code> yarıda ölür ve
+                            "işi bitirip çık" sözü tutulmaz. <code>TimeoutStopSec</code> en uzun işten kısa olursa iş SIGKILL ile kesilir ve
+                            <code>--stale</code> dolana kadar <code>running</code> kalır. <code>php vnl.php doctor</code> <code>queue:work</code>
+                            çalıştıran birimlerde <code>KillMode=mixed</code>'i denetler. Elle Ctrl+C de SIGINT'i ön plandaki bütün süreç
+                            grubuna gönderir. Her iş temiz bir kimlikle başlar; denetim kaydı işi kuyruğa yazan kullanıcıya düşer
+                            (<code>$job-&gt;createdBy()</code>).
                         </p>
                     </div>
                     <!--end::Section 3-->
@@ -105,8 +131,8 @@ return [
 ];</code></pre>
                         </div>
                         <ul class="fs-6 text-body mb-0">
-                            <li class="mb-2">Cron: beş alan; <code>*</code>, <code>n</code>, <code>a-b</code>, <code>*/n</code>, <code>a,b</code> ve <code>&#64;hourly</code>, <code>&#64;daily</code>, <code>&#64;weekly</code>, <code>&#64;monthly</code>, <code>&#64;yearly</code>. <code>VnlCron::isDue($ifade)</code>.</li>
-                            <li class="mb-2"><code>command</code> girdileri ayrı süreçte paralel çalışır; önceki çalıştırma sürüyorsa o dakika atlanır. <code>job</code> girdileri <code>Queue::push</code> olur.</li>
+                            <li class="mb-2">Cron: beş alan; <code>*</code>, <code>n</code>, <code>a-b</code>, <code>*/n</code>, <code>a,b</code> ve <code>&#64;hourly</code>, <code>&#64;daily</code>, <code>&#64;weekly</code>, <code>&#64;monthly</code>, <code>&#64;yearly</code>. <code>VnlCron::isDue($ifade)</code>. Gün ve haftanın günü vixie/cronie gibi: ikisi de kısıtlıysa (<code>*</code> ile başlamıyorsa) biri yeter, biri <code>*</code> ile başlıyorsa (<code>*/2</code> dahil) ikisi birden tutmalı — <code>0 0 */2 * 1</code> yalnız tek günlere denk gelen pazartesiler.</li>
+                            <li class="mb-2"><code>command</code> girdileri ayrı süreçte paralel çalışır; önceki çalıştırma sürüyorsa o dakika atlanır. Her girdinin kilidi <b>kendi</b> komutu biter bitmez bırakılır (uzun bir yedek, arkasındaki 5 dakikalık görevi bekletmez); kilit dosyaları close-on-exec açılır. <code>job</code> girdileri <code>Queue::push</code> olur.</li>
                             <li class="mb-2">Aynı dakikada iki kez çağrılsa da her girdi bir kez çalışır (<code>files/cache/schedule-*.lock</code>).</li>
                             <li><code>php vnl.php schedule:run --list</code> girdileri ve şu an çalışacakları gösterir; komut çıktısı <code>LOG_PATH/schedule-YYYY-MM-DD.log</code>.</li>
                         </ul>
