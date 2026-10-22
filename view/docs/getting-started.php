@@ -21,7 +21,7 @@
                             </div>
                             <div>
                                 <div class="fw-bold text-body fs-5">PHP 8.2+</div>
-                                <div class="text-muted fs-7">Minimum gereksinim</div>
+                                <div class="text-muted fs-7">Minimum gereksinim — güvenlik yamasıyla: 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12+</div>
                             </div>
                         </div>
                     </div>

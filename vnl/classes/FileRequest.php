@@ -158,7 +158,6 @@ class FileRequest
         if ($tmpName && file_exists($tmpName)) {
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
             $mime = finfo_file($finfo, $tmpName);
-            finfo_close($finfo);
             return $mime;
         }
         return null;
