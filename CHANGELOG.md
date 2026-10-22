@@ -9,6 +9,35 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.4.2] — 2026-10-22
+
+Güvenlik ve uyumluluk yaması. Kırıcı değişiklik yoktur; çalışma anı davranışı
+aynıdır.
+
+### Güvenlik
+
+- **`doctor` yamasız PHP'yi güvensiz işaretler.** PHP 2026-10-21'de iki kritik
+  uzaktan kod çalıştırma açığını kapattı: CVE-2026-109618 (bellek sınırında
+  bozulma) ve CVE-2026-109619 (ölümcül hatadan sonra bayat genel durum).
+  Yamalı ilk sürümler **8.2.35 / 8.3.36 / 8.4.27 / 8.5.12**. Bunların altındaki
+  her kurulum (8.2'den eski dallar yama almadığı için onlar da)
+  `php vnl.php doctor` çıktısında `[X] PHP guvenlik yamasi` olarak görünür.
+  Denetim komut satırındaki PHP'yi ölçer; web sunucusu (FPM, mod_php) ayrı bir
+  kurulumsa onun sürümü `phpinfo()` ile ayrıca denetlenmelidir.
+  Asgari sürüm yine PHP 8.2; README ve `/docs/getting-started` yama
+  gereksinimini yazar.
+
+### Düzeltilenler
+
+- **PHP 8.5 deprecation uyarıları.** 8.0'dan beri işlevsiz olan ve 8.5'te
+  deprecated sayılan `curl_close()` (`vnl/modules/CurlModule.php`,
+  `vnl/tools/update.php`) ve `finfo_close()` (`vnl/classes/FileRequest.php`)
+  çağrıları kaldırıldı. Tanıtıcılar nesnedir ve kendiliğinden serbest kalır.
+  Çekirdek PHP 8.5.12'de konsol (migrate, user:create, queue:work, doctor) ve
+  web (giriş, sayfalar, action'lar) yollarında `E_ALL` ile uyarısız çalıştı.
+
+---
+
 ## [3.4.1] — 2026-09-23
 
 Küçük, geriye uyumlu yama: **`VnlHttpException` artık JSON gövdesine ek alan

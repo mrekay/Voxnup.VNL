@@ -278,7 +278,6 @@ final class VnlUpdate
             $body = curl_exec($ch);
             $code = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
             $err  = curl_error($ch);
-            curl_close($ch);
 
             if ($body === false) {
                 throw new RuntimeException("Indirilemedi: {$err}");

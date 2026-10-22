@@ -1,6 +1,6 @@
 # VNL
 
-![Version](https://img.shields.io/badge/version-3.4.1-blue.svg)
+![Version](https://img.shields.io/badge/version-3.4.2-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
@@ -119,7 +119,7 @@ altındadır; numaraları bağımsız yürür, bir VNL yükseltmesi sizin sıran
 
 ```bash
 php vnl.php update --check      # yeni sürüm var mı, neler değişti
-php vnl.php update --to 3.4.1   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
+php vnl.php update --to 3.4.2   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
 php vnl.php doctor              # proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run       # şemayı güncelle
 ```
@@ -150,7 +150,10 @@ bir dizinde aynı adı taşıyan dosya ve dizin bir arada bulunamaz.
 
 ## 🚀 Gereksinimler
 
-* PHP 8.2 veya üzeri (`mbstring`, `pdo_mysql`, `openssl`; kuyruk işçisi için `pcntl` önerilir)
+* PHP 8.2 veya üzeri (`mbstring`, `pdo_mysql`, `openssl`; kuyruk işçisi için `pcntl` önerilir).
+  **Güvenlik yaması zorunlu:** 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 ve üstü. Daha eski
+  sürümlerde iki kritik uzaktan kod çalıştırma açığı var (CVE-2026-109618,
+  CVE-2026-109619); `php vnl.php doctor` bunu `[X]` olarak işaretler.
 * MySQL 5.7+ / MariaDB 10.3+ (giriş, yetki, kuyruk ve denetim kaydı veritabanındadır)
 * Node.js 20+ (opsiyonel — yalnızca [VNL-THEME](https://github.com/mrekay/VNL-THEME)
   deposundan temayı yeniden derlemek isteyenler için)
