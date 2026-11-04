@@ -1,10 +1,16 @@
-# VNL
+<p align="center">
+  <img src="assets/media/logos/VNL.png" alt="VNL logosu" width="160">
+</p>
 
-![Version](https://img.shields.io/badge/version-3.5.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
+<h1 align="center">VNL</h1>
 
-**VNL**, [Voxnup Not Laravel].
+<p align="center">
+  <img src="https://img.shields.io/badge/version-3.5.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+  <img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status">
+</p>
+
+**VNL** (Voxnup Not Laravel), **Voxnup'ın çekirdeğini oluşturur.**
 
 VNL, PHP 8.2 üzerine kurulu bir **uygulama şablonudur** — kurduğunuz bir kütüphane değil,
 klonlayıp üstüne yazdığınız bir başlangıç noktası. Yönlendirme, Eloquent (Illuminate/Capsule)
