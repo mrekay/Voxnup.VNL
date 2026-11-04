@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/version-3.5.0-blue.svg" alt="Version">
 </p>
 
-**VNL** (Voxnup Not Laravel), **Voxnup'ın çekirdeğini oluşturan PHP uygulama çatısıdır (framework).**
+**VNL** (Voxnup Not Laravel), **[Voxnup](https://voxnup.com)'ın çekirdeğini oluşturan PHP uygulama çatısıdır (framework).**
 
 Projeye depoyu klonlayarak başlarsınız: `vnl/` dizini sürümlenen ve güncellenen çekirdektir,
 geri kalan her şey sizin kodunuzdur. Yönlendirme, Eloquent (Illuminate/Capsule) ORM, `{{ }}`
@@ -32,7 +32,7 @@ tema katmanı hazır gelir; kurulumda ne composer ne npm gerekir.
 * **ERP:** Muhasebe, İnsan Kaynakları, Satış, Pazarlama, Üretim Planlama, Satış Sonrası
   Hizmetler, Depo, Üretim
 * **MES:** Üretim İzlenebilirlik
-* **Voxnup**
+* <a href="https://voxnup.com"><img src="assets/media/logos/Voxnup.png" alt="Voxnup logosu" width="20" align="top"> <b>Voxnup</b></a>
 * **Ticari Pazarlama Siteleri**
 * **Üretim Ürün Ağacı Hesaplama Motorları**
 * **Eğitim Programları**
