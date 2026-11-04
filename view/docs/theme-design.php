@@ -179,7 +179,7 @@ document.addEventListener('vnl.theme.changed', function (e) {
 ));</code></pre></div>
                         <p class="text-body fw-semibold mb-2">2. Derleyin ve etkinleştirin:</p>
                         <div class="vnl-code"><pre><code># tema deposunda: scss/skins/ altındaki her dosya → vnl/assets/theme/css/skins/&lt;ad&gt;.min.css
-VNL_OUT=/yol/VNL-TEMPLATE/vnl/assets/theme npm run build
+VNL_OUT=/yol/Voxnup.VNL/vnl/assets/theme npm run build
 
 // config/definitions.php — uygulama geneli:
 private $theme_defaults = [ ..., 'skin' => 'ornekskin' ];

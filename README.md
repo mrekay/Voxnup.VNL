@@ -70,13 +70,13 @@ inşa edilen **VNL Theme** ile gelir:
   sunucuya ISO. Altyapı flatpickr, çekirdekle gelir, tema token'larını okur.
 - **Derlenmiş çıktı repodadır** (`vnl/assets/theme/`) — kurulumda Node/npm/build **gerekmez**.
 
-Tema kaynağı ayrı bir depodadır: **[VNL-THEME](https://github.com/mrekay/VNL-THEME)**.
+Tema kaynağı ayrı bir depodadır: **[Voxnup.VNL.Theme](https://github.com/mrekay/Voxnup.VNL.Theme)**.
 Temayı özelleştirmek isteyenler onu klonlayıp çıktıyı doğrudan bu projeye derler:
 
 ```bash
-git clone https://github.com/mrekay/VNL-THEME.git
-cd VNL-THEME && npm ci
-VNL_OUT=/yol/VNL-TEMPLATE/vnl/assets/theme npm run build
+git clone https://github.com/mrekay/Voxnup.VNL.Theme.git
+cd Voxnup.VNL.Theme && npm ci
+VNL_OUT=/yol/Voxnup.VNL/vnl/assets/theme npm run build
 ```
 
 Ayrıntılar için uygulama içindeki **/docs/theme** sayfasına bakın.
@@ -139,14 +139,6 @@ php vnl.php migrate --run       # şemayı güncelle
 `vnl/` altını değiştirmişse durur, çünkü aksi halde o değişiklikler sessizce
 silinirdi. Ters giderse `php vnl.php update --rollback`.
 
-Depo özel olduğu için `--check`, `--to` ve `--latest` şu an GitHub'a erişemez. Arşivi
-indirip dosyadan kurun:
-
-```bash
-gh release download v3.5.0 --repo mrekay/VNL-TEMPLATE -p vnl-3.5.0.tar.gz
-php vnl.php update --file vnl-3.5.0.tar.gz
-```
-
 Ayrıntılar **/docs/versioning** sayfasında.
 
 ## 🖥️ Konsol
@@ -176,14 +168,14 @@ bir dizinde aynı adı taşıyan dosya ve dizin bir arada bulunamaz.
   Yeni kurulumda 8.5 önerilir (çekirdek 8.5.12'de sınandı); 8.2'nin güvenlik desteği
   31 Aralık 2026'da bitiyor.
 * MySQL 5.7+ / MariaDB 10.3+ (giriş, yetki, kuyruk ve denetim kaydı veritabanındadır)
-* Node.js 20+ (opsiyonel — yalnızca [VNL-THEME](https://github.com/mrekay/VNL-THEME)
+* Node.js 20+ (opsiyonel — yalnızca [Voxnup.VNL.Theme](https://github.com/mrekay/Voxnup.VNL.Theme)
   deposundan temayı yeniden derlemek isteyenler için)
 
 ## 📦 Kurulum
 
 ```bash
 # Projeyi klonlayın
-git clone https://github.com/mrekay/VNL-TEMPLATE.git .
+git clone https://github.com/mrekay/Voxnup.VNL.git .
 
 # Ortam: veritabanı, APP_URL, APP_ENCRYPTION_KEY (APP_DEBUG canlıda false)
 cp .env.example .env

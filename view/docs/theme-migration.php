@@ -8,7 +8,7 @@
                 <div class="vnl-lead">
                     VNL 2.x + Metronic 8 üzerinde koşan projeleri VNL Theme'e taşımak için rehber.
                     Bu template'in kendi geçişinde kullanılan codemod'lar tema deposunda
-                    (<a href="https://github.com/mrekay/VNL-THEME" target="_blank" rel="noopener">VNL-THEME</a>)
+                    (<a href="https://github.com/mrekay/Voxnup.VNL.Theme" target="_blank" rel="noopener">Voxnup.VNL.Theme</a>)
                     <code>tools/codemods/</code> altında durur ve türev projelerde yeniden kullanılabilir.
                 </div>
             </div>

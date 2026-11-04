@@ -71,7 +71,7 @@
 
                         <div class="d-flex align-items-center bg-body-secondary border rounded p-5 mb-4">
                             <i class="fa-solid fa-terminal fs-2 text-body-emphasis me-3"></i>
-                            <span class="text-body-emphasis fs-4 fw-bold font-monospace user-select-all">git clone https://github.com/mrekay/VNL-TEMPLATE.git .</span>
+                            <span class="text-body-emphasis fs-4 fw-bold font-monospace user-select-all">git clone https://github.com/mrekay/Voxnup.VNL.git .</span>
                         </div>
 
                         <p class="fs-5 text-body mb-4">

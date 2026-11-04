@@ -460,7 +460,7 @@ function ShowSidebarMenu($array, $level)
 
             if ($hasChild) {
                 /* Alt menü sağda flyout panel olarak açılır (hover ya da tıklama;
-                   mobil offcanvas'ta yerinde). Davranış: VNL-THEME js/modules/flyout.js */
+                   mobil offcanvas'ta yerinde). Davranış: Voxnup.VNL.Theme js/modules/flyout.js */
                 ?>
                 <div class="vnl-menu-item vnl-has-sub">
                     <button type="button"
