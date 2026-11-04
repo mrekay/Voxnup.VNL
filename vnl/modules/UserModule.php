@@ -376,7 +376,7 @@ class UserModule
         if (!empty(Session::get('login')) && empty($CurrentUser->id)) {
             self::LogOut();
 
-            header('Location:/login');
+            header('Location:/login' . vnl_login_return_query());
             die();
         }
     }

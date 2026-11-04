@@ -9,6 +9,52 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.5.0] — 2026-11-04
+
+**Girişe atılan kullanıcı girişten sonra istediği sayfaya dönebilir.** Özellik
+isteğe bağlıdır; ayarı açmayan projede yönlendirme adresi değişmez. Kırıcı
+değişiklik ve migration yoktur. Değişen çekirdek dosyalar:
+`vnl/helpers/app.php`, `vnl/modules/UserModule.php`.
+
+### Eklenenler
+
+- **`$login_return_param` / `getLoginReturnParam()`.** Parametre adı
+  `config/definitions.php`'de verilir, boş dizge kapalıdır. Bu dosya güncellemede
+  değişmediği için var olan proje alanı ve erişimciyi kendisi ekler; erişimci
+  yoksa özellik kapalı sayılır.
+
+  ```php
+  private $login_return_param = "donus";
+
+  public function getLoginReturnParam(): string
+  {
+      return $this->login_return_param;
+  }
+  ```
+
+  Açıkken `/satis?yil=2026` isteği `/login?donus=%2Fsatis%3Fyil%3D2026` adresine
+  gider. Bu yol `vnl/kernel.php`, `vnl_require_permission()` ve
+  `UserModule::CheckUser()` için geçerlidir. Yalnız GET sayfa isteği taşınır; POST
+  ve AJAX istekleri, kök adres, giriş, çıkış ve `$login_except_pages` sayfaları
+  düz `/login`'e gider.
+- **`vnl_safe_return_url($value): ?string`.** Kullanıcıdan gelen dönüş adresini
+  doğrular, açık yönlendirmeyi engeller. Geçerli adresi ya da `null` döndürür.
+  Reddettikleri: tek `/` ile başlamayan her değer (`//x`, tam URL), ters bölü,
+  kontrol karakteri ve boşluk, `.`/`..` parçası, geçersiz UTF-8, 2000 bayttan uzun
+  değer ve yukarıdaki kapalı adresler.
+- **`vnl_login_return_query(): string`.** Giriş yönlendirmesinin sorgu dizgesini
+  üretir. Kendi `CheckUser`'ını taşıyan proje `/login`'in sonuna bunu ekler.
+
+  Giriş ekranı ve action projenindir; örnek için **/docs/config-definitions** §6.
+
+### Düzeltilenler
+
+- **`vnl_redirect_login()` şemasız site adresini bozmaz.** `getSiteUrl()` şema
+  döndürmüyorsa (`localhost:5408`) göreli `/login` kullanılır. Eskiden tarayıcı
+  `localhost:` kısmını şema sayıyor, yönlendirme çalışmıyordu.
+
+---
+
 ## [3.4.2] — 2026-10-22
 
 Güvenlik ve uyumluluk yaması. Kırıcı değişiklik yoktur; çalışma anı davranışı
