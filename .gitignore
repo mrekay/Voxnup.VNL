@@ -1,11 +1,5 @@
 
-.idea/fgi_arayuz.iml
-.idea/modules.xml
-.idea/php.xml
-.idea/vcs.xml
-.idea/deployment.xml
-.idea/VNL-TEMPLATE.iml
-.idea/webServers.xml
+.idea/
 
 # Ortam yapilandirmasi — gizli bilgiler. Sablonu .env.example'dadir.
 .env
