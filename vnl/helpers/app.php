@@ -579,7 +579,7 @@ function vnl_core_styles(?string $skin = null): array
  * Çekirdeğin script'leri, doğru sırayla. @see vnl_core_styles()
  *
  * flatpickr, VNL Date'in taşıyıcısıdır ve vnl-date.js ondan sonra gelmek
- * zorundadır. Tema paketine (vendors.min.js) konmadı: o dosya VNL-THEME
+ * zorundadır. Tema paketine (vendors.min.js) konmadı: o dosya Voxnup.VNL.Theme
  * deposunda derlenir, çekirdek sürümü tema derlemesine bağlanmasın.
  */
 function vnl_core_scripts(): array

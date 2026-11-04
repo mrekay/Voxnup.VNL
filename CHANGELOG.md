@@ -9,6 +9,26 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.5.1] — 2026-11-04
+
+Depo herkese açıldı ve adı değişti. Kırıcı değişiklik ve migration yoktur. Değişen
+çekirdek dosya: `vnl/tools/update.php`.
+
+### Değişenler
+
+- **Güncelleyici yeni depoyu kullanıyor.** `php vnl.php update` artık
+  `mrekay/VNL-TEMPLATE` yerine `mrekay/Voxnup.VNL` adresine gider. Eski adres GitHub
+  yönlendirmesiyle çalışmaya devam ediyordu, ama yönlendirmeye bağlı kalmak riskliydi:
+  eski adla yeni bir depo açılırsa yönlendirme biter ve güncelleyici o depoya gider.
+  3.5.0 ve öncesindeki kurulumlar bu sürüme geçene kadar eski adresi kullanır.
+- **Tema deposu** `mrekay/Voxnup.VNL.Theme` oldu; açıklamalar buna göre güncellendi.
+
+### Eklenenler
+
+- **MIT Lisansı.** Kökte ve yayın arşivinde (`vnl/LICENSE`) lisans metni yer alır.
+
+---
+
 ## [3.5.0] — 2026-11-04
 
 **Girişe atılan kullanıcı girişten sonra istediği sayfaya dönebilir.** Özellik

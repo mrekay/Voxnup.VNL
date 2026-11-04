@@ -5,7 +5,8 @@
 <h1 align="center">VNL</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-3.5.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-3.5.1-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
 
 **VNL** (Voxnup Not Laravel), **[Voxnup](https://voxnup.com)'ın çekirdeğini oluşturan PHP uygulama çatısıdır (framework).**
@@ -26,6 +27,7 @@ tema katmanı hazır gelir; kurulumda ne composer ne npm gerekir.
 - [Gereksinimler](#-gereksinimler)
 - [Kurulum](#-kurulum)
 - [Dokümantasyon](#-dokümantasyon)
+- [Lisans](#-lisans)
 
 ## 💚 VNL'in Can Verdiği Uygulamalar
 
@@ -130,7 +132,7 @@ altındadır; numaraları bağımsız yürür, bir VNL yükseltmesi sizin sıran
 
 ```bash
 php vnl.php update --check      # yeni sürüm var mı, neler değişti
-php vnl.php update --to 3.5.0   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
+php vnl.php update --to 3.5.1   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
 php vnl.php doctor              # proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run       # şemayı güncelle
 ```
@@ -207,3 +209,8 @@ Uygulama, sol menüden erişilen kapsamlı bir dokümantasyon setiyle gelir:
 routing, istek yönetimi, modal sistemi, oturum, modeller, validator'lar,
 dil sistemi (i18n), modüller, view include sistemi, extension sistemi ve
 **VNL Theme** (/docs/theme).
+
+## 📄 Lisans
+
+VNL, [MIT Lisansı](LICENSE) ile dağıtılır: ticari projeler dahil özgürce kullanabilir,
+değiştirebilir ve dağıtabilirsiniz; telif ve lisans bildirimini korumanız yeterlidir.
