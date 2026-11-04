@@ -187,6 +187,8 @@ function vnl_require_permission(string $code, string $ability = 'view'): void
 /**
  * Giriş sayfasına yönlendirir ve betiği bitirir. APP_URL tanımlı değilse
  * göreli adres kullanılır ("http:///login" gibi kırık bir adres yerine).
+ * Şemasız site adresi de öyle: tarayıcı "localhost:5408/login"i bir site
+ * değil, "localhost:" şeması olarak okur.
  */
 function vnl_redirect_login(): never
 {
@@ -196,8 +198,103 @@ function vnl_redirect_login(): never
 		? rtrim($cDefinitions->getSiteUrl(), '/')
 		: '';
 
-	header('Location: ' . $base . '/login');
+	if (!preg_match('~^https?://[^/]~i', $base)) {
+		$base = '';
+	}
+
+	header('Location: ' . $base . '/login' . vnl_login_return_query());
 	exit;
+}
+
+/**
+ * Giriş yönlendirmesine eklenecek dönüş adresi: "?donus=%2Fsatis%3Fyil%3D2026"
+ * ya da boş dizge (3.5.0).
+ *
+ * Ayar kapalıysa ($login_return_param boş ya da projenin definitions'ında hiç
+ * yok) her zaman boştur. Yalnız sayfa gezinen GET isteği taşınır: POST gövdesi
+ * girişten sonra yeniden gönderilemez, AJAX adresi de gezinilecek sayfa değildir.
+ */
+function vnl_login_return_query(): string
+{
+	global $cDefinitions;
+
+	$param = (isset($cDefinitions) && method_exists($cDefinitions, 'getLoginReturnParam'))
+		? (string)$cDefinitions->getLoginReturnParam()
+		: '';
+
+	if ($param === '' || ($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET' || vnl_wants_json()) {
+		return '';
+	}
+
+	$target = vnl_safe_return_url($_SERVER['REQUEST_URI'] ?? '');
+
+	return $target === null ? '' : '?' . rawurlencode($param) . '=' . rawurlencode($target);
+}
+
+/**
+ * Girişten sonra dönülecek adresi doğrular: site içi temiz adres ya da null (3.5.0).
+ *
+ *   $donus = vnl_safe_return_url($req->post('donus')) ?? '/';
+ *
+ * Değer kullanıcıdan gelir; denetlenmezse açık yönlendirme olur. Dönen adres
+ * sunucu köküne görelidir ve alt klasörü içerir: Location'a olduğu gibi yazılır,
+ * başına SITE_URL eklenmez.
+ *
+ * Tarayıcı ters bölüyü düz bölü sayar, sekme ve satır sonunu adresten siler:
+ * "/\x" ile "/<TAB>/x" ikisi de "//x" olur. Bu yüzden ikisi de kökten yasaktır.
+ *
+ * Kök, giriş akışı, action dağıtıcısı, hata sayfaları ve girişsiz açılan sayfalar
+ * da null döner: bunlar girişten sonra dönülecek yer değildir. Eşleştirme
+ * kernel.php'nin giriş kapısıyla aynıdır (ilk parça ya da 'grup/sayfa').
+ */
+function vnl_safe_return_url($value): ?string
+{
+	global $cDefinitions;
+
+	if (!is_string($value) || $value === '' || strlen($value) > 2000) {
+		return null;
+	}
+
+	if ($value[0] !== '/' || ($value[1] ?? '') === '/' || str_contains($value, '\\')
+		|| preg_match('/[\x00-\x20\x7F]/', $value) || !preg_match('//u', $value)) {
+		return null;
+	}
+
+	$path = strtolower(preg_split('/[?#]/', $value, 2)[0]);
+
+	/* Alt klasörde çalışan kurulum yalnız kendi altına döner. */
+	$sub = strtolower(trim(str_replace('\\', '/', getSubFolderName()), '/.'));
+	if ($sub !== '') {
+		if ($path !== '/' . $sub && !str_starts_with($path, '/' . $sub . '/')) {
+			return null;
+		}
+		$path = substr($path, strlen($sub) + 1);
+	}
+
+	$segments = array_values(array_filter(explode('/', $path), static fn($s) => $s !== ''));
+	if ($segments === []) {
+		return null;
+	}
+
+	/* "/x/../login" listeden kaçmasın; tarayıcı %2e'yi de nokta sayar. */
+	foreach ($segments as $segment) {
+		if (preg_match('/^(?:\.|%2e){1,2}$/', $segment)) {
+			return null;
+		}
+	}
+
+	$closed = ['login', 'logout', 'app', '401', '403', '404'];
+	if (isset($cDefinitions)) {
+		$closed = array_merge($closed, $cDefinitions->getLoginExceptPages(), vnl_public_pages());
+	}
+	$closed = array_map('strtolower', $closed);
+
+	if (in_array($segments[0], $closed, true)
+		|| (isset($segments[1]) && in_array($segments[0] . '/' . $segments[1], $closed, true))) {
+		return null;
+	}
+
+	return $value;
 }
 
 /**

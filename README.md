@@ -1,6 +1,6 @@
 # VNL
 
-![Version](https://img.shields.io/badge/version-3.4.1-blue.svg)
+![Version](https://img.shields.io/badge/version-3.5.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
@@ -119,7 +119,7 @@ altındadır; numaraları bağımsız yürür, bir VNL yükseltmesi sizin sıran
 
 ```bash
 php vnl.php update --check      # yeni sürüm var mı, neler değişti
-php vnl.php update --to 3.4.1   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
+php vnl.php update --to 3.5.0   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
 php vnl.php doctor              # proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run       # şemayı güncelle
 ```

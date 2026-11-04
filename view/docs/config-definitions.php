@@ -350,6 +350,49 @@ $this->db_info = [
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6">3.4.0: karar denetleyici çalışmadan verildiği için <code>$page_config['public'] = true</code> artık bir sayfayı açmaz. Eklentiler kendi sayfalarını <code>vnl_public_page('ad')</code> ile açar. Doküman sayfaları <code>.env</code>'de <code>VNL_PUBLIC_DOCS=true</code> iken listeye eklenir.</span>
                         </div>
+
+                        <h5 class="fw-bold mt-8 mb-3">Girişten sonra istenen sayfaya dönüş (<code>$login_return_param</code>) <span class="badge badge-soft-primary align-middle">3.5.0</span></h5>
+                        <p class="fs-5 text-body mb-4">
+                            Varsayılan olarak kapalıdır. Parametre adı verildiğinde girişe atılan kullanıcının istediği adres yönlendirmeye eklenir: <code>/satis?yil=2026</code> → <code>/login?donus=%2Fsatis%3Fyil%3D2026</code>. <code>config/definitions.php</code> güncellemede değişmediği için önceki sürümden gelen proje alanı ve erişimciyi kendisi ekler; erişimci yoksa özellik kapalı sayılır.
+                        </p>
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $login_return_param = "donus";   // "" = kapalı
+
+public function getLoginReturnParam(): string
+{
+    return $this->login_return_param;
+}
+</code></pre>
+                        </div>
+                        <p class="fs-5 text-body mb-4">
+                            Adres yalnız sayfa gezinen GET isteğinde taşınır; POST ve AJAX isteklerinde, kök adreste ve aşağıdaki kapalı adreslerde düz <code>/login</code> kullanılır. Çekirdek görünüm taşımadığı için giriş ekranı ve action projenindir. Değer kullanıcıdan geldiğinden her okumada <code>vnl_safe_return_url()</code> ile doğrulanır:
+                        </p>
+                        <div class="vnl-code mb-4">
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// controller/login.php
+$donus = vnl_safe_return_url($req->get($cDefinitions->getLoginReturnParam())) ?? '';
+if ($CurrentUser->id > 0) {
+    header('Location:' . ($donus !== '' ? $donus : SITE_URL . '/'));
+    exit;
+}
+
+// view/login.php — #login_step_password içinde
+&lt;input type="hidden" name="donus" value="&lt;?= vnl_e($donus) ?&gt;"&gt;
+
+// actions/action_login.php → login()
+$url = vnl_safe_return_url($req->post('donus')) ?? '/';
+// İkinci adım yalnız kodu gönderir: adres bekleyen girişle birlikte saklanır.
+Session::set('_2fa_pending', [/* ... */ 'return' => $url]);
+returnSuccessMessage(lang('SUC_LOGIN'), ['url' => $url]);
+
+// actions/action_login.php → totp()
+$url = vnl_safe_return_url($pending['return'] ?? null) ?? '/';
+returnSuccessMessage(lang('SUC_LOGIN'), ['url' => $url]);
+</code></pre>
+                        </div>
+                        <div class="alert alert-warning d-flex align-items-center p-4">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6"><code>vnl_safe_return_url()</code> geçerli adresi ya da <code>null</code> döndürür. Reddedilenler: tek <code>/</code> ile başlamayan her değer (<code>//x</code>, tam URL), ters bölü, kontrol karakteri ve boşluk, <code>.</code> ya da <code>..</code> parçası, geçersiz UTF-8, 2000 bayttan uzun değer; kök, <code>login</code>, <code>logout</code>, <code>app</code>, hata sayfaları, <code>$login_except_pages</code> ve <code>vnl_public_page()</code> kayıtları; alt klasör kurulumunda klasör dışı adresler. Dönen adres sunucu köküne görelidir, başına <code>SITE_URL</code> eklenmez.</span>
+                        </div>
                     </div>
                     <!--end::Section 6-->
 
@@ -426,6 +469,11 @@ $this->db_info = [
                                     <td class="ps-5"><code>$cDefinitions->getLoginExceptPages()</code></td>
                                     <td><code>array</code></td>
                                     <td>Giriş gerektirmeyen sayfalar listesini döndürür.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>$cDefinitions->getLoginReturnParam()</code></td>
+                                    <td><code>string</code></td>
+                                    <td>Girişe dönüş adresini taşıyan parametrenin adını döndürür; boş dizge özelliğin kapalı olduğunu gösterir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$cDefinitions->getProductId()</code></td>

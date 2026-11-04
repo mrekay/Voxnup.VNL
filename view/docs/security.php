@@ -27,7 +27,7 @@
                                 <tr>
                                     <td class="ps-5">Sayfa (<code>vnl/kernel.php</code>)</td>
                                     <td>Girişsiz istek, sayfa <code>$login_except_pages</code>'de ya da <code>vnl_public_page()</code> ile kayıtlı değilse denetleyici <b>çalıştırılmadan</b> reddedilir.</td>
-                                    <td>302 <code>/login</code> · AJAX: 401 <code>VNL_AUTH</code></td>
+                                    <td>302 <code>/login</code> (<code>$login_return_param</code> açıksa GET isteğinin adresiyle) · AJAX: 401 <code>VNL_AUTH</code></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5">Sayfa yetkisi</td>
