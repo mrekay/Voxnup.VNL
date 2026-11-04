@@ -47,7 +47,7 @@ console.php    komut dağıtıcısı — komutlar tools/ altında
 classes/  modules/  helpers/  validators/  exceptions/
            classes/VnlDispatcher   /app/* dağıtıcısı (POST, CSRF, varsayılan giriş)
            classes/RateLimiter Audit Totp Queue VnlJob VnlCron ApiToken (3.4.0)
-assets/   theme/ (VNL-THEME derleme çıktısı) + js/ + css/
+assets/   theme/ (Voxnup.VNL.Theme derleme çıktısı) + js/ + css/
 migrations/    VNL'in şeması (projeninki kökteki migrations/)
 tools/         migrate, update, doctor, release, version, serve, tar, dev-router
 vendor/        Illuminate/Eloquent, PHPMailer

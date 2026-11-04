@@ -20,7 +20,7 @@ require_once VNL_PATH . '/tools/tar.php';
 
 final class VnlUpdate
 {
-    private const DEFAULT_REPO = 'mrekay/VNL-TEMPLATE';
+    private const DEFAULT_REPO = 'mrekay/Voxnup.VNL';
 
     private string $repo;
 
