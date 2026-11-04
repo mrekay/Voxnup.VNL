@@ -6,19 +6,18 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-3.5.0-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
-  <img src="https://img.shields.io/badge/build-passing-brightgreen.svg" alt="Build Status">
 </p>
 
-**VNL** (Voxnup Not Laravel), **Voxnup'ın çekirdeğini oluşturur.**
+**VNL** (Voxnup Not Laravel), **Voxnup'ın çekirdeğini oluşturan PHP uygulama çatısıdır (framework).**
 
-VNL, PHP 8.2 üzerine kurulu bir **uygulama şablonudur** — kurduğunuz bir kütüphane değil,
-klonlayıp üstüne yazdığınız bir başlangıç noktası. Yönlendirme, Eloquent (Illuminate/Capsule)
-ORM, `{{ }}` şablon derleyicisi, oturum ve yetkilendirme, dil sistemi, migration'lar, bir
-konsol ve kendi tema katmanı hazır gelir; kurulumda ne composer ne npm gerekir.
+Projeye depoyu klonlayarak başlarsınız: `vnl/` dizini sürümlenen ve güncellenen çekirdektir,
+geri kalan her şey sizin kodunuzdur. Yönlendirme, Eloquent (Illuminate/Capsule) ORM, `{{ }}`
+şablon derleyicisi, oturum ve yetkilendirme, dil sistemi, migration'lar, bir konsol ve kendi
+tema katmanı hazır gelir; kurulumda ne composer ne npm gerekir.
 
 ## 📋 İçindekiler
 
+- [VNL'in Can Verdiği Uygulamalar](#-vnlin-can-verdiği-uygulamalar)
 - [Özellikler](#-özellikler)
 - [VNL Theme](#-vnl-theme)
 - [Çekirdek ve Proje](#-çekirdek-ve-proje)
@@ -28,13 +27,22 @@ konsol ve kendi tema katmanı hazır gelir; kurulumda ne composer ne npm gerekir
 - [Kurulum](#-kurulum)
 - [Dokümantasyon](#-dokümantasyon)
 
+## 💚 VNL'in Can Verdiği Uygulamalar
+
+* **ERP:** Muhasebe, İnsan Kaynakları, Satış, Pazarlama, Üretim Planlama, Satış Sonrası
+  Hizmetler, Depo, Üretim
+* **MES:** Üretim İzlenebilirlik
+* **Voxnup**
+* **Ticari Pazarlama Siteleri**
+* **Üretim Ürün Ağacı Hesaplama Motorları**
+* **Eğitim Programları**
+
 ## ✨ Özellikler
 
-* **Hızlı ve Hafif:** Minimum kaynak tüketimi ile maksimum performans.
 * **Modüler Yapı:** İhtiyacınız olan bileşenleri kolayca ekleyip çıkarın.
 * **Çekirdek/Proje Ayrımı:** `vnl/` VNL'in, geri kalan her şey sizin. Güncelleme
   tek bir dizini değiştirmekten ibarettir.
-* **Hızlı Veritabanı Erişimi:** Eloquent ile hızlı kurulum ve kullanım.
+* **Veritabanı Erişimi:** Eloquent ORM, ek kurulum gerektirmeden hazır gelir.
 * **VNL Theme:** Bootstrap 5.3 tabanlı, koyu-varsayılanlı, layout preset'li kendi tema katmanı.
 * **Varsayılan olarak güvenli (3.4):** CSRF jetonu, yalnız-POST action'lar, girişi
   varsayılan olarak zorunlu kılan dağıtıcı, sayfa/action yetki kapıları
@@ -43,6 +51,8 @@ konsol ve kendi tema katmanı hazır gelir; kurulumda ne composer ne npm gerekir
 * **Kuyruk ve zamanlayıcı (3.4):** `Queue::push()` + `php vnl.php queue:work`,
   `config/schedule.php` + `php vnl.php schedule:run`, projenin kendi konsol komutları
   (`commands/`).
+* **Girişten sonra sayfaya dönüş (3.5):** isteğe bağlı `$login_return_param` ayarı; dönüş
+  adresi `vnl_safe_return_url()` ile doğrulanır.
 
 ## 🎨 VNL Theme
 
@@ -88,11 +98,6 @@ düzen ve metin projeden projeye değişir, herkesin ezdiği bir varsayılanın 
 olmak anlamsızdır. Bir çekirdek sınıfını/modülünü değiştirmek isterseniz `vnl/` altına
 dokunmayın, kendi tarafınıza **aynı adlı** dosyayı koyun — çözümleme önce size bakar.
 
-```bash
-# Güncelleme:
-rm -rf vnl/            # ve yeni sürümün vnl/ dizinini yerine koyun
-```
-
 Ayrıntılar için uygulama içindeki **/docs/architecture** sayfasına bakın.
 
 ## 🏷️ Sürüm ve Şema
@@ -134,6 +139,14 @@ php vnl.php migrate --run       # şemayı güncelle
 `vnl/` altını değiştirmişse durur, çünkü aksi halde o değişiklikler sessizce
 silinirdi. Ters giderse `php vnl.php update --rollback`.
 
+Depo özel olduğu için `--check`, `--to` ve `--latest` şu an GitHub'a erişemez. Arşivi
+indirip dosyadan kurun:
+
+```bash
+gh release download v3.5.0 --repo mrekay/VNL-TEMPLATE -p vnl-3.5.0.tar.gz
+php vnl.php update --file vnl-3.5.0.tar.gz
+```
+
 Ayrıntılar **/docs/versioning** sayfasında.
 
 ## 🖥️ Konsol
@@ -160,6 +173,8 @@ bir dizinde aynı adı taşıyan dosya ve dizin bir arada bulunamaz.
   **Güvenlik yaması zorunlu:** 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 ve üstü. Daha eski
   sürümlerde iki kritik uzaktan kod çalıştırma açığı var (CVE-2026-109618,
   CVE-2026-109619); `php vnl.php doctor` bunu `[X]` olarak işaretler.
+  Yeni kurulumda 8.5 önerilir (çekirdek 8.5.12'de sınandı); 8.2'nin güvenlik desteği
+  31 Aralık 2026'da bitiyor.
 * MySQL 5.7+ / MariaDB 10.3+ (giriş, yetki, kuyruk ve denetim kaydı veritabanındadır)
 * Node.js 20+ (opsiyonel — yalnızca [VNL-THEME](https://github.com/mrekay/VNL-THEME)
   deposundan temayı yeniden derlemek isteyenler için)
@@ -190,7 +205,7 @@ Yerelde hızlıca denemek için (PHP kuruluysa ya da Docker ile):
 ```bash
 php vnl.php serve
 # veya
-docker run --rm -p 8080:8080 -v "$PWD":/app -w /app php:8.2-cli \
+docker run --rm -p 8080:8080 -v "$PWD":/app -w /app php:8.5-cli \
   php vnl.php serve
 ```
 
@@ -200,24 +215,3 @@ Uygulama, sol menüden erişilen kapsamlı bir dokümantasyon setiyle gelir:
 routing, istek yönetimi, modal sistemi, oturum, modeller, validator'lar,
 dil sistemi (i18n), modüller, view include sistemi, extension sistemi ve
 **VNL Theme** (/docs/theme).
-
-### 🤖 LLM'ler için
-
-Aynı dokümantasyonun dil modelleri ve kod asistanları için hazırlanmış markdown hali
-proje kökündedir; kurulu bir VNL'de `/llms.txt` ve `/llms-full.txt` adreslerinden servis edilir:
-
-| Dosya | İçerik |
-| --- | --- |
-| `llms.txt` | [llms.txt](https://llmstxt.org) formatında dizin: proje özeti + tüm sayfaların listesi |
-| `llms-full.txt` | Tüm dokümantasyonun tek dosyada tam markdown hali (~200 KB) |
-
-Dokümantasyon sayfaları değiştiğinde yeniden üretin:
-
-```bash
-php tools/build-llms-docs.php
-# PHP CLI yoksa
-docker run --rm -v "$PWD":/app -w /app php:8.2-cli php tools/build-llms-docs.php
-```
-
-Üretici, sayfa listesini `view/static/leftSidebar.php` içindeki `$SidebarMenu`'den okur —
-menüye eklenen yeni bir docs sayfası çıktıya kendiliğinden dahil olur.

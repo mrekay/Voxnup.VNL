@@ -5,7 +5,7 @@
             <div class="vnl-page-hero mb-12 mt-6">
                 <div class="vnl-overline mb-3">// docs/getting-started</div>
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">VNL'ye Giriş</h1>
-                <div class="vnl-lead">VNL, PHP tabanlı, Illuminate (Eloquent/Capsule) ORM kullanan, Bootstrap 5.3 üzerine inşa edilen VNL Theme ile gelen bir uygulama şablonudur.
+                <div class="vnl-lead">VNL, PHP tabanlı, Illuminate (Eloquent/Capsule) ORM kullanan, Bootstrap 5.3 üzerine inşa edilen VNL Theme ile gelen bir uygulama çatısıdır (framework) ve Voxnup'ın çekirdeğini oluşturur.
                     Rota tanımlaması, ORM kurulumu ve frontend entegrasyonu hazır gelir — siz doğrudan iş mantığınızı yazmaya başlarsınız.</div>
             </div>
 

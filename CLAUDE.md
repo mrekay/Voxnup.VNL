@@ -1,7 +1,8 @@
 # VNL
 
-PHP 8.2 uygulama şablonu. Kurduğunuz bir kütüphane değil — klonlanıp üstüne yazılan
-bir başlangıç noktası. Composer ve npm gerekmez; bağımlılıklar repoda gelir.
+Voxnup'ın çekirdeğini oluşturan PHP uygulama çatısı (framework; asgari PHP 8.2). Projeye
+depoyu klonlayarak başlanır: `vnl/` güncellenen çekirdektir, geri kalanı projenindir.
+Composer ve npm gerekmez; bağımlılıklar repoda gelir.
 
 Bu dosya haritadır. Ayrıntı uygulamanın içindedir: `/docs/architecture`,
 `/docs/versioning`, `/docs/getting-started` ve yanlarındakiler.
