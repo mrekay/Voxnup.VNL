@@ -59,7 +59,7 @@ class ConfigDefinitions
     private $login_return_param = "";
 
     /** VNL_PUBLIC_DOCS=true iken girişsiz açılan doküman sayfaları. */
-    private $public_docs_pages = ["docs/overview","docs/getting-started","docs/architecture","docs/versioning","docs/theme","docs/theme-layout","docs/theme-sidebar","docs/theme-design","docs/theme-components","docs/theme-forms","docs/theme-dates","docs/theme-icons","docs/theme-modals","docs/theme-js","docs/theme-migration","docs/routing","docs/templating","docs/request-handling","docs/errors","docs/environment","docs/modals","docs/session","docs/config-definitions","docs/models","docs/validators","docs/languages","docs/vnltable","docs/vnltable-grid","docs/vnltable-workbench","docs/sdtable","docs/excel-export","docs/modules","docs/view-includes","docs/extensions","docs/stripe","docs/security","docs/cli-queue"];
+    private $public_docs_pages = ["docs/overview","docs/getting-started","docs/architecture","docs/versioning","docs/theme","docs/theme-layout","docs/theme-sidebar","docs/theme-design","docs/theme-components","docs/theme-forms","docs/theme-dates","docs/theme-icons","docs/theme-modals","docs/theme-js","docs/theme-migration","docs/routing","docs/templating","docs/request-handling","docs/errors","docs/environment","docs/modals","docs/session","docs/config-definitions","docs/models","docs/validators","docs/languages","docs/vnltable","docs/vnltable-grid","docs/vnltable-workbench","docs/sdtable","docs/excel-export","docs/modules","docs/view-includes","docs/extensions","docs/stripe","docs/social-auth","docs/security","docs/cli-queue"];
 
     /**
      * Ortama göre değişen ve gizli olan her şey .env'den gelir; kopyası

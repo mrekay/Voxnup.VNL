@@ -10,5 +10,6 @@
  * Klasör adı ile eşleşmelidir: extensions/{key}/boot.php
  */
 return [
-    'stripe' => false,
+    'stripe'      => false,
+    'social-auth' => false,  // Google/Apple/Microsoft/Facebook ile giriş — kanca: vnl_social_sign_in()
 ];
