@@ -234,6 +234,15 @@ $SidebarMenu = array(
                                 'showmenu' => 1,
                                 "child" => []
                         ],
+                        [
+                                "text" => "Social Auth Extension",
+                                'url' => 'docs/social-auth',
+                                'page_name' => 'social-auth.php',
+                                'permission' => '',
+                                'icon' => 'bi bi-person-badge',
+                                'showmenu' => 1,
+                                "child" => []
+                        ],
 
                 ]
         ],

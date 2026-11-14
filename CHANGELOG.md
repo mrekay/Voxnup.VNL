@@ -9,6 +9,20 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [Yayımlanmadı]
+
+### Eklenenler
+
+- **`social-auth` eklentisi** (`extensions/social-auth/`, varsayılan kapalı): Google,
+  Apple, Microsoft ve Facebook ile giriş. Bağımlılık yok (openssl + curl). Kimliği
+  doğrular, profili projenin `vnl_social_sign_in()` kancasına verir. Belge:
+  **/docs/social-auth**. Voxnup'tan alındı; şablona taşırken Google ucu
+  (`POST /app/social/google`) `PUBLIC_METHODS` ile girişe açıldı ve istemci
+  `X-CSRF-Token` gönderiyor: 3.4.0 dağıtıcısında bu ikisi olmadan uç girişsiz
+  kullanıcıya 401, jetonsuz isteğe 403 dönüyordu.
+
+---
+
 ## [3.5.1] — 2026-11-04
 
 Depo herkese açıldı ve adı değişti. Kırıcı değişiklik ve migration yoktur. Değişen
