@@ -43,19 +43,25 @@ boot.php       önyükleme       kernel.php     yönlendirme + giriş denetimi (
 bootstrap.php  otomatik yükleyici, oturum, kademeli yükleme
 env.php        .env okuyucu    error.php      hata sayfası
 template.php   {{ }} derleyicisi
-console.php    komut dağıtıcısı — komutlar tools/ altında
+console.php    komut dağıtıcısı — komutlar tools/ altında; cli.php ortak CLI yardımcıları
 classes/  modules/  helpers/  validators/  exceptions/
            classes/VnlDispatcher   /app/* dağıtıcısı (POST, CSRF, varsayılan giriş)
            classes/RateLimiter Audit Totp Queue VnlJob VnlCron ApiToken (3.4.0)
 assets/   theme/ (Voxnup.VNL.Theme derleme çıktısı) + js/ + css/
 migrations/    VNL'in şeması (projeninki kökteki migrations/)
-tools/         migrate, update, doctor, release, version, serve, tar, dev-router
+tools/         migrate, update, doctor, release, version, serve, tar, dev-router, test
+tests/         çekirdeğin testleri (unit, http, db) + lib/ (VnlTestCase, çalıştırıcı alt süreci)
 vendor/        Illuminate/Eloquent, PHPMailer
 ```
 
 **Çekirdek görünüm ve dil dosyası taşımaz.** `view/` ve `languages/` burada yoktur ve
 olmamalıdır: düzen ile metin her projede değişir, herkesin ezdiği bir varsayılanın
 sahibi olmak sahte sahipliktir.
+
+**Çekirdekte bir davranışı değiştirdiyseniz testini de yazın** (`tests/<takım>/*Test.php`).
+Güvenlik kapıları `exit` ile bittiği için süreç içinde değil `http` takımında, gerçek
+istekle sınanır. Testin gerçekten bir şey yakaladığını görmek için korunan satırı
+bilerek bozup kırmızıya döndüğünü görün, sonra geri alın.
 
 Yeni ÇEKİRDEK komutu eklemek için `tools/<ad>.php` açın (`return function (array $args): int`
 döndürsün) ve `console.php`'deki listeye bir satır yazın. Uygulamaya ihtiyacı olan

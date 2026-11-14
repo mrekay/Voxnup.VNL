@@ -121,6 +121,7 @@ php vnl.php migrate --run     bekleyen şema değişikliklerini uygula
 php vnl.php update --check    yeni çekirdek sürümü var mı
 php vnl.php doctor            kurulumu çekirdeğin beklentisine karşı sına
 php vnl.php serve             yerel geliştirme sunucusu
+php vnl.php test              çekirdek + proje testleri
 php vnl.php user:create --username=admin --super    ilk yönetici
 php vnl.php queue:work        kuyruk işçisi      php vnl.php schedule:run   zamanlayıcı
 ```
@@ -137,6 +138,15 @@ değiştiren migration koşullu yazılmalıdır — örneği `vnl/migrations/000
 ## Doğrulama
 
 **Bu makinede PHP CLI yok**; her şey Docker ile koşulur.
+
+```bash
+# Testler — PHP + MySQL, migration dahil (yeşil olmadan commit yok)
+docker compose -f compose.test.yml run --rm test
+docker compose -f compose.test.yml run --rm test php vnl.php test --suite=unit --filter=Csrf
+```
+
+Testler `vnl/tests/` (çekirdek) ve `tests/` (proje) altında; nasıl yazıldığı
+`tests/README.md`'de. CI (`.github/workflows/ci.yml`) aynı komutu koşar.
 
 ```bash
 # Söz dizimi

@@ -1,0 +1,57 @@
+# VNL sürekli tümleştirme.
+#
+# Yereldeki komutun aynısını koşar (compose.test.yml): PHP CLI + MySQL.
+# Matris Illuminate 13 geçişinde (4.0, Aşama 4) 8.3+ olacak.
+
+name: CI
+
+on:
+  push:
+    branches: [main, "4.*", "3.*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.2", "8.3", "8.4"]
+
+    env:
+      PHP_VERSION: ${{ matrix.php }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: İmajı hazırla
+        run: docker compose -f compose.test.yml build test
+
+      - name: Söz dizimi (php -l)
+        run: |
+          docker compose -f compose.test.yml run --rm --no-deps test sh -c '
+            fail=0
+            for f in $(find . -name "*.php" -not -path "./vnl/vendor/*" -not -path "./extensions/*/vendor/*"); do
+              php -l "$f" > /tmp/lint.txt 2>&1 || { cat /tmp/lint.txt; fail=1; }
+            done
+            exit $fail'
+
+      - name: Migration + testler
+        run: docker compose -f compose.test.yml run --rm test
+
+      - name: doctor (yalnız sorunlar başarısız sayılır)
+        run: docker compose -f compose.test.yml run --rm test php vnl.php doctor
+
+      - name: Kapat
+        if: always()
+        run: docker compose -f compose.test.yml down -v

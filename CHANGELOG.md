@@ -13,6 +13,21 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ### Eklenenler
 
+- **Test paketi: `php vnl.php test`.** Composer gerektirmez.
+  - Çekirdek testleri `vnl/tests/` altında ve çekirdekle birlikte dağıtılır. Projeye
+    kurulu hâliyle, projenin ezdiği dosyalara (ör. `actions/Auth.php`) karşı koşar.
+    Projenin testleri `tests/` altındadır.
+  - Üç takım var: `unit` (süreç içi), `http` (komutun açtığı yerel sunucuya gerçek
+    istek) ve `db` (veritabanı yoksa atlanır).
+  - Her test dosyası ayrı süreçte koşar; güvenlik kapılarının `exit`'i
+    çalıştırıcıyı düşürmez.
+  - İlk kapsam: CSRF ve köken denetimi, dağıtıcının sırası (405/404/401/403),
+    giriş kapısı, şablon kaçışı, güncelleyicinin MANIFEST denetimi ve arşivin yol
+    güvenliği, gerçek veritabanıyla giriş, jeton dönüşü ve yetki kapısı.
+- **`compose.test.yml` ve CI.** PHP ve MySQL'i tek komutla ayağa kaldırır. GitHub
+  Actions aynı komutu PHP 8.2, 8.3 ve 8.4 ile koşar.
+- `vnl/cli.php`: `vnl_cli_boot()` ve `vnl_cli_options()` `console.php`'den buraya
+  taşındı; test alt süreçleri de aynı yoldan açılır.
 - **`social-auth` eklentisi** (`extensions/social-auth/`, varsayılan kapalı): Google,
   Apple, Microsoft ve Facebook ile giriş. Bağımlılık yok (openssl + curl). Kimliği
   doğrular, profili projenin `vnl_social_sign_in()` kancasına verir. Belge:
