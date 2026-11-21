@@ -118,10 +118,14 @@ php vnl.php release         yayın arşivi üretir (bakım için)</code></pre></
                         <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>1. CHANGELOG.md         — "yayımlanmadı" başlığına tarih yazılır
 2. vnl/VERSION          — yeni numara
 3. README.md            — sürüm rozeti
-4. php vnl.php release  — vnl/MANIFEST + dist/vnl-3.1.0.tar.gz üretir
-5. git commit -m "Release 3.1.0"
-6. git tag -a v3.1.0 -m "VNL 3.1.0"
-7. dist/ çıktısını etiketin yayın varlıklarına yükle</code></pre></div>
+4. VNL_RELEASE_KEY=… php vnl.php release
+                        — vnl/MANIFEST + dist/vnl-4.0.0.tar.gz (+ .sig, .sha256)
+5. git commit -m "Release 4.0.0"
+6. git tag -a v4.0.0 -m "VNL 4.0.0"
+7. dist/ çıktısının ÜÇÜNÜ de etiketin yayın varlıklarına yükle</code></pre></div>
+                        <p class="fs-5 text-body mb-4">
+                            <b>İmza (4.0.0).</b> <code>release</code> arşivin baytlarını Ed25519 ile imzalar. Gizli anahtar <code>VNL_RELEASE_KEY</code> (base64) ya da <code>VNL_RELEASE_KEY_FILE</code> ile verilir ve <b>depoya girmez</b>; açık yarısı <code>vnl/KEYS</code>'te çekirdekle dağıtılır. Anahtar yoksa ya da açık yarısı <code>KEYS</code>'te değilse komut durur: öyle bir yayını hiçbir kurulum kabul etmez. Yeni anahtar <code>php vnl.php release --keygen</code> ile üretilir. Anahtar değiştirirken yeni satır eklenir, eski satır <b>en az bir sürüm daha</b> tutulur; kurulu çekirdekler yeni anahtarı ancak onu taşıyan sürümü kurduktan sonra tanır.
+                        </p>
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
                             <span class="text-body fs-6"><b>4. adım atlanırsa güncelleyici o sürüme geçemez</b> — arşivi yayın varlıkları arasında bulamaz. <code>vnl/MANIFEST</code> ayrıca yayın anında üretilir; iki yayın arasındaki commit'lerde eskir, o yüzden geliştirme sırasında <code>update --verify</code> değişmiş dosya bildirebilir. Bu doğrudur: çekirdek gerçekten yayımlandığı gibi değildir.</span>
@@ -213,7 +217,7 @@ php vnl.php doctor              proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run       şemayı güncelle</code></pre></div>
 
                         <p class="fs-5 text-body mb-4">
-                            <code>update</code> yalnızca <code>vnl/</code> dizinini değiştirir; projenin hiçbir dosyasına dokunmaz. Sırayla: arşivi indirir, kendi <code>MANIFEST</code>'ine karşı doğrular, mevcut çekirdeği <code>vnl.bak/</code> altına yedekler, sonra <b>yalnız içeriği değişen dosyaları</b> yazıp yeni sürümde bulunmayanları siler. Bir şey ters giderse <code>php vnl.php update --rollback</code>.
+                            <code>update</code> yalnızca <code>vnl/</code> dizinini değiştirir; projenin hiçbir dosyasına dokunmaz. Sırayla: arşivi ve <code>.sig</code> imzasını indirir, <b>arşivi açmadan önce</b> imzayı kurulu çekirdeğin <code>vnl/KEYS</code>'ine karşı doğrular (4.0.0), arşivi açıp kendi <code>MANIFEST</code>'ine karşı sınar (MANIFEST'siz ya da MANIFEST'te olmayan dosya taşıyan arşiv reddedilir), mevcut çekirdeği <code>vnl.bak/</code> altına yedekler, sonra <b>yalnız içeriği değişen dosyaları</b> yazıp yeni sürümde bulunmayanları siler. Uygulama yarıda kalırsa yedek <b>kendiliğinden</b> geri yüklenir; sonradan bir sorun çıkarsa <code>php vnl.php update --rollback</code>.
                         </p>
 
                         <div class="table-responsive mb-5">
@@ -225,7 +229,11 @@ php vnl.php migrate --run       şemayı güncelle</code></pre></div>
                                 </tr>
                                 <tr>
                                     <td><code>--file a.tar.gz</code></td>
-                                    <td>Sunucu dışarıya çıkamıyorsa: arşivi elde indirip yolunu verin.</td>
+                                    <td>Sunucu dışarıya çıkamıyorsa: arşivi elde indirip yolunu verin. İmza arşivin yanındaki <code>a.tar.gz.sig</code>'den okunur; başka yerdeyse <code>--sig yol</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--insecure</code></td>
+                                    <td>İmza <b>doğrulanamıyorsa</b> (imza dosyası yok, PHP'de sodium yok, <code>vnl/KEYS</code> boş) yine de kurar. <b>Geçersiz imzayı aşamaz</b>: imza var ama tutmuyorsa arşiv kurcalanmıştır ve hiçbir bayrakla kurulmaz.</td>
                                 </tr>
                                 <tr>
                                     <td><code>--rollback</code></td>

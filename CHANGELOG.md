@@ -52,6 +52,32 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
   `413 {"devcode":"VNL_BODY_TOO_LARGE"}` alır. 64 seviyeden derin gövde boş sayılır.
   Form gönderimleri PHP'nin `post_max_size`'ına tabi kalır. Gövdeyi kendisi okuyan
   uçlar (Stripe webhook) `php://input`'u yine okuyabilir.
+- **Güncelleme imzalı.** `php vnl.php update`, arşivi açmadan önce Ed25519
+  imzasını (`vnl-X.Y.Z.tar.gz.sig`) kurulu çekirdeğin `vnl/KEYS` dosyasına karşı
+  doğrular. 3.x arşivi yalnız arşivin kendi MANIFEST'ine göre sınıyordu; arşivi
+  değiştiren biri MANIFEST'i de değiştirebildiği için bu sınama kurcalamaya karşı
+  koruma sağlamıyordu.
+  - **Geçersiz imza hiçbir bayrakla aşılmaz.**
+  - Doğrulanamayan durumlar (imza dosyası yok, PHP'de sodium yok, `KEYS` boş)
+    güncellemeyi durdurur. Bunu yalnız `--insecure` bilerek aşar.
+  - Arşivde MANIFEST yoksa ya da MANIFEST'te olmayan bir dosya varsa arşiv
+    reddedilir. 3.x MANIFEST'siz arşivi sınamadan kurardı.
+  - `php vnl.php release` artık bir imza anahtarı ister (`VNL_RELEASE_KEY` ya da
+    `VNL_RELEASE_KEY_FILE`). Anahtarın açık yarısı `vnl/KEYS`'te değilse durur.
+    Deneme için `--unsigned`.
+  - **3.x → 4.0 geçişi:** 3.x güncelleyicisi imza bilmez ve 4.0 arşivini
+    doğrulamadan kurar. Bu yüzden 4.0'a geçerken `.sha256` dosyasını elle
+    karşılaştırın. 4.0'dan sonraki güncellemeler imzalıdır.
+
+### Eklenenler (güncelleyici)
+
+- `php vnl.php release --keygen`: yeni yayın anahtarı üretir. Gizli yarısını
+  yazdırır, `vnl/KEYS` için de bir satır verir.
+- `update --sig <yol>`: imza dosyası arşivin yanında durmuyorsa yolunu verir.
+- **Otomatik geri alma.** Uygulama yarıda kalırsa `vnl.bak/` kendiliğinden geri
+  yüklenir. 3.x yalnız bir ipucu basıyordu.
+- `doctor` artık şunlarda uyarı verir: sodium yoksa, sunucu dışarıya
+  bağlanamıyorsa (curl yoksa ve `allow_url_fopen` kapalıysa), `vnl/KEYS` boşsa.
 
 ### Düzeltilenler
 

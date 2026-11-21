@@ -421,6 +421,33 @@ TXT
         );
     }
 
+    /* ---- Güncelleme (4.0.0: imzalı arşiv) ---- */
+    $checks[] = $check(
+        'eklenti: sodium',
+        function_exists('sodium_crypto_sign_verify_detached'),
+        "Guncelleyici arsivin imzasini dogrulayamaz; 'update' ancak --insecure\n"
+        . "        ile calisir. PHP'yi sodium ile kurun (resmi paketlerde varsayilan acik).",
+        false
+    );
+    $checks[] = $check(
+        'eklenti: curl',
+        function_exists('curl_init') || (bool)ini_get('allow_url_fopen'),
+        "Sunucu disariya baglanamiyor: 'update --check' calismaz. Arsivi ve .sig\n"
+        . "        dosyasini elle indirip 'update --file' kullanin.",
+        false
+    );
+    $keysFile = VNL_PATH . '/KEYS';
+    $keyLines = is_file($keysFile)
+        ? preg_grep('/^ed25519\s+[0-9a-f]{16}\s+\S+/', array_map('trim', file($keysFile) ?: []))
+        : [];
+    $checks[] = $check(
+        'vnl/KEYS yayin anahtari tasiyor',
+        $keyLines !== [],
+        "Guvenilen yayin anahtari yok; hicbir imza dogrulanamaz ve 'update'\n"
+        . "        ancak --insecure ile calisir.",
+        false
+    );
+
     /* ---- Rapor ---- */
     $fails = 0;
     $warns = 0;

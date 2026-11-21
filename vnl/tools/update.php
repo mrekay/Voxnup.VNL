@@ -12,11 +12,19 @@
  *   php vnl.php update --file a.tar.gz  elde indirilmiş arşivden
  *   php vnl.php update --rollback       vnl.bak/ üzerinden geri dön
  *
+ * 4.0.0: Arşiv açılmadan ÖNCE Ed25519 imzası kurulu çekirdeğin vnl/KEYS
+ * dosyasına karşı doğrulanır (vnl/tools/signature.php). İmza yoksa, sodium
+ * yoksa ya da KEYS boşsa güncelleme durur; --insecure bunları bilerek aşar.
+ * GEÇERSİZ imzayı hiçbir bayrak aşamaz. MANIFEST'siz ya da MANIFEST'te
+ * olmayan dosya taşıyan arşiv reddedilir. Uygulama yarıda kalırsa yedek
+ * kendiliğinden geri yüklenir.
+ *
  * Yalnız vnl/ değişir. Projenin hiçbir dosyasına dokunulmaz — sınır
  * zaten bunun için var (bkz. /docs/architecture).
  */
 
 require_once VNL_PATH . '/tools/tar.php';
+require_once VNL_PATH . '/tools/signature.php';
 
 final class VnlUpdate
 {
@@ -40,7 +48,7 @@ final class VnlUpdate
         return is_file($file) ? trim((string)file_get_contents($file)) : '0.0.0';
     }
 
-    /** @return array{version:string,url:string,notes:string} */
+    /** @return array{version:string,url:string,sig:string,notes:string} */
     public function release(?string $version): array
     {
         $endpoint = $version === null
@@ -60,11 +68,13 @@ final class VnlUpdate
         $tag  = ltrim((string)$json['tag_name'], 'v');
         $want = 'vnl-' . $tag . '.tar.gz';
         $url  = '';
+        $sig  = '';
 
         foreach ($json['assets'] ?? [] as $asset) {
             if (($asset['name'] ?? '') === $want) {
                 $url = (string)$asset['browser_download_url'];
-                break;
+            } elseif (($asset['name'] ?? '') === $want . '.sig') {
+                $sig = (string)$asset['browser_download_url'];
             }
         }
 
@@ -75,7 +85,57 @@ final class VnlUpdate
             );
         }
 
-        return ['version' => $tag, 'url' => $url, 'notes' => (string)($json['html_url'] ?? '')];
+        return ['version' => $tag, 'url' => $url, 'sig' => $sig, 'notes' => (string)($json['html_url'] ?? '')];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* İmza (4.0.0)                                                      */
+    /* ---------------------------------------------------------------- */
+
+    /** Kurulu çekirdeğin güvendiği açık anahtarlar. */
+    public function keys(?string $file = null): array
+    {
+        $file ??= VNL_PATH . '/KEYS';
+
+        return is_file($file) ? VnlSignature::parseKeys((string)file_get_contents($file)) : [];
+    }
+
+    /**
+     * Arşivin kaynağını doğrular; açılmadan önce çağrılır.
+     *
+     * Doğrulanamayan durumlar (imza yok, sodium yok, KEYS boş) $insecure ile
+     * aşılabilir ve uyarı metni döner. Geçersiz imza VnlSignatureInvalid atar
+     * ve hiçbir bayrakla aşılamaz: o arşivin kurcalandığı biliniyor.
+     *
+     * @param ?bool $sodium yalnız testler için; null ise gerçekten sorulur
+     * @return array{verified:bool,message:string}
+     */
+    public function authenticate(string $blob, ?string $signature, array $keys, bool $insecure, ?bool $sodium = null): array
+    {
+        $sodium ??= VnlSignature::available();
+
+        $cannot = match (true) {
+            $signature === null || trim($signature) === '' => 'Arsivin imzasi (.sig) yok.',
+            !$sodium                                         => 'PHP sodium eklentisi yok; imza dogrulanamiyor.',
+            $keys === []                                     => 'vnl/KEYS bos ya da yok; guvenilen bir yayin anahtari tanimli degil.',
+            default                                          => null,
+        };
+
+        if ($cannot !== null) {
+            if (!$insecure) {
+                throw new RuntimeException(
+                    $cannot . "\n"
+                    . "  Arsivin kimden geldigi dogrulanamadi; guncelleme durduruldu.\n"
+                    . "  Kaynagindan eminseniz bilerek gecmek icin: --insecure"
+                );
+            }
+
+            return ['verified' => false, 'message' => 'IMZA DOGRULANMADI (--insecure): ' . $cannot];
+        }
+
+        $id = VnlSignature::verify($blob, (string)$signature, $keys);
+
+        return ['verified' => true, 'message' => 'Imza dogrulandi (anahtar ' . $id . ')'];
     }
 
     /* ---------------------------------------------------------------- */
@@ -146,9 +206,85 @@ final class VnlUpdate
         return ['changed' => $changed, 'missing' => $missing, 'extra' => $extra];
     }
 
+    /**
+     * Arşivi $temp'e açar ve içeriğini kendi MANIFEST'ine karşı sınar.
+     * 4.0.0: MANIFEST zorunludur ve MANIFEST'te olmayan dosya kabul edilmez —
+     * aksi halde imzasız kurulan (--insecure) bir arşive eklenen dosya sync ile
+     * çekirdeğe girerdi.
+     *
+     * @return array{dir:string,version:string,files:int}
+     */
+    public function unpack(string $blob, string $temp, string $label = 'arsiv'): array
+    {
+        VnlTar::extract(VnlTar::gunzip($blob), $temp);
+
+        $incoming = $temp . '/vnl';
+        if (!is_dir($incoming) || !is_file($incoming . '/VERSION')) {
+            throw new RuntimeException("Arsiv beklenen bicimde degil (vnl/ ve vnl/VERSION yok): {$label}");
+        }
+
+        $manifest = $this->manifest($incoming . '/MANIFEST');
+        if ($manifest === null || $manifest === []) {
+            throw new RuntimeException("Arsivde vnl/MANIFEST yok; icerigi sinanamiyor: {$label}");
+        }
+
+        $check = $this->compare($incoming, $manifest);
+        if ($check['changed'] !== [] || $check['missing'] !== []) {
+            throw new RuntimeException('Arsiv kendi MANIFEST\'iyle uyusmuyor; bozuk ya da eksik.');
+        }
+        if ($check['extra'] !== []) {
+            throw new RuntimeException(
+                'Arsivde MANIFEST\'te olmayan dosyalar var: ' . implode(', ', array_slice($check['extra'], 0, 5))
+            );
+        }
+
+        return [
+            'dir'     => $incoming,
+            'version' => trim((string)file_get_contents($incoming . '/VERSION')),
+            'files'   => count($manifest),
+        ];
+    }
+
     /* ---------------------------------------------------------------- */
     /* Uygulama                                                          */
     /* ---------------------------------------------------------------- */
+
+    /**
+     * Yedek alır ve yeni ağacı uygular. Uygulama yarıda kalırsa yedek
+     * kendiliğinden geri yüklenir: yarım çekirdek, eski çekirdekten kötüdür.
+     *
+     * @param ?callable $sync yalnız testler için (yarıda kalmayı taklit eder)
+     * @return array{written:int,deleted:int,skipped:int}
+     */
+    public function apply(string $incoming, string $target, string $backup, ?callable $sync = null): array
+    {
+        $sync ??= fn(string $from, string $to) => $this->sync($from, $to);
+
+        $this->backup($target, $backup);
+
+        try {
+            return $sync($incoming, $target);
+        } catch (Throwable $e) {
+            try {
+                $this->sync($backup, $target);
+            } catch (Throwable $restore) {
+                throw new RuntimeException(
+                    'Uygulama yarida kaldi: ' . $e->getMessage() . "\n"
+                    . '  Yedek de geri yuklenemedi: ' . $restore->getMessage() . "\n"
+                    . '  Cekirdek YARIM durumda. vnl.bak/ dizinini elle vnl/ uzerine kopyalayin.',
+                    0,
+                    $e
+                );
+            }
+
+            throw new RuntimeException(
+                'Uygulama yarida kaldi: ' . $e->getMessage() . "\n"
+                . '  Yedek kendiliginden geri yuklendi; cekirdek eski surumunde.',
+                0,
+                $e
+            );
+        }
+    }
 
     /**
      * Kaynak ağacı hedefe yerinde uygular.
@@ -343,7 +479,10 @@ return static function (array $args) {
     php vnl.php update --file a.tar.gz   elde indirilmis arsivden
     php vnl.php update --rollback        vnl.bak/ uzerinden geri don
 
-    --force   kurcalanmis cekirdek uyarisini gec
+    --sig a.tar.gz.sig   imza dosyasi (varsayilan: arsivin yanindaki .sig)
+    --force      kurcalanmis cekirdek uyarisini gec
+    --insecure   imza DOGRULANAMIYORSA (imza yok, sodium yok, KEYS bos)
+                 yine de kur. Gecersiz imzayi asamaz.
 
   Guncelleme sonrasi: php vnl.php doctor  ve  php vnl.php migrate --status
 
@@ -355,7 +494,8 @@ TXT
     }
 
     $updater = new VnlUpdate();
-    $force   = in_array('--force', $args, true);
+    $force    = in_array('--force', $args, true);
+    $insecure = in_array('--insecure', $args, true);
     $backup  = VNL_ROOT . '/vnl.bak';
 
     try {
@@ -500,44 +640,32 @@ TXT
 
                 return 1;
             }
-            $blob  = (string)file_get_contents($file);
-            $label = $file;
+            $blob    = (string)file_get_contents($file);
+            $label   = $file;
+            $sigPath = $opt($args, '--sig') ?? $file . '.sig';
+            $sig     = is_file($sigPath) ? (string)file_get_contents($sigPath) : null;
         } else {
             $release = $updater->release($latest ? null : $to);
             $out();
             $out("  {$release['version']} indiriliyor…");
             $blob  = $updater->httpGet($release['url']);
             $label = $release['url'];
+            $sig   = $release['sig'] !== '' ? $updater->httpGet($release['sig']) : null;
         }
+
+        /* Kaynak: imza, arsiv ACILMADAN once (tar ayristiricisi da saldiri yuzeyidir). */
+        $auth = $updater->authenticate($blob, $sig, $updater->keys(), $insecure);
+        $out();
+        $out('  ' . $auth['message']);
 
         /* Ac ve dogrula */
         $temp = $updater->tempDir();
         try {
-            VnlTar::extract(VnlTar::gunzip($blob), $temp);
+            $unpacked = $updater->unpack($blob, $temp, $label);
 
-            $incoming = $temp . '/vnl';
-            if (!is_dir($incoming) || !is_file($incoming . '/VERSION')) {
-                throw new RuntimeException("Arsiv beklenen bicimde degil (vnl/ ve vnl/VERSION yok): {$label}");
-            }
-
-            $newVersion  = trim((string)file_get_contents($incoming . '/VERSION'));
-            $newManifest = $updater->manifest($incoming . '/MANIFEST');
-
-            if ($newManifest !== null) {
-                $check = $updater->compare($incoming, $newManifest);
-                if ($check['changed'] !== [] || $check['missing'] !== []) {
-                    throw new RuntimeException(
-                        'Indirilen arsiv kendi MANIFEST\'iyle uyusmuyor; bozuk ya da eksik.'
-                    );
-                }
-            }
-
-            $out('  Arsiv dogrulandi: ' . $newVersion . ' (' . count($newManifest ?? []) . ' dosya)');
-            $out('  Yedek aliniyor: vnl.bak/');
-            $updater->backup(VNL_PATH, $backup);
-
-            $out('  Uygulaniyor…');
-            $result = $updater->sync($incoming, VNL_PATH);
+            $out('  Arsiv dogrulandi: ' . $unpacked['version'] . ' (' . $unpacked['files'] . ' dosya)');
+            $out('  Yedek aliniyor ve uygulaniyor: vnl.bak/ <- vnl/');
+            $result = $updater->apply($unpacked['dir'], VNL_PATH, $backup);
 
             $out();
             $out('  ' . $updater->installedVersion() . ' kuruldu.');
@@ -559,7 +687,9 @@ TXT
     } catch (Throwable $e) {
         fwrite(STDERR, "\n  " . str_replace("\n", "\n  ", $e->getMessage()) . "\n\n");
 
-        if (is_dir($backup)) {
+        if ($e instanceof VnlSignatureInvalid) {
+            fwrite(STDERR, "  Arsiv REDDEDILDI; cekirdege dokunulmadi. Bu arsivi kurmayin, kaynagini sorgulayin.\n\n");
+        } elseif (is_dir($backup) && !str_contains($e->getMessage(), 'kendiliginden geri yuklendi')) {
             fwrite(STDERR, "  Yedek duruyor: vnl.bak/  —  geri donmek icin:\n");
             fwrite(STDERR, "    php vnl.php update --rollback\n\n");
         }

@@ -1,0 +1,12 @@
+# VNL yayın anahtarları (Ed25519 açık anahtarları)
+#
+# `php vnl.php update` indirdiği arşivin .sig imzasını BU dosyadaki
+# anahtarlara karşı doğrular. Dosya çekirdekle birlikte gelir; bir sonraki
+# sürümün imzası bu sürümün tanıdığı anahtarla atılmış olmalıdır.
+#
+# Biçim:   ed25519 <anahtar-kimliği> <açık-anahtar-base64> [not]
+# Kimlik:  açık anahtarın sha256'sının ilk 16 onaltılık hanesi. Uyuşmayan
+#          satır yok sayılır.
+#
+# Yeni anahtar:   php vnl.php release --keygen
+# Anahtar değişimi: yeni satırı ekleyin, eskisini en az bir sürüm daha tutun.

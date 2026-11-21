@@ -141,6 +141,11 @@ php vnl.php migrate --run       # şemayı güncelle
 `vnl/` altını değiştirmişse durur, çünkü aksi halde o değişiklikler sessizce
 silinirdi. Ters giderse `php vnl.php update --rollback`.
 
+4.0'dan itibaren arşiv, açılmadan önce Ed25519 imzasıyla (`.sig`) kurulu
+çekirdeğin `vnl/KEYS` dosyasına karşı doğrulanır. Geçersiz imzalı arşiv hiçbir
+bayrakla kurulmaz. İmza doğrulanamıyorsa (imza ya da sodium yoksa, `KEYS` boşsa)
+güncelleme durur; kaynağından eminseniz bunu `--insecure` ile bilerek aşarsınız.
+
 Ayrıntılar **/docs/versioning** sayfasında.
 
 ## 🖥️ Konsol
