@@ -22,7 +22,7 @@ Bu oturumda iki sayfa bu yüzden düştü; sayfayı yazdıktan sonra **mutlaka a
 
 ```bash
 # Söz dizimi
-docker run --rm -v "$PWD":/app -w /app php:8.2-cli php -l view/docs/<ad>.php
+docker run --rm -v "$PWD":/app -w /app php:8.3-cli php -l view/docs/<ad>.php
 
 # Önbelleği temizleyin, yoksa düzenlemeniz görünmez
 rm -f files/cache/views/*.php
