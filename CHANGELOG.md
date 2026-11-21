@@ -13,6 +13,40 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [3.5.3] — 2026-11-22
+
+4.0'a hazırlık sürümü: 3.x kurulumlarının 4.0'a **kendiliğinden geçmemesi** için.
+Bütün 3.x kurulumlarının bu sürüme geçmesi önerilir. Kırıcı değişiklik ve migration
+yoktur. Değişen çekirdek dosyaları yalnız `vnl/tools/` ve `vnl/KEYS`.
+
+### Değişenler
+
+- **Güncelleyici kendi ana sürümünde kalır.**
+  - GitHub'ın "latest" yayınına bakılmaz. Yayın listesinden kurulu ana sürümün
+    en yenisi bulunur. `update --latest` ve `update --check` 3.x serisinde kalır.
+  - `--check`, yeni bir ana sürüm varsa onu ayrıca bildirir ("4.0.0, kırıcı").
+  - **4.0'a geçmek ayrı bir komuttur:** `php vnl.php update --major 4`. `--to`
+    ya da `--file` ile başka bir ana sürüm verilirse `--major` olmadan reddedilir.
+  - Kurulumdan önce yeni çekirdeğin istediği PHP sürümü denetlenir; 4.0 PHP 8.3
+    ister. PHP yetersizse çekirdeğe dokunulmaz.
+- **İmzalı güncelleme 3.x'e de geldi** (`vnl/tools/signature.php`, `vnl/KEYS`).
+  - Arşiv açılmadan önce Ed25519 imzası kurulu `vnl/KEYS` dosyasına karşı
+    doğrulanır. 3.5.3'ten sonraki her güncelleme imzalıdır; 4.0'a geçiş de
+    dahil.
+  - Geçersiz ya da sökülmüş imza hiçbir bayrakla aşılamaz.
+  - MANIFEST'siz arşiv ya da MANIFEST'te listelenmemiş dosya reddedilir.
+  - Sürüm düşürmek için `--allow-downgrade` gerekir.
+  - İndirme ve açma boyutu sınırlıdır.
+  - Uygulama yarıda kalırsa yedek kendiliğinden geri yüklenir.
+
+### Yükseltme
+
+`php vnl.php update --to 3.5.3`
+
+**3.5.2 ve öncesinin güncelleyicisi** GitHub'ın "latest" yayınına bakar. 4.0
+"latest" olarak işaretlenmediği için bu güncelleyiciler 3.5.3'ü bulur, 4.0'ı
+görmez.
+
 ## [3.5.2] — 2026-11-22
 
 Güvenlik yaması. **Bütün 3.x kurulumlarının bu sürüme geçmesi önerilir.** Kırıcı

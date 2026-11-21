@@ -99,21 +99,51 @@ class VnlTar
     /* Okuma                                                             */
     /* ---------------------------------------------------------------- */
 
-    /** gzip'li ya da ham tar kabul eder. */
+    /** Açılmış arşivin üst sınırı (bayt). Çekirdek bugün ~15 MB açılır. */
+    public const MAX_UNPACKED = 67108864;   // 64 MB
+
+    /**
+     * gzip'li ya da ham tar kabul eder.
+     *
+     * 4.0.0: açılmış boyut MAX_UNPACKED ile sınırlı (sıkıştırma bombası:
+     * 250 KB'lık bir gzip 256 MB sıfıra açılır). gzdecode'un uzunluk
+     * parametresi bunu sağlamıyor — tamponu sınıra kadar büyütürken
+     * memory_limit'e çarpıp süreci öldürüyor. Bu yüzden parça parça açılır
+     * ve her parçadan sonra boyut sınanır.
+     */
     public static function gunzip(string $blob): string
     {
         /* gzip sihirli sayısı: 1f 8b */
         if (strncmp($blob, "\x1f\x8b", 2) !== 0) {
+            if (strlen($blob) > self::MAX_UNPACKED) {
+                throw new RuntimeException('Arsiv cok buyuk (> 64 MB).');
+            }
+
             return $blob;
         }
 
-        if (!function_exists('gzdecode')) {
-            throw new RuntimeException('Arsiv gzip ile sikistirilmis ama zlib (gzdecode) yok.');
+        if (!function_exists('inflate_init')) {
+            throw new RuntimeException('Arsiv gzip ile sikistirilmis ama zlib yok.');
         }
 
-        $out = @gzdecode($blob);
-        if ($out === false) {
-            throw new RuntimeException('Arsiv acilamadi: gzip verisi bozuk.');
+        $ctx = inflate_init(ZLIB_ENCODING_GZIP);
+        $out = '';
+
+        /* 4 KB girdi en kötü durumda ~4 MB çıktı verir; sınır aşılınca durulur. */
+        foreach (str_split($blob, 4096) as $part) {
+            $chunk = @inflate_add($ctx, $part, ZLIB_SYNC_FLUSH);
+            if ($chunk === false) {
+                throw new RuntimeException('Arsiv acilamadi: gzip verisi bozuk.');
+            }
+
+            $out .= $chunk;
+            if (strlen($out) > self::MAX_UNPACKED) {
+                throw new RuntimeException('Arsivin acilmis hali 64 MB\'i asiyor; reddedildi.');
+            }
+        }
+
+        if (inflate_get_status($ctx) !== ZLIB_STREAM_END) {
+            throw new RuntimeException('Arsiv acilamadi: gzip verisi eksik.');
         }
 
         return $out;
