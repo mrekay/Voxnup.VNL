@@ -1,12 +1,16 @@
 {
-    "autoload": {
-        "psr-4": {
-            "MyApp\\": "src"
-        }
-    },
     "require": {
-        "illuminate/database": "^10.44",
-        "illuminate/events": "^10.44",
-        "phpmailer/phpmailer": "^6.9"
+        "php": ">=8.3",
+        "illuminate/database": "^13.0",
+        "illuminate/events": "^13.0",
+        "phpmailer/phpmailer": "^6.9",
+        "symfony/polyfill-mbstring": "^1.31"
+    },
+    "config": {
+        "platform": {
+            "php": "8.3.0"
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
     }
 }
