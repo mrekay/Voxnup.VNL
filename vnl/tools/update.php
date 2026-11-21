@@ -12,21 +12,68 @@
  *   php vnl.php update --file a.tar.gz  elde indirilmiş arşivden
  *   php vnl.php update --rollback       vnl.bak/ üzerinden geri dön
  *
+ * 4.0.0: Arşiv açılmadan ÖNCE Ed25519 imzası kurulu çekirdeğin vnl/KEYS
+ * dosyasına karşı doğrulanır (vnl/tools/signature.php). İmza yoksa, sodium
+ * yoksa ya da KEYS boşsa güncelleme durur; --insecure bunları bilerek aşar.
+ * GEÇERSİZ imzayı hiçbir bayrak aşamaz. MANIFEST'siz ya da MANIFEST'te
+ * olmayan dosya taşıyan arşiv reddedilir. Uygulama yarıda kalırsa yedek
+ * kendiliğinden geri yüklenir.
+ *
  * Yalnız vnl/ değişir. Projenin hiçbir dosyasına dokunulmaz — sınır
  * zaten bunun için var (bkz. /docs/architecture).
  */
 
 require_once VNL_PATH . '/tools/tar.php';
+require_once VNL_PATH . '/tools/signature.php';
 
 final class VnlUpdate
 {
     private const DEFAULT_REPO = 'mrekay/Voxnup.VNL';
 
+    /** İndirilen tek dosyanın (arşiv, imza, API yanıtı) üst sınırı. */
+    public const MAX_DOWNLOAD = 67108864;   // 64 MB
+
     private string $repo;
 
     public function __construct()
     {
-        $this->repo = (string)(getenv('VNL_UPDATE_REPO') ?: self::DEFAULT_REPO);
+        $repo = (string)(getenv('VNL_UPDATE_REPO') ?: self::DEFAULT_REPO);
+
+        /* 4.0.0: "sahip/ad" dışında bir değer API adresine yol parçası olarak
+           girerdi (../, ?, #). */
+        if (!preg_match('~^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$~', $repo) || str_contains($repo, '..')) {
+            throw new RuntimeException("VNL_UPDATE_REPO gecersiz (sahip/depo bekleniyor): {$repo}");
+        }
+
+        $this->repo = $repo;
+    }
+
+    /**
+     * Gelen sürüm kurulabilir mi? (4.0.0)
+     *
+     * İmza baytları korur, sürümü değil: imzalı ESKİ bir arşiv yeni bir
+     * etiketin altına konarak bilinen bir açığı geri getirebilirdi. Bu
+     * yüzden arşivdeki VERSION, istenen etiketle aynı ve kurulu sürümden
+     * büyük olmalıdır. Bilerek geri dönmek için --allow-downgrade.
+     */
+    public function checkVersion(string $incoming, string $installed, ?string $expected, bool $allowDowngrade): void
+    {
+        if (!preg_match('/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/', $incoming)) {
+            throw new RuntimeException("Arsivdeki VERSION gecersiz: {$incoming}");
+        }
+
+        if ($expected !== null && $incoming !== $expected) {
+            throw new RuntimeException(
+                "Arsiv {$incoming} surumunu tasiyor ama {$expected} istendi; yayin varligi yanlis ya da degistirilmis."
+            );
+        }
+
+        if (!$allowDowngrade && version_compare($incoming, $installed, '<=')) {
+            throw new RuntimeException(
+                "Arsiv ({$incoming}) kurulu surumden ({$installed}) yeni degil.\n"
+                . "  Bilerek eski surume donmek icin: --allow-downgrade"
+            );
+        }
     }
 
     /* ---------------------------------------------------------------- */
@@ -40,31 +87,122 @@ final class VnlUpdate
         return is_file($file) ? trim((string)file_get_contents($file)) : '0.0.0';
     }
 
-    /** @return array{version:string,url:string,notes:string} */
-    public function release(?string $version): array
+    /**
+     * Bir yayının bilgisi. $version verilirse o etiket; verilmezse KURULU
+     * ANA SÜRÜMÜN en yenisi.
+     *
+     * GitHub'ın "latest" yayınına bilerek bakılmaz: 4.0 çıktığında 3.x
+     * kurulumları "latest" diye 4.0'ı görüp tek komutla kırıcı bir sürüme
+     * atlardı. Ana sürüm değiştirmek ayrı ve açık bir komuttur (--major).
+     *
+     * @return array{version:string,url:string,sig:string,notes:string}
+     */
+    public function release(?string $version, ?int $major = null): array
     {
-        $endpoint = $version === null
-            ? "https://api.github.com/repos/{$this->repo}/releases/latest"
-            : "https://api.github.com/repos/{$this->repo}/releases/tags/v{$version}";
+        if ($version !== null) {
+            $json = json_decode($this->httpGet("https://api.github.com/repos/{$this->repo}/releases/tags/v{$version}"), true);
 
-        $json = json_decode($this->httpGet($endpoint), true);
+            if (!is_array($json) || !isset($json['tag_name'])) {
+                throw new RuntimeException("v{$version} diye bir yayin bulunamadi: {$this->repo}");
+            }
 
-        if (!is_array($json) || !isset($json['tag_name'])) {
-            throw new RuntimeException(
-                $version === null
-                    ? "Yayin bilgisi okunamadi. Depoda hic yayin olmayabilir: {$this->repo}"
-                    : "v{$version} diye bir yayin bulunamadi: {$this->repo}"
-            );
+            return $this->describe($json);
         }
 
+        $major ??= self::major($this->installedVersion());
+        $pick    = self::pickRelease($this->releases(), $major);
+
+        if ($pick === null) {
+            throw new RuntimeException("{$major}.x serisinde yayin bulunamadi: {$this->repo}");
+        }
+
+        return $this->describe($pick);
+    }
+
+    /** Yayın listesi (taslak ve ön sürüm hariç), ham GitHub nesneleri. */
+    public function releases(): array
+    {
+        $json = json_decode($this->httpGet("https://api.github.com/repos/{$this->repo}/releases?per_page=100"), true);
+
+        if (!is_array($json)) {
+            throw new RuntimeException("Yayin listesi okunamadi: {$this->repo}");
+        }
+
+        return array_values(array_filter($json, static fn($r) => is_array($r)
+            && empty($r['draft']) && empty($r['prerelease'])
+            && preg_match('/^v?\d+\.\d+\.\d+$/', (string)($r['tag_name'] ?? ''))));
+    }
+
+    /** Verilen ana sürümün en yeni yayını; yoksa null. */
+    public static function pickRelease(array $releases, int $major): ?array
+    {
+        $best = null;
+
+        foreach ($releases as $r) {
+            $v = ltrim((string)($r['tag_name'] ?? ''), 'v');
+
+            if (self::major($v) === $major && ($best === null || version_compare($v, ltrim($best['tag_name'], 'v'), '>'))) {
+                $best = $r;
+            }
+        }
+
+        return $best;
+    }
+
+    /** Kurulu ana sürümden YÜKSEK ana sürümlerin en yenisi (bilgi için); yoksa null. */
+    public static function newestHigherMajor(array $releases, int $major): ?string
+    {
+        $best = null;
+
+        foreach ($releases as $r) {
+            $v = ltrim((string)($r['tag_name'] ?? ''), 'v');
+
+            if (self::major($v) > $major && ($best === null || version_compare($v, $best, '>'))) {
+                $best = $v;
+            }
+        }
+
+        return $best;
+    }
+
+    public static function major(string $version): int
+    {
+        return (int)explode('.', $version, 2)[0];
+    }
+
+    /**
+     * Gelen çekirdeğin istediği PHP sürümü bu sunucuda var mı?
+     * Kaynak: arşivdeki vnl/composer.json → require.php (">=8.3" biçimi).
+     * Ana sürüm geçişinde PHP alt sınırı yükselebilir; yetersiz PHP'ye
+     * kurulan çekirdek siteyi ilk istekte düşürürdü.
+     */
+    public static function checkPhp(string $incomingDir, string $phpVersion = PHP_VERSION): void
+    {
+        $file = $incomingDir . '/composer.json';
+        $json = is_file($file) ? json_decode((string)file_get_contents($file), true) : null;
+        $req  = is_array($json) ? (string)($json['require']['php'] ?? '') : '';
+
+        if (preg_match('/>=\s*(\d+\.\d+(?:\.\d+)?)/', $req, $m) && version_compare($phpVersion, $m[1], '<')) {
+            throw new RuntimeException(
+                "Yeni cekirdek PHP {$m[1]} istiyor; bu sunucuda PHP {$phpVersion} var.\n"
+                . "  Once PHP'yi yukseltin, sonra guncelleyin. Cekirdege dokunulmadi."
+            );
+        }
+    }
+
+    /** @return array{version:string,url:string,sig:string,notes:string} */
+    private function describe(array $json): array
+    {
         $tag  = ltrim((string)$json['tag_name'], 'v');
         $want = 'vnl-' . $tag . '.tar.gz';
         $url  = '';
+        $sig  = '';
 
         foreach ($json['assets'] ?? [] as $asset) {
             if (($asset['name'] ?? '') === $want) {
                 $url = (string)$asset['browser_download_url'];
-                break;
+            } elseif (($asset['name'] ?? '') === $want . '.sig') {
+                $sig = (string)$asset['browser_download_url'];
             }
         }
 
@@ -75,7 +213,67 @@ final class VnlUpdate
             );
         }
 
-        return ['version' => $tag, 'url' => $url, 'notes' => (string)($json['html_url'] ?? '')];
+        return ['version' => $tag, 'url' => $url, 'sig' => $sig, 'notes' => (string)($json['html_url'] ?? '')];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* İmza (4.0.0)                                                      */
+    /* ---------------------------------------------------------------- */
+
+    /** Kurulu çekirdeğin güvendiği açık anahtarlar. */
+    public function keys(?string $file = null): array
+    {
+        $file ??= VNL_PATH . '/KEYS';
+
+        return is_file($file) ? VnlSignature::parseKeys((string)file_get_contents($file)) : [];
+    }
+
+    /**
+     * Arşivin kaynağını doğrular; açılmadan önce çağrılır.
+     *
+     * Doğrulanamayan durumlar (imza yok, sodium yok, KEYS boş) $insecure ile
+     * aşılabilir ve uyarı metni döner. Geçersiz imza VnlSignatureInvalid atar
+     * ve hiçbir bayrakla aşılamaz: o arşivin kurcalandığı biliniyor.
+     *
+     * @param ?bool $sodium yalnız testler için; null ise gerçekten sorulur
+     * @return array{verified:bool,message:string}
+     */
+    public function authenticate(string $blob, ?string $signature, array $keys, bool $insecure, ?bool $sodium = null): array
+    {
+        $sodium ??= VnlSignature::available();
+
+        /* 4.0.0: Güvenilen anahtarı olan kurulumda imzasız arşiv, imzası
+           SÖKÜLMÜŞ arşivdir; --insecure bunu aşamaz. --insecure yalnız
+           doğrulamanın mümkün olmadığı durumlar (sodium yok, KEYS boş) içindir. */
+        if (($signature === null || trim($signature) === '') && $keys !== []) {
+            throw new VnlSignatureInvalid(
+                "Arsivin imzasi (.sig) yok, ama bu kurulum imzali yayin bekliyor (vnl/KEYS dolu).\n"
+                . "  Imzasi sokulmus bir arsiv olabilir; --insecure bunu asamaz."
+            );
+        }
+
+        $cannot = match (true) {
+            $signature === null || trim($signature) === '' => 'Arsivin imzasi (.sig) yok.',
+            !$sodium                                         => 'PHP sodium eklentisi yok; imza dogrulanamiyor.',
+            $keys === []                                     => 'vnl/KEYS bos ya da yok; guvenilen bir yayin anahtari tanimli degil.',
+            default                                          => null,
+        };
+
+        if ($cannot !== null) {
+            if (!$insecure) {
+                throw new RuntimeException(
+                    $cannot . "\n"
+                    . "  Arsivin kimden geldigi dogrulanamadi; guncelleme durduruldu.\n"
+                    . "  Kaynagindan eminseniz bilerek gecmek icin: --insecure"
+                );
+            }
+
+            return ['verified' => false, 'message' => 'IMZA DOGRULANMADI (--insecure): ' . $cannot];
+        }
+
+        $id = VnlSignature::verify($blob, (string)$signature, $keys);
+
+        return ['verified' => true, 'message' => 'Imza dogrulandi (anahtar ' . $id . ')'];
     }
 
     /* ---------------------------------------------------------------- */
@@ -146,9 +344,85 @@ final class VnlUpdate
         return ['changed' => $changed, 'missing' => $missing, 'extra' => $extra];
     }
 
+    /**
+     * Arşivi $temp'e açar ve içeriğini kendi MANIFEST'ine karşı sınar.
+     * 4.0.0: MANIFEST zorunludur ve MANIFEST'te olmayan dosya kabul edilmez —
+     * aksi halde imzasız kurulan (--insecure) bir arşive eklenen dosya sync ile
+     * çekirdeğe girerdi.
+     *
+     * @return array{dir:string,version:string,files:int}
+     */
+    public function unpack(string $blob, string $temp, string $label = 'arsiv'): array
+    {
+        VnlTar::extract(VnlTar::gunzip($blob), $temp);
+
+        $incoming = $temp . '/vnl';
+        if (!is_dir($incoming) || !is_file($incoming . '/VERSION')) {
+            throw new RuntimeException("Arsiv beklenen bicimde degil (vnl/ ve vnl/VERSION yok): {$label}");
+        }
+
+        $manifest = $this->manifest($incoming . '/MANIFEST');
+        if ($manifest === null || $manifest === []) {
+            throw new RuntimeException("Arsivde vnl/MANIFEST yok; icerigi sinanamiyor: {$label}");
+        }
+
+        $check = $this->compare($incoming, $manifest);
+        if ($check['changed'] !== [] || $check['missing'] !== []) {
+            throw new RuntimeException('Arsiv kendi MANIFEST\'iyle uyusmuyor; bozuk ya da eksik.');
+        }
+        if ($check['extra'] !== []) {
+            throw new RuntimeException(
+                'Arsivde MANIFEST\'te olmayan dosyalar var: ' . implode(', ', array_slice($check['extra'], 0, 5))
+            );
+        }
+
+        return [
+            'dir'     => $incoming,
+            'version' => trim((string)file_get_contents($incoming . '/VERSION')),
+            'files'   => count($manifest),
+        ];
+    }
+
     /* ---------------------------------------------------------------- */
     /* Uygulama                                                          */
     /* ---------------------------------------------------------------- */
+
+    /**
+     * Yedek alır ve yeni ağacı uygular. Uygulama yarıda kalırsa yedek
+     * kendiliğinden geri yüklenir: yarım çekirdek, eski çekirdekten kötüdür.
+     *
+     * @param ?callable $sync yalnız testler için (yarıda kalmayı taklit eder)
+     * @return array{written:int,deleted:int,skipped:int}
+     */
+    public function apply(string $incoming, string $target, string $backup, ?callable $sync = null): array
+    {
+        $sync ??= fn(string $from, string $to) => $this->sync($from, $to);
+
+        $this->backup($target, $backup);
+
+        try {
+            return $sync($incoming, $target);
+        } catch (Throwable $e) {
+            try {
+                $this->sync($backup, $target);
+            } catch (Throwable $restore) {
+                throw new RuntimeException(
+                    'Uygulama yarida kaldi: ' . $e->getMessage() . "\n"
+                    . '  Yedek de geri yuklenemedi: ' . $restore->getMessage() . "\n"
+                    . '  Cekirdek YARIM durumda. vnl.bak/ dizinini elle vnl/ uzerine kopyalayin.',
+                    0,
+                    $e
+                );
+            }
+
+            throw new RuntimeException(
+                'Uygulama yarida kaldi: ' . $e->getMessage() . "\n"
+                . '  Yedek kendiliginden geri yuklendi; cekirdek eski surumunde.',
+                0,
+                $e
+            );
+        }
+    }
 
     /**
      * Kaynak ağacı hedefe yerinde uygular.
@@ -273,6 +547,10 @@ final class VnlUpdate
                 CURLOPT_TIMEOUT        => 120,
                 CURLOPT_USERAGENT      => 'VNL-Updater',
                 CURLOPT_HTTPHEADER     => ['Accept: application/vnd.github+json'],
+                CURLOPT_MAXREDIRS      => 5,
+                CURLOPT_PROTOCOLS      => CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
+                CURLOPT_MAXFILESIZE    => self::MAX_DOWNLOAD,
             ]);
 
             $body = curl_exec($ch);
@@ -284,6 +562,9 @@ final class VnlUpdate
             }
             if ($code >= 400) {
                 throw new RuntimeException("Indirilemedi (HTTP {$code}): {$url}");
+            }
+            if (strlen((string)$body) > self::MAX_DOWNLOAD) {
+                throw new RuntimeException('Indirilen dosya cok buyuk (> 64 MB): ' . $url);
             }
 
             return (string)$body;
@@ -301,9 +582,16 @@ final class VnlUpdate
             'timeout' => 120,
         ]]);
 
-        $body = @file_get_contents($url, false, $context);
+        if (!str_starts_with(strtolower($url), 'https://')) {
+            throw new RuntimeException("Yalniz https adresinden indirilir: {$url}");
+        }
+
+        $body = @file_get_contents($url, false, $context, 0, self::MAX_DOWNLOAD + 1);
         if ($body === false) {
             throw new RuntimeException("Indirilemedi: {$url}");
+        }
+        if (strlen($body) > self::MAX_DOWNLOAD) {
+            throw new RuntimeException('Indirilen dosya cok buyuk (> 64 MB): ' . $url);
         }
 
         return (string)$body;
@@ -339,11 +627,17 @@ return static function (array $args) {
     php vnl.php update --check           yeni surum var mi
     php vnl.php update --verify          kurulu cekirdek kurcalanmis mi
     php vnl.php update --to 3.1.0        belirtilen surume gec
-    php vnl.php update --latest          en son surume gec
+    php vnl.php update --latest          bu ana surumun en yenisine gec
+    php vnl.php update --major 4         YENI ANA SURUME gec (kirici!)
     php vnl.php update --file a.tar.gz   elde indirilmis arsivden
     php vnl.php update --rollback        vnl.bak/ uzerinden geri don
 
-    --force   kurcalanmis cekirdek uyarisini gec
+    --sig a.tar.gz.sig   imza dosyasi (varsayilan: arsivin yanindaki .sig)
+    --force      kurcalanmis cekirdek uyarisini gec
+    --insecure   imza DOGRULANAMIYORSA (sodium yok, KEYS bos; KEYS bosken
+                 imza dosyasi yok) yine de kur. Gecersiz ya da sokulmus
+                 imzayi asamaz.
+    --allow-downgrade   kurulu surumden eski ya da ayni surumu kur
 
   Guncelleme sonrasi: php vnl.php doctor  ve  php vnl.php migrate --status
 
@@ -355,22 +649,40 @@ TXT
     }
 
     $updater = new VnlUpdate();
-    $force   = in_array('--force', $args, true);
+    $force    = in_array('--force', $args, true);
+    $insecure = in_array('--insecure', $args, true);
+    $downgrade = in_array('--allow-downgrade', $args, true);
     $backup  = VNL_ROOT . '/vnl.bak';
 
     try {
         /* ---- --check ---- */
         if (in_array('--check', $args, true)) {
             $installed = $updater->installedVersion();
-            $release   = $updater->release(null);
+            $major     = VnlUpdate::major($installed);
+            $all       = $updater->releases();
+            $pick      = VnlUpdate::pickRelease($all, $major);
+            $next      = VnlUpdate::newestHigherMajor($all, $major);
 
             $out();
             $out("  Kurulu   {$installed}");
-            $out("  Yayinda  {$release['version']}");
+            $out('  Yayinda  ' . ($pick ? ltrim($pick['tag_name'], 'v') : '-') . "  ({$major}.x serisi)");
             $out();
 
+            if ($next !== null) {
+                $out("  Yeni ANA surum var: {$next} — KIRICI degisiklikler icerir.");
+                $out('  Kendiliginden kurulmaz. Gecis notlarini okuyun, sonra:');
+                $out('    php vnl.php update --major ' . VnlUpdate::major($next));
+                $out();
+            }
+
+            if ($pick === null) {
+                return 0;
+            }
+
+            $release = ['version' => ltrim($pick['tag_name'], 'v'), 'notes' => (string)($pick['html_url'] ?? '')];
+
             if (version_compare($release['version'], $installed, '<=')) {
-                $out('  Guncelsiniz.');
+                $out('  Bu seride guncelsiniz.');
                 $out();
 
                 return 0;
@@ -459,8 +771,31 @@ TXT
         $file    = $opt($args, '--file');
         $to      = $opt($args, '--to');
         $latest  = in_array('--latest', $args, true);
+        $majorTo = $opt($args, '--major');
 
-        if ($file === null && $to === null && !$latest) {
+        if ($majorTo !== null && !ctype_digit($majorTo)) {
+            $out();
+            $out('  --major bir sayi ister: php vnl.php update --major 4');
+            $out();
+
+            return 1;
+        }
+
+        /* Ana sürüm geçişi yalnız --major ile (4.0.0). --to ile başka bir
+           ana sürüm istenirse, aynı numarayla --major de verilmeli. */
+        $installedMajor = VnlUpdate::major($updater->installedVersion());
+        if ($to !== null && VnlUpdate::major($to) !== $installedMajor
+            && ($majorTo === null || (int)$majorTo !== VnlUpdate::major($to))) {
+            $out();
+            $out("  {$to} baska bir ANA surum ({$installedMajor}.x kurulu). Kirici degisiklik icerir;");
+            $out('  bilerek gecmek icin: php vnl.php update --major ' . VnlUpdate::major($to)
+                . ($to !== null ? " --to {$to}" : ''));
+            $out();
+
+            return 1;
+        }
+
+        if ($file === null && $to === null && !$latest && $majorTo === null) {
             $out();
             $out('  Ne yapilacagi belirtilmemis. Secenekler: php vnl.php update --help');
             $out();
@@ -500,44 +835,53 @@ TXT
 
                 return 1;
             }
-            $blob  = (string)file_get_contents($file);
-            $label = $file;
+            if (filesize($file) > VnlUpdate::MAX_DOWNLOAD) {
+                $out();
+                $out('  Arsiv cok buyuk (> 64 MB): ' . $file);
+                $out();
+
+                return 1;
+            }
+            $blob     = (string)file_get_contents($file);
+            $label    = $file;
+            $expected = null;
+            $sigPath = $opt($args, '--sig') ?? $file . '.sig';
+            $sig     = is_file($sigPath) ? (string)file_get_contents($sigPath) : null;
         } else {
-            $release = $updater->release($latest ? null : $to);
+            $release = $updater->release($to, $majorTo !== null && $to === null ? (int)$majorTo : null);
             $out();
             $out("  {$release['version']} indiriliyor…");
-            $blob  = $updater->httpGet($release['url']);
-            $label = $release['url'];
+            $blob     = $updater->httpGet($release['url']);
+            $label    = $release['url'];
+            $expected = $release['version'];
+            $sig   = $release['sig'] !== '' ? $updater->httpGet($release['sig']) : null;
         }
+
+        /* Kaynak: imza, arsiv ACILMADAN once (tar ayristiricisi da saldiri yuzeyidir). */
+        $auth = $updater->authenticate($blob, $sig, $updater->keys(), $insecure);
+        $out();
+        $out('  ' . $auth['message']);
 
         /* Ac ve dogrula */
         $temp = $updater->tempDir();
         try {
-            VnlTar::extract(VnlTar::gunzip($blob), $temp);
+            $unpacked = $updater->unpack($blob, $temp, $label);
 
-            $incoming = $temp . '/vnl';
-            if (!is_dir($incoming) || !is_file($incoming . '/VERSION')) {
-                throw new RuntimeException("Arsiv beklenen bicimde degil (vnl/ ve vnl/VERSION yok): {$label}");
+            $updater->checkVersion($unpacked['version'], $updater->installedVersion(), $expected, $downgrade);
+            VnlUpdate::checkPhp($unpacked['dir']);
+
+            /* --file ile gelen arşiv de ana sürüm kuralına uyar. */
+            if (VnlUpdate::major($unpacked['version']) !== $installedMajor
+                && ($majorTo === null || (int)$majorTo !== VnlUpdate::major($unpacked['version']))) {
+                throw new RuntimeException(
+                    "Arsiv {$unpacked['version']} — baska bir ANA surum. Bilerek gecmek icin: --major "
+                    . VnlUpdate::major($unpacked['version'])
+                );
             }
 
-            $newVersion  = trim((string)file_get_contents($incoming . '/VERSION'));
-            $newManifest = $updater->manifest($incoming . '/MANIFEST');
-
-            if ($newManifest !== null) {
-                $check = $updater->compare($incoming, $newManifest);
-                if ($check['changed'] !== [] || $check['missing'] !== []) {
-                    throw new RuntimeException(
-                        'Indirilen arsiv kendi MANIFEST\'iyle uyusmuyor; bozuk ya da eksik.'
-                    );
-                }
-            }
-
-            $out('  Arsiv dogrulandi: ' . $newVersion . ' (' . count($newManifest ?? []) . ' dosya)');
-            $out('  Yedek aliniyor: vnl.bak/');
-            $updater->backup(VNL_PATH, $backup);
-
-            $out('  Uygulaniyor…');
-            $result = $updater->sync($incoming, VNL_PATH);
+            $out('  Arsiv dogrulandi: ' . $unpacked['version'] . ' (' . $unpacked['files'] . ' dosya)');
+            $out('  Yedek aliniyor ve uygulaniyor: vnl.bak/ <- vnl/');
+            $result = $updater->apply($unpacked['dir'], VNL_PATH, $backup);
 
             $out();
             $out('  ' . $updater->installedVersion() . ' kuruldu.');
@@ -559,7 +903,9 @@ TXT
     } catch (Throwable $e) {
         fwrite(STDERR, "\n  " . str_replace("\n", "\n  ", $e->getMessage()) . "\n\n");
 
-        if (is_dir($backup)) {
+        if ($e instanceof VnlSignatureInvalid) {
+            fwrite(STDERR, "  Arsiv REDDEDILDI; cekirdege dokunulmadi. Bu arsivi kurmayin, kaynagini sorgulayin.\n\n");
+        } elseif (is_dir($backup) && !str_contains($e->getMessage(), 'kendiliginden geri yuklendi')) {
             fwrite(STDERR, "  Yedek duruyor: vnl.bak/  —  geri donmek icin:\n");
             fwrite(STDERR, "    php vnl.php update --rollback\n\n");
         }
