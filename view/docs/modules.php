@@ -329,14 +329,19 @@ FileManagerModule::DeleteFile(getDocumentRoot() . $belge->DosyaYolu);
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>CurlModule::Curl($url, $params, $content_type, $auth)</code></td>
-                                    <td>HTTP GET isteği gönderir.</td>
+                                    <td>HTTP GET isteği gönderir. <code>$params</code> sorgu dizesine eklenir, gövde gönderilmez; <code>$content_type</code> yok sayılır (4.0.0).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>CurlModule::GetCurlPage($url, $timeout, $is_json)</code></td>
-                                    <td>URL'den içerik çeker. <code>$is_json=true</code> ise JSON decode ederek array döndürür.</td>
+                                    <td>URL'den içerik çeker. <code>$is_json=true</code> ise JSON decode ederek array döndürür. <code>$timeout</code> bağlantı süresidir; isteğin tamamı en çok <code>max(30, $timeout)</code> saniye sürer.</td>
                                 </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
+                            <span class="text-body fs-6"><b>Güvenlik kuralları (4.0.0).</b> Üç metot da yalnız <code>http://</code> ve <code>https://</code> adreslerine istek atar; <code>file://</code>, <code>php://</code> gibi adreslerde <code>false</code> döner. <code>Authorization</code> başlığı yalnız kullanıcı adı verildiyse gider. Kimlik bilgisi verilen istekte yönlendirme <b>izlenmez</b> &mdash; başlık başka bir sunucuya taşınmasın diye 3xx yanıtın gövdesi döner; hedefi doğrudan çağırın.</span>
                         </div>
 
                         <div class="vnl-code">
