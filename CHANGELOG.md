@@ -11,6 +11,49 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ## [Yayımlanmadı]
 
+---
+
+## [4.0.0] — 2026-11-22
+
+Bilerek kırıcı yapılmış bir ana sürüm. Getirdikleri:
+- composer gerektirmeyen bir test paketi ve CI;
+- imzalı güncelleme;
+- Illuminate 13 ve PHP 8.3;
+- 3.x güvenlik incelemesinin bütün bulgularının düzeltmesi;
+- türetilmiş projelerin çekirdek dosyası kopyalamak zorunda kaldığı yerler için
+  ayarlar ve kancalar.
+
+**3.x kurulumları 4.0'a kendiliğinden geçmez.** Geçiş ayrı bir komuttur.
+Aşağıdaki "Yükseltme" bölümünü baştan sona okuyun.
+
+### Yükseltme (3.x → 4.0.0)
+
+1. **Önce 3.5.3'e geçin:** `php vnl.php update --to 3.5.3`. 3.5.2 ve öncesinin
+   güncelleyicisi ana sürüm geçişini ve imzayı bilmez.
+2. **Sunucuda PHP 8.3 ya da üstü olmalı.** Hem web (FPM) hem konsol için.
+   Güncelleyici yeni çekirdeğin PHP isteğini kurulumdan önce denetler.
+3. **Projede şunları arayıp düzeltin:**
+   - JSON gönderen `fetch` çağrıları: `Content-Type: application/json` başlığı
+     olmadan gövde artık çözülmez.
+   - Carbon'un `diffIn*()` sonuçları: artık işaretli ondalıklı sayı döner.
+   - `TableModel` çağrılarında operatör ezmeleri.
+   - GET ile gövde gönderen `CurlModule::Curl()` çağrıları.
+   - Oturum çerezini `PHPSESSID` adıyla okuyan harici süreçler (örneğin bir Node
+     WebSocket sunucusu).
+4. **Geçiş:** `php vnl.php update --major 4`. Arşivin imzası 3.5.3'teki
+   `vnl/KEYS` dosyasıyla doğrulanır.
+5. **Şemayı güncelleyin ve denetleyin:** `php vnl.php migrate --run` (0008),
+   ardından `php vnl.php doctor`. `doctor` çekirdeği ezen proje dosyalarını da
+   listeler; güvenlik dosyalarındaki ezmeler yamaları keser.
+6. **Proje dosyalarını şablondan elle alın;** güncelleme bunlara dokunmaz:
+   - sunucu yapılandırması: `.htaccess`, `web.config`, `nginx.conf.example`
+   - `.env.example`'daki yeni anahtarlar
+   - `actions/action_login.php`
+   - testler (isteğe bağlı): `compose.test.yml`, `docker/test/`, `tests/`
+7. **Açık oturumlar kapanır** (çerez adı değişti). "Beni hatırla" jetonu olan
+   kullanıcılar jetonla geri girer.
+8. **Testleri koşun:** `php vnl.php test`.
+
 ### Eklenenler
 
 - **Test paketi: `php vnl.php test`.** Composer gerektirmez.
