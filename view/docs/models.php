@@ -255,11 +255,19 @@ $filters = [
     'ad'    => 'bisiklet',
 ];
 
-// Uzun biçim — operatörü çağrı yerinde ez
+// Uzun biçim — 'operator' yazılabilir ama $columns'takiyle AYNI olmalı
 $filters = [
     'ad'    => ['value' => 'bisiklet', 'operator' => 'like'],
-    'fiyat' => ['value' => '100|500',  'operator' => 'between'],
-];</code></pre>
+];
+
+// Aralık için ayrı bir anahtar tanımlayın; operatör yine haritadan gelir
+//   'fiyat_aralik' => ['name' => 'tbl_urunler.fiyat', 'operator' => 'between'],
+$filters = ['fiyat_aralik' => '100|500'];</code></pre>
+                        </div>
+
+                        <div class="alert alert-warning d-flex align-items-start p-4 mb-5">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
+                            <span class="text-body fs-6"><b>Operatör yalnız <code>$columns</code>'tan gelir (4.0.0).</b> Filtre dizisi çoğu zaman istekten geldiği için çağrı yerinde operatör ezmek, istemcinin <code>=</code> yerine <code>regexp</code>, <code>&lt;&gt;</code> ya da <code>&gt;</code> seçebilmesi demekti. Uzun biçimde haritadakinden farklı bir <code>'operator'</code> gelirse istek, tanımsız anahtardaki gibi <code>Geçerli Filtre Gelmedi</code> ile düşer. Değer de tek bir değer olmalıdır: dizi gelirse (<code>?ad[]=x</code>) aynı biçimde reddedilir.</span>
                         </div>
 
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-5">
@@ -299,7 +307,7 @@ X::SelectList(['status' =&gt; ''])-&gt;get();  // filtre yok — hepsi</code></p
                                 <tr>
                                     <td class="ps-5"><code>like</code></td>
                                     <td><code>'bisiklet'</code></td>
-                                    <td><code>LOWER(sutun) LIKE '%bisiklet%'</code> üretir &mdash; iki taraf da küçültüldüğü için MySQL'de büyük/küçük harf duyarsızdır.</td>
+                                    <td><code>LOWER(sutun) LIKE '%bisiklet%'</code> üretir &mdash; iki taraf da küçültüldüğü için MySQL'de büyük/küçük harf duyarsızdır. Aranan metindeki <code>%</code> ve <code>_</code> joker değil düz karakterdir (4.0.0): <code>'50%'</code> yalnız "50%" geçen satırları bulur.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>ilike</code></td>
