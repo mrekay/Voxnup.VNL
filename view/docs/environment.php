@@ -304,6 +304,11 @@
                                     <td>JSON istek gövdesinin üst sınırı (bayt, 1 MB). Aşan istek <code>413</code> <code>VNL_BODY_TOO_LARGE</code> alır. Gövde giriş denetiminden önce okunduğu için sınır girişsiz isteği de kapsar. Form gönderimleri bu değere değil PHP'nin <code>post_max_size</code>'ına tabidir.</td>
                                 </tr>
                                 <tr>
+                                    <td class="ps-5"><code>VNL_TRUSTED_PROXIES</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>""</code></td>
+                                    <td>Uygulamanın önündeki vekillerin (CDN, yük dengeleyici) IP ya da CIDR adresleri, virgülle (IPv4/IPv6). Yalnız bunlardan gelen istekte <code>X-Forwarded-For</code> okunur; sağdan sola, güvenilen vekiller atlanarak ilk adres istemcidir (<code>vnl_client_ip()</code>). Boşsa başlığa hiç bakılmaz. Hız sınırı ve denetim kaydı gerçek adresi bununla görür; vekil arkasında boş bırakılırsa bütün site tek kovaya düşer.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>VNL_PUBLIC_DOCS</code> · <code>VNL_PUBLIC_CAPTURE</code></td>
                                     <td><code>false</code></td>
                                     <td>Doküman sayfalarını girişsiz aç · 3.3'ün <code>$page_config['public']</code> geçiş kipi (güvenli değil).</td>

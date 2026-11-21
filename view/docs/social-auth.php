@@ -94,9 +94,25 @@
  */
 function vnl_social_sign_in(array $profile): array
 {
-    // bul / bağla / aç, oturumu başlat
+    // Hesap sağlayıcı + sub ile bulunur (e-postayla DEĞİL). Sorgu modelde.
+    $user = User::findBySocial($profile['provider'], $profile['sub']);
+    if (!$user || !UserModule::IsActiveUser($user)) {
+        return ['ok' =&gt; false, 'status' =&gt; 404, 'message' =&gt; 'Bu hesap bağlı değil.'];
+    }
+
+    // 2FA açıksa oturum AÇILMAZ: parola girişiyle aynı ikinci adım.
+    // Atlanırsa sosyal giriş 2FA'yı devre dışı bırakan bir arka kapı olur.
+    if ($user-&gt;hasTotp()) {
+        Session::regenerate();
+        Session::set('_2fa_pending', ['user_id' =&gt; (int)$user-&gt;id, 'remember' =&gt; false, 'at' =&gt; time()]);
+
+        return ['ok' =&gt; true, 'message' =&gt; '', 'data' =&gt; ['step' =&gt; 'totp']];
+    }
+
+    // Oturum kimliği yenilenir, CSRF döner, denetim kaydı yazılır.
+    UserModule::CompleteLogin($user);
+
     return ['ok' =&gt; true, 'message' =&gt; '', 'data' =&gt; ['status' =&gt; 'login']];
-    // hata: ['ok' =&gt; false, 'status' =&gt; 400, 'message' =&gt; '...']
 }
 
 /** Facebook veri silme isteği (isteğe bağlı). */
@@ -111,6 +127,7 @@ function vnl_social_forget(string $provider, string $sub): void { /* bağlantıy
 document.addEventListener('vnl:social-auth', (e) =&gt; {
     const r = e.detail; // {ok, status, message, data, cancelled?}
     if (r.cancelled) return;
+    if (r.ok &amp;&amp; r.data.step === 'totp') return showTotpForm();  // kod: POST /app/login/totp
     if (r.ok) location.href = '/';
 });
 &lt;/script&gt;

@@ -183,9 +183,21 @@ class FileRequest
     /**
      * Yüklenen dosyayı kalıcı hedefe taşır.
      * Hedef tam yol olmalıdır (örneğin: /var/www/uploads/resim.jpg)
+     *
+     * 4.0.0: Hedefin ADI FileManagerModule::IsSafeUploadName kuralından
+     * geçmezse (php*, phtml, phar, html, svg, .htaccess, çift uzantı,
+     * uzantısız ad...) dosya taşınmaz, false döner. Uzantı izin listesi yine
+     * çağıranın işidir; bu, listeyi unutan kodun ikinci savunma hattıdır —
+     * generateRandomName() istemcinin uzantısını aynen taşır.
      */
     public function move($key, $destination, $index = 0)
     {
+        if (!FileManagerModule::IsSafeUploadName(basename(str_replace('\\', '/', (string)$destination)))) {
+            error_log('[VNL][Upload] Güvensiz hedef adı reddedildi: ' . basename((string)$destination));
+
+            return false;
+        }
+
         if ($this->isUploadedFile($key, $index) && $this->getError($key, $index) === UPLOAD_ERR_OK) {
             return move_uploaded_file($this->getTmpName($key, $index), $destination);
         }

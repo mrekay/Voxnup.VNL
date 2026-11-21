@@ -421,6 +421,42 @@ TXT
         );
     }
 
+    /* ---- Çekirdeği ezen proje dosyaları (4.0.0) ----
+       Kökteki aynı adlı dosya vnl/ altındakinin yerine geçer ve o dosyaya
+       gelen her düzeltme — güvenlik yamaları dahil — bu projeye ulaşmaz.
+       Ezme yasak değil ama bilinçli olmalı; güvenlik kapısı taşıyan
+       dosyalar ayrıca işaretlenir. */
+    $sensitive = ['Session.php', 'Request.php', 'VnlDispatcher.php', 'UserModule.php', 'EncryptionModule.php',
+                  'RememberToken.php', 'ApiToken.php', 'RateLimiter.php', 'Audit.php', 'Totp.php',
+                  'FileRequest.php', 'FileManagerModule.php', 'app.php', 'DefaultValidator.php', 'CurlModule.php'];
+    $overrides = [];
+    foreach (['classes', 'modules', 'helpers', 'validators', 'exceptions'] as $dir) {
+        foreach (glob(VNL_PATH . '/' . $dir . '/*.php') ?: [] as $core) {
+            if (is_file(VNL_ROOT . '/' . $dir . '/' . basename($core))) {
+                $overrides[] = $dir . '/' . basename($core);
+            }
+        }
+    }
+    $risky = array_values(array_filter($overrides, static fn($f) => in_array(basename($f), $sensitive, true)));
+    $plain = array_values(array_diff($overrides, $risky));
+
+    $checks[] = $check(
+        'guvenlik dosyalari cekirdekten geliyor',
+        $risky === [],
+        'Su proje dosyalari guvenlik kapisi tasiyan cekirdek dosyalarini eziyor;'
+        . "\n        cekirdegin bu dosyalara gelen yamalari projeye ULASMAZ:\n          "
+        . implode("\n          ", $risky)
+        . "\n        Gerekmiyorsa silin; gerekiyorsa her surumde vnl/ karsiligiyla karsilastirin.",
+        false
+    );
+    $checks[] = $check(
+        'cekirdegi ezen proje dosyasi yok',
+        $plain === [],
+        "Bu dosyalar vnl/ karsiliginin yerine yuklenir (yamalar ulasmaz):\n          "
+        . implode("\n          ", $plain),
+        false
+    );
+
     /* ---- Güncelleme (4.0.0: imzalı arşiv) ---- */
     $checks[] = $check(
         'eklenti: sodium',

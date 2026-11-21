@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
 
+# Üçüncü taraf eylemler etiketle değil COMMIT ile sabitlenir: etiket sonradan
+# başka bir commit'e taşınabilir (tedarik zinciri). Güncellerken yorumdaki
+# sürümü de değiştirin.
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -23,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4.4.0
         with:
           fetch-depth: 0
 
@@ -45,7 +49,7 @@ jobs:
       PHP_VERSION: ${{ matrix.php }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4.4.0
 
       - name: İmajı hazırla
         run: docker compose -f compose.test.yml build test

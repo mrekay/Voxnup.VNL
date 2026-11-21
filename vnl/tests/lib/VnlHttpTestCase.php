@@ -135,6 +135,11 @@ abstract class VnlHttpTestCase extends VnlTestCase
         $http_response_header = [];
         $raw = @file_get_contents($this->baseUrl() . $path, false, $context);
 
+        /* PHP 8.5: yerel $http_response_header kullanımdan kalktı. */
+        if (function_exists('http_get_last_response_headers')) {
+            $http_response_header = http_get_last_response_headers() ?? [];
+        }
+
         if ($raw === false && $http_response_header === []) {
             $this->fail($method . ' ' . $path . ': sunucuya ulaşılamadı');
         }

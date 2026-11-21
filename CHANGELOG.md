@@ -175,6 +175,26 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
   testi, `view/` altında kaçışsız `<?= $` basımlarının sayısının artmasını
   engeller. Bugünkü sayı 60.
 
+### Güvenlik (araçlar ve belgeler)
+
+- **`FileRequest::move()` güvensiz hedef adını reddeder.** 3.5.2'deki
+  `IsSafeUploadName` kuralı burada da uygulanır. Bu, uzantı izin listesini unutan
+  kod için ikinci bir savunma hattıdır: `generateRandomName()` istemcinin gönderdiği
+  uzantıyı olduğu gibi taşıyordu.
+- **`php vnl.php serve` artık varsayılan olarak `127.0.0.1`'i dinler.** Eskiden
+  `0.0.0.0`'ı dinliyordu, yani hata ayrıntısı açık geliştirme sunucusu aynı ağdaki
+  herkese açıktı. Ağdan erişmek için: `--host 0.0.0.0`.
+- **`doctor`, çekirdeği ezen proje dosyalarını listeler.** Güvenlik kapısı
+  taşıyan dosyalar (Session, Request, UserModule, EncryptionModule, ApiToken …)
+  ayrı bir uyarıyla gösterilir. Bu dosyalara gelen yamalar ezen projeye ulaşmaz.
+- **IDOR kuralı** (`actions/CLAUDE.md`): `CheckPermission` modüle yetkiyi
+  denetler, kaydın sahibini denetlemez. Kayıt sahipliği modelde denetlenir
+  (`findOwned` kalıbı). Başkasının kaydı için 404 döner.
+- **social-auth belgesi 2FA adımını gösteriyor.** Örneği izleyen bir proje 2FA'yı
+  atlıyordu. Artık TOTP açık hesapta oturum açılmıyor, kullanıcı ikinci adıma
+  gönderiliyor.
+- CI'daki üçüncü taraf eylemler commit SHA'sıyla sabitlendi.
+
 ### Eklenenler (güncelleyici)
 
 - `php vnl.php release --keygen`: yeni yayın anahtarı üretir. Gizli yarısını
