@@ -23,10 +23,13 @@ error_reporting(vnl_debug() ? E_ALL : (E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATE
    oturumu bu süreden önce silmemeli, yoksa sınır anlamını yitirir. */
 ini_set('session.gc_maxlifetime', (string)max(3600, (int)VnlEnv::get('VNL_SESSION_IDLE', 3600)));
 
-/* Web isteği başına 20 sn PHP çalışma süresi. Uzun işler kuyruğa gider
-   (php vnl.php queue:work); konsol sınırı vnl_cli_boot() kaldırır. */
+/* Web isteği başına PHP çalışma süresi (sn). Uzun işler kuyruğa gider
+   (php vnl.php queue:work); konsol sınırı vnl_cli_boot() kaldırır.
+   4.0.0: VNL_TIME_LIMIT ile ayarlanır (0 = sınırsız; geçersizse 20). */
 if (PHP_SAPI !== 'cli') {
-    set_time_limit(20);
+    $vnl_time_limit = (string)VnlEnv::get('VNL_TIME_LIMIT', '20');
+    set_time_limit(ctype_digit($vnl_time_limit) ? (int)$vnl_time_limit : 20);
+    unset($vnl_time_limit);
 }
 
 /**
@@ -87,20 +90,55 @@ if (PHP_SAPI !== 'cli') {
 unset($vnl_samesite);
 
 /**
- * Güvenlik başlıkları (3.4.0) — VNL_SECURITY_HEADERS=false ile kapatılır.
+ * Güvenlik başlıkları (3.4.0) — VNL_SECURITY_HEADERS=false hepsini kapatır.
+ *
+ * 4.0.0: Her başlığın değeri ayrı ayarlanır; boş ya da false o başlığı
+ * göndermez. 3.x yalnız toptan kapatmaya izin veriyordu — mikrofon isteyen
+ * bir proje bütün başlıklardan vazgeçmek zorunda kalıyordu. nosniff
+ * ayarlanamaz: kapatılmasını gerektiren meşru bir durum yok.
+ *
+ * Referrer-Policy varsayılanı same-origin → strict-origin-when-cross-origin
+ * (tarayıcıların kendi varsayılanı). same-origin dış sitelere hiç Referer
+ * göndermiyordu; YouTube gibi gömmeler bu yüzden oynatmayı reddediyor.
+ * Karşı siteye yalnız köken (https://alan.com) gider, yol ve sorgu gitmez.
  *
  * CSP bilerek YOK: tema ve sayfalar satır içi <script> kullanıyor; nonce'suz
  * bir CSP ya hiçbir şeyi engellemez ya da her sayfayı kırar. İleri iş.
  */
-if (PHP_SAPI !== 'cli' && !headers_sent() && VnlEnv::get('VNL_SECURITY_HEADERS', true) !== false) {
-    header('X-Frame-Options: SAMEORIGIN');
-    header('X-Content-Type-Options: nosniff');
-    header('Referrer-Policy: same-origin');
-    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-
-    if ($isSecure) {
-        header('Strict-Transport-Security: max-age=31536000');
+function vnl_security_headers(bool $secure): array
+{
+    if (VnlEnv::get('VNL_SECURITY_HEADERS', true) === false) {
+        return [];
     }
+
+    $spec = [
+        'X-Frame-Options'    => ['VNL_HEADER_FRAME_OPTIONS', 'SAMEORIGIN'],
+        'Referrer-Policy'    => ['VNL_HEADER_REFERRER_POLICY', 'strict-origin-when-cross-origin'],
+        'Permissions-Policy' => ['VNL_HEADER_PERMISSIONS_POLICY', 'camera=(), microphone=(), geolocation=()'],
+    ];
+    if ($secure) {
+        $spec['Strict-Transport-Security'] = ['VNL_HEADER_HSTS', 'max-age=31536000'];
+    }
+
+    $headers = ['X-Content-Type-Options' => 'nosniff'];
+
+    foreach ($spec as $name => [$key, $default]) {
+        $value = VnlEnv::get($key, $default);
+        $value = $value === false || $value === null ? '' : trim(str_replace(["\r", "\n"], '', (string)$value));
+
+        if ($value !== '') {
+            $headers[$name] = $value;
+        }
+    }
+
+    return $headers;
+}
+
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    foreach (vnl_security_headers($isSecure) as $vnl_name => $vnl_value) {
+        header($vnl_name . ': ' . $vnl_value);
+    }
+    unset($vnl_name, $vnl_value);
 }
 
 /* İmza (4.0.0): PHP'nin "X-Powered-By: PHP/8.x.y" başlığı yerine
@@ -177,6 +215,10 @@ spl_autoload_register('loadClass');
 /* Yardımcılar: controller(), view(), lang() ve arkadaşları. Projenin kendi
    yardımcıları helpers/ altındadır; eski libs/helper/special/ oraya taşındı. */
 vnl_load_dir('helpers');
+
+/* Projenin enum'ları (4.0.0). Çekirdek enums/ taşımaz; proje koyarsa
+   yardımcılardan hemen sonra, modüllerden önce yüklenir. */
+vnl_load_dir('enums');
 
 ob_start();
 

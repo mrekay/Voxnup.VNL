@@ -783,18 +783,51 @@ function returnSuccessMessage($message, $data = [])
 }
 
 /**
+ * VNL_JSON_DATA_FLAGS'teki ek json_encode bayrakları (4.0.0).
+ *
+ *   VNL_JSON_DATA_FLAGS=NUMERIC_CHECK,PRESERVE_ZERO_FRACTION
+ *
+ * Yalnız aşağıdaki adlar tanınır, bilinmeyen ad yok sayılır.
+ */
+function vnl_json_data_flags(): int
+{
+    static $flags = null;
+
+    if ($flags === null) {
+        $known = [
+            'NUMERIC_CHECK'          => JSON_NUMERIC_CHECK,
+            'PRESERVE_ZERO_FRACTION' => JSON_PRESERVE_ZERO_FRACTION,
+            'UNESCAPED_SLASHES'      => JSON_UNESCAPED_SLASHES,
+            'PRETTY_PRINT'           => JSON_PRETTY_PRINT,
+            'FORCE_OBJECT'           => JSON_FORCE_OBJECT,
+        ];
+        $flags = 0;
+
+        foreach (explode(',', (string)VnlEnv::get('VNL_JSON_DATA_FLAGS', '')) as $name) {
+            $name = strtoupper(trim(preg_replace('/^JSON_/i', '', trim($name))));
+            $flags |= $known[$name] ?? 0;
+        }
+    }
+
+    return $flags;
+}
+
+/**
  * Ham veri yanıtı (zarf yok).
  *
  * 3.4.0: JSON_NUMERIC_CHECK kaldırıldı. O bayrak sayıya benzeyen her
  * dizgiyi sayıya çeviriyordu: "0755" → 755 (dosya kipi), "1.10" → 1.1
  * (sürüm), uzun kimlikler hassasiyet kaybediyordu. Değerler artık
  * gönderildiği tipte gider; sayı isteyen (int) ile döndürür.
+ *
+ * 4.0.0: Eski davranışa bağlı istemcisi olan proje bunu kopyalamadan geri
+ * açar: VNL_JSON_DATA_FLAGS=NUMERIC_CHECK. Bayrak yalnız bu yanıtı etkiler.
  */
 function returnSuccessDataOnly($data = [])
 {
     http_response_code(200);
     vnl_json_header();
-    $json = json_encode($data, JSON_UNESCAPED_UNICODE);
+    $json = json_encode($data, JSON_UNESCAPED_UNICODE | vnl_json_data_flags());
     echo $json;
     if (!defined("PHPEXCELMODE")) die;
 }

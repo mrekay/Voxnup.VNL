@@ -82,7 +82,7 @@ final class AccessTest extends VnlTestCase
     public function testSafeReturnUrlAcceptsSiteRelativePath(): void
     {
         $this->assertSame('/satis?yil=2026', vnl_safe_return_url('/satis?yil=2026'));
-        $this->assertSame('/docs/overview#x', vnl_safe_return_url('/docs/overview#x'));
+        $this->assertSame('/raporlar/ozet#x', vnl_safe_return_url('/raporlar/ozet#x'));
     }
 
     public function testSafeReturnUrlRejectsOpenRedirects(): void

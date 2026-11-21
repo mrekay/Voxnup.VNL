@@ -314,7 +314,7 @@ class VnlDispatcher
         }
         vnl_json_header();
 
-        if (vnl_debug()) {
+        if (vnl_error_detail_visible($e)) {
             vnl_render_error_json($e);
         }
 

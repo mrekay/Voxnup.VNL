@@ -76,7 +76,7 @@ class MailModule
 
             $mail->isHTML(true);
             $mail->Subject = $mailObject->title;
-            $mail->Body    = $mailObject->content;
+            $mail->Body    = self::embedRemoteImages($mail, $mailObject->content);
             $mail->AltBody = trim(strip_tags(str_replace(['<br>', '<br />', '</p>'], "\n", $mailObject->content)));
 
             foreach ($mailObject->media as $cid => $item) {
@@ -94,6 +94,120 @@ class MailModule
 
             return false;
         }
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* Uzak görselleri gömme (4.0.0)                                     */
+    /* ---------------------------------------------------------------- */
+
+    /** Gömülen tek görselin üst sınırı (bayt). */
+    public const EMBED_MAX_BYTES = 5242880;
+
+    /**
+     * HTML'deki <img src="https://izinli-alan/..."> görsellerini indirip
+     * maile gömer (cid:). Birçok posta istemcisi uzak görseli varsayılan
+     * olarak engellediği için gömülü görsel her yerde görünür.
+     *
+     *   VNL_MAIL_EMBED_HOSTS=cdn.example.com,static.example.com
+     *
+     * Boşsa (varsayılan) hiçbir şey yapılmaz. Yalnız listedeki alan adları
+     * indirilir: içerik kullanıcıdan gelebileceği için serbest bir adres
+     * sunucuyu iç ağa istek atan bir vekile çevirirdi (SSRF). Yönlendirme
+     * izlenmez, görsel 5 MB'ı aşamaz, görsel olmayan yanıt gömülmez.
+     * İndirilemeyen görsel uzak adresiyle kalır; gönderim düşmez.
+     */
+    public static function embedRemoteImages(PHPMailer $mail, string $body): string
+    {
+        $hosts = self::embedHosts();
+        if ($hosts === []) {
+            return $body;
+        }
+
+        foreach (self::embeddableUrls($body, $hosts) as $url) {
+            $data = self::fetchImage($url);
+            if ($data === null) {
+                continue;
+            }
+
+            $info = @getimagesizefromstring($data);
+            if (empty($info['mime']) || !str_starts_with($info['mime'], 'image/')) {
+                continue;
+            }
+
+            $cid  = 'vnlimg' . substr(hash('sha256', $url), 0, 16);
+            $name = basename((string)parse_url($url, PHP_URL_PATH)) ?: 'image';
+
+            if ($mail->addStringEmbeddedImage($data, $cid, $name, PHPMailer::ENCODING_BASE64, $info['mime'], 'inline')) {
+                $body = str_replace($url, 'cid:' . $cid, $body);
+            }
+        }
+
+        return $body;
+    }
+
+    /** @return string[] VNL_MAIL_EMBED_HOSTS, küçük harfle */
+    public static function embedHosts(): array
+    {
+        $raw = VnlEnv::get('VNL_MAIL_EMBED_HOSTS', '');
+        $raw = is_string($raw) ? $raw : '';
+
+        return array_values(array_filter(array_map(
+            static fn($h) => strtolower(trim($h)),
+            explode(',', $raw)
+        )));
+    }
+
+    /**
+     * src özniteliğindeki, alan adı listede olan http(s) adresleri (tekil).
+     * Alan adı TAM eşleşir: "cdn.example.com" listedeyse "cdn.example.com.evil.io"
+     * ya da "evil.io/?cdn.example.com" eşleşmez. Kullanıcı adı ya da port
+     * taşıyan adres hiç gömülmez.
+     *
+     * @return string[]
+     */
+    public static function embeddableUrls(string $body, array $hosts): array
+    {
+        if (!preg_match_all('/\bsrc\s*=\s*(["\'])(https?:\/\/[^"\'\s<>]+)\1/i', $body, $m)) {
+            return [];
+        }
+
+        $urls = [];
+        foreach ($m[2] as $url) {
+            $parts = parse_url(html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+            if (!is_array($parts) || isset($parts['user']) || isset($parts['pass']) || isset($parts['port'])) {
+                continue;
+            }
+            if (in_array(strtolower((string)($parts['host'] ?? '')), $hosts, true)) {
+                $urls[$url] = true;
+            }
+        }
+
+        return array_keys($urls);
+    }
+
+    private static function fetchImage(string $url): ?string
+    {
+        $context = stream_context_create(['http' => [
+            'method'          => 'GET',
+            'timeout'         => 10,
+            'follow_location' => 0,
+            'user_agent'      => 'VNL-Mail',
+        ]]);
+
+        $data = @file_get_contents(
+            html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+            false,
+            $context,
+            0,
+            self::EMBED_MAX_BYTES + 1
+        );
+
+        if (!is_string($data) || $data === '' || strlen($data) > self::EMBED_MAX_BYTES) {
+            return null;
+        }
+
+        return $data;
     }
 
     static function isValidEmail($email): bool

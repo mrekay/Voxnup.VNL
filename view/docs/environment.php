@@ -255,7 +255,39 @@
                                 <tr>
                                     <td class="ps-5"><code>VNL_SECURITY_HEADERS</code></td>
                                     <td><code>true</code></td>
-                                    <td><code>X-Frame-Options</code>, <code>nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, TLS'te HSTS.</td>
+                                    <td><code>X-Frame-Options</code>, <code>nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, TLS'te HSTS. <code>false</code> hepsini kapatır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_FRAME_OPTIONS</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>SAMEORIGIN</code></td>
+                                    <td rowspan="4">Başlıkların değeri tek tek ayarlanır; boş ya da <code>false</code> o başlığı göndermez. Örnek: sesli/görüntülü görüşme yapan bir proje <code>VNL_HEADER_PERMISSIONS_POLICY="camera=(self), microphone=(self)"</code> yazar, diğer başlıklardan vazgeçmez. <code>nosniff</code> ayarlanamaz. Referrer-Policy varsayılanı 4.0.0'da <code>same-origin</code>'den tarayıcıların kendi varsayılanına geçti: dış siteye yalnız köken gider; YouTube gömmeleri <code>same-origin</code> ile oynamıyordu.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_REFERRER_POLICY</code></td>
+                                    <td><code>strict-origin-when-cross-origin</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_PERMISSIONS_POLICY</code></td>
+                                    <td><code>camera=(), microphone=(), geolocation=()</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_HSTS</code></td>
+                                    <td><code>max-age=31536000</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_TIME_LIMIT</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>20</code></td>
+                                    <td>Web isteği başına PHP çalışma süresi (sn); <code>0</code> sınırsız. Konsolda sınır yoktur. Uzun işler için önce kuyruğu düşünün.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_PASSWORD_MIN_LENGTH</code> · <code>VNL_PASSWORD_REQUIRE</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>8</code> · <code>upper,lower,digit,symbol</code></td>
+                                    <td><code>DefaultValidator::validateValidPassword</code> kuralı. Uzunluk karakter sayılır (çok baytlı harf 1). <code>REQUIRE</code> boşsa yalnız uzunluk denetlenir. Türkçe büyük/küçük harfler sayılır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_JSON_DATA_FLAGS</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>""</code></td>
+                                    <td><code>returnSuccessDataOnly()</code>'nin ek <code>json_encode</code> bayrakları, virgülle: <code>NUMERIC_CHECK</code>, <code>PRESERVE_ZERO_FRACTION</code>, <code>UNESCAPED_SLASHES</code>, <code>PRETTY_PRINT</code>, <code>FORCE_OBJECT</code>. 3.4.0'da kaldırılan <code>NUMERIC_CHECK</code>'e bağlı istemcisi olan proje bunu <code>helpers/app.php</code>'yi kopyalamadan geri açar.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>VNL_MAX_JSON_BODY</code></td>
@@ -311,6 +343,11 @@
                                     <td class="ps-5"><code>MAIL_VERIFY_PEER</code></td>
                                     <td><code>true</code></td>
                                     <td>Kendi imzalı sertifikalı SMTP sunucusu için <code>false</code> yapın; aksi hâlde açık kalmalıdır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_MAIL_EMBED_HOSTS</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>""</code></td>
+                                    <td>Bu alan adlarındaki <code>&lt;img src&gt;</code> görselleri gönderimde indirilip maile gömülür (<code>cid:</code>); uzak görseli engelleyen istemcilerde de görünür. Alan adı tam eşleşir, yönlendirme izlenmez, görsel başına 5 MB. Yalnız kendi CDN'inizi yazın: içerik kullanıcıdan gelebilir.</td>
                                 </tr>
                                 </tbody>
                             </table>

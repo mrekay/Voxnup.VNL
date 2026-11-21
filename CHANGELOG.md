@@ -79,6 +79,55 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 - `doctor` artık şunlarda uyarı verir: sodium yoksa, sunucu dışarıya
   bağlanamıyorsa (curl yoksa ve `allow_url_fopen` kapalıysa), `vnl/KEYS` boşsa.
 
+### Eklenenler (proje ayarları ve kancalar)
+
+Bu ayarlar ve kancalar, türetilmiş projelerin bugün çekirdek dosyasını kopyalayıp
+ezerek yaptığı işleri ayarla yapılabilir kılar. Hepsi Voxnup'ın ezmelerinden
+çıkarıldı.
+
+- **Güvenlik başlıkları tek tek ayarlanır:** `VNL_HEADER_FRAME_OPTIONS`,
+  `VNL_HEADER_REFERRER_POLICY`, `VNL_HEADER_PERMISSIONS_POLICY` ve
+  `VNL_HEADER_HSTS`. Boş ya da `false` değer o başlığı göndermez. 3.x'te tek yol
+  bütün başlıkları birden kapatmaktı. Değerler `vnl_security_headers()`
+  fonksiyonundan geçer, satır sonları temizlenir.
+- **`vnl_project_error_detail(Throwable $e): bool` kancası.** Canlıda ayrıntılı
+  hata ekranını kimin göreceğine proje karar verir (örneğin yalnız geliştirici
+  hesapları). Ekran yalnız kanca `true` döndürürse açılır; kanca istisna
+  fırlatırsa kapalı kalır. Bu karar `VnlDispatcher`'ın JSON hata yanıtında da
+  uygulanır.
+- **`VNL_TIME_LIMIT`.** Web isteğinin süre sınırı ayarlanabilir oldu
+  (varsayılan 20 sn, `0` sınırsız).
+- **`VNL_JSON_DATA_FLAGS`.** `returnSuccessDataOnly()` için ek json_encode
+  bayrakları verir; örneğin `NUMERIC_CHECK`. `helpers/app.php`'yi kopyalamak
+  gerekmez.
+- **`enums/` dizini** yardımcılardan sonra, modüllerden önce kendiliğinden
+  yüklenir.
+- **`mb_strimwidth` yedeği** (`vnl/helpers/polyfills.php`). Paketteki mbstring
+  polyfill'i bu fonksiyonu sağlamıyor. Ayrıca hata sayfası, mbstring hiç yokken
+  de çöküp ham çıktı basmıyor.
+- **Mail görsellerini gömme.** `MailModule::embedRemoteImages()` iki ayarla
+  çalışır:
+  - `VNL_MAIL_EMBED_HOSTS` boş değilse, bu alan adlarındaki `<img src>` görselleri
+    gönderimde indirilir ve maile `cid:` olarak gömülür.
+  - Alan adı tam eşleşmelidir. Yönlendirme izlenmez, görsel başına sınır 5 MB'tır
+    ve görsel olmayan yanıt gömülmez (SSRF koruması).
+- **Parola kuralı ayarlanabilir:** `VNL_PASSWORD_MIN_LENGTH` ve
+  `VNL_PASSWORD_REQUIRE=upper,lower,digit,symbol`. Ayrıca
+  `DefaultValidator::passwordPolicy()` ve `requireValidPassword()` eklendi.
+
+### Kırıcı değişiklikler (proje ayarları)
+
+- **Referrer-Policy varsayılanı `same-origin` → `strict-origin-when-cross-origin`**,
+  yani tarayıcıların kendi varsayılanı. Dış siteye yalnız köken gider; yol ve
+  sorgu gitmez. `same-origin` hiç Referer göndermediği için YouTube gömmeleri
+  oynamıyordu. Eski davranış için: `VNL_HEADER_REFERRER_POLICY=same-origin`.
+- **Parola denetimi Unicode'u tanıyor:**
+  - Uzunluk bayt değil karakter sayılıyor. 3.x'te `Şğ.1abc` (7 karakter, 9 bayt)
+    8 karakter kuralından geçiyordu.
+  - `Ş`, `Ğ`, `İ` büyük harf, `ş`, `ğ`, `ı` küçük harf sayılıyor.
+  - ASCII dışı harfler artık "özel karakter" yerine geçmiyor. 3.x'te `ğ` bu
+    kuralı karşılıyordu.
+
 ### Düzeltilenler
 
 - **/docs/extensions**, pasif eklentinin controller ve action'ının "yine de
