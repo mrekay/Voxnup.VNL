@@ -25,12 +25,33 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
     giriş kapısı, şablon kaçışı, güncelleyicinin MANIFEST denetimi ve arşivin yol
     güvenliği, gerçek veritabanıyla giriş, jeton dönüşü ve yetki kapısı.
 - **`compose.test.yml` ve CI.** PHP ve MySQL'i tek komutla ayağa kaldırır. GitHub
-  Actions aynı komutu PHP 8.2, 8.3 ve 8.4 ile koşar.
+  Actions aynı komutu PHP 8.3, 8.4 ve 8.5 ile koşar.
 - `vnl/cli.php`: `vnl_cli_boot()` ve `vnl_cli_options()` `console.php`'den buraya
   taşındı; test alt süreçleri de aynı yoldan açılır.
 - **Sır taraması (CI).** `gitleaks` her push'ta bütün geçmişi tarar. Bugüne kadarki
   altı bulgu incelendi, hepsi yanlış alarm (belge örnekleri, test parolası); parmak
   izleriyle `.gitleaksignore`'da duruyor.
+
+### Kırıcı değişiklikler (platform)
+
+- **PHP 8.3 artık asgari sürüm.** Paketlenmiş Illuminate 13, PHP 8.3 ister.
+  - 8.2'de VNL hiç açılmaz. `vnl/boot.php` hiçbir şey yüklemeden önce sürümü
+    denetler. Web isteği düz metin HTTP 500, konsol açık bir mesaj ve çıkış
+    kodu 1 alır.
+  - `php vnl.php doctor` artık "PHP 8.3+" diye denetler. Güvenlik yaması
+    tablosunda 8.2 dalı kalmadı.
+- **Illuminate (Eloquent) 10.49 → 13, Carbon 2 → 3.**
+  - Neden: Illuminate 10 Şubat 2025'ten beri güvenlik yaması almıyordu. 13'ün
+    güvenlik desteği Mart 2028'e kadar sürüyor.
+  - Çekirdekte ve örnek modellerde kod değişikliği gerekmedi.
+  - **Kendi kodunuzda dikkat:** Carbon 3'te `diffInDays()`, `diffInHours()` ve
+    benzerleri artık **işaretli ondalıklı sayı** döndürür.
+    `now()->diffInDays(now()->subDays(2))` eskiden `2`, şimdi `-1.99…` verir.
+    Eski davranış için `abs((int) $a->diffInDays($b))`.
+  - `vnl/composer.json` artık `symfony/polyfill-mbstring`'i açıkça istiyor;
+    mbstring'i kapalı barındırmalar için gerekli. Kullanılmayan `MyApp\`
+    autoload kaydı silindi.
+- CI matrisi PHP 8.3, 8.4 ve 8.5.
 
 ### Kırıcı değişiklikler
 
@@ -111,6 +132,48 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 - **`Audit` daha fazla alanı maskeliyor.** Eklenen anahtarlar: `sifre`, `parola`,
   `otp`/`totp`, `api_key`, `authorization`, `cookie`, `credential`,
   `private_key`, `passwd`.
+
+### Güvenlik (ağ, veri, başlıklar, sunucu yapılandırması)
+
+- **`CurlModule`:**
+  - Yalnız `http://` ve `https://` adreslerine istek atılır. `file://`,
+    `php://` gibi adreslerde üç metot da `false` döner.
+  - `Curl()`, boş varsayılan kimlik bilgisiyle bile
+    `Authorization: Basic Og==` gönderiyordu. Başlık artık yalnız kullanıcı adı
+    verilince gider.
+  - Kimlik bilgisi verilen istekte yönlendirme izlenmez. PHP'nin http
+    sarmalayıcısı başlıkları yönlendirilen (başka) sunucuya da gönderiyordu.
+  - `GetCurlPage()` için toplam süre sınırı eklendi.
+- **`TableModel`:**
+  - Karşılaştırma operatörü yalnız `$columns`'tan alınır. İstemci daha önce uzun
+    biçimde `regexp`, `<>` gibi bir operatör seçebiliyordu.
+  - `like`/`ilike` aramasında `%` ve `_` düz karakter sayılır (`ESCAPE '!'`).
+  - Dizi hâlinde gelen filtre değeri 500 hatası vermez; tanımsız filtre gibi
+    reddedilir.
+- **Content-Security-Policy:**
+  - Varsayılan değer `object-src 'none'; base-uri 'self'`. Eklenti içeriği ve
+    sayfaya sokulmuş bir `<base>` engellenir; satır içi betiklere dokunulmaz.
+  - Değiştirmek için `VNL_HEADER_CSP`, Report-Only politika için
+    `VNL_HEADER_CSP_REPORT_ONLY` (varsayılan kapalı).
+  - `frame-ancestors` bilerek eklenmedi; çerçeveleme `VNL_HEADER_FRAME_OPTIONS`'ın
+    işi.
+- **VNL Table detay satırı:** Yanıt yalnız başarılıysa ve `text/html` ise HTML
+  olarak basılır. `render => 'html'` sütunları için kodda ve `/docs/vnltable`'da
+  XSS uyarısı var.
+- **IIS `web.config`:** `.htaccess`'in korumaları URL Rewrite kurallarına taşındı.
+  3.x'te `config/`, `vnl/` ve `languages/` doğrudan indirilebiliyordu. HTTPS
+  yönlendirmesi hiç çalışmıyordu; artık ön denetleyiciden önce geliyor ve
+  varsayılan olarak kapalı. Gerçek bir IIS'te sınanmadı.
+- **`nginx.conf.example`:**
+  - Başlıklar uygulamanın varsayılanlarıyla eşlendi (Referrer-Policy, CSP).
+  - Hazır panel (aaPanel ve benzerleri) kullananlar için kurallar eklendi.
+    Panellerin genel `\.php` bloğu, yükleme dizinine düşen bir PHP dosyasını
+    çalıştırır; nginx `.htaccess` okumaz. 3.5.2'nin yükleme koruması bu yüzden
+    nginx'te geçerli değildi.
+  - Kurallar gerçek bir nginx üzerinde sınandı.
+- **Kaçışsız çıktı için mandal testi.** `tests/unit/ViewUnescapedEchoTest.php`
+  testi, `view/` altında kaçışsız `<?= $` basımlarının sayısının artmasını
+  engeller. Bugünkü sayı 60.
 
 ### Eklenenler (güncelleyici)
 
