@@ -116,6 +116,7 @@ Aşağıda `{site}` = sitenizin kökü, ör. `https://example.com`.
   açıktır: düğme betiği jetonu `<meta name="csrf-token">`'den alıp `X-CSRF-Token` ile
   gönderir. Düğmenin basıldığı sayfanın başlığında bu meta bulunmalı (`head-standard.php`).
 - Facebook: kod sunucuda takas edilir, Graph çağrıları `appsecret_proof` ile.
-- Dönüş yolu (`ret`) yalnız site içi göreli adres olabilir (açık yönlendirme yok).
+- Dönüş yolu (`ret`) çekirdeğin `vnl_safe_return_url()` fonksiyonundan geçer; yalnız site içi göreli adres kabul edilir (3.5.2).
+- İmza anahtarı (JWKS) önbelleği `files/cache/oidc/` altında (0700). Grup ya da herkes tarafından yazılabilen ya da başkasına ait dosyaya güvenilmez (3.5.2).
 - IP başına 10 dakikada 30 deneme: varsayılan VNL `RateLimiter` (`tbl_vnl_rate_limits`);
   proje `config.php` → `rate_limit` (`fn(string $ip): bool`) ile kendi sayacını verebilir.

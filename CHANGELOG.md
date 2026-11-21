@@ -11,6 +11,64 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ## [Yayımlanmadı]
 
+---
+
+## [3.5.2] — 2026-11-22
+
+Güvenlik yaması. **Bütün 3.x kurulumlarının bu sürüme geçmesi önerilir.** Kırıcı
+değişiklik ve migration yoktur.
+
+Değişen çekirdek dosyası: `vnl/modules/FileManagerModule.php`.
+
+Projenin dosyaları güncellemeyle gelmez; bunları şablondan elle alın:
+- `.htaccess`
+- `actions/action_login.php`
+- `extensions/social-auth/`
+
+### Güvenlik
+
+- **Yüklemeyle uzaktan kod çalıştırma kapatıldı.** Bu iki sorun birleşince
+  saldırgan sunucuda kod çalıştırabiliyordu:
+  - `FileManagerModule::UploadFile()` varsayılan `$Allows = 'all'` ile `.php` ve
+    `.htaccess` dosyalarını da kabul ediyordu.
+  - `files/` altındaki PHP dosyaları web'den çalışıyordu.
+
+  Düzeltmeler:
+  - **Çekirdek:** `$Allows` ne olursa olsun, `'all'` dahil, şu adlar reddedilir:
+    - sunucunun çalıştırabileceği uzantılar: `php*`, `phtml`, `phar`, `cgi`, `pl`,
+      `py`, `asp`, `jsp`, `shtml`
+    - sunucu yapılandırma dosyaları: `.htaccess`, `.htpasswd`, `.ini`
+    - tarayıcının sitenin kendi kökeninde betik olarak açacağı dosyalar: `html`,
+      `svg`
+    - bu uzantıları adın herhangi bir yerinde taşıyanlar (örneğin `fatura.php.jpg`)
+    - nokta ile başlayan ya da uzantısız adlar
+
+    Kontrol tek başına da çağrılabilir:
+    `FileManagerModule::IsSafeUploadName()`.
+  - **`.htaccess`:** `files/`, `uploads/`, `media/` ve `storage/` altında betik
+    uzantılı dosyalar çalıştırılmaz, 403 döner.
+- **`.htaccess` sıkılaştırıldı.**
+  - Web'e kapatılan dizinler: `vnl.bak/` (her güncellemenin bıraktığı eski
+    çekirdek), `dist/`, `tests/`, `docker/`.
+  - Engelleme kuralları artık büyük/küçük harfe duyarsız (`[NC]`). Windows ve
+    macOS sunucularda `/VNL/MANIFEST` ya da `/Config/` gibi yazımlar kuralları
+    atlatıyordu.
+- **social-auth: sahte anahtar riski.** Sağlayıcı anahtarlarının (JWKS) önbelleği
+  `sys_get_temp_dir()` altında, tahmin edilebilir bir adla duruyordu. Paylaşımlı
+  barındırmada başka bir kiracı oraya kendi anahtarını yazıp sahte bir `id_token`
+  ile istediği hesaba girebilirdi.
+  - Önbellek artık `files/cache/oidc/` altında (0700). Bu dizin web'e kapalı.
+  - Grup ya da herkes tarafından yazılabilen dosya kullanılmaz. Sahibi bu süreç
+    olmayan dosya da kullanılmaz.
+- **social-auth: açık yönlendirme.** `SocialAuth::safeReturn()` sekme karakterini
+  reddetmiyordu: `ret=/%09/evil.com` kullanıcıyı başka siteye gönderiyordu. Dönüş
+  adresi artık çekirdeğin `vnl_safe_return_url()` fonksiyonundan geçiyor.
+- **Girişte kullanıcı adı sızıntısı.** Kayıtlı olmayan kullanıcı için yapılan sahte
+  bcrypt doğrulaması sabit, maliyeti 10 olan bir hash kullanıyordu. PHP 8.4'te
+  varsayılan maliyet 12'ye çıktığı için bu yol 4 kat hızlı kalıyor ve kullanıcı
+  adının kayıtlı olup olmadığını yanıt süresinden belli ediyordu. Artık aynı
+  maliyette bir hash hesaplanıyor (`actions/action_login.php`).
+
 ### Eklenenler
 
 - **`social-auth` eklentisi** (`extensions/social-auth/`, varsayılan kapalı): Google,

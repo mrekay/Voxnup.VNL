@@ -52,7 +52,6 @@ class action_login
      * Kullanıcı bulunamadığında da bir bcrypt doğrulaması yapılır: yanıt
      * süresi "böyle bir kullanıcı var mı" sorusunu yanıtlamasın.
      */
-    private const TIMING_DUMMY_HASH = '$2y$10$gcW7oR.FEk.O76A.RKd0/OcgsQuk2vLPq1M9qK24pqa9nELgVW1rq';
 
     public function login($req)
     {
@@ -82,8 +81,13 @@ class action_login
         $this->consume($accountIpKey, self::USER_MAX_ATTEMPTS);
         $this->consume($accountKey, self::ACCOUNT_MAX_ATTEMPTS);
 
+        /* Kullanıcı yoksa da aynı maliyette bir bcrypt işi yapılır (3.5.2:
+           sabit maliyet-10 hash yerine PASSWORD_DEFAULT ile). Gerçek hash'ler
+           girişte PasswordNeedsRehash ile varsayılan maliyete taşındığından
+           iki yol aynı sürede biter; PHP 8.4'te maliyet 12'ye çıkınca sabit
+           hash'li yol 4 kat hızlı kalıp kullanıcı adının varlığını sızdırıyordu. */
         $valid = empty($user_data)
-            ? (EncryptionModule::PasswordVerify($password, self::TIMING_DUMMY_HASH) && false)
+            ? (EncryptionModule::PasswordHash((string)$password) === '' && false)
             : EncryptionModule::PasswordVerify($password, $user_data->storedPassword());
 
         if (!$valid) {
