@@ -9,7 +9,7 @@
 /**
  * Yerel geliştirme/smoke-test router'ı (php -S için).
  *
- *   docker run --rm -p 8080:8080 -v "%cd%":/app -w /app php:8.2-cli \
+ *   docker run --rm -p 8080:8080 -v "%cd%":/app -w /app php:8.3-cli \
  *     php -S 0.0.0.0:8080 vnl/tools/dev-router.php
  *
  * Gerçek dosyalar (assets/…, vnl/assets/…) doğrudan servis edilir; diğer

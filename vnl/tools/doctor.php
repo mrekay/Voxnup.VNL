@@ -391,21 +391,21 @@ TXT
 
     /* ---- Çalışma ortamı ---- */
     $checks[] = $check(
-        'PHP 8.2+',
-        PHP_VERSION_ID >= 80200,
-        'VNL 3.0 PHP 8.2 ister; kurulu surum ' . PHP_VERSION . '.'
+        'PHP 8.3+',
+        PHP_VERSION_ID >= 80300,
+        'VNL 4.0 PHP 8.3 ister (Illuminate 13); kurulu surum ' . PHP_VERSION . '.'
     );
 
     /* PHP 2026-10-21 güvenlik yayını: CVE-2026-109618 ve CVE-2026-109619,
-       ikisi de uzaktan kod çalıştırma. Her dalın yamalı ilk sürümü; 8.2'den
-       eski dallar yama almadı, listede olmayan yeni dallar yamalı doğdu. */
-    $phpPatched = [80200 => 80235, 80300 => 80336, 80400 => 80427, 80500 => 80512];
+       ikisi de uzaktan kod çalıştırma. Her dalın yamalı ilk sürümü; listede
+       olmayan yeni dallar yamalı doğdu. 8.2 ve öncesi zaten desteklenmiyor. */
+    $phpPatched = [80300 => 80336, 80400 => 80427, 80500 => 80512];
     $phpBranch  = intdiv(PHP_VERSION_ID, 100) * 100;
     $checks[] = $check(
         'PHP guvenlik yamasi (CVE-2026-109618, CVE-2026-109619)',
-        $phpBranch >= 80200 && PHP_VERSION_ID >= ($phpPatched[$phpBranch] ?? 0),
+        $phpBranch >= 80300 && PHP_VERSION_ID >= ($phpPatched[$phpBranch] ?? 0),
         'PHP ' . PHP_VERSION . " uzaktan kod calistirma acigi tasiyor. En az\n"
-        . "        8.2.35 / 8.3.36 / 8.4.27 / 8.5.12'ye guncelleyin. Bu denetim komut\n"
+        . "        8.3.36 / 8.4.27 / 8.5.12'ye guncelleyin. Bu denetim komut\n"
         . "        satirindaki PHP'yi olcer; web sunucusu (FPM, mod_php) ayri bir\n"
         . "        kurulumsa onun surumunu da denetleyin (phpinfo())."
     );

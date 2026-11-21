@@ -1,6 +1,6 @@
 # VNL
 
-Voxnup'ın çekirdeğini oluşturan PHP uygulama çatısı (framework; asgari PHP 8.2). Projeye
+Voxnup'ın çekirdeğini oluşturan PHP uygulama çatısı (framework; asgari PHP 8.3). Projeye
 depoyu klonlayarak başlanır: `vnl/` güncellenen çekirdektir, geri kalanı projenindir.
 Composer ve npm gerekmez; bağımlılıklar repoda gelir.
 
@@ -150,13 +150,13 @@ Testler `vnl/tests/` (çekirdek) ve `tests/` (proje) altında; nasıl yazıldı�
 
 ```bash
 # Söz dizimi
-docker run --rm -v "$PWD":/app -w /app php:8.2-cli \
+docker run --rm -v "$PWD":/app -w /app php:8.3-cli \
   sh -c 'for f in $(find . -name "*.php" -not -path "./vnl/vendor/*"); do php -l $f; done' \
   | grep -v "^No syntax"
 
 # Yerel sunucu (PHP_CLI_SERVER_WORKERS olmadan tarayıcı testleri zaman aşımına düşer)
 docker run --rm -p 8091:8091 -e PHP_CLI_SERVER_WORKERS=4 -v "$PWD":/app -w /app \
-  php:8.2-cli php -S 0.0.0.0:8091 vnl/tools/dev-router.php
+  php:8.3-cli php -S 0.0.0.0:8091 vnl/tools/dev-router.php
 ```
 
 Bir şeyi kırdıysanız ilk `php vnl.php doctor`'a bakın.

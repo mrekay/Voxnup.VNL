@@ -183,7 +183,7 @@ php vnl.php migrate --run            bekleyenleri sırayla uygular
 php vnl.php migrate --run --dry-run  uygulamaz, çalışacak SQL'i basar
 
 # PHP CLI yoksa
-docker run --rm -v "$PWD":/app -w /app php:8.2-cli php vnl.php migrate --status</code></pre></div>
+docker run --rm -v "$PWD":/app -w /app php:8.3-cli php vnl.php migrate --status</code></pre></div>
 
                         <p class="fs-5 text-body mb-4">Uygulananlar veritabanında <code>tbl_vnl_migrations</code> tablosunda tutulur. <code>--status</code> çıktısındaki işaretler:</p>
 
