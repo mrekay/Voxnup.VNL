@@ -368,6 +368,9 @@ public function detay($req)
                                 aynı sözleşme. Kullanıcı girdisini <code>htmlspecialchars()</code>
                                 olmadan buraya koymayın. Satır kimliği de istemciden gelir: yetki
                                 kontrolünü <code>detay</code> içinde yapın, listede olması yetmez.
+                                4.0.0: Yalnız başarılı ve <code>Content-Type: text/html</code> olan yanıt
+                                basılır (<code>respondDetail()</code> bunu kendisi ayarlar); JSON hata gövdesi
+                                ya da düz metin HTML olarak çalıştırılmaz, satırda hata metni görünür.
                             </span>
                         </div>
                     </div>
