@@ -5,7 +5,7 @@
 <h1 align="center">VNL</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-3.5.2-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-3.5.3-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
 
@@ -132,7 +132,7 @@ altındadır; numaraları bağımsız yürür, bir VNL yükseltmesi sizin sıran
 
 ```bash
 php vnl.php update --check      # yeni sürüm var mı, neler değişti
-php vnl.php update --to 3.5.2   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
+php vnl.php update --to 3.5.3   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
 php vnl.php doctor              # proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run       # şemayı güncelle
 ```
