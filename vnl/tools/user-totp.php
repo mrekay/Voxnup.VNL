@@ -53,6 +53,9 @@ return static function (array $args): int {
         }
         $user->save();
 
+        /* 4.0.0: açık oturumlar AuthStamp ile kendiliğinden düşer; "beni
+           hatırla" jetonları ayrıca silinir, yoksa çerez yeniden açardı. */
+        UserModule::ForgetAllDevices($user->id);
         Audit::log('auth.totp_disabled', 'user', $user->id, ['via' => 'cli']);
         fwrite(STDOUT, "\n  Iki adimli dogrulama kapatildi: {$user->username}\n\n");
 
@@ -78,6 +81,9 @@ return static function (array $args): int {
     }
     $user->save();
 
+    /* 4.0.0: açık oturumlar AuthStamp ile kendiliğinden düşer; "beni
+       hatırla" jetonları ayrıca silinir, yoksa çerez yeniden açardı. */
+    UserModule::ForgetAllDevices($user->id);
     Audit::log('auth.totp_enabled', 'user', $user->id, ['via' => 'cli']);
 
     if (!$hasLastStep) {

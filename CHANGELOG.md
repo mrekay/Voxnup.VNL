@@ -79,6 +79,39 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
       sıkıştırma bombası belleği doldurmadan reddedilir.
     - `VNL_UPDATE_REPO` yalnız `sahip/depo` biçiminde kabul edilir.
 
+### Güvenlik (oturum ve istemci adresi)
+
+- **Parola ya da 2FA değişince açık oturumlar kapanır.** 3.x'te parolası
+  değiştirilen hesabın açık oturumları açık kalıyordu; parolayı çalan kişininki de
+  dahil.
+  - Girişte oturuma bir damga yazılır: parola hash'i ile TOTP sırrından türetilen
+    `UserModule::AuthStamp()`. Damga her istekte yeniden hesaplanır.
+  - Damga tutmazsa oturum kapanır ve `auth.session_revoked` kaydı yazılır.
+  - Parolayı ya da TOTP'yi değiştiren her yol (panel, konsol, projenin kendi
+    kodu) bu sayede ek bir çağrı yapmadan oturumları düşürür.
+  - Kendi parolasını değiştiren kullanıcının mevcut oturumu açık kalsın
+    isteniyorsa `UserModule::RefreshAuthStamp($user)` çağrılır.
+  - Yan etkisi: girişte hash maliyeti yükseltilirse (`PasswordNeedsRehash`)
+    kullanıcının diğer açık oturumları bir kez kapanır.
+- **"Beni hatırla" jetonu da damgaya bağlandı** (migration `0008`). Oturumu
+  olmayan, yalnız jeton çerezi taşıyan bir cihaz değişiklikten sonra yeniden giriş
+  yapamaz; jeton silinir ve `auth.remember_revoked` kaydı yazılır. 4.0 öncesinden
+  kalan damgasız jetonlar kabul edilir ve ilk kullanımda damgalanır.
+- `user:password` ve `user:totp` konsol komutları kullanıcının bütün "beni
+  hatırla" jetonlarını da siler.
+- **`VNL_TRUSTED_PROXIES`, `vnl_client_ip()`.** CDN ya da yük dengeleyici
+  arkasında `REMOTE_ADDR` vekilin adresiydi. Bu yüzden hız sınırı bütün siteyi tek
+  kovaya koyuyor, denetim kaydı herkesi aynı IP'den gelmiş gösteriyordu.
+  - Yalnız listedeki vekillerden gelen istekte `X-Forwarded-For` okunur.
+    Zincir sağdan sola okunur ve güvenilen vekillerden sonraki ilk adres
+    istemcinin adresi sayılır. IPv4 ve IPv6 CIDR desteklenir.
+  - Liste boşsa başlığa hiç bakılmaz. İstemci sahte bir başlık yazarak hız
+    sınırını atlatamaz.
+  - `UserModule::CurrentIp()` ve `Audit` artık bu fonksiyonu kullanır.
+- **`Audit` daha fazla alanı maskeliyor.** Eklenen anahtarlar: `sifre`, `parola`,
+  `otp`/`totp`, `api_key`, `authorization`, `cookie`, `credential`,
+  `private_key`, `passwd`.
+
 ### Eklenenler (güncelleyici)
 
 - `php vnl.php release --keygen`: yeni yayın anahtarı üretir. Gizli yarısını

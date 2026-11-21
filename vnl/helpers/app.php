@@ -743,6 +743,91 @@ function throwErrorMessage($errorMessage, $status = 400, $devcode = '')
  * kendi Excel çıktısı (VnlTableExport) buna ihtiyaç duymaz, kendi exit'ini
  * çağırır.
  */
+/* ------------------------------------------------------------------ *
+ *  İstemci adresi (4.0.0)
+ * ------------------------------------------------------------------ */
+
+/**
+ * İsteği yapan istemcinin IP adresi.
+ *
+ * Varsayılan REMOTE_ADDR'dır. Uygulama bir vekilin (CDN, yük dengeleyici,
+ * nginx) arkasındaysa REMOTE_ADDR vekilin adresidir: hız sınırı bütün siteyi
+ * tek kovaya koyar, denetim kaydı herkesi aynı IP'den gelmiş gösterir.
+ *
+ *   VNL_TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12,2001:db8::/32
+ *
+ * Yalnız REMOTE_ADDR bu listedeyse X-Forwarded-For okunur ve sağdan sola,
+ * güvenilen vekiller atlanarak ilk güvenilmeyen adres alınır. Liste boşsa
+ * başlığa HİÇ bakılmaz: istemci kendi yazdığı X-Forwarded-For ile hız
+ * sınırını atlatamaz.
+ */
+function vnl_client_ip(): string
+{
+    $remote = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+    $raw    = VnlEnv::get('VNL_TRUSTED_PROXIES', '');
+    $list   = is_string($raw) ? array_filter(array_map('trim', explode(',', $raw))) : [];
+
+    if ($list === [] || !vnl_ip_in_list($remote, $list)) {
+        return $remote;
+    }
+
+    $chain = array_map('trim', explode(',', (string)($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')));
+
+    for ($i = count($chain) - 1; $i >= 0; $i--) {
+        $hop = $chain[$i];
+
+        if (filter_var($hop, FILTER_VALIDATE_IP) === false) {
+            break;   // bozuk zincir: daha solundakine güvenilmez
+        }
+        if (!vnl_ip_in_list($hop, $list)) {
+            return $hop;
+        }
+    }
+
+    return $remote;
+}
+
+/** Adres listedeki bir IP'ye ya da CIDR aralığına (IPv4/IPv6) düşüyor mu? */
+function vnl_ip_in_list(string $ip, array $list): bool
+{
+    $bin = @inet_pton($ip);
+    if ($bin === false) {
+        return false;
+    }
+
+    foreach ($list as $entry) {
+        [$net, $bits] = array_pad(explode('/', (string)$entry, 2), 2, null);
+        $netBin = @inet_pton(trim((string)$net));
+
+        if ($netBin === false || strlen($netBin) !== strlen($bin)) {
+            continue;
+        }
+
+        $max  = strlen($bin) * 8;
+        $bits = $bits === null ? $max : (ctype_digit(trim($bits)) ? (int)$bits : -1);
+        if ($bits < 0 || $bits > $max) {
+            continue;
+        }
+
+        $bytes = intdiv($bits, 8);
+        $rest  = $bits % 8;
+
+        if (strncmp($bin, $netBin, $bytes) !== 0) {
+            continue;
+        }
+        if ($rest === 0) {
+            return true;
+        }
+
+        $mask = (0xFF << (8 - $rest)) & 0xFF;
+        if ((ord($bin[$bytes]) & $mask) === (ord($netBin[$bytes]) & $mask)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /** JSON yanıt başlığı — gövde basılmadan önce, bir kez. */
 function vnl_json_header(): void
 {
