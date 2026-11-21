@@ -102,8 +102,29 @@ unset($vnl_samesite);
  * göndermiyordu; YouTube gibi gömmeler bu yüzden oynatmayı reddediyor.
  * Karşı siteye yalnız köken (https://alan.com) gider, yol ve sorgu gitmez.
  *
- * CSP bilerek YOK: tema ve sayfalar satır içi <script> kullanıyor; nonce'suz
- * bir CSP ya hiçbir şeyi engellemez ya da her sayfayı kırar. İleri iş.
+ * 4.0.0: Content-Security-Policy. Tema ve sayfalar satır içi <script> ve
+ * onclick kullanıyor; nonce'suz bir script-src ya hiçbir şeyi engellemez
+ * ('unsafe-inline') ya da her sayfayı kırar. Bu yüzden varsayılan CSP
+ * script'e DOKUNMAZ, yalnız temanın hiç kullanmadığı iki kapıyı kapatır:
+ *
+ *   object-src 'none'  <object>/<embed> ile eklenti içeriği. Temada, view/
+ *                      altında ve uzantılarda tek kullanım yok; enjekte
+ *                      edilmiş bir <embed> script-src'yi dolanabiliyordu.
+ *   base-uri 'self'    Enjekte edilmiş <base href="//saldirgan"> bütün göreli
+ *                      <script src>'leri karşı siteye çevirir. Hiçbir sayfa
+ *                      <base> yazmıyor; jQuery'nin parseHTML'de kurduğu
+ *                      <base> ayrı bir belgede ve zaten kendi adresimiz.
+ *
+ * frame-ancestors bilerek YOK: aynı işi X-Frame-Options: SAMEORIGIN yapıyor
+ * ve tarayıcıda CSP ondan önce gelir. İkisini birden göndermek, çerçeveye
+ * izin vermek için VNL_HEADER_FRAME_OPTIONS=false yazan projeyi sessizce
+ * kilitli bırakırdı — tek iş için tek anahtar.
+ *
+ * Report-Only varsayılanı BOŞ: VNL'de rapor toplayan bir uç yok, raporlar
+ * yalnız tarayıcı konsoluna düşer ve canlıda kimse okumaz. script-src içeren
+ * anlamlı bir politika ise Google Sign-In gibi meşru dış script'ler için
+ * her sayfada uyarı basar — sinyali gürültüye gömer. Sıkı politikaya geçmek
+ * isteyen proje önce VNL_HEADER_CSP_REPORT_ONLY ile dener (.env.example).
  */
 function vnl_security_headers(bool $secure): array
 {
@@ -115,6 +136,8 @@ function vnl_security_headers(bool $secure): array
         'X-Frame-Options'    => ['VNL_HEADER_FRAME_OPTIONS', 'SAMEORIGIN'],
         'Referrer-Policy'    => ['VNL_HEADER_REFERRER_POLICY', 'strict-origin-when-cross-origin'],
         'Permissions-Policy' => ['VNL_HEADER_PERMISSIONS_POLICY', 'camera=(), microphone=(), geolocation=()'],
+        'Content-Security-Policy'             => ['VNL_HEADER_CSP', "object-src 'none'; base-uri 'self'"],
+        'Content-Security-Policy-Report-Only' => ['VNL_HEADER_CSP_REPORT_ONLY', ''],
     ];
     if ($secure) {
         $spec['Strict-Transport-Security'] = ['VNL_HEADER_HSTS', 'max-age=31536000'];

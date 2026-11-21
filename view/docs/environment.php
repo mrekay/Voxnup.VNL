@@ -255,7 +255,7 @@
                                 <tr>
                                     <td class="ps-5"><code>VNL_SECURITY_HEADERS</code></td>
                                     <td><code>true</code></td>
-                                    <td><code>X-Frame-Options</code>, <code>nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, TLS'te HSTS. <code>false</code> hepsini kapatır.</td>
+                                    <td><code>X-Frame-Options</code>, <code>nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, <code>Content-Security-Policy</code>, TLS'te HSTS. <code>false</code> hepsini kapatır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>VNL_HEADER_FRAME_OPTIONS</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
@@ -273,6 +273,15 @@
                                 <tr>
                                     <td class="ps-5"><code>VNL_HEADER_HSTS</code></td>
                                     <td><code>max-age=31536000</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_CSP</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>object-src 'none'; base-uri 'self'</code></td>
+                                    <td rowspan="2"><code>Content-Security-Policy</code> ve <code>Content-Security-Policy-Report-Only</code>; boş ya da <code>false</code> göndermez. Varsayılan bilerek dar: <code>&lt;object&gt;</code>/<code>&lt;embed&gt;</code> ile eklenti içeriğini ve enjekte edilmiş bir <code>&lt;base href&gt;</code>'in göreli script adreslerini başka siteye çevirmesini kapatır. <code>script-src</code> yoktur — tema ve sayfalar satır içi script kullanır, nonce'suz bir politika ya hiçbir şeyi engellemez ya da her sayfayı kırar. <code>frame-ancestors</code> da yoktur: çerçeveleme <code>VNL_HEADER_FRAME_OPTIONS</code>'ın işi; ikisi birden gönderilse ona <code>false</code> yazan proje CSP yüzünden yine çerçevelenemezdi. Report-Only varsayılanda gönderilmez (rapor toplayan bir uç yok); daha sıkı bir politikayı önce onunla deneyin, ihlaller tarayıcı konsoluna düşer. Örnek değer <code>.env.example</code>'da.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_CSP_REPORT_ONLY</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><em>boş</em></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>VNL_TIME_LIMIT</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
@@ -504,7 +513,7 @@ if ($anahtar === '') {
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>web.config</code></td>
-                                    <td>IIS için <code>hiddenSegments</code> ve <code>fileExtensions</code> aynı korumayı sağlar.</td>
+                                    <td>IIS karşılığı; <b>URL Rewrite modülü gerekir</b>. 4.0.0'dan itibaren <code>.htaccess</code>'in dizin kurallarını da taşır: <code>config/</code>, <code>languages/</code>, <code>actions/</code>, <code>classes/</code> gibi proje dizinlerinin içi, <code>files/cache</code> ve <code>files/logs</code>, <code>vnl/</code> (<code>vnl/assets/</code> hariç), <code>vnl.bak</code>/<code>dist</code>/<code>tests</code>/<code>docker</code> 403 döner; yükleme dizinlerinde betik çalışmaz. <code>/config</code>, <code>/jobs</code> gibi dizin adındaki sayfalar ön denetleyiciye gider. <code>hiddenSegments</code> ve <code>fileExtensions</code> ikinci hattır; <code>~</code> içeren adresler (8.3 kısa adları) reddedilir. HTTPS yönlendirmesi kapalı gelir, kuralda <code>enabled="true"</code> ile açılır.</td>
                                 </tr>
                                 </tbody>
                             </table>

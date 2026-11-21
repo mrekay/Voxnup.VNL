@@ -238,6 +238,20 @@
                                 sığmayan sütunu <code>'render' =&gt; 'html'</code> ile açıkça işaretleyin.
                             </span>
                         </div>
+
+                        <div class="alert alert-danger d-flex align-items-start p-4">
+                            <i class="fa-solid fa-triangle-exclamation fs-2 text-danger me-3"></i>
+                            <span class="text-body fs-6">
+                                <b><code>'render' =&gt; 'html'</code> sütunu ham <code>innerHTML</code>'dir.</b>
+                                <code>vnltable.js</code> değeri hiçbir kaçıştan geçirmeden işaretleme olarak basar.
+                                Kullanıcının yazabildiği bir alan — ad, not, adres, açıklama, dosya adı — bu sütuna
+                                sunucuda <code>vnl_e()</code> / <code>htmlspecialchars()</code> uygulanmadan
+                                <b>asla</b> girmemelidir; girerse saklı XSS'tir: kaydı açan her kullanıcının
+                                tarayıcısında, onun oturumu ve CSRF jetonuyla script çalışır. Kaçışı satırları
+                                üreten action'da, değeri HTML'e eklediğiniz yerde yapın; veritabanına kaçışlı
+                                yazmayın. Aynı kural <code>detailUrl()</code> gövdesi için de geçerlidir.
+                            </span>
+                        </div>
                     </div>
                     <!--end::Sütun-->
 
