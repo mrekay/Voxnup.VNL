@@ -217,15 +217,50 @@ final class OidcVerifier
         return ['keys' => $json['keys'], 'expires' => time() + $ttl, 'fetched' => time()];
     }
 
+    /**
+     * Anahtar önbelleğinin yolu.
+     *
+     * 3.5.2: Varsayılan sys_get_temp_dir() DEĞİL. Paylaşımlı barındırmada
+     * /tmp bütün kiracılarındır ve dosya adı tahmin edilebilirdi; başka bir
+     * kiracı kendi anahtarını yazıp sahte id_token ile istediği hesaba
+     * girebilirdi. Önbellek artık projenin files/cache/oidc dizininde
+     * (0700, web'e kapalı) durur.
+     */
     private static function cacheFile(string $uri, array $opts): string
     {
-        $dir = (string)($opts['cache_dir'] ?? '') ?: sys_get_temp_dir();
+        $dir = (string)($opts['cache_dir'] ?? '');
+        if ($dir === '') {
+            $dir = (defined('VNL_ROOT') ? VNL_ROOT : dirname(__DIR__, 3)) . '/files/cache/oidc';
+        }
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0700, true);
+        }
         return rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . 'vnl-oidc-' . sha1($uri) . '.json';
+    }
+
+    /**
+     * Önbellek dosyasına güvenilir mi? Başkası yazabiliyorsa (grup/herkes
+     * yazma izni) ya da sahibi bu süreç değilse HAYIR: dosya yok sayılır ve
+     * anahtarlar sağlayıcıdan yeniden çekilir.
+     */
+    private static function trustedCacheFile(string $file): bool
+    {
+        $perms = @fileperms($file);
+        if ($perms === false || ($perms & 0022) !== 0) {
+            return false;
+        }
+        if (function_exists('posix_geteuid')) {
+            $owner = @fileowner($file);
+            if ($owner === false || $owner !== posix_geteuid()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static function readCache(string $file): ?array
     {
-        if (!is_file($file)) return null;
+        if (!is_file($file) || !self::trustedCacheFile($file)) return null;
         $data = json_decode((string)@file_get_contents($file), true);
         if (!is_array($data) || !is_array($data['keys'] ?? null)) return null;
         return [
@@ -239,6 +274,7 @@ final class OidcVerifier
     {
         $tmp = $file . '.' . bin2hex(random_bytes(4));
         if (@file_put_contents($tmp, json_encode($data)) !== false) {
+            @chmod($tmp, 0600);
             @rename($tmp, $file);
         }
         @unlink($tmp);

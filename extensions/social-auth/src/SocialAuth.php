@@ -84,12 +84,25 @@ final class SocialAuth
         return self::baseUrl() . '/oauth/' . $id . '/callback';
     }
 
-    /** Yalnız göreli, site içi dönüş yolu ("/login?ref=x"); aksi halde varsayılan. */
+    /**
+     * Yalnız göreli, site içi dönüş yolu ("/panel?ref=x"); aksi halde varsayılan.
+     *
+     * 3.5.2: Çekirdeğin vnl_safe_return_url()'ine devredildi. Eski denetim
+     * yalnız \\, CR ve LF'yi reddediyordu; "/\t/evil.com" (ret=/%09/evil.com)
+     * geçiyordu ve tarayıcı sekmeyi atıp //evil.com'a gidiyordu.
+     */
     public static function safeReturn(?string $ret): string
     {
+        $default = (string)(self::config()['default_return'] ?? '/');
+
+        if (function_exists('vnl_safe_return_url')) {
+            return vnl_safe_return_url((string)$ret) ?? $default;
+        }
+
         $ret = (string)$ret;
-        if ($ret === '' || $ret[0] !== '/' || str_starts_with($ret, '//') || strpbrk($ret, "\\\r\n") !== false) {
-            return (string)(self::config()['default_return'] ?? '/');
+        if ($ret === '' || $ret[0] !== '/' || ($ret[1] ?? '') === '/' || str_contains($ret, '\\')
+            || preg_match('/[\x00-\x20\x7F]/', $ret)) {
+            return $default;
         }
         return $ret;
     }
