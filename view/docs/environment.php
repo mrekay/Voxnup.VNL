@@ -248,6 +248,11 @@
                                     <td><code>X-Frame-Options</code>, <code>nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, TLS'te HSTS.</td>
                                 </tr>
                                 <tr>
+                                    <td class="ps-5"><code>VNL_MAX_JSON_BODY</code></td>
+                                    <td><code>1048576</code></td>
+                                    <td>JSON istek gövdesinin üst sınırı (bayt, 1 MB). Aşan istek <code>413</code> <code>VNL_BODY_TOO_LARGE</code> alır. Gövde giriş denetiminden önce okunduğu için sınır girişsiz isteği de kapsar. Form gönderimleri bu değere değil PHP'nin <code>post_max_size</code>'ına tabidir.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>VNL_PUBLIC_DOCS</code> · <code>VNL_PUBLIC_CAPTURE</code></td>
                                     <td><code>false</code></td>
                                     <td>Doküman sayfalarını girişsiz aç · 3.3'ün <code>$page_config['public']</code> geçiş kipi (güvenli değil).</td>

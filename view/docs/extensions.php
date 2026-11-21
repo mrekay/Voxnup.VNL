@@ -55,27 +55,30 @@ return [
 </code></pre>
                     </div>
 
-                    <div class="alert alert-warning d-flex align-items-center p-4 mb-8">
-                        <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
-                        <span class="text-body fs-6">Manifest yalnızca <code>boot.php</code> yüklemesini denetler. <b>Controller ve action fallback'i manifest'e bakmaz</b> — pasif bir eklentinin controller'ı yine de bulunabilir, ama <code>boot.php</code>'de tanımlanan sabitler ve sınıflar yüklü olmadığı için hata verir. Bir eklentiyi tamamen devre dışı bırakmak istiyorsanız klasörünü de kaldırın.</span>
+                    <div class="alert alert-info d-flex align-items-center p-4 mb-8">
+                        <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
+                        <span class="text-body fs-6">Manifest <b>her şeyi</b> denetler: <code>boot.php</code> yüklemesini, controller fallback'ini ve action fallback'ini. Pasif bir eklentinin sayfası 404, action'ı 404 döner; klasörü yerinde durabilir. Yalnızca değeri tam olarak <code>true</code> olan eklenti etkindir (<code>1</code> ya da <code>'true'</code> sayılmaz).</span>
                     </div>
 
                     <p class="fs-5 text-body mb-6">
-                        Action ve controller routing'i de extension klasörlerine fallback yapar:
+                        Projede karşılığı olmayan controller ve action, <b>yalnız etkin eklentilerin</b> klasörlerinde, manifest sırasıyla aranır. Proje dosyası her zaman önce gelir:
                     </p>
                     <div class="vnl-code mb-8">
-                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// controller/app.php — action fallback
-if (!file_exists($action_path)) {
-    foreach (glob(getDocumentRoot() . 'extensions/*/actions/action_' . route(1) . '.php') as $_extAction) {
-        $action_path = $_extAction;
-        break;
+                        <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// vnl/classes/VnlDispatcher.php — action fallback (/app/&lt;modül&gt;/&lt;metot&gt;)
+foreach (vnl_enabled_extensions() as $extension) {
+    $path = VNL_ROOT . '/extensions/' . $extension . '/actions/action_' . $module . '.php';
+    if (is_file($path)) {
+        return $path;
     }
 }
 
 // vnl/kernel.php — controller fallback
-foreach (glob(VNL_ROOT . '/extensions/*/controller/' . route(0) . '.php') as $_extCtrl) {
-    $controllerPath = $_extCtrl;
-    break;
+foreach (vnl_enabled_extensions() as $_extName) {
+    $_extCtrl = VNL_ROOT . '/extensions/' . $_extName . '/controller/' . route(0) . '.php';
+    if (is_file($_extCtrl)) {
+        $controllerPath = $_extCtrl;
+        break;
+    }
 }
 </code></pre>
                     </div>
@@ -326,7 +329,7 @@ class MyModel extends TableModel
                 </div>
                 <div class="card-body pt-2">
                     <p class="fs-5 text-body mb-5">
-                        Eklentiyi <b>geçici olarak</b> devre dışı bırakmak için manifest'teki değeri <code>false</code> yapmak yeterlidir — dosyalar yerinde kalır, hiçbir kod yüklenmez. <b>Tamamen kaldırmak</b> için ayrıca <code>extensions/{eklenti-adi}/</code> klasörünü silin; controller ve action fallback'i manifest'e bakmadığı için klasör dururken eklentinin sayfaları hâlâ bulunabilir.
+                        Eklentiyi <b>geçici olarak</b> devre dışı bırakmak için manifest'teki değeri <code>false</code> yapmak yeterlidir — dosyalar yerinde kalır, hiçbir kod yüklenmez, sayfaları ve action'ları 404 döner. <b>Tamamen kaldırmak</b> için ayrıca <code>extensions/{eklenti-adi}/</code> klasörünü ve manifest satırını silin; eklentinin migration'ları ya da tabloları varsa onları ayrıca temizlemeniz gerekir.
                     </p>
                     <div class="vnl-code mb-5">
                         <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// extensions/extensions.php

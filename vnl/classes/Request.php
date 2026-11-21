@@ -109,12 +109,25 @@ class Request
 
     /* ---------------------------------------------------------------- */
 
+    /** JSON gövdesinin varsayılan üst sınırı (bayt). VNL_MAX_JSON_BODY ezer. */
+    public const MAX_JSON_BODY = 1048576;
+
+    /** json_decode iç içe geçme sınırı. */
+    public const JSON_DEPTH = 64;
+
     /**
      * Gövdeyi okur.
      *
-     * Form gönderimi zaten $_POST'u doldurur. Boşsa gövde JSON olarak
-     * çözülmeye çalışılır; çözülemezse boş dizi döner — 2.x burada
-     * $_POST'u null yapıyordu.
+     * Form gönderimi zaten $_POST'u doldurur (sınırı PHP'nin post_max_size'ı).
+     * Boşsa ve istek **Content-Type: application/json** ise gövde JSON olarak
+     * çözülür; çözülemezse boş dizi döner.
+     *
+     * 4.0.0: Bu okuma giriş denetiminden ÖNCE, her istekte yapılır. Bu yüzden
+     *  - JSON yalnız Content-Type söylüyorsa çözülür (3.x her gövdeyi denerdi),
+     *  - gövde en fazla VNL_MAX_JSON_BODY bayt okunur, aşarsa 413,
+     *  - iç içe geçme JSON_DEPTH ile sınırlıdır; aşan gövde boş sayılır.
+     * Gövdeyi kendisi okuyanlar (Stripe webhook gibi) etkilenmez: Content-Type
+     * JSON değilse burada hiç okunmaz.
      *
      * JSON'daki tipler korunur: 0 sıfır kalır, false false kalır,
      * iç içe nesneler dizi olarak gelir.
@@ -125,13 +138,68 @@ class Request
             return $_POST;
         }
 
-        $body = @file_get_contents('php://input');
-        if ($body === false || trim($body) === '') {
+        if (!self::isJsonContentType($_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '')) {
             return [];
         }
 
-        $decoded = json_decode($body, true);
+        $max = self::maxJsonBody();
+
+        /* Başlık zaten fazlasını söylüyorsa gövdeye hiç dokunulmaz. */
+        $declared = $_SERVER['CONTENT_LENGTH'] ?? $_SERVER['HTTP_CONTENT_LENGTH'] ?? null;
+        if ($declared !== null && ctype_digit((string)$declared) && (int)$declared > $max) {
+            self::tooLarge();
+        }
+
+        /* Content-Length yalan söyleyebilir (chunked): bir bayt fazlası okunur. */
+        $body = @file_get_contents('php://input', false, null, 0, $max + 1);
+        if ($body === false) {
+            return [];
+        }
+        if (strlen($body) > $max) {
+            self::tooLarge();
+        }
+
+        return self::decodeJson($body);
+    }
+
+    /** application/json ya da +json (ör. application/merge-patch+json); parametreler yok sayılır. */
+    public static function isJsonContentType(string $contentType): bool
+    {
+        $type = strtolower(trim(explode(';', $contentType, 2)[0]));
+
+        return $type === 'application/json' || (str_starts_with($type, 'application/') && str_ends_with($type, '+json'));
+    }
+
+    /** Gövdeyi diziye çevirir; boş, bozuk, skaler ya da fazla derin gövde → []. */
+    public static function decodeJson(string $body): array
+    {
+        if (trim($body) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($body, true, self::JSON_DEPTH);
 
         return is_array($decoded) ? $decoded : [];
+    }
+
+    /** VNL_MAX_JSON_BODY (bayt); geçersiz ya da pozitif değilse varsayılan. */
+    public static function maxJsonBody(): int
+    {
+        $value = class_exists('VnlEnv') ? VnlEnv::get('VNL_MAX_JSON_BODY', self::MAX_JSON_BODY) : self::MAX_JSON_BODY;
+
+        return (is_int($value) || (is_string($value) && ctype_digit($value))) && (int)$value > 0
+            ? (int)$value
+            : self::MAX_JSON_BODY;
+    }
+
+    private static function tooLarge(): never
+    {
+        http_response_code(413);
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        echo json_encode(['message' => 'Request body too large', 'devcode' => 'VNL_BODY_TOO_LARGE']);
+
+        exit;
     }
 }

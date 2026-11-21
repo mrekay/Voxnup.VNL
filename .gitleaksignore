@@ -1,0 +1,14 @@
+# gitleaks — incelenip yanlış alarm olduğu doğrulanan bulgular (2026-11-22).
+# Parmak izi commit + dosya + kural + satırdır; yeni bir bulgu bunlarla eşleşmez.
+# Bir satır eklemeden önce değerin gerçekten sır olmadığını doğrulayın.
+
+# Test kullanıcısının parolası; yalnız compose.test.yml'nin geçici veritabanında yaşar.
+d279a9d5d2ccce2b2c041339176bbbd1d43ac462:vnl/tests/db/AuthFlowTest.php:generic-api-key:17
+# Stripe'ın kendi README'sindeki belge örneği anahtar (sk_test_BQok…).
+05f371eb16dfc54b7d6dc37523d02ea07b3dc23d:extensions/stripe/vendor/stripe/stripe-php/README.md:stripe-access-token:56
+# Boş "DB_PASSWORD=" — kural bir sonraki satırı değer sandı.
+9a8531225747b1583a798daee0ea1b3600a7db34:.env.example:generic-api-key:24
+# RFC 6455'in örnek Sec-WebSocket-Key değerleri (artık depoda olmayan libs/vendor).
+0acb3d5ef553f1950782f4f09e7880af4e61fd8d:libs/vendor/ratchet/rfc6455/tests/unit/Handshake/ServerNegotiatorTest.php:generic-api-key:102
+0acb3d5ef553f1950782f4f09e7880af4e61fd8d:libs/vendor/ratchet/rfc6455/tests/unit/Handshake/ServerNegotiatorTest.php:generic-api-key:134
+0acb3d5ef553f1950782f4f09e7880af4e61fd8d:libs/vendor/ratchet/rfc6455/tests/unit/Handshake/ServerNegotiatorTest.php:generic-api-key:168

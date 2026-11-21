@@ -35,6 +35,29 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
   (`POST /app/social/google`) `PUBLIC_METHODS` ile girişe açıldı ve istemci
   `X-CSRF-Token` gönderiyor: 3.4.0 dağıtıcısında bu ikisi olmadan uç girişsiz
   kullanıcıya 401, jetonsuz isteğe 403 dönüyordu.
+- **Sır taraması (CI).** `gitleaks` her push'ta bütün geçmişi tarar. Bugüne kadarki
+  altı bulgu incelendi, hepsi yanlış alarm (belge örnekleri, test parolası); parmak
+  izleriyle `.gitleaksignore`'da duruyor.
+
+### Kırıcı değişiklikler
+
+- **JSON istek gövdesi yalnız `Content-Type: application/json` ile çözülür**
+  (`+json` türleri de). 3.x içerik türüne bakmadan her gövdeyi JSON olarak
+  denerdi. Başlıksız `fetch(…, {body: JSON.stringify(…)})` gönderen istemci artık boş
+  `$req->post()` görür; başlığı ekleyin. jQuery `$.post`, `vnl.js` ve VNL Table
+  etkilenmez.
+- **JSON gövdesine boyut ve derinlik sınırı.** Gövde giriş denetiminden önce okunduğu
+  için girişsiz istek de sınırsız bellek harcatabiliyordu. Artık en fazla
+  `VNL_MAX_JSON_BODY` bayt okunur (varsayılan 1 MB); aşan istek
+  `413 {"devcode":"VNL_BODY_TOO_LARGE"}` alır. 64 seviyeden derin gövde boş sayılır.
+  Form gönderimleri PHP'nin `post_max_size`'ına tabi kalır. Gövdeyi kendisi okuyan
+  uçlar (Stripe webhook) `php://input`'u yine okuyabilir.
+
+### Düzeltilenler
+
+- **/docs/extensions**, pasif eklentinin controller ve action'ının "yine de
+  bulunabileceğini" söylüyordu. 3.4.0'dan beri ikisi de yalnız etkin eklentilerde
+  aranıyor; belge koda göre düzeltildi.
 
 ---
 
