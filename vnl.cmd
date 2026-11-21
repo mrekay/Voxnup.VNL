@@ -12,7 +12,7 @@ if errorlevel 1 (
     echo   PHP komut satirinda bulunamadi.
     echo   PATH'e ekleyin ya da Docker ile calistirin:
     echo.
-    echo     docker run --rm -v "%cd%":/app -w /app php:8.2-cli php vnl.php %*
+    echo     docker run --rm -v "%cd%":/app -w /app php:8.3-cli php vnl.php %*
     echo.
     exit /b 1
 )

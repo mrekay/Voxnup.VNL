@@ -7,7 +7,10 @@
  */
 
 return static function (array $args): int {
-    $host = '0.0.0.0';
+    /* 4.0.0: varsayılan yalnız bu makine. 0.0.0.0 geliştirme sunucusunu
+       (hata ayrıntısı açık, sertleştirme yok) aynı ağdaki herkese açıyordu.
+       Konteynerde ya da başka cihazdan erişim için: --host 0.0.0.0 */
+    $host = '127.0.0.1';
     $port = '8080';
 
     foreach ($args as $i => $arg) {
@@ -25,7 +28,7 @@ return static function (array $args): int {
 
     php vnl.php serve
     php vnl.php serve --port 8091
-    php vnl.php serve --host 127.0.0.1 --port 8091
+    php vnl.php serve --host 0.0.0.0 --port 8091   (ag/konteyner; dikkat)
 
   Uretim icin degildir: php -S tek is parcaciklidir ve guvenlik
   sertlestirmesi yoktur.

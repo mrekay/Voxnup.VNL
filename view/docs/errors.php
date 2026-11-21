@@ -265,6 +265,31 @@ function vnl_project_error_page(Throwable $e): void
                             <span class="text-body fs-6"><b>Neden <code>set_exception_handler</code>'ı değiştirmek yetmez:</b> <code>vnl/kernel.php</code> denetleyiciyi kendi <code>try/catch</code>'i içinde çalıştırır ve hatayı doğrudan <code>vnl_render_error()</code>'a verir. Handler'ı değiştiren bir proje sayfa hatalarını kaçırır — yani en sık görülenleri. Kanca üç katmanın da tek geçtiği yerdedir.</span>
                         </div>
 
+                        <h4 class="fw-bold text-body-emphasis mb-3">Ayrıntıyı kimin göreceği: <code>vnl_project_error_detail()</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></h4>
+                        <p class="fs-5 text-body mb-4">
+                            Canlıda <code>APP_DEBUG</code> kapalıyken ayrıntılı sayfayı <b>yalnız belirli kişilere</b> (ör. geliştirici hesapları) açmak için ekranı yeniden yazmanız gerekmez. Proje <code>vnl_project_error_detail(Throwable $e): bool</code> tanımlar. Çekirdek bunu <code>vnl_error_detail_visible($e)</code> içinde sorar ve hem HTML sayfasında hem de action'ların JSON hata yanıtında (<code>VnlDispatcher</code>) uygular:
+                        </p>
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+// helpers/hata-ayrintisi.php
+
+function vnl_project_error_detail(Throwable $e): bool
+{
+    global $CurrentUser;
+
+    return vnl_logged_in()
+        &amp;&amp; isset($CurrentUser)
+        &amp;&amp; (int)($CurrentUser-&gt;id ?? 0) &gt; 0
+        &amp;&amp; !empty($CurrentUser-&gt;is_developer);
+}</code></pre>
+                        </div>
+                        <ul class="fs-5 text-body mb-5">
+                            <li class="mb-2">Yalnız <code>true</code> açar. <code>1</code>, <code>"yes"</code> ya da başka bir değer kapalı sayılır.</li>
+                            <li class="mb-2">Kanca hatanın <b>içinde</b> çalışır. Oturum ya da kullanıcı yüklenmeden de çağrılabilir. Fırlatırsa kapı kapalı kalır.</li>
+                            <li class="mb-2">İstisna her durumda günlüğe yazılır. Kanca yalnız ekranda ne görüneceğini belirler.</li>
+                            <li class="mb-0"><code>vnl_project_error_page()</code> tanımlıysa önce o çalışır. O dönerse çekirdeğin ekranı bu kararla basılır.</li>
+                        </ul>
+
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
                             <span class="text-body fs-6"><b>Çıktıyı önce kurun, sonra basın.</b> Yarım basılmış bir ekranın üstüne — fonksiyon o sırada hata alırsa — çekirdeğin sayfası eklenir ve ortaya okunmaz bir yanıt çıkar. Ekranı bir dizeye hazırlayıp tek <code>echo</code> ile basmak bu ihtimali kapatır. Aynı sebeple: hatanın kaydını <b>önce</b> ucuz olan yere (dosya/<code>error_log</code>) yazın; veritabanı zaten çökmüş olabilir ve her deneme sürücü zaman aşımı kadar bekletir.</span>

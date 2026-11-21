@@ -57,6 +57,9 @@ return static function (array $args): int {
     $user->save();
 
     UserModule::ForgetAllDevices($user->id);
+    /* 4.0.0: açık oturumlar AuthStamp ile kendiliğinden düşer; "beni
+       hatırla" jetonları ayrıca silinir, yoksa çerez yeniden açardı. */
+    UserModule::ForgetAllDevices($user->id);
     Audit::log('auth.password_changed', 'user', $user->id, ['via' => 'cli']);
 
     fwrite(STDOUT, "\n  Parola degistirildi: {$user->username}\n");

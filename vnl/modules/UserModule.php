@@ -33,8 +33,46 @@ class UserModule
                 'user_id'    => $user_data->id,
                 'login_time' => time(),
                 'last_seen'  => time(),
+                'auth_stamp' => self::AuthStamp($user_data),
             ]);
             vnl_csrf_rotate();
+        }
+    }
+
+    /**
+     * Hesabın kimlik bilgilerinin parmak izi (4.0.0).
+     *
+     * Parola hash'i ile TOTP sırrından türetilir ve girişte oturuma yazılır.
+     * Her istekte (SetCurrentUserInfo) yeniden hesaplanır; tutmazsa parola
+     * ya da 2FA bu oturum açıldıktan SONRA değişmiştir ve oturum kapanır.
+     * 3.x'te parolası değiştirilen hesabın açık oturumları — parolayı çalan
+     * kişininki dahil — açık kalıyordu.
+     *
+     * Ayrı bir "sürüm" sütunu yerine türetme: parolayı ya da TOTP'yi
+     * değiştiren HER yol (panel, konsol, projenin kendi kodu) hiçbir şey
+     * çağırmadan oturumları düşürür. Yan etkisi: girişte maliyet yükseltmesi
+     * (PasswordNeedsRehash) hash'i değiştirdiği için o anda açık olan DİĞER
+     * oturumlar bir kez kapanır.
+     *
+     * Ham değer oturuma girmez; yalnız özet, o da kısaltılmış.
+     */
+    static function AuthStamp($user): string
+    {
+        $password = method_exists($user, 'storedPassword') ? (string)$user->storedPassword() : '';
+        $attrs    = method_exists($user, 'getAttributes') ? $user->getAttributes() : (array)$user;
+        $totp     = (string)($attrs['totp_secret'] ?? '');
+
+        return substr(hash('sha256', 'vnl-auth|' . $password . "\0" . $totp), 0, 32);
+    }
+
+    /**
+     * Kendi parolasını ya da 2FA'sını değiştiren kullanıcının BU oturumu
+     * açık kalsın diye çağrılır; diğer oturumları yine kapanır.
+     */
+    static function RefreshAuthStamp($user): void
+    {
+        if ((int)Session::get('user_id') === (int)($user->id ?? 0)) {
+            Session::set('auth_stamp', self::AuthStamp($user));
         }
     }
 
@@ -123,6 +161,26 @@ class UserModule
         $user = User::Select(['id' => Session::get('user_id')]);
 
         if (empty($user) || empty($user->id) || !self::IsActiveUser($user)) {
+            self::LogOut();
+
+            return;
+        }
+
+        /* Kimlik bilgisi bu oturumdan sonra değişti mi? (AuthStamp, 4.0.0)
+           Değiştiyse oturum ve bu cihazın jetonu gider. Damgası olmayan
+           oturum 4.0 öncesinden kalmadır: kapatılmaz, damgalanır. */
+        $stamp = self::AuthStamp($user);
+        $saved = Session::get('auth_stamp');
+
+        if ($saved === null || $saved === '') {
+            Session::set('auth_stamp', $stamp);
+        } elseif (!is_string($saved) || !hash_equals($saved, $stamp)) {
+            try {
+                Audit::log('auth.session_revoked', 'user', $user->id, ['reason' => 'credentials_changed']);
+            } catch (Throwable $e) {
+                error_log('[VNL][Auth] Audit: ' . $e->getMessage());
+            }
+
             self::LogOut();
 
             return;
@@ -286,6 +344,22 @@ class UserModule
             return;
         }
 
+        /* 4.0.0: Jeton oluşturulduktan sonra parola ya da 2FA değiştiyse
+           jeton artık geçmez (0008). Damgasız jeton 4.0 öncesinden kalmadır. */
+        $tokenStamp = $token->auth_stamp ?? null;
+        if (is_string($tokenStamp) && $tokenStamp !== '' && !hash_equals($tokenStamp, self::AuthStamp($user))) {
+            $token->delete();
+            self::clearRememberCookie();
+
+            try {
+                Audit::log('auth.remember_revoked', 'user', $user->id, ['reason' => 'credentials_changed']);
+            } catch (Throwable $e) {
+                error_log('[VNL][Auth] Audit: ' . $e->getMessage());
+            }
+
+            return;
+        }
+
         self::SetUser($user);
 
         /* Jeton döndürülür: aynı çerez ikinci kez kullanılamaz. */
@@ -311,14 +385,25 @@ class UserModule
         $raw     = bin2hex(random_bytes(32));
         $expires = time() + $days * 86400;
 
-        RememberToken::create([
+        $row = [
             'user_id'    => $user->id,
             'token_hash' => RememberToken::hashOf($raw),
+            'auth_stamp' => self::AuthStamp($user),
             'expires_at' => date('Y-m-d H:i:s', $expires),
             'user_agent' => mb_substr(self::CurrentBrowser(), 0, 255),
             'ip_address' => mb_substr(self::CurrentIp(), 0, 45),
             'created_at' => date('Y-m-d H:i:s'),
-        ]);
+        ];
+
+        try {
+            RememberToken::create($row);
+        } catch (Throwable $e) {
+            /* 0008 uygulanmamış (auth_stamp sütunu yok): giriş düşmesin,
+               jeton damgasız yazılsın. Sebep günlüğe. */
+            error_log('[VNL][Auth] Jeton damgasız yazıldı (php vnl.php migrate --run): ' . $e->getMessage());
+            unset($row['auth_stamp']);
+            RememberToken::create($row);
+        }
 
         setcookie(self::rememberCookieName(), $raw, [
             'expires'  => $expires,
@@ -437,9 +522,12 @@ class UserModule
      * Kullanıcının ip adresini döner
      * @return string
      */
+    /** İstemcinin adresi; güvenilen vekil arkasında gerçek adres (vnl_client_ip, 4.0.0). */
     static function CurrentIp(): string
     {
-        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0:0:0';
+        $ip = vnl_client_ip();
+
+        return $ip !== '' ? $ip : '0:0:0';
     }
 
     /**

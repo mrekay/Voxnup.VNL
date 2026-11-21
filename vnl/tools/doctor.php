@@ -391,21 +391,21 @@ TXT
 
     /* ---- Çalışma ortamı ---- */
     $checks[] = $check(
-        'PHP 8.2+',
-        PHP_VERSION_ID >= 80200,
-        'VNL 3.0 PHP 8.2 ister; kurulu surum ' . PHP_VERSION . '.'
+        'PHP 8.3+',
+        PHP_VERSION_ID >= 80300,
+        'VNL 4.0 PHP 8.3 ister (Illuminate 13); kurulu surum ' . PHP_VERSION . '.'
     );
 
     /* PHP 2026-10-21 güvenlik yayını: CVE-2026-109618 ve CVE-2026-109619,
-       ikisi de uzaktan kod çalıştırma. Her dalın yamalı ilk sürümü; 8.2'den
-       eski dallar yama almadı, listede olmayan yeni dallar yamalı doğdu. */
-    $phpPatched = [80200 => 80235, 80300 => 80336, 80400 => 80427, 80500 => 80512];
+       ikisi de uzaktan kod çalıştırma. Her dalın yamalı ilk sürümü; listede
+       olmayan yeni dallar yamalı doğdu. 8.2 ve öncesi zaten desteklenmiyor. */
+    $phpPatched = [80300 => 80336, 80400 => 80427, 80500 => 80512];
     $phpBranch  = intdiv(PHP_VERSION_ID, 100) * 100;
     $checks[] = $check(
         'PHP guvenlik yamasi (CVE-2026-109618, CVE-2026-109619)',
-        $phpBranch >= 80200 && PHP_VERSION_ID >= ($phpPatched[$phpBranch] ?? 0),
+        $phpBranch >= 80300 && PHP_VERSION_ID >= ($phpPatched[$phpBranch] ?? 0),
         'PHP ' . PHP_VERSION . " uzaktan kod calistirma acigi tasiyor. En az\n"
-        . "        8.2.35 / 8.3.36 / 8.4.27 / 8.5.12'ye guncelleyin. Bu denetim komut\n"
+        . "        8.3.36 / 8.4.27 / 8.5.12'ye guncelleyin. Bu denetim komut\n"
         . "        satirindaki PHP'yi olcer; web sunucusu (FPM, mod_php) ayri bir\n"
         . "        kurulumsa onun surumunu da denetleyin (phpinfo())."
     );
@@ -420,6 +420,69 @@ TXT
             $fatal
         );
     }
+
+    /* ---- Çekirdeği ezen proje dosyaları (4.0.0) ----
+       Kökteki aynı adlı dosya vnl/ altındakinin yerine geçer ve o dosyaya
+       gelen her düzeltme — güvenlik yamaları dahil — bu projeye ulaşmaz.
+       Ezme yasak değil ama bilinçli olmalı; güvenlik kapısı taşıyan
+       dosyalar ayrıca işaretlenir. */
+    $sensitive = ['Session.php', 'Request.php', 'VnlDispatcher.php', 'UserModule.php', 'EncryptionModule.php',
+                  'RememberToken.php', 'ApiToken.php', 'RateLimiter.php', 'Audit.php', 'Totp.php',
+                  'FileRequest.php', 'FileManagerModule.php', 'app.php', 'DefaultValidator.php', 'CurlModule.php'];
+    $overrides = [];
+    foreach (['classes', 'modules', 'helpers', 'validators', 'exceptions'] as $dir) {
+        foreach (glob(VNL_PATH . '/' . $dir . '/*.php') ?: [] as $core) {
+            if (is_file(VNL_ROOT . '/' . $dir . '/' . basename($core))) {
+                $overrides[] = $dir . '/' . basename($core);
+            }
+        }
+    }
+    $risky = array_values(array_filter($overrides, static fn($f) => in_array(basename($f), $sensitive, true)));
+    $plain = array_values(array_diff($overrides, $risky));
+
+    $checks[] = $check(
+        'guvenlik dosyalari cekirdekten geliyor',
+        $risky === [],
+        'Su proje dosyalari guvenlik kapisi tasiyan cekirdek dosyalarini eziyor;'
+        . "\n        cekirdegin bu dosyalara gelen yamalari projeye ULASMAZ:\n          "
+        . implode("\n          ", $risky)
+        . "\n        Gerekmiyorsa silin; gerekiyorsa her surumde vnl/ karsiligiyla karsilastirin.",
+        false
+    );
+    $checks[] = $check(
+        'cekirdegi ezen proje dosyasi yok',
+        $plain === [],
+        "Bu dosyalar vnl/ karsiliginin yerine yuklenir (yamalar ulasmaz):\n          "
+        . implode("\n          ", $plain),
+        false
+    );
+
+    /* ---- Güncelleme (4.0.0: imzalı arşiv) ---- */
+    $checks[] = $check(
+        'eklenti: sodium',
+        function_exists('sodium_crypto_sign_verify_detached'),
+        "Guncelleyici arsivin imzasini dogrulayamaz; 'update' ancak --insecure\n"
+        . "        ile calisir. PHP'yi sodium ile kurun (resmi paketlerde varsayilan acik).",
+        false
+    );
+    $checks[] = $check(
+        'eklenti: curl',
+        function_exists('curl_init') || (bool)ini_get('allow_url_fopen'),
+        "Sunucu disariya baglanamiyor: 'update --check' calismaz. Arsivi ve .sig\n"
+        . "        dosyasini elle indirip 'update --file' kullanin.",
+        false
+    );
+    $keysFile = VNL_PATH . '/KEYS';
+    $keyLines = is_file($keysFile)
+        ? preg_grep('/^ed25519\s+[0-9a-f]{16}\s+\S+/', array_map('trim', file($keysFile) ?: []))
+        : [];
+    $checks[] = $check(
+        'vnl/KEYS yayin anahtari tasiyor',
+        $keyLines !== [],
+        "Guvenilen yayin anahtari yok; hicbir imza dogrulanamaz ve 'update'\n"
+        . "        ancak --insecure ile calisir.",
+        false
+    );
 
     /* ---- Rapor ---- */
     $fails = 0;

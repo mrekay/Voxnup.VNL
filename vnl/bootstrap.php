@@ -23,10 +23,13 @@ error_reporting(vnl_debug() ? E_ALL : (E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATE
    oturumu bu süreden önce silmemeli, yoksa sınır anlamını yitirir. */
 ini_set('session.gc_maxlifetime', (string)max(3600, (int)VnlEnv::get('VNL_SESSION_IDLE', 3600)));
 
-/* Web isteği başına 20 sn PHP çalışma süresi. Uzun işler kuyruğa gider
-   (php vnl.php queue:work); konsol sınırı vnl_cli_boot() kaldırır. */
+/* Web isteği başına PHP çalışma süresi (sn). Uzun işler kuyruğa gider
+   (php vnl.php queue:work); konsol sınırı vnl_cli_boot() kaldırır.
+   4.0.0: VNL_TIME_LIMIT ile ayarlanır (0 = sınırsız; geçersizse 20). */
 if (PHP_SAPI !== 'cli') {
-    set_time_limit(20);
+    $vnl_time_limit = (string)VnlEnv::get('VNL_TIME_LIMIT', '20');
+    set_time_limit(ctype_digit($vnl_time_limit) ? (int)$vnl_time_limit : 20);
+    unset($vnl_time_limit);
 }
 
 /**
@@ -63,6 +66,13 @@ if (!in_array($vnl_samesite, ['Lax', 'Strict', 'None'], true) || ($vnl_samesite 
 }
 
 if (PHP_SAPI !== 'cli') {
+    /* Çerez adı (4.0.0): PHPSESSID yerine VNLSESSID. Aynı alan adında başka
+       bir PHP uygulamasının oturumuyla çakışmaz. Geçersiz ad PHP'yi uyarıya
+       düşürdüğü için yalnız harf/rakam kabul edilir, değilse varsayılan. */
+    $vnl_session_name = (string)VnlEnv::get('VNL_SESSION_NAME', 'VNLSESSID');
+    session_name(preg_match('/^[A-Za-z][A-Za-z0-9]{0,63}$/', $vnl_session_name) ? $vnl_session_name : 'VNLSESSID');
+    unset($vnl_session_name);
+
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
     ini_set('session.use_trans_sid', '0');
@@ -80,20 +90,91 @@ if (PHP_SAPI !== 'cli') {
 unset($vnl_samesite);
 
 /**
- * Güvenlik başlıkları (3.4.0) — VNL_SECURITY_HEADERS=false ile kapatılır.
+ * Güvenlik başlıkları (3.4.0) — VNL_SECURITY_HEADERS=false hepsini kapatır.
  *
- * CSP bilerek YOK: tema ve sayfalar satır içi <script> kullanıyor; nonce'suz
- * bir CSP ya hiçbir şeyi engellemez ya da her sayfayı kırar. İleri iş.
+ * 4.0.0: Her başlığın değeri ayrı ayarlanır; boş ya da false o başlığı
+ * göndermez. 3.x yalnız toptan kapatmaya izin veriyordu — mikrofon isteyen
+ * bir proje bütün başlıklardan vazgeçmek zorunda kalıyordu. nosniff
+ * ayarlanamaz: kapatılmasını gerektiren meşru bir durum yok.
+ *
+ * Referrer-Policy varsayılanı same-origin → strict-origin-when-cross-origin
+ * (tarayıcıların kendi varsayılanı). same-origin dış sitelere hiç Referer
+ * göndermiyordu; YouTube gibi gömmeler bu yüzden oynatmayı reddediyor.
+ * Karşı siteye yalnız köken (https://alan.com) gider, yol ve sorgu gitmez.
+ *
+ * 4.0.0: Content-Security-Policy. Tema ve sayfalar satır içi <script> ve
+ * onclick kullanıyor; nonce'suz bir script-src ya hiçbir şeyi engellemez
+ * ('unsafe-inline') ya da her sayfayı kırar. Bu yüzden varsayılan CSP
+ * script'e DOKUNMAZ, yalnız temanın hiç kullanmadığı iki kapıyı kapatır:
+ *
+ *   object-src 'none'  <object>/<embed> ile eklenti içeriği. Temada, view/
+ *                      altında ve uzantılarda tek kullanım yok; enjekte
+ *                      edilmiş bir <embed> script-src'yi dolanabiliyordu.
+ *   base-uri 'self'    Enjekte edilmiş <base href="//saldirgan"> bütün göreli
+ *                      <script src>'leri karşı siteye çevirir. Hiçbir sayfa
+ *                      <base> yazmıyor; jQuery'nin parseHTML'de kurduğu
+ *                      <base> ayrı bir belgede ve zaten kendi adresimiz.
+ *
+ * frame-ancestors bilerek YOK: aynı işi X-Frame-Options: SAMEORIGIN yapıyor
+ * ve tarayıcıda CSP ondan önce gelir. İkisini birden göndermek, çerçeveye
+ * izin vermek için VNL_HEADER_FRAME_OPTIONS=false yazan projeyi sessizce
+ * kilitli bırakırdı — tek iş için tek anahtar.
+ *
+ * Report-Only varsayılanı BOŞ: VNL'de rapor toplayan bir uç yok, raporlar
+ * yalnız tarayıcı konsoluna düşer ve canlıda kimse okumaz. script-src içeren
+ * anlamlı bir politika ise Google Sign-In gibi meşru dış script'ler için
+ * her sayfada uyarı basar — sinyali gürültüye gömer. Sıkı politikaya geçmek
+ * isteyen proje önce VNL_HEADER_CSP_REPORT_ONLY ile dener (.env.example).
  */
-if (PHP_SAPI !== 'cli' && !headers_sent() && VnlEnv::get('VNL_SECURITY_HEADERS', true) !== false) {
-    header('X-Frame-Options: SAMEORIGIN');
-    header('X-Content-Type-Options: nosniff');
-    header('Referrer-Policy: same-origin');
-    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-
-    if ($isSecure) {
-        header('Strict-Transport-Security: max-age=31536000');
+function vnl_security_headers(bool $secure): array
+{
+    if (VnlEnv::get('VNL_SECURITY_HEADERS', true) === false) {
+        return [];
     }
+
+    $spec = [
+        'X-Frame-Options'    => ['VNL_HEADER_FRAME_OPTIONS', 'SAMEORIGIN'],
+        'Referrer-Policy'    => ['VNL_HEADER_REFERRER_POLICY', 'strict-origin-when-cross-origin'],
+        'Permissions-Policy' => ['VNL_HEADER_PERMISSIONS_POLICY', 'camera=(), microphone=(), geolocation=()'],
+        'Content-Security-Policy'             => ['VNL_HEADER_CSP', "object-src 'none'; base-uri 'self'"],
+        'Content-Security-Policy-Report-Only' => ['VNL_HEADER_CSP_REPORT_ONLY', ''],
+    ];
+    if ($secure) {
+        $spec['Strict-Transport-Security'] = ['VNL_HEADER_HSTS', 'max-age=31536000'];
+    }
+
+    $headers = ['X-Content-Type-Options' => 'nosniff'];
+
+    foreach ($spec as $name => [$key, $default]) {
+        $value = VnlEnv::get($key, $default);
+        $value = $value === false || $value === null ? '' : trim(str_replace(["\r", "\n"], '', (string)$value));
+
+        if ($value !== '') {
+            $headers[$name] = $value;
+        }
+    }
+
+    return $headers;
+}
+
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    foreach (vnl_security_headers($isSecure) as $vnl_name => $vnl_value) {
+        header($vnl_name . ': ' . $vnl_value);
+    }
+    unset($vnl_name, $vnl_value);
+}
+
+/* İmza (4.0.0): PHP'nin "X-Powered-By: PHP/8.x.y" başlığı yerine
+   "VNL (Voxnup Not Laravel)". Sürüm bilerek yazılmaz — numara, saldırgana
+   hangi açığı deneyeceğini söyler. VNL_POWERED_BY= (boş) başlığı kaldırır. */
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    header_remove('X-Powered-By');
+    $vnl_powered_by = VnlEnv::get('VNL_POWERED_BY', true);
+    $vnl_powered_by = $vnl_powered_by === true ? 'VNL (Voxnup Not Laravel)' : trim((string)$vnl_powered_by);
+    if ($vnl_powered_by !== '') {
+        header('X-Powered-By: ' . str_replace(["\r", "\n"], '', $vnl_powered_by));
+    }
+    unset($vnl_powered_by);
 }
 
 $cDefinitions = new ConfigDefinitions();
@@ -157,6 +238,10 @@ spl_autoload_register('loadClass');
 /* Yardımcılar: controller(), view(), lang() ve arkadaşları. Projenin kendi
    yardımcıları helpers/ altındadır; eski libs/helper/special/ oraya taşındı. */
 vnl_load_dir('helpers');
+
+/* Projenin enum'ları (4.0.0). Çekirdek enums/ taşımaz; proje koyarsa
+   yardımcılardan hemen sonra, modüllerden önce yüklenir. */
+vnl_load_dir('enums');
 
 ob_start();
 

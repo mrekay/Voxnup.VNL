@@ -30,6 +30,38 @@ function vnl_debug(): bool
 }
 
 /**
+ * Bu hatanın AYRINTISI (kaynak, yol, yığın izi, SQL) bu istekte gösterilsin mi?
+ *
+ * APP_DEBUG=true ise evet. Değilse projenin kancası sorulur (4.0.0):
+ *
+ *     // helpers/error_detail.php
+ *     function vnl_project_error_detail(Throwable $e): bool
+ *     {
+ *         return vnl_logged_in() && !empty($GLOBALS['CurrentUser']->is_developer);
+ *     }
+ *
+ * Kanca hatanın İÇİNDE çalışır: oturum ve kullanıcı henüz yüklenmemiş
+ * olabilir. Fırlatırsa ya da true dışında bir şey dönerse cevap HAYIR'dır —
+ * kapı kapalı kalır. Çekirdek yalnız ekranı açar; günlüğe her durumda yazılır.
+ */
+function vnl_error_detail_visible(Throwable $e): bool
+{
+    if (vnl_debug()) {
+        return true;
+    }
+
+    if (!function_exists('vnl_project_error_detail')) {
+        return false;
+    }
+
+    try {
+        return vnl_project_error_detail($e) === true;
+    } catch (Throwable $_e) {
+        return false;
+    }
+}
+
+/**
  * İstisnayı sunucu günlüğüne yazar ve kullanıcıya gösterilecek başvuru
  * kodunu döner. Kullanıcı kodu bildirir, geliştirici günlükte arar.
  */
@@ -249,10 +281,12 @@ function vnl_render_error(Throwable $e): never
     }
 
     /* Canlı kip: ayrıntı günlüğe, kullanıcıya yalnız başvuru kodu.
-       Kaynak kod, dosya yolu, yığın izi ve SQL metni dışarı çıkmaz. */
-    if (!vnl_debug()) {
+       Kaynak kod, dosya yolu, yığın izi ve SQL metni dışarı çıkmaz —
+       projenin kancası bu isteğe izin vermediyse (vnl_error_detail_visible). */
+    if (!vnl_error_detail_visible($e)) {
         vnl_render_error_production(vnl_log_exception($e));
     }
+    vnl_log_exception($e);
 
     // AJAX/API isteğinde HTML sayfa değil JSON dön — aksi halde ön yüz sessizce takılır
     if (vnl_wants_json()) {
@@ -685,7 +719,7 @@ HTML;
                 $type = gettype($arg);
                 $val  = '';
                 switch ($type) {
-                    case 'string':  $val = '"' . htmlspecialchars(mb_substr($arg, 0, 120)) . (mb_strlen($arg) > 120 ? '…' : '') . '"'; break;
+                    case 'string':  $val = '"' . htmlspecialchars(function_exists('mb_substr') ? mb_substr($arg, 0, 120) : substr($arg, 0, 120)) . (strlen($arg) > 120 ? '…' : '') . '"'; break;
                     case 'integer':
                     case 'double':  $val = htmlspecialchars((string)$arg); break;
                     case 'boolean': $val = $arg ? 'true' : 'false'; break;

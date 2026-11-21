@@ -24,41 +24,71 @@ class DefaultValidator
         self::validateEmpty($param, $region);
     }
 
+    /**
+     * Parola kuralı (4.0.0: ayarlanabilir).
+     *
+     *   VNL_PASSWORD_MIN_LENGTH=8                         en az karakter (çok baytlı harf 1 sayılır)
+     *   VNL_PASSWORD_REQUIRE=upper,lower,digit,symbol     istenen sınıflar; boş = hiçbiri
+     *
+     * Varsayılan 3.x'in sabit kuralıdır: 8 karakter, dört sınıfın hepsi.
+     *
+     * @return array{min:int,require:string[]}
+     */
+    static function passwordPolicy(): array
+    {
+        $min = (string)VnlEnv::get('VNL_PASSWORD_MIN_LENGTH', '8');
+        $req = VnlEnv::get('VNL_PASSWORD_REQUIRE', 'upper,lower,digit,symbol');
+        $req = $req === false || $req === null ? '' : (string)$req;
+
+        $require = array_values(array_intersect(
+            ['upper', 'lower', 'digit', 'symbol'],
+            array_map(static fn($r) => strtolower(trim($r)), explode(',', $req))
+        ));
+
+        return [
+            'min'     => ctype_digit($min) && (int)$min > 0 ? (int)$min : 8,
+            'require' => $require,
+        ];
+    }
+
     static function validateValidPassword($password, $region = '')
     {
-        // Minimum şifre uzunluğunu belirleyelim
-        $minLength = 8;
-
-        // Şifre boş mu kontrolü
         if (empty($password)) {
             throw new StandartException(empty($region) ? lang('PLEASE_FILL_THE_REQUIRED_FIELD') : lang('PLEASE_FILL_IN_FIELD', $region));
         }
 
-        // Şifre uzunluk kontrolü
-        if (strlen($password) < $minLength) {
-            throw new StandartException("Şifre en az {$minLength} karakter uzunluğunda olmalıdır.");
+        $password = (string)$password;
+        $policy   = self::passwordPolicy();
+        $length   = function_exists('mb_strlen') ? mb_strlen($password, 'UTF-8') : strlen($password);
+
+        if ($length < $policy['min']) {
+            throw new StandartException("Şifre en az {$policy['min']} karakter uzunluğunda olmalıdır.");
         }
 
-        // Büyük harf kontrolü
-        if (!preg_match('/[A-Z]/', $password)) {
-            throw new StandartException("Şifre en az bir büyük harf içermelidir.");
-        }
+        $rules = [
+            'upper'  => ['/\p{Lu}/u', 'Şifre en az bir büyük harf içermelidir.'],
+            'lower'  => ['/\p{Ll}/u', 'Şifre en az bir küçük harf içermelidir.'],
+            'digit'  => ['/[0-9]/', 'Şifre en az bir rakam içermelidir.'],
+            'symbol' => ['/[^\p{L}\p{N}]/u', 'Şifre en az bir özel karakter içermelidir.'],
+        ];
 
-        // Küçük harf kontrolü
-        if (!preg_match('/[a-z]/', $password)) {
-            throw new StandartException("Şifre en az bir küçük harf içermelidir.");
-        }
-
-        // Sayı kontrolü
-        if (!preg_match('/[0-9]/', $password)) {
-            throw new StandartException("Şifre en az bir rakam içermelidir.");
-        }
-
-        // Özel karakter kontrolü
-        if (!preg_match('/[\W_]/', $password)) { // \W, harf veya sayı olmayan karakterleri kapsar
-            throw new StandartException("Şifre en az bir özel karakter içermelidir.");
+        foreach ($policy['require'] as $rule) {
+            if (!preg_match($rules[$rule][0], $password)) {
+                throw new StandartException($rules[$rule][1]);
+            }
         }
     }
+
+    /**
+     * validateValidPassword ile aynı kural. Web isteğinde ihlal 400 yanıtıyla
+     * biter (StandartException'ın kurucusu yazar). Voxnup'ın kullandığı ad;
+     * proje validators/ ezmesi olmadan çağırabilsin diye çekirdekte.
+     */
+    static function requireValidPassword($password, $region = '')
+    {
+        self::validateValidPassword($password, $region);
+    }
+
     static function validateEmptyOption($param, $region = '')
     {
         if (empty($param)) {

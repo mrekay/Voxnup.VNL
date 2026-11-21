@@ -13,6 +13,319 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [4.0.0] — 2026-11-22
+
+Bilerek kırıcı yapılmış bir ana sürüm. Getirdikleri:
+- composer gerektirmeyen bir test paketi ve CI;
+- imzalı güncelleme;
+- Illuminate 13 ve PHP 8.3;
+- 3.x güvenlik incelemesinin bütün bulgularının düzeltmesi;
+- türetilmiş projelerin çekirdek dosyası kopyalamak zorunda kaldığı yerler için
+  ayarlar ve kancalar.
+
+**3.x kurulumları 4.0'a kendiliğinden geçmez.** Geçiş ayrı bir komuttur.
+Aşağıdaki "Yükseltme" bölümünü baştan sona okuyun.
+
+### Yükseltme (3.x → 4.0.0)
+
+1. **Önce 3.5.3'e geçin:** `php vnl.php update --to 3.5.3`. 3.5.2 ve öncesinin
+   güncelleyicisi ana sürüm geçişini ve imzayı bilmez.
+2. **Sunucuda PHP 8.3 ya da üstü olmalı.** Hem web (FPM) hem konsol için.
+   Güncelleyici yeni çekirdeğin PHP isteğini kurulumdan önce denetler.
+3. **Projede şunları arayıp düzeltin:**
+   - JSON gönderen `fetch` çağrıları: `Content-Type: application/json` başlığı
+     olmadan gövde artık çözülmez.
+   - Carbon'un `diffIn*()` sonuçları: artık işaretli ondalıklı sayı döner.
+   - `TableModel` çağrılarında operatör ezmeleri.
+   - GET ile gövde gönderen `CurlModule::Curl()` çağrıları.
+   - Oturum çerezini `PHPSESSID` adıyla okuyan harici süreçler (örneğin bir Node
+     WebSocket sunucusu).
+4. **Geçiş:** `php vnl.php update --major 4`. Arşivin imzası 3.5.3'teki
+   `vnl/KEYS` dosyasıyla doğrulanır.
+5. **Şemayı güncelleyin ve denetleyin:** `php vnl.php migrate --run` (0008),
+   ardından `php vnl.php doctor`. `doctor` çekirdeği ezen proje dosyalarını da
+   listeler; güvenlik dosyalarındaki ezmeler yamaları keser.
+6. **Proje dosyalarını şablondan elle alın;** güncelleme bunlara dokunmaz:
+   - sunucu yapılandırması: `.htaccess`, `web.config`, `nginx.conf.example`
+   - `.env.example`'daki yeni anahtarlar
+   - `actions/action_login.php`
+   - testler (isteğe bağlı): `compose.test.yml`, `docker/test/`, `tests/`
+7. **Açık oturumlar kapanır** (çerez adı değişti). "Beni hatırla" jetonu olan
+   kullanıcılar jetonla geri girer.
+8. **Testleri koşun:** `php vnl.php test`.
+
+### Eklenenler
+
+- **Test paketi: `php vnl.php test`.** Composer gerektirmez.
+  - Çekirdek testleri `vnl/tests/` altında ve çekirdekle birlikte dağıtılır. Projeye
+    kurulu hâliyle, projenin ezdiği dosyalara (ör. `actions/Auth.php`) karşı koşar.
+    Projenin testleri `tests/` altındadır.
+  - Üç takım var: `unit` (süreç içi), `http` (komutun açtığı yerel sunucuya gerçek
+    istek) ve `db` (veritabanı yoksa atlanır).
+  - Her test dosyası ayrı süreçte koşar; güvenlik kapılarının `exit`'i
+    çalıştırıcıyı düşürmez.
+  - İlk kapsam: CSRF ve köken denetimi, dağıtıcının sırası (405/404/401/403),
+    giriş kapısı, şablon kaçışı, güncelleyicinin MANIFEST denetimi ve arşivin yol
+    güvenliği, gerçek veritabanıyla giriş, jeton dönüşü ve yetki kapısı.
+- **`compose.test.yml` ve CI.** PHP ve MySQL'i tek komutla ayağa kaldırır. GitHub
+  Actions aynı komutu PHP 8.3, 8.4 ve 8.5 ile koşar.
+- `vnl/cli.php`: `vnl_cli_boot()` ve `vnl_cli_options()` `console.php`'den buraya
+  taşındı; test alt süreçleri de aynı yoldan açılır.
+- **Sır taraması (CI).** `gitleaks` her push'ta bütün geçmişi tarar. Bugüne kadarki
+  altı bulgu incelendi, hepsi yanlış alarm (belge örnekleri, test parolası); parmak
+  izleriyle `.gitleaksignore`'da duruyor.
+
+### Kırıcı değişiklikler (platform)
+
+- **PHP 8.3 artık asgari sürüm.** Paketlenmiş Illuminate 13, PHP 8.3 ister.
+  - 8.2'de VNL hiç açılmaz. `vnl/boot.php` hiçbir şey yüklemeden önce sürümü
+    denetler. Web isteği düz metin HTTP 500, konsol açık bir mesaj ve çıkış
+    kodu 1 alır.
+  - `php vnl.php doctor` artık "PHP 8.3+" diye denetler. Güvenlik yaması
+    tablosunda 8.2 dalı kalmadı.
+- **Illuminate (Eloquent) 10.49 → 13, Carbon 2 → 3.**
+  - Neden: Illuminate 10 Şubat 2025'ten beri güvenlik yaması almıyordu. 13'ün
+    güvenlik desteği Mart 2028'e kadar sürüyor.
+  - Çekirdekte ve örnek modellerde kod değişikliği gerekmedi.
+  - **Kendi kodunuzda dikkat:** Carbon 3'te `diffInDays()`, `diffInHours()` ve
+    benzerleri artık **işaretli ondalıklı sayı** döndürür.
+    `now()->diffInDays(now()->subDays(2))` eskiden `2`, şimdi `-1.99…` verir.
+    Eski davranış için `abs((int) $a->diffInDays($b))`.
+  - `vnl/composer.json` artık `symfony/polyfill-mbstring`'i açıkça istiyor;
+    mbstring'i kapalı barındırmalar için gerekli. Kullanılmayan `MyApp\`
+    autoload kaydı silindi.
+- CI matrisi PHP 8.3, 8.4 ve 8.5.
+
+### Kırıcı değişiklikler
+
+- **JSON istek gövdesi yalnız `Content-Type: application/json` ile çözülür**
+  (`+json` türleri de). 3.x içerik türüne bakmadan her gövdeyi JSON olarak
+  denerdi. Başlıksız `fetch(…, {body: JSON.stringify(…)})` gönderen istemci artık boş
+  `$req->post()` görür; başlığı ekleyin. jQuery `$.post`, `vnl.js` ve VNL Table
+  etkilenmez.
+- **JSON gövdesine boyut ve derinlik sınırı.** Gövde giriş denetiminden önce okunduğu
+  için girişsiz istek de sınırsız bellek harcatabiliyordu. Artık en fazla
+  `VNL_MAX_JSON_BODY` bayt okunur (varsayılan 1 MB); aşan istek
+  `413 {"devcode":"VNL_BODY_TOO_LARGE"}` alır. 64 seviyeden derin gövde boş sayılır.
+  Form gönderimleri PHP'nin `post_max_size`'ına tabi kalır. Gövdeyi kendisi okuyan
+  uçlar (Stripe webhook) `php://input`'u yine okuyabilir.
+- **Güncelleme imzalı.** `php vnl.php update`, arşivi açmadan önce Ed25519
+  imzasını (`vnl-X.Y.Z.tar.gz.sig`) kurulu çekirdeğin `vnl/KEYS` dosyasına karşı
+  doğrular. 3.x arşivi yalnız arşivin kendi MANIFEST'ine göre sınıyordu; arşivi
+  değiştiren biri MANIFEST'i de değiştirebildiği için bu sınama kurcalamaya karşı
+  koruma sağlamıyordu.
+  - **Geçersiz imza hiçbir bayrakla aşılmaz.**
+  - Doğrulanamayan durumlar (imza dosyası yok, PHP'de sodium yok, `KEYS` boş)
+    güncellemeyi durdurur. Bunu yalnız `--insecure` bilerek aşar.
+  - Arşivde MANIFEST yoksa ya da MANIFEST'te olmayan bir dosya varsa arşiv
+    reddedilir. 3.x MANIFEST'siz arşivi sınamadan kurardı.
+  - `php vnl.php release` artık bir imza anahtarı ister (`VNL_RELEASE_KEY` ya da
+    `VNL_RELEASE_KEY_FILE`). Anahtarın açık yarısı `vnl/KEYS`'te değilse durur.
+    Deneme için `--unsigned`.
+  - **3.x → 4.0 geçişi:** 3.x güncelleyicisi imza bilmez ve 4.0 arşivini
+    doğrulamadan kurar. Bu yüzden 4.0'a geçerken `.sha256` dosyasını elle
+    karşılaştırın. 4.0'dan sonraki güncellemeler imzalıdır.
+  - **İmzası sökülmüş arşiv reddedilir.** `vnl/KEYS` doluyken imzasız gelen bir arşiv
+    `--insecure` ile de kurulamaz. `--insecure` yalnız doğrulamanın imkânsız olduğu
+    durumlarda işe yarar: sodium yoksa ya da `KEYS` boşsa.
+  - **Sürüm düşürme koruması.** İmza arşivin baytlarını korur, ama içindeki sürümü
+    doğrulamaz. Bu yüzden imzalı eski bir arşiv yeni bir etiketin altına konarak
+    bilinen bir açığı geri getirebilirdi. Artık:
+    - arşivdeki `VERSION`, istenen etiketle aynı olmalı;
+    - kurulu sürümden yeni olmalı.
+
+    Bilerek geri dönmek için `--allow-downgrade` kullanılır; bu bayrak yalnız
+    yeni-sürüm şartını kaldırır, etiket eşleşmesi yine aranır. `--rollback`
+    etkilenmez.
+  - **Boyut sınırları.**
+    - İndirilen her dosya en fazla 64 MB olabilir ve yalnız https'ten indirilir.
+    - Arşivin açılmış hâli en fazla 64 MB olabilir. Açma parça parça yapılır;
+      sıkıştırma bombası belleği doldurmadan reddedilir.
+    - `VNL_UPDATE_REPO` yalnız `sahip/depo` biçiminde kabul edilir.
+
+### Güvenlik (oturum ve istemci adresi)
+
+- **Parola ya da 2FA değişince açık oturumlar kapanır.** 3.x'te parolası
+  değiştirilen hesabın açık oturumları açık kalıyordu; parolayı çalan kişininki de
+  dahil.
+  - Girişte oturuma bir damga yazılır: parola hash'i ile TOTP sırrından türetilen
+    `UserModule::AuthStamp()`. Damga her istekte yeniden hesaplanır.
+  - Damga tutmazsa oturum kapanır ve `auth.session_revoked` kaydı yazılır.
+  - Parolayı ya da TOTP'yi değiştiren her yol (panel, konsol, projenin kendi
+    kodu) bu sayede ek bir çağrı yapmadan oturumları düşürür.
+  - Kendi parolasını değiştiren kullanıcının mevcut oturumu açık kalsın
+    isteniyorsa `UserModule::RefreshAuthStamp($user)` çağrılır.
+  - Yan etkisi: girişte hash maliyeti yükseltilirse (`PasswordNeedsRehash`)
+    kullanıcının diğer açık oturumları bir kez kapanır.
+- **"Beni hatırla" jetonu da damgaya bağlandı** (migration `0008`). Oturumu
+  olmayan, yalnız jeton çerezi taşıyan bir cihaz değişiklikten sonra yeniden giriş
+  yapamaz; jeton silinir ve `auth.remember_revoked` kaydı yazılır. 4.0 öncesinden
+  kalan damgasız jetonlar kabul edilir ve ilk kullanımda damgalanır.
+- `user:password` ve `user:totp` konsol komutları kullanıcının bütün "beni
+  hatırla" jetonlarını da siler.
+- **`VNL_TRUSTED_PROXIES`, `vnl_client_ip()`.** CDN ya da yük dengeleyici
+  arkasında `REMOTE_ADDR` vekilin adresiydi. Bu yüzden hız sınırı bütün siteyi tek
+  kovaya koyuyor, denetim kaydı herkesi aynı IP'den gelmiş gösteriyordu.
+  - Yalnız listedeki vekillerden gelen istekte `X-Forwarded-For` okunur.
+    Zincir sağdan sola okunur ve güvenilen vekillerden sonraki ilk adres
+    istemcinin adresi sayılır. IPv4 ve IPv6 CIDR desteklenir.
+  - Liste boşsa başlığa hiç bakılmaz. İstemci sahte bir başlık yazarak hız
+    sınırını atlatamaz.
+  - `UserModule::CurrentIp()` ve `Audit` artık bu fonksiyonu kullanır.
+- **`Audit` daha fazla alanı maskeliyor.** Eklenen anahtarlar: `sifre`, `parola`,
+  `otp`/`totp`, `api_key`, `authorization`, `cookie`, `credential`,
+  `private_key`, `passwd`.
+
+### Güvenlik (ağ, veri, başlıklar, sunucu yapılandırması)
+
+- **`CurlModule`:**
+  - Yalnız `http://` ve `https://` adreslerine istek atılır. `file://`,
+    `php://` gibi adreslerde üç metot da `false` döner.
+  - `Curl()`, boş varsayılan kimlik bilgisiyle bile
+    `Authorization: Basic Og==` gönderiyordu. Başlık artık yalnız kullanıcı adı
+    verilince gider.
+  - Kimlik bilgisi verilen istekte yönlendirme izlenmez. PHP'nin http
+    sarmalayıcısı başlıkları yönlendirilen (başka) sunucuya da gönderiyordu.
+  - `GetCurlPage()` için toplam süre sınırı eklendi.
+- **`TableModel`:**
+  - Karşılaştırma operatörü yalnız `$columns`'tan alınır. İstemci daha önce uzun
+    biçimde `regexp`, `<>` gibi bir operatör seçebiliyordu.
+  - `like`/`ilike` aramasında `%` ve `_` düz karakter sayılır (`ESCAPE '!'`).
+  - Dizi hâlinde gelen filtre değeri 500 hatası vermez; tanımsız filtre gibi
+    reddedilir.
+- **Content-Security-Policy:**
+  - Varsayılan değer `object-src 'none'; base-uri 'self'`. Eklenti içeriği ve
+    sayfaya sokulmuş bir `<base>` engellenir; satır içi betiklere dokunulmaz.
+  - Değiştirmek için `VNL_HEADER_CSP`, Report-Only politika için
+    `VNL_HEADER_CSP_REPORT_ONLY` (varsayılan kapalı).
+  - `frame-ancestors` bilerek eklenmedi; çerçeveleme `VNL_HEADER_FRAME_OPTIONS`'ın
+    işi.
+- **VNL Table detay satırı:** Yanıt yalnız başarılıysa ve `text/html` ise HTML
+  olarak basılır. `render => 'html'` sütunları için kodda ve `/docs/vnltable`'da
+  XSS uyarısı var.
+- **IIS `web.config`:** `.htaccess`'in korumaları URL Rewrite kurallarına taşındı.
+  3.x'te `config/`, `vnl/` ve `languages/` doğrudan indirilebiliyordu. HTTPS
+  yönlendirmesi hiç çalışmıyordu; artık ön denetleyiciden önce geliyor ve
+  varsayılan olarak kapalı. Gerçek bir IIS'te sınanmadı.
+- **`nginx.conf.example`:**
+  - Başlıklar uygulamanın varsayılanlarıyla eşlendi (Referrer-Policy, CSP).
+  - Hazır panel (aaPanel ve benzerleri) kullananlar için kurallar eklendi.
+    Panellerin genel `\.php` bloğu, yükleme dizinine düşen bir PHP dosyasını
+    çalıştırır; nginx `.htaccess` okumaz. 3.5.2'nin yükleme koruması bu yüzden
+    nginx'te geçerli değildi.
+  - Kurallar gerçek bir nginx üzerinde sınandı.
+- **Kaçışsız çıktı için mandal testi.** `tests/unit/ViewUnescapedEchoTest.php`
+  testi, `view/` altında kaçışsız `<?= $` basımlarının sayısının artmasını
+  engeller. Bugünkü sayı 60.
+
+### Güvenlik (araçlar ve belgeler)
+
+- **`FileRequest::move()` güvensiz hedef adını reddeder.** 3.5.2'deki
+  `IsSafeUploadName` kuralı burada da uygulanır. Bu, uzantı izin listesini unutan
+  kod için ikinci bir savunma hattıdır: `generateRandomName()` istemcinin gönderdiği
+  uzantıyı olduğu gibi taşıyordu.
+- **`php vnl.php serve` artık varsayılan olarak `127.0.0.1`'i dinler.** Eskiden
+  `0.0.0.0`'ı dinliyordu, yani hata ayrıntısı açık geliştirme sunucusu aynı ağdaki
+  herkese açıktı. Ağdan erişmek için: `--host 0.0.0.0`.
+- **`doctor`, çekirdeği ezen proje dosyalarını listeler.** Güvenlik kapısı
+  taşıyan dosyalar (Session, Request, UserModule, EncryptionModule, ApiToken …)
+  ayrı bir uyarıyla gösterilir. Bu dosyalara gelen yamalar ezen projeye ulaşmaz.
+- **IDOR kuralı** (`actions/CLAUDE.md`): `CheckPermission` modüle yetkiyi
+  denetler, kaydın sahibini denetlemez. Kayıt sahipliği modelde denetlenir
+  (`findOwned` kalıbı). Başkasının kaydı için 404 döner.
+- **social-auth belgesi 2FA adımını gösteriyor.** Örneği izleyen bir proje 2FA'yı
+  atlıyordu. Artık TOTP açık hesapta oturum açılmıyor, kullanıcı ikinci adıma
+  gönderiliyor.
+- CI'daki üçüncü taraf eylemler commit SHA'sıyla sabitlendi.
+
+### Eklenenler (güncelleyici)
+
+- `php vnl.php release --keygen`: yeni yayın anahtarı üretir. Gizli yarısını
+  yazdırır, `vnl/KEYS` için de bir satır verir.
+- `update --sig <yol>`: imza dosyası arşivin yanında durmuyorsa yolunu verir.
+- **Ana sürüm geçişi ayrı bir komut: `php vnl.php update --major 4`.**
+  - Güncelleyici GitHub'ın "latest" yayınına bakmaz. Yayın listesinden kurulu
+    ana sürümün en yenisini bulur. `--latest` ve `--check` kendi serisinde kalır.
+  - `--check` yeni bir ana sürüm varsa onu ayrıca "kırıcı" diye bildirir.
+  - `--to` ile başka bir ana sürüm istenirse `--major` olmadan reddedilir.
+    `--file` ile verilen arşive de aynı kural uygulanır.
+  - Kurulumdan önce yeni çekirdeğin istediği PHP sürümü denetlenir
+    (`vnl/composer.json` → `require.php`). Yetersiz PHP'de çekirdeğe dokunulmaz.
+- `vnl/KEYS` ilk yayın anahtarını taşıyor (`b156c98211870780`).
+- **Otomatik geri alma.** Uygulama yarıda kalırsa `vnl.bak/` kendiliğinden geri
+  yüklenir. 3.x yalnız bir ipucu basıyordu.
+- `doctor` artık şunlarda uyarı verir: sodium yoksa, sunucu dışarıya
+  bağlanamıyorsa (curl yoksa ve `allow_url_fopen` kapalıysa), `vnl/KEYS` boşsa.
+
+### Eklenenler (proje ayarları ve kancalar)
+
+Bu ayarlar ve kancalar, türetilmiş projelerin bugün çekirdek dosyasını kopyalayıp
+ezerek yaptığı işleri ayarla yapılabilir kılar. Hepsi Voxnup'ın ezmelerinden
+çıkarıldı.
+
+- **Güvenlik başlıkları tek tek ayarlanır:** `VNL_HEADER_FRAME_OPTIONS`,
+  `VNL_HEADER_REFERRER_POLICY`, `VNL_HEADER_PERMISSIONS_POLICY` ve
+  `VNL_HEADER_HSTS`. Boş ya da `false` değer o başlığı göndermez. 3.x'te tek yol
+  bütün başlıkları birden kapatmaktı. Değerler `vnl_security_headers()`
+  fonksiyonundan geçer, satır sonları temizlenir.
+- **`vnl_project_error_detail(Throwable $e): bool` kancası.** Canlıda ayrıntılı
+  hata ekranını kimin göreceğine proje karar verir (örneğin yalnız geliştirici
+  hesapları). Ekran yalnız kanca `true` döndürürse açılır; kanca istisna
+  fırlatırsa kapalı kalır. Bu karar `VnlDispatcher`'ın JSON hata yanıtında da
+  uygulanır.
+- **`VNL_TIME_LIMIT`.** Web isteğinin süre sınırı ayarlanabilir oldu
+  (varsayılan 20 sn, `0` sınırsız).
+- **`VNL_JSON_DATA_FLAGS`.** `returnSuccessDataOnly()` için ek json_encode
+  bayrakları verir; örneğin `NUMERIC_CHECK`. `helpers/app.php`'yi kopyalamak
+  gerekmez.
+- **`enums/` dizini** yardımcılardan sonra, modüllerden önce kendiliğinden
+  yüklenir.
+- **`mb_strimwidth` yedeği** (`vnl/helpers/polyfills.php`). Paketteki mbstring
+  polyfill'i bu fonksiyonu sağlamıyor. Ayrıca hata sayfası, mbstring hiç yokken
+  de çöküp ham çıktı basmıyor.
+- **Mail görsellerini gömme.** `MailModule::embedRemoteImages()` iki ayarla
+  çalışır:
+  - `VNL_MAIL_EMBED_HOSTS` boş değilse, bu alan adlarındaki `<img src>` görselleri
+    gönderimde indirilir ve maile `cid:` olarak gömülür.
+  - Alan adı tam eşleşmelidir. Yönlendirme izlenmez, görsel başına sınır 5 MB'tır
+    ve görsel olmayan yanıt gömülmez (SSRF koruması).
+- **Parola kuralı ayarlanabilir:** `VNL_PASSWORD_MIN_LENGTH` ve
+  `VNL_PASSWORD_REQUIRE=upper,lower,digit,symbol`. Ayrıca
+  `DefaultValidator::passwordPolicy()` ve `requireValidPassword()` eklendi.
+
+### Kırıcı değişiklikler (proje ayarları)
+
+- **Referrer-Policy varsayılanı `same-origin` → `strict-origin-when-cross-origin`**,
+  yani tarayıcıların kendi varsayılanı. Dış siteye yalnız köken gider; yol ve
+  sorgu gitmez. `same-origin` hiç Referer göndermediği için YouTube gömmeleri
+  oynamıyordu. Eski davranış için: `VNL_HEADER_REFERRER_POLICY=same-origin`.
+- **Parola denetimi Unicode'u tanıyor:**
+  - Uzunluk bayt değil karakter sayılıyor. 3.x'te `Şğ.1abc` (7 karakter, 9 bayt)
+    8 karakter kuralından geçiyordu.
+  - `Ş`, `Ğ`, `İ` büyük harf, `ş`, `ğ`, `ı` küçük harf sayılıyor.
+  - ASCII dışı harfler artık "özel karakter" yerine geçmiyor. 3.x'te `ğ` bu
+    kuralı karşılıyordu.
+
+### Düzeltilenler
+
+- **/docs/extensions**, pasif eklentinin controller ve action'ının "yine de
+  bulunabileceğini" söylüyordu. 3.4.0'dan beri ikisi de yalnız etkin eklentilerde
+  aranıyor; belge koda göre düzeltildi.
+
+### Değişenler
+
+- **Oturum çerezinin adı `PHPSESSID` → `VNLSESSID`** (`VNL_SESSION_NAME`). Aynı alan
+  adındaki başka bir PHP uygulamasının oturumuyla çakışmaz. **Güncellemede açık
+  oturumlar kapanır**; geçerli "beni hatırla" jetonu olan kullanıcılar jetonla
+  geri girer, diğerleri yeniden giriş yapar. Oturum çerezini **adıyla okuyan harici
+  süreçler** (ör. bir Node WebSocket sunucusunun `PHPSESSID` araması) `VNL_SESSION_NAME`'i
+  okumalı ya da geçiş süresince iki adı da kabul etmelidir. Eski adı korumak için
+  `VNL_SESSION_NAME=PHPSESSID`.
+- **`X-Powered-By: VNL (Voxnup Not Laravel)`** (`VNL_POWERED_BY`). PHP'nin sürüm
+  numaralı başlığının yerine geçer; boş/`false` başlığı tamamen kaldırır.
+
+---
+
 ## [3.5.3] — 2026-11-22
 
 4.0'a hazırlık sürümü: 3.x kurulumlarının 4.0'a **kendiliğinden geçmemesi** için.

@@ -30,6 +30,7 @@ class RememberToken extends TableModel
     protected $fillable = [
         'user_id',
         'token_hash',
+        'auth_stamp',
         'expires_at',
         'user_agent',
         'ip_address',

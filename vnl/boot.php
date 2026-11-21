@@ -18,6 +18,25 @@
  * DOCUMENT_ROOT'a ya da çalışma dizinine bakmıyor: ikisi de sürecin
  * nasıl başlatıldığına göre değişiyordu, bu ikisi değişmiyor.
  */
+/* Asgari PHP sürümü. Hiçbir şey yüklenmeden denetlenir: vendor'daki Illuminate
+   8.3 sözdizimi kullanır, eski bir PHP onu ayrıştırırken anlaşılmaz bir
+   "syntax error" ile düşerdi. Bu blok bilerek bağımlılıksız ve sade yazılmıştır
+   (hata sayfası, çeviri, şablon yok) — çünkü burada henüz hiçbiri yok. */
+if (PHP_VERSION_ID < 80300) {
+    $_vnlPhpMessage = 'VNL en az PHP 8.3 ister; bu sunucuda PHP ' . PHP_VERSION . ' calisiyor.'
+        . PHP_EOL . 'VNL requires PHP 8.3 or newer; this server runs PHP ' . PHP_VERSION . '.';
+    if (PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg') {
+        fwrite(STDERR, $_vnlPhpMessage . PHP_EOL);
+        exit(1);
+    }
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=utf-8');
+    }
+    echo $_vnlPhpMessage;
+    exit(1);
+}
+
 /* Konsol (vnl/console.php) VNL_PATH'i önceden tanımlar ve uygulamayı
    gerektiğinde vnl_cli_boot() ile bu dosyadan açar; ikinci define uyarı basardı. */
 if (!defined('VNL_PATH')) {

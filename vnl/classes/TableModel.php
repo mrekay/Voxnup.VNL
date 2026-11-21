@@ -34,9 +34,31 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
                 $allowZero = !empty($filters_changed[$key]['zero']);
                 $value     = (is_array($filter) && array_key_exists('value', $filter)) ? $filter['value'] : $filter;
 
+                /* 4.0.0: Operatör YALNIZ $columns'tan gelir. Önceden uzun biçimdeki
+                   'operator' anahtarı haritadakini eziyordu; filtre dizisi çoğu
+                   zaman istekten geldiği için istemci '=' yerine 'regexp', '<>' ya
+                   da '>' seçebiliyordu (ReDoS, "hepsini getir", aralık taraması).
+                   Haritadakiyle aynı operatörü yazmak hâlâ serbest (eski çağrılar
+                   bozulmasın); farklısı istenirse istek düşer — sessizce yok
+                   saymak, 'between' bekleyen bir çağrıyı '=' ile çalıştırıp boş
+                   liste döndürmek olurdu. */
+                $declared = strtolower((string)($filters_changed[$key]['operator'] ?? '='));
+                if (is_array($filter) && array_key_exists('operator', $filter) && $filter['operator'] !== null
+                    && (!is_string($filter['operator']) || strtolower($filter['operator']) !== $declared)) {
+                    throwErrorMessage("İç Veritabanı Hatası : Geçerli Filtre Gelmedi (" . $key . ")");
+                }
+
+                /* 4.0.0: Değer tek bir değer olmalı. ?ad[]=x gibi bir istek diziyi
+                   buraya taşır; like/between'de strtolower/explode TypeError ile
+                   500 veriyordu, '='de ise Eloquent dizinin ilk elemanını sessizce
+                   alıyordu. Tanımsız anahtarla aynı biçimde reddedilir. */
+                if (self::filterHasValue($value, $allowZero) && !self::isFilterScalar($value)) {
+                    throwErrorMessage("İç Veritabanı Hatası : Geçerli Filtre Gelmedi (" . $key . ")");
+                }
+
                 if (self::filterHasValue($value, $allowZero)) {
                     $filters_changed[$key]['name'] = $filters_changed[$key]['name'] ?? $key;
-                    $filters_changed[$key]['operator'] = (is_array($filter) ? ($filter['operator'] ?? null) : null) ?? ($filters_changed[$key]['operator'] ?? null);
+                    $filters_changed[$key]['operator'] = $filters_changed[$key]['operator'] ?? null;
                     $filters_changed[$key]['value'] = $value;
                 }
             }
@@ -91,10 +113,11 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
                         $query->whereBetween($column, [$range[0], $range[1]]);
                     }
                 }else if($operator === 'like'){
-//                    $query->where($column, $operator, '%' . $value . '%');
-                    $query->whereRaw("LOWER($column) LIKE ?", ['%' . strtolower($value) . '%']);
+                    /* 4.0.0: Aranan metin LIKE deseni değil, düz metindir: "50%"
+                       araması "50 ile başlayan her şey" değil, "50%" demektir. */
+                    $query->whereRaw("LOWER($column) LIKE ? ESCAPE '!'", ['%' . self::escapeLike(strtolower((string)$value)) . '%']);
                 }else if($operator === 'ilike'){//büyük küçük harf duyarlılığını yok sayar (SADECE POSTGRESQL'de kullanılabilir)
-                    $query->where($column, $operator, '%' . $value . '%');
+                    $query->whereRaw("$column ILIKE ? ESCAPE '!'", ['%' . self::escapeLike((string)$value) . '%']);
                 }else{
                     $query->where($column, $operator, $value);
                 }
@@ -128,6 +151,30 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
         }
 
         return !empty($value);
+    }
+
+    /**
+     * 4.0.0: Filtre değeri olarak kabul edilen tek değerler: sayı, metin,
+     * bool ve metne çevrilebilen nesne (Carbon gibi). Dizi ve diğer nesneler
+     * reddedilir.
+     */
+    protected static function isFilterScalar($value): bool
+    {
+        return is_scalar($value) || $value instanceof \Stringable;
+    }
+
+    /**
+     * 4.0.0: LIKE joker karakterlerini (% ve _) düz metne çevirir.
+     *
+     * Kaçış karakteri ters bölü değil '!' ve sorguda ESCAPE '!' ile açıkça
+     * söylenir: MySQL'in NO_BACKSLASH_ESCAPES kipinde ters bölü LIKE'ta kaçış
+     * olmaktan çıkar ve SQL'e ESCAPE '\\' yazmak da kipe göre farklı okunur.
+     * '!' hiçbir kipte, hiçbir veritabanında (MySQL, PostgreSQL, SQLite,
+     * SQL Server) özel değildir; ters bölü de bu sayede düz karakter kalır.
+     */
+    protected static function escapeLike(string $value): string
+    {
+        return strtr($value, ['!' => '!!', '%' => '!%', '_' => '!_']);
     }
 
     public static function Select($filter = null)

@@ -5,7 +5,7 @@
 <h1 align="center">VNL</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-3.5.3-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-4.0.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
 
@@ -132,7 +132,8 @@ altındadır; numaraları bağımsız yürür, bir VNL yükseltmesi sizin sıran
 
 ```bash
 php vnl.php update --check      # yeni sürüm var mı, neler değişti
-php vnl.php update --to 3.5.3   # yalnız vnl/ değişir; vnl.bak/ yedeği kalır
+php vnl.php update --latest     # bu ana sürümün en yenisi; yalnız vnl/ değişir, vnl.bak/ kalır
+php vnl.php update --major 5    # yeni ANA sürüm (kırıcı) yalnız bu komutla
 php vnl.php doctor              # proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run       # şemayı güncelle
 ```
@@ -140,6 +141,11 @@ php vnl.php migrate --run       # şemayı güncelle
 `update`, yazmadan önce kurulu çekirdeği `vnl/MANIFEST`'e karşı sınar; birileri
 `vnl/` altını değiştirmişse durur, çünkü aksi halde o değişiklikler sessizce
 silinirdi. Ters giderse `php vnl.php update --rollback`.
+
+4.0'dan itibaren arşiv, açılmadan önce Ed25519 imzasıyla (`.sig`) kurulu
+çekirdeğin `vnl/KEYS` dosyasına karşı doğrulanır. Geçersiz imzalı arşiv hiçbir
+bayrakla kurulmaz. İmza doğrulanamıyorsa (imza ya da sodium yoksa, `KEYS` boşsa)
+güncelleme durur; kaynağından eminseniz bunu `--insecure` ile bilerek aşarsınız.
 
 Ayrıntılar **/docs/versioning** sayfasında.
 
@@ -163,12 +169,13 @@ bir dizinde aynı adı taşıyan dosya ve dizin bir arada bulunamaz.
 
 ## 🚀 Gereksinimler
 
-* PHP 8.2 veya üzeri (`mbstring`, `pdo_mysql`, `openssl`; kuyruk işçisi için `pcntl` önerilir).
-  **Güvenlik yaması zorunlu:** 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 ve üstü. Daha eski
+* PHP 8.3 veya üzeri (`mbstring`, `pdo_mysql`, `openssl`; kuyruk işçisi için `pcntl` önerilir).
+  Asgari sürümü paketlenmiş Illuminate 13 belirler; 8.2'de VNL açılmaz, açık bir
+  mesajla durur.
+  **Güvenlik yaması zorunlu:** 8.3.36 / 8.4.27 / 8.5.12 ve üstü. Daha eski
   sürümlerde iki kritik uzaktan kod çalıştırma açığı var (CVE-2026-109618,
   CVE-2026-109619); `php vnl.php doctor` bunu `[X]` olarak işaretler.
-  Yeni kurulumda 8.5 önerilir (çekirdek 8.5.12'de sınandı); 8.2'nin güvenlik desteği
-  31 Aralık 2026'da bitiyor.
+  Yeni kurulumda 8.5 önerilir (çekirdek 8.5.12'de sınandı).
 * MySQL 5.7+ / MariaDB 10.3+ (giriş, yetki, kuyruk ve denetim kaydı veritabanındadır)
 * Node.js 20+ (opsiyonel — yalnızca [Voxnup.VNL.Theme](https://github.com/mrekay/Voxnup.VNL.Theme)
   deposundan temayı yeniden derlemek isteyenler için)

@@ -42,6 +42,33 @@ class action_urun
   ya da alt sınıfta `extra()` / `headers()`. Ek alanlar `message`/`devcode`'u ezemez.
 - `Authorization: Bearer <jeton>` (API jetonu) oturum + CSRF yerine geçer.
 
+## Kural: yetki modülü sorar, sahiplik kaydı (IDOR)
+
+`Auth::CheckPermission('Faturalar', 'edit')` "bu kullanıcı faturaları düzenleyebilir
+mi" sorusuna cevap verir; **"bu fatura bu kullanıcının mı"** sorusuna değil. İstekten
+gelen bir kimlikle (`$req->post('id')`) kayıt açan her action, kaydın kullanıcıya
+ait olduğunu da denetler — aksi halde `id=42` yerine `id=43` yazan başkasının
+faturasını görür ya da değiştirir.
+
+Denetim modelde, sorgunun içinde durur (aşağıdaki kural); ayrı bir `if` ile değil:
+
+```php
+// classes/Fatura.php
+public static function findOwned(int $id, int $userId): ?self
+{
+    return self::where('id', $id)->where('user_id', $userId)->first();
+}
+
+// actions/action_fatura.php
+Auth::CheckPermission('Faturalar', 'edit');
+$fatura = Fatura::findOwned((int)$req->post('id'), (int)$CurrentUser->id)
+    ?? throw new VnlHttpException('Kayıt bulunamadı.', 404, 'NOT_FOUND');
+```
+
+Başkasının kaydı için **404** dönün, 403 değil: 403 kaydın var olduğunu söyler.
+Yöneticinin herkesin kaydını görmesi gerekiyorsa bu da modelde, açık bir dalla
+yazılır (`findOwnedOrAdmin`), action'a dağılmaz.
+
 ## Kural: action içinde sorgu kurulmaz
 
 **Action ince bir kapıdır** — isteği karşılar, doğrular, işi modele devreder, yanıtı

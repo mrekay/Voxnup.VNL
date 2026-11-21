@@ -1,0 +1,44 @@
+# VNL test ortamı — PHP CLI + MySQL, tek komut:
+#
+#   docker compose -f compose.test.yml run --rm test
+#   docker compose -f compose.test.yml run --rm test php vnl.php test --suite=unit
+#   docker compose -f compose.test.yml down -v        # veritabanını sil
+#
+# Bu dosya şablonun (projenin) malıdır; türetilmiş proje isterse siler ya da
+# kendi servislerini ekler. Veritabanı yalnız testler içindir, şifresi gizli
+# değildir ve dışarıya port açılmaz.
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: vnl_test
+      MYSQL_ROOT_PASSWORD: vnl_test
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pvnl_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+
+  test:
+    build:
+      context: docker/test
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      APP_DEBUG: "false"
+      APP_TIMEZONE: Europe/Istanbul
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: vnl_test
+      DB_USERNAME: root
+      DB_PASSWORD: vnl_test
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: ["sh", "-c", "php vnl.php migrate --run && php vnl.php test"]

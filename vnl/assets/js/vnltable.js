@@ -432,8 +432,20 @@
         }
 
         if (col.render === 'html') {
-            /* Sütun bilinçli olarak html işaretlenmiş: sunucu içeriği
-               üretiyor ve kaçışından kendisi sorumlu. */
+            /* !!! GÜVENLİK — render:'html' ham innerHTML'dir !!!
+
+               Sütun bilinçli olarak html işaretlenmiş: değer HİÇBİR kaçıştan
+               geçmeden işaretleme olarak basılır. Kaçış tamamen sunucunun
+               işidir. Kullanıcının yazabildiği bir alan (ad, not, adres,
+               açıklama...) bu sütuna htmlspecialchars()/vnl_e() olmadan
+               girerse saklı XSS'tir: kaydı açan her kullanıcının
+               tarayıcısında, onun oturumu ve CSRF jetonuyla script çalışır.
+
+               Sadece bir rozet ya da bağlantı gerekiyorsa önce 'format'
+               (badge, link, ...) ya da kayıtlı bir biçimlendirici
+               (window.vnlTable.formatter) deneyin — onlar DOM düğümü kurar, kaçışa
+               ihtiyaç bırakmaz. Bu yol bilerek kaldırılmadı; uyarı burada
+               ve /docs/vnltable'da. */
             td.innerHTML = asText(value);
 
             return;
@@ -2496,6 +2508,8 @@
      *
      * İçerik innerHTML ile basılır: sunucu HTML üretir ve kaçışından
      * kendisi sorumludur — render:'html' sütunlarıyla aynı sözleşme.
+     * Yalnız başarılı ve Content-Type'ı text/html olan yanıt basılır;
+     * gerisi hata metnine düşer (textContent).
      */
     VnlTable.prototype.detailRow = function (key, depth) {
         var self = this;
@@ -2518,8 +2532,23 @@
 
         body.textContent = this.lang.loading || '';
 
+        /* 4.0.0: Yanıt ancak başarılı VE text/html ise innerHTML'e gider.
+           respondDetail() her zaman text/html gönderir; başka bir şey —
+           JSON hata gövdesi, düz metin, ara katmanın hata sayfası — HTML
+           olarak basılırsa içindeki (çoğu zaman kullanıcıdan gelen) metin
+           işaretleme olarak çalışır. Öyle bir yanıt hataya düşer ve gövde
+           önbelleğe yazılmaz; ikinci açılış yeniden sorar. post() !r.ok'u
+           zaten fırlatıyor, burada yine bakılır: post() ezilebilir. */
         this.post(this.config.detailUrl || this.config.url, this.payload('detail', { key: key }))
-            .then(function (r) { return r.text(); })
+            .then(function (r) {
+                var type = (r.headers.get('Content-Type') || '').toLowerCase();
+
+                if (!r.ok || type.split(';')[0].trim() !== 'text/html') {
+                    throw new Error('detay yanıtı HTML değil (HTTP ' + r.status + ', ' + (type || 'tür yok') + ')');
+                }
+
+                return r.text();
+            })
             .then(function (html) {
                 self.details[key] = html;
 

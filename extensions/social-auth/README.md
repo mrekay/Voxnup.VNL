@@ -28,9 +28,24 @@ Anahtarı boş olan sağlayıcının düğmesi çıkmaz, ucu 404 döner. Gömül
  */
 function vnl_social_sign_in(array $profile): array
 {
-    // bul / bağla / aç, oturumu başlat
+    // Hesap sağlayıcı + sub ile bulunur (e-postayla DEĞİL). Sorgu modelde.
+    $user = User::findBySocial($profile['provider'], $profile['sub']);
+    if (!$user || !UserModule::IsActiveUser($user)) {
+        return ['ok' => false, 'status' => 404, 'message' => 'Bu hesap bağlı değil.'];
+    }
+
+    // 2FA açıksa oturum AÇILMAZ: parola girişiyle aynı ikinci adım
+    // (POST /app/login/totp). Atlanırsa sosyal giriş 2FA'yı atlatır.
+    if ($user->hasTotp()) {
+        Session::regenerate();
+        Session::set('_2fa_pending', ['user_id' => (int)$user->id, 'remember' => false, 'at' => time()]);
+
+        return ['ok' => true, 'message' => '', 'data' => ['step' => 'totp']];
+    }
+
+    UserModule::CompleteLogin($user);   // kimlik yenileme, CSRF, denetim kaydı
+
     return ['ok' => true, 'message' => '', 'data' => ['status' => 'login']];
-    // hata: ['ok' => false, 'status' => 400, 'message' => '...']
 }
 
 /** Meta veri silme isteği (isteğe bağlı). */
@@ -47,6 +62,7 @@ function vnl_social_forget(string $provider, string $sub): void { /* bağlantıy
 document.addEventListener('vnl:social-auth', (e) => {
     const r = e.detail; // {ok, status, message, data, cancelled?} — data kancanın döndüğü
     if (r.cancelled) return;
+    if (r.ok && r.data.step === 'totp') return showTotpForm();  // kod: POST /app/login/totp
     if (r.ok) location.href = '/';
 });
 ```

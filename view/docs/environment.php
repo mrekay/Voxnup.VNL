@@ -243,9 +243,70 @@
                                     <td>Oturum çerezinin SameSite değeri (<code>Lax</code> | <code>Strict</code> | <code>None</code>).</td>
                                 </tr>
                                 <tr>
+                                    <td class="ps-5"><code>VNL_SESSION_NAME</code></td>
+                                    <td><code>VNLSESSID</code></td>
+                                    <td>Oturum çerezinin adı (yalnız harf/rakam; geçersizse varsayılan). Değiştirmek açık oturumları kapatır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_POWERED_BY</code></td>
+                                    <td><code>VNL (Voxnup Not Laravel)</code></td>
+                                    <td>PHP'nin <code>X-Powered-By: PHP/8.x</code> başlığının yerine geçer. Boş ya da <code>false</code>: başlık hiç gönderilmez.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>VNL_SECURITY_HEADERS</code></td>
                                     <td><code>true</code></td>
-                                    <td><code>X-Frame-Options</code>, <code>nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, TLS'te HSTS.</td>
+                                    <td><code>X-Frame-Options</code>, <code>nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, <code>Content-Security-Policy</code>, TLS'te HSTS. <code>false</code> hepsini kapatır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_FRAME_OPTIONS</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>SAMEORIGIN</code></td>
+                                    <td rowspan="4">Başlıkların değeri tek tek ayarlanır; boş ya da <code>false</code> o başlığı göndermez. Örnek: sesli/görüntülü görüşme yapan bir proje <code>VNL_HEADER_PERMISSIONS_POLICY="camera=(self), microphone=(self)"</code> yazar, diğer başlıklardan vazgeçmez. <code>nosniff</code> ayarlanamaz. Referrer-Policy varsayılanı 4.0.0'da <code>same-origin</code>'den tarayıcıların kendi varsayılanına geçti: dış siteye yalnız köken gider; YouTube gömmeleri <code>same-origin</code> ile oynamıyordu.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_REFERRER_POLICY</code></td>
+                                    <td><code>strict-origin-when-cross-origin</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_PERMISSIONS_POLICY</code></td>
+                                    <td><code>camera=(), microphone=(), geolocation=()</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_HSTS</code></td>
+                                    <td><code>max-age=31536000</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_CSP</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>object-src 'none'; base-uri 'self'</code></td>
+                                    <td rowspan="2"><code>Content-Security-Policy</code> ve <code>Content-Security-Policy-Report-Only</code>; boş ya da <code>false</code> göndermez. Varsayılan bilerek dar: <code>&lt;object&gt;</code>/<code>&lt;embed&gt;</code> ile eklenti içeriğini ve enjekte edilmiş bir <code>&lt;base href&gt;</code>'in göreli script adreslerini başka siteye çevirmesini kapatır. <code>script-src</code> yoktur — tema ve sayfalar satır içi script kullanır, nonce'suz bir politika ya hiçbir şeyi engellemez ya da her sayfayı kırar. <code>frame-ancestors</code> da yoktur: çerçeveleme <code>VNL_HEADER_FRAME_OPTIONS</code>'ın işi; ikisi birden gönderilse ona <code>false</code> yazan proje CSP yüzünden yine çerçevelenemezdi. Report-Only varsayılanda gönderilmez (rapor toplayan bir uç yok); daha sıkı bir politikayı önce onunla deneyin, ihlaller tarayıcı konsoluna düşer. Örnek değer <code>.env.example</code>'da.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_HEADER_CSP_REPORT_ONLY</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><em>boş</em></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_TIME_LIMIT</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>20</code></td>
+                                    <td>Web isteği başına PHP çalışma süresi (sn); <code>0</code> sınırsız. Konsolda sınır yoktur. Uzun işler için önce kuyruğu düşünün.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_PASSWORD_MIN_LENGTH</code> · <code>VNL_PASSWORD_REQUIRE</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>8</code> · <code>upper,lower,digit,symbol</code></td>
+                                    <td><code>DefaultValidator::validateValidPassword</code> kuralı. Uzunluk karakter sayılır (çok baytlı harf 1). <code>REQUIRE</code> boşsa yalnız uzunluk denetlenir. Türkçe büyük/küçük harfler sayılır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_JSON_DATA_FLAGS</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>""</code></td>
+                                    <td><code>returnSuccessDataOnly()</code>'nin ek <code>json_encode</code> bayrakları, virgülle: <code>NUMERIC_CHECK</code>, <code>PRESERVE_ZERO_FRACTION</code>, <code>UNESCAPED_SLASHES</code>, <code>PRETTY_PRINT</code>, <code>FORCE_OBJECT</code>. 3.4.0'da kaldırılan <code>NUMERIC_CHECK</code>'e bağlı istemcisi olan proje bunu <code>helpers/app.php</code>'yi kopyalamadan geri açar.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_MAX_JSON_BODY</code></td>
+                                    <td><code>1048576</code></td>
+                                    <td>JSON istek gövdesinin üst sınırı (bayt, 1 MB). Aşan istek <code>413</code> <code>VNL_BODY_TOO_LARGE</code> alır. Gövde giriş denetiminden önce okunduğu için sınır girişsiz isteği de kapsar. Form gönderimleri bu değere değil PHP'nin <code>post_max_size</code>'ına tabidir.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_TRUSTED_PROXIES</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>""</code></td>
+                                    <td>Uygulamanın önündeki vekillerin (CDN, yük dengeleyici) IP ya da CIDR adresleri, virgülle (IPv4/IPv6). Yalnız bunlardan gelen istekte <code>X-Forwarded-For</code> okunur; sağdan sola, güvenilen vekiller atlanarak ilk adres istemcidir (<code>vnl_client_ip()</code>). Boşsa başlığa hiç bakılmaz. Hız sınırı ve denetim kaydı gerçek adresi bununla görür; vekil arkasında boş bırakılırsa bütün site tek kovaya düşer.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>VNL_PUBLIC_DOCS</code> · <code>VNL_PUBLIC_CAPTURE</code></td>
@@ -296,6 +357,11 @@
                                     <td class="ps-5"><code>MAIL_VERIFY_PEER</code></td>
                                     <td><code>true</code></td>
                                     <td>Kendi imzalı sertifikalı SMTP sunucusu için <code>false</code> yapın; aksi hâlde açık kalmalıdır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_MAIL_EMBED_HOSTS</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
+                                    <td><code>""</code></td>
+                                    <td>Bu alan adlarındaki <code>&lt;img src&gt;</code> görselleri gönderimde indirilip maile gömülür (<code>cid:</code>); uzak görseli engelleyen istemcilerde de görünür. Alan adı tam eşleşir, yönlendirme izlenmez, görsel başına 5 MB. Yalnız kendi CDN'inizi yazın: içerik kullanıcıdan gelebilir.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -452,7 +518,7 @@ if ($anahtar === '') {
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>web.config</code></td>
-                                    <td>IIS için <code>hiddenSegments</code> ve <code>fileExtensions</code> aynı korumayı sağlar.</td>
+                                    <td>IIS karşılığı; <b>URL Rewrite modülü gerekir</b>. 4.0.0'dan itibaren <code>.htaccess</code>'in dizin kurallarını da taşır: <code>config/</code>, <code>languages/</code>, <code>actions/</code>, <code>classes/</code> gibi proje dizinlerinin içi, <code>files/cache</code> ve <code>files/logs</code>, <code>vnl/</code> (<code>vnl/assets/</code> hariç), <code>vnl.bak</code>/<code>dist</code>/<code>tests</code>/<code>docker</code> 403 döner; yükleme dizinlerinde betik çalışmaz. <code>/config</code>, <code>/jobs</code> gibi dizin adındaki sayfalar ön denetleyiciye gider. <code>hiddenSegments</code> ve <code>fileExtensions</code> ikinci hattır; <code>~</code> içeren adresler (8.3 kısa adları) reddedilir. HTTPS yönlendirmesi kapalı gelir, kuralda <code>enabled="true"</code> ile açılır.</td>
                                 </tr>
                                 </tbody>
                             </table>

@@ -142,6 +142,7 @@ $rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
                         <h3 class="fw-bold text-body-emphasis mb-4">3. Gelen Verileri Okuma (<code>Request</code>)</h3>
                         <p class="fs-5 text-body mb-4">
                             Global <code>$req</code> nesnesi sistem başlangıcında otomatik oluşturulur. POST, GET ve JSON body verilerini destekler. Veri ham gelir: <code>"0"</code> ve boş string korunur, JSON'daki sayı ve boolean tipleri bozulmaz. Ekrana basarken <code>@{{ }}</code> kullanın.
+                            <b>4.0.0:</b> JSON gövdesi yalnız <code>Content-Type: application/json</code> başlığıyla çözülür, en fazla <code>VNL_MAX_JSON_BODY</code> bayt (varsayılan 1 MB, aşarsa <code>413 VNL_BODY_TOO_LARGE</code>) ve en fazla 64 seviye iç içe olabilir; daha derin gövde boş sayılır. <code>fetch</code> ile JSON gönderirken başlığı unutmayın — jQuery <code>$.post</code> ve VNL Table zaten doğru gönderir.
                         </p>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
@@ -155,7 +156,7 @@ $rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>$req->post('anahtar')</code></td>
-                                    <td>POST veya JSON body'den veri okur. JSON body otomatik algılanır.</td>
+                                    <td>POST veya JSON body'den veri okur. JSON body yalnız <code>Content-Type: application/json</code> (ya da <code>+json</code>) ile gönderilince çözülür (4.0.0).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$req->get('anahtar')</code></td>

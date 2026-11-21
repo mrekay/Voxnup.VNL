@@ -47,7 +47,15 @@ class Audit
     public const TABLE = 'tbl_vnl_audit_log';
 
     /** Değeri kayda girmeyecek anahtar parçaları (küçük harf). */
-    private const SENSITIVE = ['password', 'token', 'secret'];
+    /**
+     * Anahtarında bunlardan biri geçen alan maskelenir. 4.0.0: Türkçe adlar
+     * (sifre, parola), tek kullanımlık kodlar ve kimlik taşıyan başlık/çerez
+     * adları eklendi; 3.x yalnız İngilizce üç kelimeye bakıyordu.
+     */
+    private const SENSITIVE = [
+        'password', 'passwd', 'token', 'secret', 'sifre', 'şifre', 'parola',
+        'otp', 'totp', 'api_key', 'apikey', 'authorization', 'cookie', 'credential', 'private_key',
+    ];
 
     private static ?int $actor = null;
 
@@ -112,7 +120,7 @@ class Audit
             return null;
         }
 
-        $ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+        $ip = vnl_client_ip();
 
         return $ip === '' ? null : mb_substr($ip, 0, 45);
     }

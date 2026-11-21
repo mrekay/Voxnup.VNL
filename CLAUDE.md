@@ -1,6 +1,6 @@
 # VNL
 
-Voxnup'ın çekirdeğini oluşturan PHP uygulama çatısı (framework; asgari PHP 8.2). Projeye
+Voxnup'ın çekirdeğini oluşturan PHP uygulama çatısı (framework; asgari PHP 8.3). Projeye
 depoyu klonlayarak başlanır: `vnl/` güncellenen çekirdektir, geri kalanı projenindir.
 Composer ve npm gerekmez; bağımlılıklar repoda gelir.
 
@@ -121,6 +121,7 @@ php vnl.php migrate --run     bekleyen şema değişikliklerini uygula
 php vnl.php update --check    yeni çekirdek sürümü var mı
 php vnl.php doctor            kurulumu çekirdeğin beklentisine karşı sına
 php vnl.php serve             yerel geliştirme sunucusu
+php vnl.php test              çekirdek + proje testleri
 php vnl.php user:create --username=admin --super    ilk yönetici
 php vnl.php queue:work        kuyruk işçisi      php vnl.php schedule:run   zamanlayıcı
 ```
@@ -139,14 +140,23 @@ değiştiren migration koşullu yazılmalıdır — örneği `vnl/migrations/000
 **Bu makinede PHP CLI yok**; her şey Docker ile koşulur.
 
 ```bash
+# Testler — PHP + MySQL, migration dahil (yeşil olmadan commit yok)
+docker compose -f compose.test.yml run --rm test
+docker compose -f compose.test.yml run --rm test php vnl.php test --suite=unit --filter=Csrf
+```
+
+Testler `vnl/tests/` (çekirdek) ve `tests/` (proje) altında; nasıl yazıldığı
+`tests/README.md`'de. CI (`.github/workflows/ci.yml`) aynı komutu koşar.
+
+```bash
 # Söz dizimi
-docker run --rm -v "$PWD":/app -w /app php:8.2-cli \
+docker run --rm -v "$PWD":/app -w /app php:8.3-cli \
   sh -c 'for f in $(find . -name "*.php" -not -path "./vnl/vendor/*"); do php -l $f; done' \
   | grep -v "^No syntax"
 
 # Yerel sunucu (PHP_CLI_SERVER_WORKERS olmadan tarayıcı testleri zaman aşımına düşer)
 docker run --rm -p 8091:8091 -e PHP_CLI_SERVER_WORKERS=4 -v "$PWD":/app -w /app \
-  php:8.2-cli php -S 0.0.0.0:8091 vnl/tools/dev-router.php
+  php:8.3-cli php -S 0.0.0.0:8091 vnl/tools/dev-router.php
 ```
 
 Bir şeyi kırdıysanız ilk `php vnl.php doctor`'a bakın.
