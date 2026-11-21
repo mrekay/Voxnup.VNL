@@ -61,6 +61,23 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
   - **3.x → 4.0 geçişi:** 3.x güncelleyicisi imza bilmez ve 4.0 arşivini
     doğrulamadan kurar. Bu yüzden 4.0'a geçerken `.sha256` dosyasını elle
     karşılaştırın. 4.0'dan sonraki güncellemeler imzalıdır.
+  - **İmzası sökülmüş arşiv reddedilir.** `vnl/KEYS` doluyken imzasız gelen bir arşiv
+    `--insecure` ile de kurulamaz. `--insecure` yalnız doğrulamanın imkânsız olduğu
+    durumlarda işe yarar: sodium yoksa ya da `KEYS` boşsa.
+  - **Sürüm düşürme koruması.** İmza arşivin baytlarını korur, ama içindeki sürümü
+    doğrulamaz. Bu yüzden imzalı eski bir arşiv yeni bir etiketin altına konarak
+    bilinen bir açığı geri getirebilirdi. Artık:
+    - arşivdeki `VERSION`, istenen etiketle aynı olmalı;
+    - kurulu sürümden yeni olmalı.
+
+    Bilerek geri dönmek için `--allow-downgrade` kullanılır; bu bayrak yalnız
+    yeni-sürüm şartını kaldırır, etiket eşleşmesi yine aranır. `--rollback`
+    etkilenmez.
+  - **Boyut sınırları.**
+    - İndirilen her dosya en fazla 64 MB olabilir ve yalnız https'ten indirilir.
+    - Arşivin açılmış hâli en fazla 64 MB olabilir. Açma parça parça yapılır;
+      sıkıştırma bombası belleği doldurmadan reddedilir.
+    - `VNL_UPDATE_REPO` yalnız `sahip/depo` biçiminde kabul edilir.
 
 ### Eklenenler (güncelleyici)
 

@@ -30,11 +30,50 @@ final class VnlUpdate
 {
     private const DEFAULT_REPO = 'mrekay/Voxnup.VNL';
 
+    /** İndirilen tek dosyanın (arşiv, imza, API yanıtı) üst sınırı. */
+    public const MAX_DOWNLOAD = 67108864;   // 64 MB
+
     private string $repo;
 
     public function __construct()
     {
-        $this->repo = (string)(getenv('VNL_UPDATE_REPO') ?: self::DEFAULT_REPO);
+        $repo = (string)(getenv('VNL_UPDATE_REPO') ?: self::DEFAULT_REPO);
+
+        /* 4.0.0: "sahip/ad" dışında bir değer API adresine yol parçası olarak
+           girerdi (../, ?, #). */
+        if (!preg_match('~^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$~', $repo) || str_contains($repo, '..')) {
+            throw new RuntimeException("VNL_UPDATE_REPO gecersiz (sahip/depo bekleniyor): {$repo}");
+        }
+
+        $this->repo = $repo;
+    }
+
+    /**
+     * Gelen sürüm kurulabilir mi? (4.0.0)
+     *
+     * İmza baytları korur, sürümü değil: imzalı ESKİ bir arşiv yeni bir
+     * etiketin altına konarak bilinen bir açığı geri getirebilirdi. Bu
+     * yüzden arşivdeki VERSION, istenen etiketle aynı ve kurulu sürümden
+     * büyük olmalıdır. Bilerek geri dönmek için --allow-downgrade.
+     */
+    public function checkVersion(string $incoming, string $installed, ?string $expected, bool $allowDowngrade): void
+    {
+        if (!preg_match('/^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$/', $incoming)) {
+            throw new RuntimeException("Arsivdeki VERSION gecersiz: {$incoming}");
+        }
+
+        if ($expected !== null && $incoming !== $expected) {
+            throw new RuntimeException(
+                "Arsiv {$incoming} surumunu tasiyor ama {$expected} istendi; yayin varligi yanlis ya da degistirilmis."
+            );
+        }
+
+        if (!$allowDowngrade && version_compare($incoming, $installed, '<=')) {
+            throw new RuntimeException(
+                "Arsiv ({$incoming}) kurulu surumden ({$installed}) yeni degil.\n"
+                . "  Bilerek eski surume donmek icin: --allow-downgrade"
+            );
+        }
     }
 
     /* ---------------------------------------------------------------- */
@@ -113,6 +152,16 @@ final class VnlUpdate
     public function authenticate(string $blob, ?string $signature, array $keys, bool $insecure, ?bool $sodium = null): array
     {
         $sodium ??= VnlSignature::available();
+
+        /* 4.0.0: Güvenilen anahtarı olan kurulumda imzasız arşiv, imzası
+           SÖKÜLMÜŞ arşivdir; --insecure bunu aşamaz. --insecure yalnız
+           doğrulamanın mümkün olmadığı durumlar (sodium yok, KEYS boş) içindir. */
+        if (($signature === null || trim($signature) === '') && $keys !== []) {
+            throw new VnlSignatureInvalid(
+                "Arsivin imzasi (.sig) yok, ama bu kurulum imzali yayin bekliyor (vnl/KEYS dolu).\n"
+                . "  Imzasi sokulmus bir arsiv olabilir; --insecure bunu asamaz."
+            );
+        }
 
         $cannot = match (true) {
             $signature === null || trim($signature) === '' => 'Arsivin imzasi (.sig) yok.',
@@ -409,6 +458,10 @@ final class VnlUpdate
                 CURLOPT_TIMEOUT        => 120,
                 CURLOPT_USERAGENT      => 'VNL-Updater',
                 CURLOPT_HTTPHEADER     => ['Accept: application/vnd.github+json'],
+                CURLOPT_MAXREDIRS      => 5,
+                CURLOPT_PROTOCOLS      => CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
+                CURLOPT_MAXFILESIZE    => self::MAX_DOWNLOAD,
             ]);
 
             $body = curl_exec($ch);
@@ -420,6 +473,9 @@ final class VnlUpdate
             }
             if ($code >= 400) {
                 throw new RuntimeException("Indirilemedi (HTTP {$code}): {$url}");
+            }
+            if (strlen((string)$body) > self::MAX_DOWNLOAD) {
+                throw new RuntimeException('Indirilen dosya cok buyuk (> 64 MB): ' . $url);
             }
 
             return (string)$body;
@@ -437,9 +493,16 @@ final class VnlUpdate
             'timeout' => 120,
         ]]);
 
-        $body = @file_get_contents($url, false, $context);
+        if (!str_starts_with(strtolower($url), 'https://')) {
+            throw new RuntimeException("Yalniz https adresinden indirilir: {$url}");
+        }
+
+        $body = @file_get_contents($url, false, $context, 0, self::MAX_DOWNLOAD + 1);
         if ($body === false) {
             throw new RuntimeException("Indirilemedi: {$url}");
+        }
+        if (strlen($body) > self::MAX_DOWNLOAD) {
+            throw new RuntimeException('Indirilen dosya cok buyuk (> 64 MB): ' . $url);
         }
 
         return (string)$body;
@@ -481,8 +544,10 @@ return static function (array $args) {
 
     --sig a.tar.gz.sig   imza dosyasi (varsayilan: arsivin yanindaki .sig)
     --force      kurcalanmis cekirdek uyarisini gec
-    --insecure   imza DOGRULANAMIYORSA (imza yok, sodium yok, KEYS bos)
-                 yine de kur. Gecersiz imzayi asamaz.
+    --insecure   imza DOGRULANAMIYORSA (sodium yok, KEYS bos; KEYS bosken
+                 imza dosyasi yok) yine de kur. Gecersiz ya da sokulmus
+                 imzayi asamaz.
+    --allow-downgrade   kurulu surumden eski ya da ayni surumu kur
 
   Guncelleme sonrasi: php vnl.php doctor  ve  php vnl.php migrate --status
 
@@ -496,6 +561,7 @@ TXT
     $updater = new VnlUpdate();
     $force    = in_array('--force', $args, true);
     $insecure = in_array('--insecure', $args, true);
+    $downgrade = in_array('--allow-downgrade', $args, true);
     $backup  = VNL_ROOT . '/vnl.bak';
 
     try {
@@ -640,16 +706,25 @@ TXT
 
                 return 1;
             }
-            $blob    = (string)file_get_contents($file);
-            $label   = $file;
+            if (filesize($file) > VnlUpdate::MAX_DOWNLOAD) {
+                $out();
+                $out('  Arsiv cok buyuk (> 64 MB): ' . $file);
+                $out();
+
+                return 1;
+            }
+            $blob     = (string)file_get_contents($file);
+            $label    = $file;
+            $expected = null;
             $sigPath = $opt($args, '--sig') ?? $file . '.sig';
             $sig     = is_file($sigPath) ? (string)file_get_contents($sigPath) : null;
         } else {
             $release = $updater->release($latest ? null : $to);
             $out();
             $out("  {$release['version']} indiriliyor…");
-            $blob  = $updater->httpGet($release['url']);
-            $label = $release['url'];
+            $blob     = $updater->httpGet($release['url']);
+            $label    = $release['url'];
+            $expected = $release['version'];
             $sig   = $release['sig'] !== '' ? $updater->httpGet($release['sig']) : null;
         }
 
@@ -662,6 +737,8 @@ TXT
         $temp = $updater->tempDir();
         try {
             $unpacked = $updater->unpack($blob, $temp, $label);
+
+            $updater->checkVersion($unpacked['version'], $updater->installedVersion(), $expected, $downgrade);
 
             $out('  Arsiv dogrulandi: ' . $unpacked['version'] . ' (' . $unpacked['files'] . ' dosya)');
             $out('  Yedek aliniyor ve uygulaniyor: vnl.bak/ <- vnl/');

@@ -233,7 +233,11 @@ php vnl.php migrate --run       şemayı güncelle</code></pre></div>
                                 </tr>
                                 <tr>
                                     <td><code>--insecure</code></td>
-                                    <td>İmza <b>doğrulanamıyorsa</b> (imza dosyası yok, PHP'de sodium yok, <code>vnl/KEYS</code> boş) yine de kurar. <b>Geçersiz imzayı aşamaz</b>: imza var ama tutmuyorsa arşiv kurcalanmıştır ve hiçbir bayrakla kurulmaz.</td>
+                                    <td>İmza <b>doğrulanamıyorsa</b> (PHP'de sodium yok ya da <code>vnl/KEYS</code> boş) yine de kurar. <b>Geçersiz ya da sökülmüş imzayı aşamaz.</b> İmza var ama tutmuyorsa arşiv kurcalanmıştır. <code>KEYS</code> doluyken imza dosyası hiç yoksa imza sökülmüş demektir. İki durumda da arşiv hiçbir bayrakla kurulmaz.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--allow-downgrade</code></td>
+                                    <td>Arşivdeki sürüm kurulu sürümden yeni değilse güncelleme durur. İmzalı ama eski bir arşivle bilinen bir açığın geri getirilmesi böyle önlenir. Bu bayrak eski sürüme bilerek dönmek içindir. Arşivdeki <code>VERSION</code>'ın istenen etiketle aynı olması şartı yine aranır. <code>--rollback</code> bu denetimden geçmez, çünkü yerel yedeği geri yükler.</td>
                                 </tr>
                                 <tr>
                                     <td><code>--rollback</code></td>

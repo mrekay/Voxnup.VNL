@@ -119,12 +119,74 @@ final class UpdateSignatureTest extends VnlTestCase
         $sig = VnlSignature::sign('blob', $key['secret']);
         $u   = new VnlUpdate();
 
-        $this->assertFalse($u->authenticate('blob', null, $keys, true)['verified']);
-        $this->assertFalse($u->authenticate('blob', $sig, $keys, true, false)['verified']);
-        $this->assertFalse($u->authenticate('blob', $sig, [], true)['verified']);
+        $this->assertFalse($u->authenticate('blob', null, [], true)['verified'], 'KEYS bos + imza yok');
+        $this->assertFalse($u->authenticate('blob', $sig, $keys, true, false)['verified'], 'sodium yok');
+        $this->assertFalse($u->authenticate('blob', $sig, [], true)['verified'], 'KEYS bos');
 
         /* Geçersiz imza --insecure ile de geçmez. */
         $this->assertThrows(fn() => $u->authenticate('kurcalanmis', $sig, $keys, true), VnlSignatureInvalid::class);
+    }
+
+    public function testStrippedSignatureIsRejectedEvenWithInsecure(): void
+    {
+        [, $keys] = $this->key();
+
+        /* KEYS dolu: imza beklenir; yokluğu "sökülmüş" sayılır. */
+        $this->assertThrows(fn() => (new VnlUpdate())->authenticate('blob', null, $keys, true), VnlSignatureInvalid::class);
+        $this->assertThrows(fn() => (new VnlUpdate())->authenticate('blob', '  ', $keys, true), VnlSignatureInvalid::class);
+    }
+
+    /* ---- sürüm ---- */
+
+    public function testVersionMustBeNewerUnlessAllowed(): void
+    {
+        $u = new VnlUpdate();
+
+        $u->checkVersion('4.0.1', '4.0.0', '4.0.1', false);
+        $u->checkVersion('4.0.0', '3.5.2', null, false);
+
+        $this->assertThrows(fn() => $u->checkVersion('3.5.2', '4.0.0', null, false), RuntimeException::class, 'eski');
+        $this->assertThrows(fn() => $u->checkVersion('4.0.0', '4.0.0', null, false), RuntimeException::class, 'ayni');
+
+        $u->checkVersion('3.5.2', '4.0.0', null, true);   // --allow-downgrade
+    }
+
+    public function testVersionMustMatchRequestedTag(): void
+    {
+        $u = new VnlUpdate();
+
+        /* İmzalı eski arşiv yeni etiketin altına konmuş. */
+        $this->assertThrows(fn() => $u->checkVersion('4.0.1', '4.0.0', '4.0.2', false), RuntimeException::class);
+        $this->assertThrows(fn() => $u->checkVersion('4.0.1', '4.0.0', '4.0.2', true), RuntimeException::class, 'downgrade bayragi etiketi asmaz');
+        $this->assertThrows(fn() => $u->checkVersion('bozuk', '4.0.0', null, true), RuntimeException::class);
+    }
+
+    /* ---- sınırlar ---- */
+
+    public function testUpdateRepoIsValidated(): void
+    {
+        foreach (['../../evil', 'a/b/c', 'a/b?x', 'a/..', 'tek'] as $bad) {
+            putenv('VNL_UPDATE_REPO=' . $bad);
+            $this->assertThrows(fn() => new VnlUpdate(), RuntimeException::class, $bad);
+        }
+
+        putenv('VNL_UPDATE_REPO=sahip/depo.adi');
+        new VnlUpdate();
+        putenv('VNL_UPDATE_REPO');
+    }
+
+    public function testGzipBombIsRejected(): void
+    {
+        /* Açılınca MAX_UNPACKED'i 1 MB aşan sıfırlar; bellekte değil parça parça sıkıştırılır. */
+        $ctx   = deflate_init(ZLIB_ENCODING_GZIP, ['level' => 9]);
+        $chunk = str_repeat("\0", 1048576);
+        $blob  = '';
+        for ($i = 0, $n = intdiv(VnlTar::MAX_UNPACKED, 1048576) + 1; $i < $n; $i++) {
+            $blob .= deflate_add($ctx, $chunk, ZLIB_NO_FLUSH);
+        }
+        $blob .= deflate_add($ctx, '', ZLIB_FINISH);
+
+        $this->assertThrows(fn() => VnlTar::gunzip($blob), RuntimeException::class);
     }
 
     /* ---- unpack ---- */
