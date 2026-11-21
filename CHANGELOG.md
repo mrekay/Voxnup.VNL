@@ -200,6 +200,15 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 - `php vnl.php release --keygen`: yeni yayın anahtarı üretir. Gizli yarısını
   yazdırır, `vnl/KEYS` için de bir satır verir.
 - `update --sig <yol>`: imza dosyası arşivin yanında durmuyorsa yolunu verir.
+- **Ana sürüm geçişi ayrı bir komut: `php vnl.php update --major 4`.**
+  - Güncelleyici GitHub'ın "latest" yayınına bakmaz. Yayın listesinden kurulu
+    ana sürümün en yenisini bulur. `--latest` ve `--check` kendi serisinde kalır.
+  - `--check` yeni bir ana sürüm varsa onu ayrıca "kırıcı" diye bildirir.
+  - `--to` ile başka bir ana sürüm istenirse `--major` olmadan reddedilir.
+    `--file` ile verilen arşive de aynı kural uygulanır.
+  - Kurulumdan önce yeni çekirdeğin istediği PHP sürümü denetlenir
+    (`vnl/composer.json` → `require.php`). Yetersiz PHP'de çekirdeğe dokunulmaz.
+- `vnl/KEYS` ilk yayın anahtarını taşıyor (`b156c98211870780`).
 - **Otomatik geri alma.** Uygulama yarıda kalırsa `vnl.bak/` kendiliğinden geri
   yüklenir. 3.x yalnız bir ipucu basıyordu.
 - `doctor` artık şunlarda uyarı verir: sodium yoksa, sunucu dışarıya

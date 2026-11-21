@@ -87,23 +87,112 @@ final class VnlUpdate
         return is_file($file) ? trim((string)file_get_contents($file)) : '0.0.0';
     }
 
-    /** @return array{version:string,url:string,sig:string,notes:string} */
-    public function release(?string $version): array
+    /**
+     * Bir yayının bilgisi. $version verilirse o etiket; verilmezse KURULU
+     * ANA SÜRÜMÜN en yenisi.
+     *
+     * GitHub'ın "latest" yayınına bilerek bakılmaz: 4.0 çıktığında 3.x
+     * kurulumları "latest" diye 4.0'ı görüp tek komutla kırıcı bir sürüme
+     * atlardı. Ana sürüm değiştirmek ayrı ve açık bir komuttur (--major).
+     *
+     * @return array{version:string,url:string,sig:string,notes:string}
+     */
+    public function release(?string $version, ?int $major = null): array
     {
-        $endpoint = $version === null
-            ? "https://api.github.com/repos/{$this->repo}/releases/latest"
-            : "https://api.github.com/repos/{$this->repo}/releases/tags/v{$version}";
+        if ($version !== null) {
+            $json = json_decode($this->httpGet("https://api.github.com/repos/{$this->repo}/releases/tags/v{$version}"), true);
 
-        $json = json_decode($this->httpGet($endpoint), true);
+            if (!is_array($json) || !isset($json['tag_name'])) {
+                throw new RuntimeException("v{$version} diye bir yayin bulunamadi: {$this->repo}");
+            }
 
-        if (!is_array($json) || !isset($json['tag_name'])) {
-            throw new RuntimeException(
-                $version === null
-                    ? "Yayin bilgisi okunamadi. Depoda hic yayin olmayabilir: {$this->repo}"
-                    : "v{$version} diye bir yayin bulunamadi: {$this->repo}"
-            );
+            return $this->describe($json);
         }
 
+        $major ??= self::major($this->installedVersion());
+        $pick    = self::pickRelease($this->releases(), $major);
+
+        if ($pick === null) {
+            throw new RuntimeException("{$major}.x serisinde yayin bulunamadi: {$this->repo}");
+        }
+
+        return $this->describe($pick);
+    }
+
+    /** Yayın listesi (taslak ve ön sürüm hariç), ham GitHub nesneleri. */
+    public function releases(): array
+    {
+        $json = json_decode($this->httpGet("https://api.github.com/repos/{$this->repo}/releases?per_page=100"), true);
+
+        if (!is_array($json)) {
+            throw new RuntimeException("Yayin listesi okunamadi: {$this->repo}");
+        }
+
+        return array_values(array_filter($json, static fn($r) => is_array($r)
+            && empty($r['draft']) && empty($r['prerelease'])
+            && preg_match('/^v?\d+\.\d+\.\d+$/', (string)($r['tag_name'] ?? ''))));
+    }
+
+    /** Verilen ana sürümün en yeni yayını; yoksa null. */
+    public static function pickRelease(array $releases, int $major): ?array
+    {
+        $best = null;
+
+        foreach ($releases as $r) {
+            $v = ltrim((string)($r['tag_name'] ?? ''), 'v');
+
+            if (self::major($v) === $major && ($best === null || version_compare($v, ltrim($best['tag_name'], 'v'), '>'))) {
+                $best = $r;
+            }
+        }
+
+        return $best;
+    }
+
+    /** Kurulu ana sürümden YÜKSEK ana sürümlerin en yenisi (bilgi için); yoksa null. */
+    public static function newestHigherMajor(array $releases, int $major): ?string
+    {
+        $best = null;
+
+        foreach ($releases as $r) {
+            $v = ltrim((string)($r['tag_name'] ?? ''), 'v');
+
+            if (self::major($v) > $major && ($best === null || version_compare($v, $best, '>'))) {
+                $best = $v;
+            }
+        }
+
+        return $best;
+    }
+
+    public static function major(string $version): int
+    {
+        return (int)explode('.', $version, 2)[0];
+    }
+
+    /**
+     * Gelen çekirdeğin istediği PHP sürümü bu sunucuda var mı?
+     * Kaynak: arşivdeki vnl/composer.json → require.php (">=8.3" biçimi).
+     * Ana sürüm geçişinde PHP alt sınırı yükselebilir; yetersiz PHP'ye
+     * kurulan çekirdek siteyi ilk istekte düşürürdü.
+     */
+    public static function checkPhp(string $incomingDir, string $phpVersion = PHP_VERSION): void
+    {
+        $file = $incomingDir . '/composer.json';
+        $json = is_file($file) ? json_decode((string)file_get_contents($file), true) : null;
+        $req  = is_array($json) ? (string)($json['require']['php'] ?? '') : '';
+
+        if (preg_match('/>=\s*(\d+\.\d+(?:\.\d+)?)/', $req, $m) && version_compare($phpVersion, $m[1], '<')) {
+            throw new RuntimeException(
+                "Yeni cekirdek PHP {$m[1]} istiyor; bu sunucuda PHP {$phpVersion} var.\n"
+                . "  Once PHP'yi yukseltin, sonra guncelleyin. Cekirdege dokunulmadi."
+            );
+        }
+    }
+
+    /** @return array{version:string,url:string,sig:string,notes:string} */
+    private function describe(array $json): array
+    {
         $tag  = ltrim((string)$json['tag_name'], 'v');
         $want = 'vnl-' . $tag . '.tar.gz';
         $url  = '';
@@ -538,7 +627,8 @@ return static function (array $args) {
     php vnl.php update --check           yeni surum var mi
     php vnl.php update --verify          kurulu cekirdek kurcalanmis mi
     php vnl.php update --to 3.1.0        belirtilen surume gec
-    php vnl.php update --latest          en son surume gec
+    php vnl.php update --latest          bu ana surumun en yenisine gec
+    php vnl.php update --major 4         YENI ANA SURUME gec (kirici!)
     php vnl.php update --file a.tar.gz   elde indirilmis arsivden
     php vnl.php update --rollback        vnl.bak/ uzerinden geri don
 
@@ -568,15 +658,31 @@ TXT
         /* ---- --check ---- */
         if (in_array('--check', $args, true)) {
             $installed = $updater->installedVersion();
-            $release   = $updater->release(null);
+            $major     = VnlUpdate::major($installed);
+            $all       = $updater->releases();
+            $pick      = VnlUpdate::pickRelease($all, $major);
+            $next      = VnlUpdate::newestHigherMajor($all, $major);
 
             $out();
             $out("  Kurulu   {$installed}");
-            $out("  Yayinda  {$release['version']}");
+            $out('  Yayinda  ' . ($pick ? ltrim($pick['tag_name'], 'v') : '-') . "  ({$major}.x serisi)");
             $out();
 
+            if ($next !== null) {
+                $out("  Yeni ANA surum var: {$next} — KIRICI degisiklikler icerir.");
+                $out('  Kendiliginden kurulmaz. Gecis notlarini okuyun, sonra:');
+                $out('    php vnl.php update --major ' . VnlUpdate::major($next));
+                $out();
+            }
+
+            if ($pick === null) {
+                return 0;
+            }
+
+            $release = ['version' => ltrim($pick['tag_name'], 'v'), 'notes' => (string)($pick['html_url'] ?? '')];
+
             if (version_compare($release['version'], $installed, '<=')) {
-                $out('  Guncelsiniz.');
+                $out('  Bu seride guncelsiniz.');
                 $out();
 
                 return 0;
@@ -665,8 +771,31 @@ TXT
         $file    = $opt($args, '--file');
         $to      = $opt($args, '--to');
         $latest  = in_array('--latest', $args, true);
+        $majorTo = $opt($args, '--major');
 
-        if ($file === null && $to === null && !$latest) {
+        if ($majorTo !== null && !ctype_digit($majorTo)) {
+            $out();
+            $out('  --major bir sayi ister: php vnl.php update --major 4');
+            $out();
+
+            return 1;
+        }
+
+        /* Ana sürüm geçişi yalnız --major ile (4.0.0). --to ile başka bir
+           ana sürüm istenirse, aynı numarayla --major de verilmeli. */
+        $installedMajor = VnlUpdate::major($updater->installedVersion());
+        if ($to !== null && VnlUpdate::major($to) !== $installedMajor
+            && ($majorTo === null || (int)$majorTo !== VnlUpdate::major($to))) {
+            $out();
+            $out("  {$to} baska bir ANA surum ({$installedMajor}.x kurulu). Kirici degisiklik icerir;");
+            $out('  bilerek gecmek icin: php vnl.php update --major ' . VnlUpdate::major($to)
+                . ($to !== null ? " --to {$to}" : ''));
+            $out();
+
+            return 1;
+        }
+
+        if ($file === null && $to === null && !$latest && $majorTo === null) {
             $out();
             $out('  Ne yapilacagi belirtilmemis. Secenekler: php vnl.php update --help');
             $out();
@@ -719,7 +848,7 @@ TXT
             $sigPath = $opt($args, '--sig') ?? $file . '.sig';
             $sig     = is_file($sigPath) ? (string)file_get_contents($sigPath) : null;
         } else {
-            $release = $updater->release($latest ? null : $to);
+            $release = $updater->release($to, $majorTo !== null && $to === null ? (int)$majorTo : null);
             $out();
             $out("  {$release['version']} indiriliyor…");
             $blob     = $updater->httpGet($release['url']);
@@ -739,6 +868,16 @@ TXT
             $unpacked = $updater->unpack($blob, $temp, $label);
 
             $updater->checkVersion($unpacked['version'], $updater->installedVersion(), $expected, $downgrade);
+            VnlUpdate::checkPhp($unpacked['dir']);
+
+            /* --file ile gelen arşiv de ana sürüm kuralına uyar. */
+            if (VnlUpdate::major($unpacked['version']) !== $installedMajor
+                && ($majorTo === null || (int)$majorTo !== VnlUpdate::major($unpacked['version']))) {
+                throw new RuntimeException(
+                    "Arsiv {$unpacked['version']} — baska bir ANA surum. Bilerek gecmek icin: --major "
+                    . VnlUpdate::major($unpacked['version'])
+                );
+            }
 
             $out('  Arsiv dogrulandi: ' . $unpacked['version'] . ' (' . $unpacked['files'] . ' dosya)');
             $out('  Yedek aliniyor ve uygulaniyor: vnl.bak/ <- vnl/');
