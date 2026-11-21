@@ -46,7 +46,8 @@ return [
     // Dönüş yolu yoksa/geçersizse.
     'default_return' => '/login',
 
-    // İmza anahtarı (JWKS) önbelleği; boşsa sistem tmp.
+    // İmza anahtarı (JWKS) önbelleği; boşsa files/cache/oidc (0700). Paylaşımlı
+    // barındırmada /tmp gibi ORTAK bir dizin VERMEYİN: başka kiracı anahtar yazabilir.
     'cache_dir' => '',
 
     // null → VNL RateLimiter (tbl_vnl_rate_limits; vnl/migrations/0003), IP başına

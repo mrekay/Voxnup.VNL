@@ -131,7 +131,7 @@ document.addEventListener('vnl:social-auth', (e) =&gt; {
                         <li class="mb-2">Doğrulanmamış e-posta profile hiç girmez (Microsoft iş hesapları: <code>xms_edov</code>). E-postayla hesap bağlamak bu yüzden güvenlidir.</li>
                         <li class="mb-2">Yönlendirme durumu (state + nonce) 10 dakikalık <code>__vnl_oauth</code> çerezindedir; state tutmazsa giriş reddedilir (giriş CSRF'i).</li>
                         <li class="mb-2"><code>POST /app/social/google</code> girişsiz çağrılabilir (<code>PUBLIC_METHODS</code>) ama CSRF denetiminden geçer.</li>
-                        <li class="mb-2">Dönüş yolu (<code>ret</code>) yalnız site içi göreli adres olabilir; açık yönlendirme yok.</li>
+                        <li class="mb-2">Dönüş yolu (<code>ret</code>) çekirdeğin <code>vnl_safe_return_url()</code> fonksiyonundan geçer. Yalnız site içi göreli adres kabul edilir; boşluk ya da kontrol karakteri taşıyan adresler reddedilir (3.5.2'ye kadar <code>/%09/evil.com</code> geçiyordu).</li>
                         <li><code>/oauth/...</code> uçları <code>boot.php</code>'de <code>vnl_public_page('oauth')</code> ile girişe açılır.</li>
                     </ul>
                 </div>

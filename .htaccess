@@ -23,18 +23,29 @@ RewriteRule (^|/)\.(?!well-known) - [F,L]
 # Yalnız bu dizinlerin İÇİNDEKİ var olan dosya/dizinler engellenir.
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)/. - [F,L]
+RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)/. - [F,L,NC]
+
+# Web'e hiç açılmayan dizinler (3.5.2): güncelleme yedeği (eski çekirdek
+# sürümünün dosyaları), yayın arşivleri ve geliştirme dosyaları.
+RewriteRule ^(vnl\.bak|dist|tests|docker)(/|$) - [F,L,NC]
+
+# Yükleme dizinlerinde PHP ÇALIŞMAZ (3.5.2). files/ (FileManagerModule'ün
+# varsayılan hedefi) ve yaygın yükleme dizinlerindeki betik uzantıları
+# yorumlanmadan reddedilir; yüklemeden kaçan tek bir .php dosyası böylece
+# uzaktan kod çalıştırmaya dönüşmez. Projenin gerçek giriş noktası
+# yalnız kökteki index.php'dir.
+RewriteRule ^(files|uploads?|media|storage)/.*\.(php\d*|phtml|pht|phar|phps|pgif|cgi|pl|py|shtml?)(\.|/|$) - [F,L,NC]
 
 # Dizinin kendi adı (/jobs, /config/) bir SAYFA adresidir ve nginx'teki gibi
 # ön denetleyiciye gider. Dizin var olduğu için aşağıdaki !-d koşulu onu
 # atlardı; 3.4.0'ın ilk hâlinde bu adresler 403 dönüyordu. Eğik çizgisiz
 # /jobs'u Apache önce /jobs/'a yönlendirir (mod_dir DirectorySlash; bu
 # istekte mod_rewrite devreye girmez), sayfa oradan açılır.
-RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)/?$ index.php [QSA,L]
+RewriteRule ^(actions|classes|commands|config|controller|exceptions|extensions|files/cache|files/logs|helpers|jobs|languages|migrations|modules|validators|view)/?$ index.php [QSA,L,NC]
 
 # Çekirdek: yalnız vnl/assets/ servis edilir.
-RewriteRule ^vnl/?$ - [F,L]
-RewriteRule ^vnl/(?!assets/) - [F,L]
+RewriteRule ^vnl/?$ - [F,L,NC]
+RewriteRule ^vnl/(?!assets/) - [F,L,NC]
 
 # Ön denetleyici. 3.3'teki desen ([a-zA-z0-9-_/]+) noktalı adresleri
 # (/domains/view/ornek.com) dışarıda bırakıyordu ve A-z aralığı [ \ ] ^ _ `
