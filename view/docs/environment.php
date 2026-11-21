@@ -243,6 +243,16 @@
                                     <td>Oturum çerezinin SameSite değeri (<code>Lax</code> | <code>Strict</code> | <code>None</code>).</td>
                                 </tr>
                                 <tr>
+                                    <td class="ps-5"><code>VNL_SESSION_NAME</code></td>
+                                    <td><code>VNLSESSID</code></td>
+                                    <td>Oturum çerezinin adı (yalnız harf/rakam; geçersizse varsayılan). Değiştirmek açık oturumları kapatır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>VNL_POWERED_BY</code></td>
+                                    <td><code>VNL (Voxnup Not Laravel)</code></td>
+                                    <td>PHP'nin <code>X-Powered-By: PHP/8.x</code> başlığının yerine geçer. Boş ya da <code>false</code>: başlık hiç gönderilmez.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>VNL_SECURITY_HEADERS</code></td>
                                     <td><code>true</code></td>
                                     <td><code>X-Frame-Options</code>, <code>nosniff</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, TLS'te HSTS.</td>

@@ -85,6 +85,18 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
   bulunabileceğini" söylüyordu. 3.4.0'dan beri ikisi de yalnız etkin eklentilerde
   aranıyor; belge koda göre düzeltildi.
 
+### Değişenler
+
+- **Oturum çerezinin adı `PHPSESSID` → `VNLSESSID`** (`VNL_SESSION_NAME`). Aynı alan
+  adındaki başka bir PHP uygulamasının oturumuyla çakışmaz. **Güncellemede açık
+  oturumlar kapanır**; geçerli "beni hatırla" jetonu olan kullanıcılar jetonla
+  geri girer, diğerleri yeniden giriş yapar. Oturum çerezini **adıyla okuyan harici
+  süreçler** (ör. bir Node WebSocket sunucusunun `PHPSESSID` araması) `VNL_SESSION_NAME`'i
+  okumalı ya da geçiş süresince iki adı da kabul etmelidir. Eski adı korumak için
+  `VNL_SESSION_NAME=PHPSESSID`.
+- **`X-Powered-By: VNL (Voxnup Not Laravel)`** (`VNL_POWERED_BY`). PHP'nin sürüm
+  numaralı başlığının yerine geçer; boş/`false` başlığı tamamen kaldırır.
+
 ---
 
 ## [3.5.1] — 2026-11-04

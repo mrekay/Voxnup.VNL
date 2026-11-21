@@ -63,6 +63,13 @@ if (!in_array($vnl_samesite, ['Lax', 'Strict', 'None'], true) || ($vnl_samesite 
 }
 
 if (PHP_SAPI !== 'cli') {
+    /* Çerez adı (4.0.0): PHPSESSID yerine VNLSESSID. Aynı alan adında başka
+       bir PHP uygulamasının oturumuyla çakışmaz. Geçersiz ad PHP'yi uyarıya
+       düşürdüğü için yalnız harf/rakam kabul edilir, değilse varsayılan. */
+    $vnl_session_name = (string)VnlEnv::get('VNL_SESSION_NAME', 'VNLSESSID');
+    session_name(preg_match('/^[A-Za-z][A-Za-z0-9]{0,63}$/', $vnl_session_name) ? $vnl_session_name : 'VNLSESSID');
+    unset($vnl_session_name);
+
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
     ini_set('session.use_trans_sid', '0');
@@ -94,6 +101,19 @@ if (PHP_SAPI !== 'cli' && !headers_sent() && VnlEnv::get('VNL_SECURITY_HEADERS',
     if ($isSecure) {
         header('Strict-Transport-Security: max-age=31536000');
     }
+}
+
+/* İmza (4.0.0): PHP'nin "X-Powered-By: PHP/8.x.y" başlığı yerine
+   "VNL (Voxnup Not Laravel)". Sürüm bilerek yazılmaz — numara, saldırgana
+   hangi açığı deneyeceğini söyler. VNL_POWERED_BY= (boş) başlığı kaldırır. */
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    header_remove('X-Powered-By');
+    $vnl_powered_by = VnlEnv::get('VNL_POWERED_BY', true);
+    $vnl_powered_by = $vnl_powered_by === true ? 'VNL (Voxnup Not Laravel)' : trim((string)$vnl_powered_by);
+    if ($vnl_powered_by !== '') {
+        header('X-Powered-By: ' . str_replace(["\r", "\n"], '', $vnl_powered_by));
+    }
+    unset($vnl_powered_by);
 }
 
 $cDefinitions = new ConfigDefinitions();
