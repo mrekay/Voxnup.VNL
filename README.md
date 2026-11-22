@@ -5,7 +5,7 @@
 <h1 align="center">VNL</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-4.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-4.0.1-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
 
