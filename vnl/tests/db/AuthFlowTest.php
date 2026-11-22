@@ -106,7 +106,7 @@ final class AuthFlowTest extends VnlHttpTestCase
         $before = $this->csrfToken('/login');
         $this->assertSame(200, $this->login($user)->status);
 
-        $res = $this->post('/app/users/getList', [], ['X-CSRF-Token' => $before]);
+        $res = $this->post($this->protectedAction(), [], ['X-CSRF-Token' => $before]);
         $this->assertSame(403, $res->status);
         $this->assertSame('VNL_CSRF', $res->devcode());
 
@@ -118,7 +118,7 @@ final class AuthFlowTest extends VnlHttpTestCase
     {
         $this->assertSame(200, $this->login($this->makeUser(User::SUPER_ADMIN))->status);
 
-        $res = $this->post('/app/users/getList');
+        $res = $this->post($this->protectedAction());
 
         $this->assertSame(403, $res->status);
         $this->assertSame('VNL_CSRF', $res->devcode());
@@ -126,6 +126,7 @@ final class AuthFlowTest extends VnlHttpTestCase
 
     public function testPermissionGateDeniesPlainUser(): void
     {
+        $this->requireTemplateAction('users', 'getList');
         $this->assertSame(200, $this->login($this->makeUser(null))->status);
         $token = $this->csrfToken('/index');
 
@@ -137,6 +138,7 @@ final class AuthFlowTest extends VnlHttpTestCase
 
     public function testPermissionGateAllowsSuperAdmin(): void
     {
+        $this->requireTemplateAction('users', 'getList');
         $this->assertSame(200, $this->login($this->makeUser(User::SUPER_ADMIN))->status);
         $token = $this->csrfToken('/index');
 

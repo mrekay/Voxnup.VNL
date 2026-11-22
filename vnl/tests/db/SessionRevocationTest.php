@@ -66,8 +66,10 @@ final class SessionRevocationTest extends VnlHttpTestCase
     }
 
     /**
-     * Girişli mi? Korumalı sayfa (/) girişsize 302 döner; girişliyken
-     * sayfanın CSRF jetonuyla bir action da (süper yönetici) 200 vermeli.
+     * Girişli mi? Korumalı sayfa (/) girişsize 302 döner. Dağıtıcı da aynı
+     * kararı vermeli: jetonsuz istek girişsize 401, girişliye 403 VNL_CSRF
+     * (giriş CSRF'ten önce bakılır). Jetonsuz gönderildiği için action hiç
+     * çalışmaz; projenin herhangi bir girişli metodu olabilir (4.0.1).
      */
     private function loggedIn(): bool
     {
@@ -76,10 +78,9 @@ final class SessionRevocationTest extends VnlHttpTestCase
             return false;
         }
 
-        $this->assertSame(1, preg_match('/<meta name="csrf-token" content="([^"]+)"/', $page->body, $m), 'meta jeton');
-        $res = $this->post('/app/users/getList', [], ['X-CSRF-Token' => html_entity_decode($m[1])]);
+        $res = $this->post($this->protectedAction());
 
-        return $res->status === 200;
+        return $res->status === 403 && $res->devcode() === 'VNL_CSRF';
     }
 
     private function changePassword(User $user): void

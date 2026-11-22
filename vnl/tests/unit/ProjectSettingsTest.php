@@ -30,6 +30,20 @@ final class ProjectSettingsTest extends VnlTestCase
 
     public function testSecurityHeaderDefaults(): void
     {
+        /* Proje .env'de bir başlığı değiştirdiyse varsayılan sınanamaz (4.0.1). */
+        $defaults = [
+            'VNL_SECURITY_HEADERS'          => true,
+            'VNL_HEADER_FRAME_OPTIONS'      => 'SAMEORIGIN',
+            'VNL_HEADER_REFERRER_POLICY'    => 'strict-origin-when-cross-origin',
+            'VNL_HEADER_PERMISSIONS_POLICY' => 'camera=(), microphone=(), geolocation=()',
+            'VNL_HEADER_HSTS'               => 'max-age=31536000',
+        ];
+        foreach ($defaults as $key => $default) {
+            if (VnlEnv::get($key, $default) !== $default) {
+                $this->skip("proje {$key} ayarını değiştirmiş; varsayılan sınanamaz");
+            }
+        }
+
         $h = vnl_security_headers(false);
 
         $this->assertSame('nosniff', $h['X-Content-Type-Options']);
@@ -80,6 +94,10 @@ final class ProjectSettingsTest extends VnlTestCase
 
     public function testErrorDetailHook(): void
     {
+        if (function_exists('vnl_project_error_detail')) {
+            $this->skip('proje vnl_project_error_detail() tanımlamış; kancasız davranış sınanamaz');
+        }
+
         $e = new RuntimeException('x');
 
         $this->assertFalse(vnl_error_detail_visible($e), 'kanca yokken kapalı');
