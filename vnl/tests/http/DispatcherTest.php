@@ -5,8 +5,9 @@
  * isteklerle. Sıra: yöntem → ad → sınıf/metot → giriş → köken + CSRF.
  *
  * Fikstür projenin kendi action'larıdır: action_login (PUBLIC_METHODS:
- * login, totp, logout) ve action_users (girişli). Proje bunları ezdiyse
- * testler projenin hâlini sınar — amaç da bu.
+ * login, totp, logout) ve girişli bir action — şablonda users/getList,
+ * yoksa projenin ilk girişli metodu (protectedAction(), 4.0.1). Proje
+ * bunları ezdiyse testler projenin hâlini sınar — amaç da bu.
  */
 final class DispatcherTest extends VnlHttpTestCase
 {
@@ -38,7 +39,7 @@ final class DispatcherTest extends VnlHttpTestCase
 
     public function testProtectedActionRequiresLogin(): void
     {
-        $res = $this->post('/app/users/getList');
+        $res = $this->post($this->protectedAction());
 
         $this->assertSame(401, $res->status);
         $this->assertSame('VNL_AUTH', $res->devcode());
@@ -47,10 +48,11 @@ final class DispatcherTest extends VnlHttpTestCase
     /** Giriş CSRF'ten önce bakılır: jetonsuz girişsiz istek 403 değil 401 almalı. */
     public function testLoginIsCheckedBeforeCsrf(): void
     {
-        $token = $this->csrfToken();
+        $action = $this->protectedAction();
+        $token  = $this->csrfToken();
 
-        $this->assertSame(401, $this->post('/app/users/save', ['_token' => $token])->status);
-        $this->assertSame(401, $this->post('/app/users/save')->status);
+        $this->assertSame(401, $this->post($action, ['_token' => $token])->status);
+        $this->assertSame(401, $this->post($action)->status);
     }
 
     public function testPublicMethodStillRequiresCsrf(): void
@@ -121,7 +123,7 @@ final class DispatcherTest extends VnlHttpTestCase
 
     public function testResponsesAreJson(): void
     {
-        $res = $this->post('/app/users/getList');
+        $res = $this->post($this->protectedAction());
 
         $this->assertContains('application/json', (string)$res->header('Content-Type'));
         $this->assertNotContains('<html', strtolower($res->body));

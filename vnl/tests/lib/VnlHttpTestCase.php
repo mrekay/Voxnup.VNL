@@ -86,6 +86,74 @@ abstract class VnlHttpTestCase extends VnlTestCase
     }
 
     /**
+     * Girişli ve CSRF'li bir action adresi (4.0.1). Testler bunu yalnız
+     * kapıda takılan isteklerde kullanır (401, 403 VNL_CSRF): action hiç
+     * çalışmaz, o yüzden projenin herhangi bir metodu olabilir.
+     *
+     * Şablonun /app/users/getList'i varsa o; yoksa projenin actions/
+     * dizininden PUBLIC_METHODS ve CSRF_EXEMPT dışında kalan ilk public
+     * metot (metin taraması: dosya yüklenmez, yan etki yok). Hiçbiri yoksa
+     * test atlanır — çekirdek testleri şablonun action'larına bağlı değil.
+     */
+    protected function protectedAction(): string
+    {
+        static $found = null;
+
+        if ($found === null) {
+            $found = '';
+            $files = glob(VNL_ROOT . '/actions/action_*.php') ?: [];
+            usort($files, static fn($a, $b) => (basename($b) === 'action_users.php') <=> (basename($a) === 'action_users.php') ?: strcmp($a, $b));
+
+            foreach ($files as $file) {
+                $code   = (string)file_get_contents($file);
+                $module = substr(basename($file, '.php'), strlen('action_'));
+
+                if (!preg_match('/^[a-z0-9_]+$/i', $module) || !preg_match('/\bclass\s+action_' . preg_quote($module, '/') . '\b/i', $code)) {
+                    continue;
+                }
+
+                $open = [];
+                foreach (['PUBLIC_METHODS', 'CSRF_EXEMPT'] as $const) {
+                    if (preg_match('/\b' . $const . '\s*=\s*\[([^\]]*)\]/', $code, $m)) {
+                        preg_match_all('/[\'"]([a-z0-9_]+)[\'"]/i', $m[1], $names);
+                        $open = array_merge($open, array_map('strtolower', $names[1]));
+                    }
+                }
+
+                preg_match_all('/^\s*(?:final\s+)?public\s+function\s+([a-z0-9_]+)\s*\(/im', $code, $methods);
+                $candidates = array_values(array_filter($methods[1],
+                    static fn($m) => !str_starts_with($m, '__') && !in_array(strtolower($m), $open, true)));
+
+                if ($candidates !== []) {
+                    $method = in_array('getList', $candidates, true) ? 'getList' : $candidates[0];
+                    $found  = '/app/' . $module . '/' . $method;
+                    break;
+                }
+            }
+        }
+
+        if ($found === '') {
+            $this->skip('projede girişli bir action metodu bulunamadı (actions/action_*.php)');
+        }
+
+        return $found;
+    }
+
+    /**
+     * Testin gerçekten ÇALIŞTIRDIĞI şablon action'ı projede yoksa atlar.
+     * Örn. izin kapısı testleri /app/users/getList'in Users iznine bağlı
+     * davranışını sınar; proje o metodu kaldırdıysa sınanacak bir şey yok.
+     */
+    protected function requireTemplateAction(string $module, string $method): void
+    {
+        $file = VNL_ROOT . '/actions/action_' . $module . '.php';
+
+        if (!is_file($file) || !preg_match('/public\s+function\s+' . preg_quote($method, '/') . '\s*\(/i', (string)file_get_contents($file))) {
+            $this->skip("şablonun /app/{$module}/{$method} action'ı projede yok");
+        }
+    }
+
+    /**
      * Oturumun CSRF jetonunu girişsiz açılan bir sayfanın meta etiketinden okur.
      * Oturum çerezi saklanır; sonraki istekler aynı oturumla gider.
      */

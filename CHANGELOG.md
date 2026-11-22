@@ -13,6 +13,49 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [4.0.1] — 2026-11-22
+
+Düzeltme sürümü. Bulgular, bir sqlsrv projesinin (IIS üzerinde) 4.0.0'a geçişinden
+geliyor. Kırıcı değişiklik ve migration yoktur. Değişen çekirdek dosyaları
+`vnl/tools/doctor.php` ve `vnl/tests/` altındaki dosyalar.
+
+### Düzeltilenler
+
+- **`doctor` veritabanı sürücüsüne bakıyor.**
+  - Gereken PDO eklentisi `DB_DRIVER`'a göre denetleniyor (sqlsrv için
+    `pdo_sqlsrv`, pgsql için `pdo_pgsql` gibi). Önceden `pdo_mysql` her
+    projede zorunlu sayılıyordu; sqlsrv projeleri yanlışlıkla "VNL çalışmaz"
+    uyarısı alıyordu.
+  - MySQL dışı sürücülerde çekirdek migration denetimi bağlanmaya çalışmıyor.
+    Bunun yerine bir uyarı veriyor: çekirdek tabloları (giriş hız sınırı,
+    Audit, kuyruk, API jetonları, TOTP) şimdilik yalnız MySQL'de kurulabiliyor.
+- **Çekirdek testleri projenin action'larına bağlı değil.**
+  - Kapıda takılan isteklerin testleri (401 ve 403 `VNL_CSRF`) artık
+    şablonun `/app/users/*` action'ına bağlı değil. Action bu isteklerde hiç
+    çalışmadığı için projenin herhangi bir girişli metodunu kullanıyorlar;
+    girişli metot yoksa atlanıyorlar.
+  - `users/getList`'i gerçekten çalıştıran izin testleri, proje o metodu
+    kaldırmışsa atlanıyor.
+  - Projede başlık varsayılanları değiştirilmişse ya da
+    `vnl_project_error_detail()` tanımlıysa, `ProjectSettingsTest`'in ilgili
+    iki testi kırmızı yanmıyor, atlanıyor.
+
+### Proje dosyaları (güncelleme dokunmaz; şablondan elle alın)
+
+- **`web.config` ön denetleyicisi** artık isteği yol eklemeden `index.php`'ye
+  yönlendiriyor (`.htaccess` ile aynı). Var olan dizinler IIS'e bırakılıyor.
+  Kök `/` için `defaultDocument` eklendi, dizin listeleme açıkça kapatıldı.
+  4.0.0'daki `index.php/{R:1}` PATH_INFO'ya dayanıyordu ve gerçek IIS'te
+  sınanmamıştı. Yeni kural canlı IIS 10'da çalışan kuraldır. IIS kullanıyorsanız
+  4.0.0'ın engelleme kurallarıyla birlikte bu dosyayı alın.
+
+### Yükseltme
+
+`php vnl.php update` (4.0.x serisinde kalır), ardından IIS kullanıyorsanız
+`web.config`'i şablondan alın.
+
+---
+
 ## [4.0.0] — 2026-11-22
 
 Bilerek kırıcı yapılmış bir ana sürüm. Getirdikleri:

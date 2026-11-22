@@ -319,15 +319,40 @@ TXT
     $pendingCore = null;
     $dbProblem   = null;
 
-    if (!extension_loaded('pdo_mysql')) {
+    /* 4.0.1: sürücü DB_DRIVER'dan okunur; gereken PDO eklentisi ve çekirdek
+       migration denetimi ona göre. Önceden pdo_mysql her projede zorunlu
+       sayılıyordu (sqlsrv projesinde yanlış [X]). */
+    $dbInfo   = null;
+    $dbDriver = 'mysql';
+    if (is_file(VNL_ROOT . '/config/definitions.php')) {
+        try {
+            require_once VNL_ROOT . '/config/definitions.php';
+            $dbInfo   = (new ConfigDefinitions())->getDBInfo();
+            $dbDriver = strtolower((string)($dbInfo['driver'] ?? '')) ?: 'mysql';
+        } catch (Throwable $e) {
+            $dbProblem = $e->getMessage();
+        }
+    }
+    $pdoExtension = [
+        'mysql'   => 'pdo_mysql',
+        'mariadb' => 'pdo_mysql',
+        'sqlsrv'  => 'pdo_sqlsrv',
+        'pgsql'   => 'pdo_pgsql',
+        'sqlite'  => 'pdo_sqlite',
+    ][$dbDriver] ?? null;
+
+    if ($dbProblem !== null) {
+        // definitions.php okunamadı; aşağıda yalnız uyarı
+    } elseif ($pdoExtension !== 'pdo_mysql') {
+        $dbProblem = "DB_DRIVER={$dbDriver}: cekirdek migrationlari (vnl/migrations) yalniz\n"
+            . "        MySQL icin yazili. Bu surucude cekirdek tablolari (giris hiz siniri,\n"
+            . "        Audit, kuyruk, API jetonlari, TOTP tekrar korumasi) kurulamaz.";
+    } elseif (!extension_loaded('pdo_mysql')) {
         $dbProblem = 'pdo_mysql yok';
-    } elseif (!is_file(VNL_ROOT . '/config/definitions.php')) {
+    } elseif ($dbInfo === null) {
         $dbProblem = 'config/definitions.php yok';
     } else {
         try {
-            require_once VNL_ROOT . '/config/definitions.php';
-            $dbInfo = (new ConfigDefinitions())->getDBInfo();
-
             if ((string)($dbInfo['database'] ?? '') === '') {
                 throw new RuntimeException('DB_DATABASE bos');
             }
@@ -359,7 +384,7 @@ TXT
 
     $checks[] = $pendingCore === null
         ? $check('Cekirdek migrationlari (veritabani)', false,
-            "Denetlenemedi: {$dbProblem}\n        Elle: php vnl.php migrate --status", false)
+            "Denetlenemedi: {$dbProblem}" . ($pdoExtension === 'pdo_mysql' ? "\n        Elle: php vnl.php migrate --status" : ''), false)
         : $check('Cekirdek migrationlari uygulanmis', $pendingCore === [],
             'Bekleyen: ' . implode(', ', $pendingCore) . "\n"
             . "        php vnl.php migrate --run" . (in_array('0007_vnl_totp_replay.sql', $pendingCore, true)
@@ -410,15 +435,26 @@ TXT
         . "        kurulumsa onun surumunu da denetleyin (phpinfo())."
     );
 
-    foreach (['mbstring' => true, 'json' => true, 'pdo_mysql' => true, 'openssl' => true, 'zlib' => false] as $ext => $fatal) {
+    /* PDO eklentisi DB_DRIVER'a göre (4.0.1). */
+    $extensions = ['mbstring' => true, 'json' => true, 'openssl' => true, 'zlib' => false];
+    if ($pdoExtension !== null) {
+        $extensions = [$pdoExtension => true] + $extensions;
+    }
+    foreach ($extensions as $ext => $fatal) {
         $checks[] = $check(
             "eklenti: {$ext}",
             extension_loaded($ext),
-            $ext === 'zlib'
-                ? 'Guncelleyici sikistirilmis arsivi acamaz; sikistirilmamis .tar kullanin.'
-                : "Bu eklenti olmadan VNL calismaz.",
+            match ($ext) {
+                'zlib'        => 'Guncelleyici sikistirilmis arsivi acamaz; sikistirilmamis .tar kullanin.',
+                $pdoExtension => "DB_DRIVER={$dbDriver} bu eklenti olmadan veritabanina baglanamaz.",
+                default       => 'Bu eklenti olmadan VNL calismaz.',
+            },
             $fatal
         );
+    }
+    if ($pdoExtension === null) {
+        $checks[] = $check("DB_DRIVER taninir ({$dbDriver})", false,
+            'Bilinen surucu degil: mysql, mariadb, sqlsrv, pgsql, sqlite.', false);
     }
 
     /* ---- Çekirdeği ezen proje dosyaları (4.0.0) ----
