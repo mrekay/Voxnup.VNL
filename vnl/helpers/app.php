@@ -105,6 +105,42 @@ function vnl_user()
 }
 
 /**
+ * Bu istek bir Bearer jetonuyla mı doğrulandı (4.1.0)? Değilse null; öyleyse
+ * ['via' => 'core'|'project', 'user_id' => int, 'token_id' => ?int, 'meta' => array].
+ * Ayrıntı: VnlDispatcher::bearer(), /docs/security → Proje jetonları.
+ */
+function vnl_bearer(): ?array
+{
+	/* Proje eski bir VnlDispatcher ezmesi taşıyorsa bearer() olmayabilir. */
+	return (class_exists('VnlDispatcher', false) && method_exists('VnlDispatcher', 'bearer'))
+		? VnlDispatcher::bearer()
+		: null;
+}
+
+/**
+ * Bu istek, $userId'ye ait geçerli bir Bearer jetonuyla mı geldi (4.1.0)?
+ * $via verilirse ('core' ya da 'project') jetonu o yolun doğrulamış olması
+ * da gerekir. Parola yerine jeton sahipliğini kabul eden hassas işlemler için.
+ */
+function vnl_is_bearer_request_for(int $userId, ?string $via = null): bool
+{
+	$bearer = vnl_bearer();
+
+	if ($bearer === null || $userId <= 0 || (int)$bearer['user_id'] !== $userId) {
+		return false;
+	}
+
+	if ($via !== null && $bearer['via'] !== $via) {
+		return false;
+	}
+
+	/* Kayıt ile oturumdaki kimlik ayrışmışsa (biri $CurrentUser'ı değiştirdiyse) güvenme. */
+	$user = vnl_user();
+
+	return $user !== null && (int)$user->id === $userId;
+}
+
+/**
  * Yetki kapısı — menü ve sayfa aynı soruyu buradan sorar.
  *
  * Yetki ŞEMASI projenindir: VNL'in tbl_permissions'ı bir örnektir, gerçek

@@ -11,6 +11,26 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ## [Yayımlanmadı]
 
+### Eklenenler
+
+- **Proje jeton doğrulayıcı kancası.** Projeler artık `VnlDispatcher`'ı ezmeden
+  kendi Bearer jeton biçimini (ör. öneksiz mobil jetonlar) kullanabilir:
+  - `helpers/` altında `vnl_project_authenticate_token($bearer, $module, $method)`
+    tanımlanır. Dağıtıcı önce çekirdek `ApiToken`'ı dener, o tanımazsa kancayı
+    çağırır. Geçerli bir `vnl_` jetonu kancaya hiç sorulmaz.
+  - Kanca `null` (tanımadım), kullanıcı kimliği, kullanıcı nesnesi ya da
+    `['user' => …, 'meta' => [...]]` döndürür. Etkin olmayan kullanıcı yine 401
+    `VNL_TOKEN` alır. Kancasız davranış değişmedi.
+  - Jetonla gelen istekte giriş ve CSRF adımları, çekirdek jetonunda olduğu gibi
+    atlanır.
+- **`vnl_bearer()` ve `vnl_is_bearer_request_for($userId, ?$via)`.** İsteğin
+  hangi Bearer jetonuyla, hangi yoldan (`core` ya da `project`) doğrulandığını
+  söyler. Parola yerine jeton sahipliğini kabul eden hassas işlemler içindir.
+  Ayrıntı: `VnlDispatcher::bearer()`, `/docs/security` → *Proje jetonları*.
+
+Kırıcı değişiklik yok. `classes/VnlDispatcher.php` ezmesi taşıyan projeler kancayı
+kullanamaz; `vnl_bearer()` o projelerde her zaman `null` döner.
+
 ---
 
 ## [4.0.1] — 2026-11-22

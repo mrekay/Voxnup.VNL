@@ -121,6 +121,23 @@ final class DispatcherTest extends VnlHttpTestCase
         $this->assertNotContains($res->status, [401, 403]);
     }
 
+    /**
+     * Tanınmayan Bearer jetonu (4.1.0): ne çekirdek biçimi ne de projenin
+     * kancası tanıyor → 401 VNL_TOKEN. Jetonlu istek oturuma ve CSRF'e
+     * bakılmadan karara bağlanır; 401 VNL_AUTH ya da 403 VNL_CSRF olmamalı.
+     */
+    public function testUnknownBearerIsTokenError(): void
+    {
+        $action = $this->protectedAction();
+
+        foreach (['vnl_' . bin2hex(random_bytes(32)), bin2hex(random_bytes(32)), 'x'] as $token) {
+            $res = $this->post($action, [], ['Authorization' => 'Bearer ' . $token]);
+
+            $this->assertSame(401, $res->status, $token . ': ' . $res->body);
+            $this->assertSame('VNL_TOKEN', $res->devcode(), $token);
+        }
+    }
+
     public function testResponsesAreJson(): void
     {
         $res = $this->post($this->protectedAction());

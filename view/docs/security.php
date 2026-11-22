@@ -223,6 +223,39 @@ php vnl.php token:revoke --id=12
 
 ApiToken::issue($userId, 'ad', ['domains'], 90);   // düz jeton — bir kez gösterin</code></pre>
                         </div>
+
+                        <h4 class="fw-bold text-body-emphasis mt-8 mb-3">Proje jetonları (4.1.0)</h4>
+                        <p class="fs-6 text-body mb-4">
+                            Projenin kendi jeton biçimi varsa (ör. mobil uygulamanın öneksiz jetonları), <code>helpers/</code> altında
+                            <code>vnl_project_authenticate_token(string $bearer, string $module, string $method)</code> tanımlayın.
+                            Dağıtıcı önce çekirdek jetonunu dener; <code>vnl_</code> biçiminde değilse veritabanına gitmez. Çekirdek
+                            jetonu tanımazsa kancayı çağırır. Geçerli bir çekirdek jetonu kancaya hiç sorulmaz.
+                        </p>
+                        <ul class="fs-6 text-body mb-4">
+                            <li class="mb-1"><code>null</code> → tanınmadı, 401 <code>VNL_TOKEN</code> (kancasız davranışın aynısı).</li>
+                            <li class="mb-1">Kullanıcı kimliği (<code>int</code>) ya da <code>id</code>'li kullanıcı nesnesi → istek o kullanıcıyla sürer.</li>
+                            <li class="mb-1"><code>['user' =&gt; $idYaDaNesne, 'meta' =&gt; [...]]</code> → aynısı, ayrıca <code>meta</code> isteğe kaydedilir.</li>
+                            <li class="mb-1">Kullanıcı yoksa ya da etkin değilse (<code>is_active</code> 0/2) yine 401.</li>
+                        </ul>
+                        <p class="fs-6 text-body mb-4">
+                            Çekirdek jetonunda olduğu gibi giriş ve CSRF adımları atlanır; tarayıcı Bearer başlığını kendiliğinden
+                            göndermez. Kanca jetonun süresini, iptalini ve izinlerini kendisi denetler: proje jetonunda yetenek listesi
+                            yoktur, yalnız kullanıcının kendi yetkileri (<code>Auth::CheckPermission</code>) uygulanır. Kanca istisna
+                            fırlatırsa istek 500 <code>VNL_FATAL</code> ile biter, ayrıntı günlüğe yazılır.
+                        </p>
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// helpers/mobile_token.php
+function vnl_project_authenticate_token(string $bearer, string $module, string $method): mixed
+&#123;
+    $row = MobileAuthToken::findValid($bearer);     // projenin modeli
+    return $row ? ['user' =&gt; (int)$row-&gt;user_id, 'meta' =&gt; ['token_id' =&gt; $row-&gt;id]] : null;
+}
+
+// action içinde: bu istek kimin jetonuyla geldi?
+vnl_bearer();                          // null ya da ['via' =&gt; 'core'|'project', 'user_id', 'token_id', 'meta']
+vnl_is_bearer_request_for($userId);    // bu kullanıcının geçerli jetonuyla mı?
+vnl_is_bearer_request_for($userId, 'project');</code></pre>
+                        </div>
                     </div>
                     <!--end::Section 7-->
 

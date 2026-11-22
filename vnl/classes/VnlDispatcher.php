@@ -23,7 +23,9 @@
  *   3. Sınıf    dosya/sınıf/metot yoksa; metot public
  *               değilse, static ise ya da __ ile başlıyorsa  404
  *   4. Kimlik   Authorization: Bearer varsa jeton     401  VNL_TOKEN / 403 VNL_PERM
- *               (jetonla gelen istekte 5 ve 6 atlanır)
+ *               (jetonla gelen istekte 5 ve 6 atlanır; çekirdek jetonu
+ *               tanımazsa projenin vnl_project_authenticate_token()
+ *               kancasına sorulur, 4.1.0 — bkz. authenticateBearer())
  *   5. Giriş    sınıfın PUBLIC_METHODS listesinde
  *               değilse ve girişsizse                 401  VNL_AUTH
  *   6. CSRF     Origin + CSRF jetonu                  403  VNL_CSRF
@@ -191,31 +193,142 @@ class VnlDispatcher
         return is_array($list) ? array_map(static fn($m) => strtolower((string)$m), $list) : [];
     }
 
+    /** Bu isteği doğrulayan Bearer jetonunun kaydı (4.1.0); bkz. bearer(). */
+    private static ?array $bearer = null;
+
     /**
      * Bearer jetonunu doğrular ve isteği jetonun kullanıcısıyla sürdürür.
      * Oturuma dokunulmaz; kimlik yalnız bu istek içindir.
      */
     private static function authenticateToken(string $bearer, string $module, string $method): void
     {
-        global $CurrentUser;
+        $denied = self::authenticateBearer($bearer, $module, $method);
 
-        $token = ApiToken::authenticate($bearer);
-
-        if ($token === null) {
-            self::deny(lang('ERR_TOKEN_INVALID'), 401, 'VNL_TOKEN');
-        }
-
-        if (!ApiToken::allows($token, $module, $method)) {
+        if ($denied === 'VNL_PERM') {
             self::deny(lang('ERR_PERM'), 403, 'VNL_PERM');
         }
 
-        $user = User::Select(['id' => (int)$token->user_id]);
-
-        if (empty($user) || empty($user->id) || !UserModule::IsActiveUser($user)) {
+        if ($denied !== null) {
             self::deny(lang('ERR_TOKEN_INVALID'), 401, 'VNL_TOKEN');
         }
+    }
 
-        $CurrentUser = $user;
+    /**
+     * Bearer jetonunu doğrular (4.1.0). Başarıda $CurrentUser'ı kurar, bearer()
+     * kaydını yazar ve null döner; başarısızlıkta 'VNL_TOKEN' ya da 'VNL_PERM'.
+     *
+     * Sıra:
+     *   1. Çekirdek ApiToken (vnl_ önekli). Önek tutmazsa veritabanına gidilmez.
+     *      Geçerli çekirdek jetonu kancaya hiç sorulmaz; yetenek listesi
+     *      (abilities) dışındaki çağrı 403 VNL_PERM olur.
+     *   2. Proje kancası vnl_project_authenticate_token($bearer, $module, $method),
+     *      tanımlıysa. Dönüşü:
+     *        null                                   tanımıyorum → 401 VNL_TOKEN
+     *        int                                    kullanıcı kimliği
+     *        object (id'li)                         kullanıcı modeli
+     *        ['user' => int|object, 'meta' => []]   + projenin kendi bilgisi
+     *      Kullanıcı yoksa ya da etkin değilse yine 401.
+     *
+     * Jetonla gelen istekte giriş ve CSRF adımları atlanır; tarayıcı Bearer
+     * başlığını kendiliğinden göndermediği için CSRF'e açık değildir.
+     */
+    public static function authenticateBearer(string $bearer, string $module, string $method): ?string
+    {
+        global $CurrentUser;
+
+        self::$bearer = null;
+
+        $token = ApiToken::authenticate($bearer);
+
+        if ($token !== null) {
+            if (!ApiToken::allows($token, $module, $method)) {
+                return 'VNL_PERM';
+            }
+
+            $user = self::activeUser((int)$token->user_id);
+
+            if ($user === null) {
+                return 'VNL_TOKEN';
+            }
+
+            $CurrentUser  = $user;
+            self::$bearer = ['via' => 'core', 'user_id' => (int)$user->id, 'token_id' => (int)$token->id, 'meta' => []];
+
+            return null;
+        }
+
+        if (!function_exists('vnl_project_authenticate_token')) {
+            return 'VNL_TOKEN';
+        }
+
+        $result = self::normalizeHookResult(vnl_project_authenticate_token($bearer, $module, $method));
+
+        if ($result === null) {
+            return 'VNL_TOKEN';
+        }
+
+        $user = self::activeUser($result['user']);
+
+        if ($user === null) {
+            return 'VNL_TOKEN';
+        }
+
+        $CurrentUser  = $user;
+        self::$bearer = ['via' => 'project', 'user_id' => (int)$user->id, 'token_id' => null, 'meta' => $result['meta']];
+
+        return null;
+    }
+
+    /**
+     * Bu isteği doğrulayan Bearer jetonu (4.1.0); oturumla gelen istekte null.
+     *
+     *   ['via' => 'core'|'project', 'user_id' => int, 'token_id' => ?int, 'meta' => array]
+     *
+     * 'meta' proje kancasının döndürdüğü dizidir (ör. jeton satırının kimliği,
+     * device_id); çekirdek jetonunda boştur. Kısayollar: vnl_bearer(),
+     * vnl_is_bearer_request_for($userId).
+     */
+    public static function bearer(): ?array
+    {
+        return self::$bearer;
+    }
+
+    /**
+     * Kancanın dönüşünü ['user' => int|object, 'meta' => array] biçimine
+     * getirir; tanınmayan her şey null (kimlik yok).
+     */
+    public static function normalizeHookResult(mixed $result): ?array
+    {
+        $meta = [];
+
+        if (is_array($result)) {
+            $meta   = is_array($result['meta'] ?? null) ? $result['meta'] : [];
+            $result = $result['user'] ?? null;
+        }
+
+        if (is_int($result) || (is_string($result) && ctype_digit($result))) {
+            return (int)$result > 0 ? ['user' => (int)$result, 'meta' => $meta] : null;
+        }
+
+        if (is_object($result) && isset($result->id) && (int)$result->id > 0) {
+            return ['user' => $result, 'meta' => $meta];
+        }
+
+        return null;
+    }
+
+    /** Kimlik ya da model → etkin kullanıcı modeli; değilse null. */
+    private static function activeUser(int|object $user): ?object
+    {
+        if (is_int($user)) {
+            $user = User::Select(['id' => $user]);
+        }
+
+        if (empty($user) || empty($user->id) || (int)$user->id <= 0 || !UserModule::IsActiveUser($user)) {
+            return null;
+        }
+
+        return $user;
     }
 
     private static function notFound(): never
