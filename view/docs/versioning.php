@@ -165,6 +165,23 @@ php vnl.php release         yayın arşivi üretir (bakım için)</code></pre></
                             <li class="mb-0">Sütun sözleşmesi: <code>snake_case</code>, birincil anahtar <code>id</code>, yumuşak silme <code>deleted_at</code>.</li>
                         </ul>
 
+                        <h4 class="fw-bold text-body-emphasis mb-3">Sürücüler <span class="badge badge-soft-primary ms-1">4.1.0</span></h4>
+                        <p class="fs-5 text-body mb-4">
+                            Araç <code>DB_DRIVER</code>'a bakar: <code>mysql</code> (ve <code>mariadb</code>), <code>pgsql</code>, <code>sqlsrv</code>, <code>sqlite</code>. Bir numaranın sürücüye özel hâli <code>NNNN_ad.&lt;sürücü&gt;.sql</code> adını taşır ve o sürücüde düz dosyanın yerine geçer. Özel hâli olmayan sürücüde düz dosya çalışır — yani tek sürücülü bir proje kendi migration'larını düz <code>.sql</code> olarak, kendi sürücüsünün söz dizimiyle yazar.
+                        </p>
+                        <div class="vnl-code mb-4"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>vnl/migrations/0003_vnl_rate_limits.sql          MySQL (ve özel hâli olmayan her sürücü)
+vnl/migrations/0003_vnl_rate_limits.pgsql.sql    PostgreSQL
+vnl/migrations/0003_vnl_rate_limits.sqlsrv.sql   SQL Server
+vnl/migrations/0003_vnl_rate_limits.sqlite.sql   SQLite</code></pre></div>
+                        <ul class="fs-5 text-body mb-5">
+                            <li class="mb-2">Kayıt yine (kaynak, numara) iledir; ad son eksiz tutulur. Hangi dosyanın seçildiği kimliği değiştirmez. MySQL kurulumları 4.1.0 öncesinde uyguladıkları dosyaları aynen görür: bekleyen ya da <code>[!]</code> işaretli çekirdek migration'ı çıkmaz.</li>
+                            <li class="mb-2">Aynı numarada farklı adlar (ya da aynı sürücünün iki hâli) çakışmadır; araç hiçbir şey çalıştırmadan durur.</li>
+                            <li class="mb-2">Bağlantı uygulamanınkiyle aynı kurulur: <code>config/definitions.php</code>'ye eklediğiniz sürücü anahtarları (<code>encrypt</code>, <code>trust_server_certificate</code>, <code>sslmode</code>, <code>search_path</code> …) migrate'te de geçerlidir.</li>
+                            <li class="mb-2"><b>SQL Server dosyaları:</b> her ifade ayrı bir toplu iş olarak gönderilir, <code>GO</code> yazılmaz. Koşullu iş tek ifadede yapılır (<code>IF OBJECT_ID(…) IS NULL CREATE TABLE …</code>, <code>IF COL_LENGTH(…) IS NULL ALTER TABLE … ADD …</code>). Türkçe metinleri <code>N'…'</code> ile yazın.</li>
+                            <li class="mb-2"><b>PostgreSQL dosyaları:</b> <code>ADD COLUMN IF NOT EXISTS</code> ve <code>CREATE INDEX IF NOT EXISTS</code> vardır; daha karmaşık koşul için <code>DO $$ … $$</code> bloğu tek ifade olarak okunur.</li>
+                            <li class="mb-0"><b>SQLite dosyaları:</b> koşullu <code>ADD COLUMN</code> yoktur. Çekirdeğin SQLite hâlleri sıfırdan kuruluma göre yazılmıştır; projenin önceden kendi açtığı <code>tbl_users</code> gibi tablolara eksik sütun eklenmez.</li>
+                        </ul>
+
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
                             <span class="text-body fs-6"><b>MySQL'de <code>ALTER TABLE</code>'ın <code>IF EXISTS</code>'i yoktur.</b> Var olmayabilecek bir tabloyu değiştiriyorsanız koşullu yazın — aksi halde migration sıfırdan kurulumda çöker. Örneği <code>vnl/migrations/0001</code>'in başındadır: <code>information_schema</code>'ya bakılıp <code>PREPARE</code>/<code>EXECUTE</code> ile çalıştırılır.</span>
@@ -200,7 +217,7 @@ docker run --rm -v "$PWD":/app -w /app php:8.3-cli php vnl.php migrate --status<
 
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
-                            <span class="text-body fs-6"><b>MySQL'de DDL işlem (transaction) içinde geri alınamaz.</b> Bir migration ortasında çökerse ondan önceki ifadeler uygulanmış kalır. Araç böyle bir durumda kaydı <b>yazmaz</b> ve durur; hatayı düzeltip yeniden çalıştırdığınızda dosya baştan işlenir — bu yüzden <code>IF NOT EXISTS</code> sözleşmesi bir üslup tercihi değil, kurtarma mekanizmasıdır.</span>
+                            <span class="text-body fs-6"><b>MySQL'de DDL işlem (transaction) içinde geri alınamaz.</b> Bir migration ortasında çökerse ondan önceki ifadeler uygulanmış kalır. Araç böyle bir durumda kaydı <b>yazmaz</b> ve durur; hatayı düzeltip yeniden çalıştırdığınızda dosya baştan işlenir — bu yüzden <code>IF NOT EXISTS</code> sözleşmesi bir üslup tercihi değil, kurtarma mekanizmasıdır. PostgreSQL, SQL Server ve SQLite'ta (4.1.0) bir migration'ın ifadeleri ve kaydı tek işlem içinde çalışır: düşen migration bütünüyle geri alınır. Bu yüzden orada işlem içinde çalışamayan ifadeler (<code>CREATE INDEX CONCURRENTLY</code>, <code>VACUUM</code>) migration'a yazılamaz.</span>
                         </div>
                     </div>
                     <!--end::Section 5-->

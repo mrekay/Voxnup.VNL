@@ -135,7 +135,7 @@
                                 <tr>
                                     <td class="ps-5"><code>APP_TIMEZONE</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
                                     <td><code>Europe/Istanbul</code></td>
-                                    <td>PHP'nin saat dilimi (<code>date_default_timezone_set</code>). <b>MySQL oturumunun saat dilimine dokunulmaz</b>: PHP ile veritabanı saat dilimleri birbirinden bağımsızdır. <code>date()</code> ile yazılan zamanlar PHP diliminde, <code>NOW()</code> ile yazılanlar sunucunun diliminde olur; çekirdeğin kuyruk ve hız sınırı tabloları bu yüzden her zaman <code>NOW()</code> kullanır.</td>
+                                    <td>PHP'nin saat dilimi (<code>date_default_timezone_set</code>). <b>MySQL oturumunun saat dilimine dokunulmaz</b>: PHP ile veritabanı saat dilimleri birbirinden bağımsızdır. <code>date()</code> ile yazılan zamanlar PHP diliminde, <code>NOW()</code> ile yazılanlar sunucunun diliminde olur; çekirdeğin kuyruk ve hız sınırı tabloları bu yüzden her zaman veritabanının saatini kullanır (MySQL'de <code>NOW()</code>; 4.1.0'dan beri sürücüye göre, bkz. <code>VnlSql::now()</code>).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>LOG_PATH</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
@@ -170,7 +170,7 @@
                                 <tr>
                                     <td class="ps-5"><code>DB_DRIVER</code></td>
                                     <td><code>mysql</code></td>
-                                    <td><code>mysql</code>, <code>pgsql</code>, <code>sqlsrv</code>.</td>
+                                    <td><code>mysql</code>, <code>mariadb</code>, <code>pgsql</code>, <code>sqlsrv</code>, <code>sqlite</code>. Çekirdek tabloları (hız sınırı, Audit, kuyruk, API jetonları, TOTP) 4.1.0'dan beri hepsinde <code>php vnl.php migrate --run</code> ile kurulur.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>DB_HOST</code></td>
@@ -179,8 +179,8 @@
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>DB_PORT</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
-                                    <td><code>3306</code></td>
-                                    <td>TCP portu. Web ve <code>php vnl.php migrate</code> aynı değeri kullanır (eski <code>host:port</code> yazımı <code>migrate</code>'te geri düşüş olarak okunur).</td>
+                                    <td><code>3306</code> · <code>5432</code> · <code>1433</code></td>
+                                    <td>TCP portu. Boşsa sürücüye göre varsayılan (4.1.0: mysql 3306, pgsql 5432, sqlsrv 1433). Web ve <code>php vnl.php migrate</code> aynı değeri kullanır (eski <code>host:port</code> yazımı MySQL'de <code>migrate</code>'te geri düşüş olarak okunur).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>DB_SOCKET</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
@@ -195,7 +195,12 @@
                                 <tr>
                                     <td class="ps-5"><code>DB_CHARSET</code> · <code>DB_COLLATION</code></td>
                                     <td><code>utf8mb4</code> · <code>utf8mb4_unicode_ci</code></td>
-                                    <td>3.4.0 varsayılanı <code>utf8mb4</code> (3.3: <code>utf8</code> = utf8mb3, emoji ve 4 baytlık karakterleri kesiyordu). <code>.env</code>'de tanımlıysa o geçerlidir.</td>
+                                    <td>3.4.0 varsayılanı <code>utf8mb4</code> (3.3: <code>utf8</code> = utf8mb3, emoji ve 4 baytlık karakterleri kesiyordu). <code>.env</code>'de tanımlıysa o geçerlidir. 4.1.0: MySQL dışındaki sürücülerde boş <code>DB_CHARSET</code>'in varsayılanı <code>utf8</code>'dir (PostgreSQL <code>utf8mb4</code>'ü tanımaz) ve <code>DB_COLLATION</code> kullanılmaz.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>DB_ENCRYPT</code> · <code>DB_TRUST_SERVER_CERTIFICATE</code> <span class="badge badge-soft-primary ms-1">4.1.0</span></td>
+                                    <td><code>""</code></td>
+                                    <td>Yalnız <code>sqlsrv</code>. Boşsa ODBC sürücüsünün varsayılanı geçerlidir (Driver 18: şifreli, sertifika doğrulanır). Kendinden imzalı sertifikalı sunucu için <code>DB_TRUST_SERVER_CERTIFICATE=true</code>.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>DB_PREFIX</code></td>

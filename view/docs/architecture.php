@@ -180,7 +180,7 @@ $cDefinitions-&gt;vnl_version()   // vnl/VERSION'dan okunur</code></pre></div>
                         </p>
                         <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>rm -rf vnl/
 # yeni sürümün vnl/ dizinini yerine koyun
-mysql -u KULLANICI -p VERITABANI &lt; vnl/migrations/NNNN_*.sql</code></pre></div>
+php vnl.php migrate --run      # bekleyen şema değişiklikleri (her sürücüde)</code></pre></div>
                         <div class="alert alert-info d-flex align-items-start p-4 mb-0">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3 mt-1"></i>
                             <span class="text-body fs-6">Kendi migration'larınız <code>migrations/</code> altında, VNL'inkiler <code>vnl/migrations/</code> altındadır. İkisi ayrı numaralandığı için bir VNL yükseltmesi sizin sıranızla çakışmaz.</span>

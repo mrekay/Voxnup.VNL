@@ -47,8 +47,12 @@ console.php    komut dağıtıcısı — komutlar tools/ altında; cli.php ortak
 classes/  modules/  helpers/  validators/  exceptions/
            classes/VnlDispatcher   /app/* dağıtıcısı (POST, CSRF, varsayılan giriş)
            classes/RateLimiter Audit Totp Queue VnlJob VnlCron ApiToken (3.4.0)
+           classes/VnlSql   ham SQL için sürücü lehçesi (4.1.0) — çekirdek tabloları
+                            mysql/pgsql/sqlsrv/sqlite'ta çalışır; ham SQL yazan
+                            çekirdek kodu backtick/NOW() değil VnlSql kullanır
 assets/   theme/ (Voxnup.VNL.Theme derleme çıktısı) + js/ + css/
-migrations/    VNL'in şeması (projeninki kökteki migrations/)
+migrations/    VNL'in şeması (projeninki kökteki migrations/); her numaranın
+               .sql (MySQL) + .pgsql/.sqlsrv/.sqlite.sql hâli — yeni numara dördünü ister
 tools/         migrate, update, doctor, release, version, serve, tar, dev-router, test
 tests/         çekirdeğin testleri (unit, http, db) + lib/ (VnlTestCase, çalıştırıcı alt süreci)
 vendor/        Illuminate/Eloquent, PHPMailer
