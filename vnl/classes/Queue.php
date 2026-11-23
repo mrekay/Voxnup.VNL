@@ -188,24 +188,57 @@ class Queue
     /**
      * Sıradaki uygun işi atomik olarak ayırır ve döner; iş yoksa null.
      *
-     * Tek bir UPDATE … ORDER BY id LIMIT 1 satırı kilitler ve işaretler:
-     * aynı kuyruğu dinleyen iki işçi aynı işi alamaz. Ayırma jetonu her
-     * denemede yenidir, satır ardından o jetonla okunur.
+     * Tek bir UPDATE satırı kilitler ve işaretler: aynı kuyruğu dinleyen
+     * iki işçi aynı işi alamaz. Ayırma jetonu her denemede yenidir, satır
+     * ardından o jetonla okunur. Lehçeye göre (4.1.0):
+     *
+     *   mysql   UPDATE … ORDER BY id LIMIT 1
+     *   pgsql   UPDATE … WHERE id = (SELECT … FOR UPDATE SKIP LOCKED)
+     *   sqlsrv  WITH … SELECT TOP (1) … WITH (READPAST) UPDATE
+     *   sqlite  UPDATE … WHERE id = (SELECT … LIMIT 1) — yazma kilidi tektir
+     *
+     * SKIP LOCKED / READPAST: başka işçinin o an kilitlediği satır atlanır;
+     * işçiler birbirini beklemez ve aynı satırı ikisi birden alamaz.
      */
     public static function reserve(string $queue): ?VnlJob
     {
         $token = bin2hex(random_bytes(16));
-        $table = self::rawTable();
+        $table = VnlSql::table(self::TABLE);
+        $now   = VnlSql::now();
 
-        $affected = Database::connection()->update(
-            "UPDATE `{$table}`
+        $affected = Database::connection()->update(match (VnlSql::dialect()) {
+            'pgsql' => "UPDATE {$table}
+                SET status = 'running', reserved_by = ?, reserved_at = LOCALTIMESTAMP(0),
+                    attempts = attempts + 1, updated_at = LOCALTIMESTAMP(0)
+              WHERE id = (SELECT id FROM {$table}
+                           WHERE queue = ? AND status = 'queued' AND available_at <= LOCALTIMESTAMP(0)
+                           ORDER BY id
+                           LIMIT 1
+                           FOR UPDATE SKIP LOCKED)",
+
+            'sqlsrv' => "WITH next_job AS (
+                SELECT TOP (1) * FROM {$table} WITH (UPDLOCK, READPAST, ROWLOCK)
+                 WHERE [queue] = ? AND [status] = N'queued' AND [available_at] <= {$now}
+                 ORDER BY [id])
+              UPDATE next_job
+                 SET [status] = N'running', [reserved_by] = ?, [reserved_at] = {$now},
+                     [attempts] = [attempts] + 1, [updated_at] = {$now}",
+
+            'sqlite' => "UPDATE {$table}
+                SET status = 'running', reserved_by = ?, reserved_at = datetime('now'),
+                    attempts = attempts + 1, updated_at = datetime('now')
+              WHERE id = (SELECT id FROM {$table}
+                           WHERE queue = ? AND status = 'queued' AND available_at <= datetime('now')
+                           ORDER BY id
+                           LIMIT 1)",
+
+            default => "UPDATE {$table}
                 SET `status` = 'running', `reserved_by` = ?, `reserved_at` = NOW(),
                     `attempts` = `attempts` + 1, `updated_at` = NOW()
               WHERE `queue` = ? AND `status` = 'queued' AND `available_at` <= NOW()
               ORDER BY `id`
               LIMIT 1",
-            [$token, $queue]
-        );
+        }, VnlSql::dialect() === 'sqlsrv' ? [$queue, $token] : [$token, $queue]);
 
         if ($affected < 1) {
             return null;
@@ -236,12 +269,42 @@ class Queue
      */
     public static function releaseStale(string $queue, int $staleSeconds): int
     {
-        $table = self::rawTable();
+        $table   = VnlSql::table(self::TABLE);
+        $stale   = max(60, $staleSeconds);
+        $timeout = 'İşçi yanıt vermedi (zaman aşımı).';
+
+        /* 4.1.0: MySQL dışında. SET'teki her ifade satırın eski değerini
+           görür (standart SQL); notun metni bağlanır (SQL Server'da N''
+           olmadan Türkçe karakter kod sayfasına düşerdi). */
+        if (VnlSql::dialect() !== 'mysql') {
+            $w = static fn(string $c): string => VnlSql::wrap($c);
+            [$attempts, $max, $error] = [$w('attempts'), $w('max_attempts'), $w('error')];
+            $done    = "{$attempts} >= {$max}";
+            $concat  = match (VnlSql::dialect()) {
+                'sqlsrv' => "COALESCE({$error} + CHAR(10), N'') + CAST(? AS NVARCHAR(200))",
+                'pgsql'  => "COALESCE({$error} || CHR(10), '') || CAST(? AS TEXT)",
+                default  => "COALESCE({$error} || CHAR(10), '') || CAST(? AS TEXT)",
+            };
+            $now = VnlSql::now();
+
+            return Database::connection()->update(
+                "UPDATE {$table}
+                    SET {$w('status')}      = CASE WHEN {$done} THEN 'failed' ELSE 'queued' END,
+                        {$error}            = CASE WHEN {$done} THEN {$concat} ELSE {$error} END,
+                        {$w('finished_at')} = CASE WHEN {$done} THEN {$now} ELSE NULL END,
+                        {$w('reserved_by')} = CASE WHEN {$done} THEN {$w('reserved_by')} ELSE NULL END,
+                        {$w('reserved_at')} = CASE WHEN {$done} THEN {$w('reserved_at')} ELSE NULL END,
+                        {$w('updated_at')}  = {$now}
+                  WHERE {$w('queue')} = ? AND {$w('status')} = 'running'
+                    AND COALESCE({$w('updated_at')}, {$w('reserved_at')}) < " . VnlSql::nowMinus($stale),
+                [$timeout, $queue]
+            );
+        }
 
         /* SET soldan sağa değerlendirilir; hiçbir ifade önce atanan bir
            sütuna dayanmaz (attempts/max_attempts değişmez). */
         return Database::connection()->update(
-            "UPDATE `{$table}`
+            "UPDATE {$table}
                 SET `status`      = IF(`attempts` >= `max_attempts`, 'failed', 'queued'),
                     `error`       = IF(`attempts` >= `max_attempts`,
                                        CONCAT(COALESCE(CONCAT(`error`, CHAR(10 USING utf8mb4)), ''), 'İşçi yanıt vermedi (zaman aşımı).'),
@@ -252,7 +315,7 @@ class Queue
                     `updated_at`  = NOW()
               WHERE `queue` = ? AND `status` = 'running'
                 AND COALESCE(`updated_at`, `reserved_at`) < DATE_SUB(NOW(), INTERVAL ? SECOND)",
-            [$queue, max(60, $staleSeconds)]
+            [$queue, $stale]
         );
     }
 
@@ -268,15 +331,13 @@ class Queue
         return is_file($path) ? $path : null;
     }
 
-    /** Veritabanı saatiyle "şimdi (+ sn)" ifadesi. */
+    /** Veritabanı saatiyle "şimdi (+ sn)" ifadesi (sürücüye göre, VnlSql). */
     public static function now(int $plusSeconds = 0)
     {
-        return Database::raw($plusSeconds > 0
-            ? 'DATE_ADD(NOW(), INTERVAL ' . (int)$plusSeconds . ' SECOND)'
-            : 'NOW()');
+        return Database::raw($plusSeconds > 0 ? VnlSql::nowPlus($plusSeconds) : VnlSql::now());
     }
 
-    /** Ham SQL için önekli tablo adı. */
+    /** Ham SQL için önekli tablo adı (tırnaksız; tırnaklısı VnlSql::table()). */
     public static function rawTable(): string
     {
         return Database::connection()->getTablePrefix() . self::TABLE;
