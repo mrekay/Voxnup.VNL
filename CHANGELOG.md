@@ -27,6 +27,12 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
   hangi Bearer jetonuyla, hangi yoldan (`core` ya da `project`) doğrulandığını
   söyler. Parola yerine jeton sahipliğini kabul eden hassas işlemler içindir.
   Ayrıntı: `VnlDispatcher::bearer()`, `/docs/security` → *Proje jetonları*.
+- **Proje günlük kancası `vnl_project_log_exception($e, $ref, $channel)`.**
+  `vnl_log_exception()` çekirdeğin `error_log` satırını yazdıktan sonra onu
+  çağırır. İstisna aynı başvuru koduyla projenin kendi kanalına (veritabanı,
+  Sentry, Slack…) da gider. Sayfa hataları, action'ların 500 yanıtı ve kuyruk
+  işçisi aynı yoldan geçer. Kancanın fırlattığı istisna isteği düşürmez, kanca
+  kendi içinden yeniden çağrılmaz. Ayrıntı: `/docs/errors`.
 
 Kırıcı değişiklik yok. `classes/VnlDispatcher.php` ezmesi taşıyan projeler kancayı
 kullanamaz; `vnl_bearer()` o projelerde her zaman `null` döner.

@@ -290,6 +290,34 @@ function vnl_project_error_detail(Throwable $e): bool
                             <li class="mb-0"><code>vnl_project_error_page()</code> tanımlıysa önce o çalışır. O dönerse çekirdeğin ekranı bu kararla basılır.</li>
                         </ul>
 
+                        <h4 class="fw-bold text-body-emphasis mb-3">Hatayı kendi kanalınıza göndermek: <code>vnl_project_log_exception()</code> <span class="badge badge-soft-primary ms-1">4.1.0</span></h4>
+                        <p class="fs-5 text-body mb-4">
+                            Çekirdek her istisnayı <code>vnl_log_exception()</code> ile <code>error_log</code>'a başvuru koduyla yazar: sayfa hataları, action'ların 500 yanıtı ve kuyruk işçisi aynı yoldan geçer. Proje <code>vnl_project_log_exception(Throwable $e, string $ref, string $channel)</code> tanımlarsa çekirdek satırı yazdıktan <b>sonra</b> onu da çağırır. Aynı <code>$ref</code>'i alırsınız; kullanıcının bildirdiği kod sizin kanalınızda da aranabilir.
+                        </p>
+                        <div class="vnl-code mb-5">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
+// helpers/hata-kaydi.php
+
+function vnl_project_log_exception(Throwable $e, string $ref, string $channel): void
+{
+    // $channel: 'VNL' (sayfa/action) ya da 'VNL][Queue' (kuyruk işçisi)
+    // Dosya web kökünün DIŞINDA olmalı: istisna mesajı yol ve SQL taşıyabilir.
+    error_log(json_encode([
+        'ref'     =&gt; $ref,
+        'channel' =&gt; $channel,
+        'class'   =&gt; get_class($e),
+        'message' =&gt; $e-&gt;getMessage(),
+        'at'      =&gt; date('c'),
+    ]) . "\n", 3, '/var/log/uygulama/hatalar.jsonl');
+}</code></pre>
+                        </div>
+                        <ul class="fs-5 text-body mb-5">
+                            <li class="mb-2">Çekirdeğin <code>error_log</code> satırı kancanın yerine geçmez; her durumda yazılır.</li>
+                            <li class="mb-2">Kanca fırlatırsa istek düşmez. Kancanın hatası aynı başvuru koduyla <code>error_log</code>'a yazılır.</li>
+                            <li class="mb-2">Kancanın içinde oluşup yine <code>vnl_log_exception()</code>'a düşen bir hata kancayı ikinci kez çağırmaz; sonsuz döngü olmaz.</li>
+                            <li class="mb-0">Kanca isteğin içinde, senkron çalışır. Uzak bir servise (Sentry, Slack) giderken kısa zaman aşımı koyun ya da işi <code>Queue::push()</code> ile kuyruğa bırakın.</li>
+                        </ul>
+
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
                             <span class="text-body fs-6"><b>Çıktıyı önce kurun, sonra basın.</b> Yarım basılmış bir ekranın üstüne — fonksiyon o sırada hata alırsa — çekirdeğin sayfası eklenir ve ortaya okunmaz bir yanıt çıkar. Ekranı bir dizeye hazırlayıp tek <code>echo</code> ile basmak bu ihtimali kapatır. Aynı sebeple: hatanın kaydını <b>önce</b> ucuz olan yere (dosya/<code>error_log</code>) yazın; veritabanı zaten çökmüş olabilir ve her deneme sürücü zaman aşımı kadar bekletir.</span>
