@@ -102,12 +102,13 @@ final class TableModelFilterTest extends VnlTestCase
 
     public function testLikeWildcardsAreLiteral(): void
     {
-        $this->seed(['50% indirim', '500 TL', 'a_b', 'axb', 'c\\d', 'cd', 'x!y', 'xzy']);
+        $this->seed(['50% indirim', '500 TL', 'a_b', 'axb', 'c\\d', 'cd', 'x!y', 'xzy', 'k[a]z', 'kaz']);
 
         $this->assertSame(['50% indirim'], $this->names(['name' => '50%']));
         $this->assertSame(['a_b'], $this->names(['name' => 'a_b']));
         $this->assertSame(['c\\d'], $this->names(['name' => 'c\\d']));
         $this->assertSame(['x!y'], $this->names(['name' => 'x!y']));
+        $this->assertSame(['k[a]z'], $this->names(['name' => 'k[a]z']));   // SQL Server'da [a] karakter kümesidir (4.1.0)
         $this->assertSame(['50% indirim'], $this->names(['name' => '%']));   // kaçışsız: hepsi
     }
 
@@ -116,5 +117,42 @@ final class TableModelFilterTest extends VnlTestCase
         $this->seed(['Bisiklet Kaski', 'Kask']);
 
         $this->assertSame(['Bisiklet Kaski', 'Kask'], $this->names(['name' => 'KASK']));
+    }
+
+    /* ---------------- VNL Table koşulları (4.1.0) ---------------- */
+
+    /** VnlTableRequest::applyFilters ile metin koşulu; eşleşen adlar. */
+    private function tableNames(string $op, string $value): array
+    {
+        $query = Capsule::table('tbl_vnl_test_tablemodel');
+        (new VnlTableRequest())->applyFilters($query, ['ad' => 'name'], [
+            'ad' => ['kind' => 'text', 'cond' => ['op' => $op, 'value' => $value]],
+        ]);
+
+        $names = $query->pluck('name')->all();
+        sort($names);
+
+        return $names;
+    }
+
+    /**
+     * Önceden ters bölüyle kaçırılıyordu: SQL Server ve SQLite'ta ters bölü
+     * LIKE'ta düz karakterdir, "50%" araması orada hiçbir şey bulmuyordu.
+     */
+    public function testTableTextConditionsTreatWildcardsAsLiteral(): void
+    {
+        $this->seed(['50% indirim', '500 TL', 'a_b', 'axb', 'c\\d', 'cd', 'x!y', 'k[a]z', 'kaz']);
+
+        $this->assertSame(['50% indirim'], $this->tableNames('contains', '50%'));
+        $this->assertSame(['a_b'], $this->tableNames('contains', 'a_b'));
+        $this->assertSame(['c\\d'], $this->tableNames('contains', 'c\\d'));
+        $this->assertSame(['x!y'], $this->tableNames('contains', 'x!y'));
+        $this->assertSame(['k[a]z'], $this->tableNames('contains', '[a]'));
+        $this->assertSame(['50% indirim'], $this->tableNames('startsWith', '50%'));
+        $this->assertSame(['a_b'], $this->tableNames('endsWith', '_b'));
+        $this->assertSame(
+            ['500 TL', 'a_b', 'axb', 'c\\d', 'cd', 'k[a]z', 'kaz', 'x!y'],
+            $this->tableNames('notContains', '50%')
+        );
     }
 }

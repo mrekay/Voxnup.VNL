@@ -171,10 +171,11 @@ abstract class TableModel extends \Illuminate\Database\Eloquent\Model
      * olmaktan çıkar ve SQL'e ESCAPE '\\' yazmak da kipe göre farklı okunur.
      * '!' hiçbir kipte, hiçbir veritabanında (MySQL, PostgreSQL, SQLite,
      * SQL Server) özel değildir; ters bölü de bu sayede düz karakter kalır.
+     * 4.1.0: '[' de kaçırılır — SQL Server'da [abc] bir karakter kümesidir.
      */
     protected static function escapeLike(string $value): string
     {
-        return strtr($value, ['!' => '!!', '%' => '!%', '_' => '!_']);
+        return strtr($value, ['!' => '!!', '%' => '!%', '_' => '!_', '[' => '![']);
     }
 
     public static function Select($filter = null)

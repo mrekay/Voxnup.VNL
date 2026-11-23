@@ -108,6 +108,25 @@ kendiliğinden yüklenmez (`vnl_core_scripts()` listesinde değil): projenin
     buna dahil.
   - Kayıt tablosu yoksa bütün çekirdek migration'larını bekleyen olarak
     listeliyor. Tabloyu oluşturmuyor.
+- **VNL Table metin aramaları SQL Server ve SQLite'ta da düz metin.**
+  `contains`, `startsWith`, `endsWith` ve `notContains` koşulları `%` ve `_`
+  karakterlerini ters bölüyle kaçırıyordu. Ters bölü yalnız MySQL ve
+  PostgreSQL'de LIKE'ın kaçış karakteridir; SQL Server ve SQLite'ta "50%"
+  araması hiçbir şey bulmuyordu. Artık `TableModel` gibi `ESCAPE '!'`
+  kullanılıyor.
+  - SQL Server'ın `[...]` karakter kümesi de kaçırılıyor, `TableModel`'in
+    `like`/`ilike` filtresinde de: "k[a]z" araması orada "kaz"ı buluyordu.
+- **Kullanıcı adı PostgreSQL ve SQLite'ta da büyük/küçük harfe duyarsız.**
+  MySQL'de `utf8mb4_unicode_ci` bunu zaten sağlıyor: `Admin` ile `admin`
+  aynı hesaptır, girişte harf büyüklüğü önemli değildir. 0002 artık
+  PostgreSQL'de sütunu `CITEXT` (`CREATE EXTENSION IF NOT EXISTS citext`;
+  PG13'ten beri güvenilir eklenti), SQLite'ta `COLLATE NOCASE` açıyor.
+  - Bu yalnız 0002'nin AÇTIĞI tabloyu etkiler. Projenin önceden açtığı
+    `tbl_users`'ın sütun türüne dokunulmaz. Böyle bir PostgreSQL tablosunu
+    harfe duyarsız yapmak için tekrarları temizleyip
+    `ALTER TABLE tbl_users ALTER COLUMN username TYPE CITEXT` çalıştırın.
+  - SQL Server'da karşılaştırma veritabanının harmanlamasına bağlıdır;
+    varsayılan `…_CI_AS` harfe duyarsızdır.
 
 ### Proje dosyaları (güncelleme dokunmaz; şablondan elle alın)
 
