@@ -1114,17 +1114,17 @@ class VnlTableRequest
                 return;
 
             case 'contains':
-                $query->where($column, 'like', '%' . self::likeEscape($value) . '%');
+                self::whereLike($query, $column, '%' . self::likeEscape($value) . '%');
 
                 return;
 
             case 'startsWith':
-                $query->where($column, 'like', self::likeEscape($value) . '%');
+                self::whereLike($query, $column, self::likeEscape($value) . '%');
 
                 return;
 
             case 'endsWith':
-                $query->where($column, 'like', '%' . self::likeEscape($value));
+                self::whereLike($query, $column, '%' . self::likeEscape($value));
 
                 return;
 
@@ -1132,8 +1132,8 @@ class VnlTableRequest
                boş bir hücre aradığı metni "içermiyor" demektir. */
             case 'notContains':
                 $query->where(function ($w) use ($column, $value) {
-                    $w->where($column, 'not like', '%' . self::likeEscape($value) . '%')
-                        ->orWhereNull($column);
+                    self::whereLike($w, $column, '%' . self::likeEscape($value) . '%', true);
+                    $w->orWhereNull($column);
                 });
 
                 return;
@@ -1201,9 +1201,26 @@ class VnlTableRequest
      * Aranan metindeki % ve _ joker olmasın: "50%" yazan kullanıcı
      * yüzde işaretini arıyor, "her şey"i değil.
      */
+    /**
+     * LIKE joker karakterlerini (% ve _) düz metne çevirir (4.1.0).
+     *
+     * Kaçış karakteri ters bölü değil '!' ve sorguda ESCAPE '!' ile açıkça
+     * söylenir (TableModel::escapeLike ile aynı kural). Ters bölü yalnız
+     * MySQL ve PostgreSQL'de LIKE'ın varsayılan kaçışıdır; SQL Server ve
+     * SQLite'ta düz karakterdir: "50%" araması orada hiçbir şey bulmuyordu.
+     */
     private static function likeEscape(string $value): string
     {
-        return addcslashes($value, '%_\\');
+        return strtr($value, ['!' => '!!', '%' => '!%', '_' => '!_', '[' => '![']);
+    }
+
+    /** $column [NOT] LIKE ? ESCAPE '!' — sütun adı sorgunun gramerince sarılır. */
+    private static function whereLike($query, $column, string $pattern, bool $not = false): void
+    {
+        $base    = method_exists($query, 'getQuery') ? $query->getQuery() : $query;
+        $wrapped = $base->getGrammar()->wrap($column);
+
+        $query->whereRaw($wrapped . ($not ? ' NOT' : '') . " LIKE ? ESCAPE '!'", [$pattern]);
     }
 
     private static function cellMatches($cell, array $cond, string $kind): bool

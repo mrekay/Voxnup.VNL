@@ -92,7 +92,8 @@ class action_domains
                             Jeton oturum başına bir tanedir, girişte ve çıkışta yenilenir. <code>head-standard.php</code> onu
                             <code>&lt;meta name="csrf-token"&gt;</code> olarak basar; <code>vnl.js</code> aynı kökene giden her jQuery
                             isteğine, <code>vnltable.js</code> her <code>fetch</code>'ine <code>X-CSRF-Token</code> başlığını ekler.
-                            Düz form için <code>&lt;?= vnl_csrf_field() ?&gt;</code>.
+                            jQuery'siz istekleri (<code>fetch</code>, ham <code>XMLHttpRequest</code>, <code>navigator.sendBeacon</code>)
+                            <code>vnl-csrf.js</code> karşılar (aşağıda). Düz form için <code>&lt;?= vnl_csrf_field() ?&gt;</code>.
                         </p>
                         <div class="table-responsive border rounded bg-body-tertiary">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
@@ -102,9 +103,61 @@ class action_domains
                                 <tr><td class="ps-5"><code>vnl_csrf_check()</code></td><td>İstekle gelen jeton doğru mu (sabit zamanlı).</td></tr>
                                 <tr><td class="ps-5"><code>vnl_csrf_rotate()</code></td><td>Yeni jeton.</td></tr>
                                 <tr><td class="ps-5"><code>vnlCsrfToken()</code> (JS)</td><td>Meta etiketindeki jeton.</td></tr>
+                                <tr><td class="ps-5"><code>vnlSetCsrfToken(t)</code> (JS, vnl.js)</td><td>Meta etiketini günceller; sonraki istekler yeni jetonu taşır.</td></tr>
                                 </tbody>
                             </table>
                         </div>
+
+                        <h4 class="fw-bold text-body-emphasis mt-8 mb-3">jQuery'siz istekler: <code>vnl-csrf.js</code> (4.1.0)</h4>
+                        <p class="fs-5 text-body mb-4">
+                            <code>vnl/assets/js/vnl-csrf.js</code> <code>fetch</code>, <code>XMLHttpRequest</code> ve
+                            <code>navigator.sendBeacon</code>'ı sarar; çağrı noktası değişmez. jQuery'ye ve <code>vnl.js</code>'e
+                            bağlı değildir, bu yüzden jQuery yüklemeyen sayfalarda (giriş kabuğu, açılış sayfası, gömülü araç) da çalışır.
+                        </p>
+                        <div class="vnl-code mb-4">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>fetch('/app/rapor/kaydet', { method: 'POST', body: fd });   // X-CSRF-Token başlığı eklenir
+
+const x = new XMLHttpRequest();
+x.open('POST', '/app/rapor/kaydet');
+x.send(fd);                                                   // X-CSRF-Token başlığı eklenir
+
+const iz = new FormData();
+iz.append('olay', 'sayfa-kapandi');
+navigator.sendBeacon('/app/iz/kaydet', iz);                   // gövdeye _token alanı eklenir</code></pre>
+                        </div>
+                        <ul class="fs-6 text-body mb-4">
+                            <li class="mb-2"><b>Yalnız aynı köken.</b> Şema, makine adı ve port sayfanınkiyle aynı olmalı
+                                (<code>vnl.js</code>'in jQuery ön süzgecindeki ölçü). Başka kökene giden isteğe jeton hiç eklenmez.</li>
+                            <li class="mb-2"><b>GET, HEAD, OPTIONS jeton almaz.</b> <code>/app/*</code> yalnız POST kabul eder;
+                                okuma isteğinin jetonu taşıması bir şey kazandırmaz. POST, PUT, PATCH, DELETE alır.</li>
+                            <li class="mb-2"><b>Jeton her istekte meta etiketinden okunur.</b> Giriş/çıkış jetonu döndürse de
+                                (<code>vnlSetCsrfToken()</code>) sonraki istek yenisini taşır.</li>
+                            <li class="mb-2"><b>Başlık zaten varsa dokunulmaz.</b> <code>vnl.js</code>'in jQuery ön süzgeci ve VNL Table
+                                başlığı kendisi koyar; ikinci kez eklenmez. (XHR'da aynı başlık iki kez konursa değerler
+                                <code>a, b</code> diye birleşir ve sunucu jetonu reddeder.)</li>
+                            <li class="mb-2"><b><code>sendBeacon</code> başlık taşıyamaz.</b> Jeton gövdeye <code>_token</code> alanı olarak
+                                girer (<code>vnl_csrf_check()</code> o alanı da okur). Bu yalnız <code>FormData</code>,
+                                <code>URLSearchParams</code> ya da boş gövdede olur; dizge, <code>Blob</code> ya da JSON gövdeli beacon
+                                olduğu gibi gider ve 403 alır. Çağıranın <code>FormData</code> nesnesi değiştirilmez, kopyası gönderilir.</li>
+                            <li class="mb-2"><b>403 yanıtı çağıranındır.</b> Jeton eskidiyse (başka sekmede giriş) <code>fetch</code>
+                                403 <code>VNL_CSRF</code> döndürür; <code>vnl.js</code>'in davranışını (mesaj + bir kez yenileme) istiyorsanız
+                                yanıtı <code>window.vnlHandleAjaxError(status, json, &#123;})</code>'a verin.</li>
+                        </ul>
+                        <p class="fs-5 text-body mb-4">
+                            <b>Yükleme.</b> Çekirdek görünüm taşımadığı için dosyayı projenin <code>&lt;head&gt;</code>'i yükler;
+                            <code>vnl_core_scripts()</code> listesinde değildir, kendiliğinden gelmez. Şablonun
+                            <code>view/includes/static/head-standard.php</code>'si meta etiketinin hemen altında yükler. Türetilmiş
+                            projede aynı iki satırı kendi <code>&lt;head&gt;</code>'inize, <code>/app</code>'e istek atan her
+                            betikten önce koyun (kendi <code>&lt;head&gt;</code>'ini açan giriş ya da açılış kabukları dahil):
+                        </p>
+                        <div class="vnl-code mb-4">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;meta name="csrf-token" content="&lt;?= vnl_e(vnl_csrf_token()) ?&gt;"&gt;
+&lt;script src="&lt;?= vnl_e(vnl_asset('js/vnl-csrf.js')) ?&gt;"&gt;&lt;/script&gt;</code></pre>
+                        </div>
+                        <p class="fs-6 text-muted mb-0">
+                            Sıra ve <code>vnl.js</code> önemli değildir: jQuery ve <code>vnl.js</code> sonradan yüklense de istekler
+                            doğru jetonu bir kez taşır. Dosya iki kez yüklenirse ikincisi bir şey yapmaz.
+                        </p>
                     </div>
                     <!--end::Section 2-->
 
@@ -222,6 +275,39 @@ php vnl.php token:revoke --list --user=admin
 php vnl.php token:revoke --id=12
 
 ApiToken::issue($userId, 'ad', ['domains'], 90);   // düz jeton — bir kez gösterin</code></pre>
+                        </div>
+
+                        <h4 class="fw-bold text-body-emphasis mt-8 mb-3">Proje jetonları (4.1.0)</h4>
+                        <p class="fs-6 text-body mb-4">
+                            Projenin kendi jeton biçimi varsa (ör. mobil uygulamanın öneksiz jetonları), <code>helpers/</code> altında
+                            <code>vnl_project_authenticate_token(string $bearer, string $module, string $method)</code> tanımlayın.
+                            Dağıtıcı önce çekirdek jetonunu dener; <code>vnl_</code> biçiminde değilse veritabanına gitmez. Çekirdek
+                            jetonu tanımazsa kancayı çağırır. Geçerli bir çekirdek jetonu kancaya hiç sorulmaz.
+                        </p>
+                        <ul class="fs-6 text-body mb-4">
+                            <li class="mb-1"><code>null</code> → tanınmadı, 401 <code>VNL_TOKEN</code> (kancasız davranışın aynısı).</li>
+                            <li class="mb-1">Kullanıcı kimliği (<code>int</code>) ya da <code>id</code>'li kullanıcı nesnesi → istek o kullanıcıyla sürer.</li>
+                            <li class="mb-1"><code>['user' =&gt; $idYaDaNesne, 'meta' =&gt; [...]]</code> → aynısı, ayrıca <code>meta</code> isteğe kaydedilir.</li>
+                            <li class="mb-1">Kullanıcı yoksa ya da etkin değilse (<code>is_active</code> 0/2) yine 401.</li>
+                        </ul>
+                        <p class="fs-6 text-body mb-4">
+                            Çekirdek jetonunda olduğu gibi giriş ve CSRF adımları atlanır; tarayıcı Bearer başlığını kendiliğinden
+                            göndermez. Kanca jetonun süresini, iptalini ve izinlerini kendisi denetler: proje jetonunda yetenek listesi
+                            yoktur, yalnız kullanıcının kendi yetkileri (<code>Auth::CheckPermission</code>) uygulanır. Kanca istisna
+                            fırlatırsa istek 500 <code>VNL_FATAL</code> ile biter, ayrıntı günlüğe yazılır.
+                        </p>
+                        <div class="vnl-code">
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// helpers/mobile_token.php
+function vnl_project_authenticate_token(string $bearer, string $module, string $method): mixed
+&#123;
+    $row = MobileAuthToken::findValid($bearer);     // projenin modeli
+    return $row ? ['user' =&gt; (int)$row-&gt;user_id, 'meta' =&gt; ['token_id' =&gt; $row-&gt;id]] : null;
+}
+
+// action içinde: bu istek kimin jetonuyla geldi?
+vnl_bearer();                          // null ya da ['via' =&gt; 'core'|'project', 'user_id', 'token_id', 'meta']
+vnl_is_bearer_request_for($userId);    // bu kullanıcının geçerli jetonuyla mı?
+vnl_is_bearer_request_for($userId, 'project');</code></pre>
                         </div>
                     </div>
                     <!--end::Section 7-->

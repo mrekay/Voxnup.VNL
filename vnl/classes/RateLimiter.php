@@ -28,8 +28,9 @@
  * tek kapı olamaz.
  *
  * Anahtarın kendisi saklanmaz, SHA-256 özeti saklanır (kullanıcı adları ve
- * IP'ler tabloda düz durmasın). Sayma tek bir atomik INSERT … ON DUPLICATE
- * KEY UPDATE ile yapılır: paralel istekler sayacı kaçıramaz. Pencere
+ * IP'ler tabloda düz durmasın). Sayma tek bir atomik upsert ile yapılır
+ * (MySQL'de INSERT … ON DUPLICATE KEY UPDATE; öbür sürücüler için bkz.
+ * upsert()): paralel istekler sayacı kaçıramaz. Pencere
  * dolunca aynı satır yeniden kullanılır; süresi çoktan geçmiş satırlar
  * ara sıra temizlenir, tablo büyümez.
  *
@@ -37,8 +38,8 @@
  * olduğundan adres /64 önekine indirgenir; IPv4 (ve ::ffff: ile gelen
  * IPv4) tam adresle sayılır.
  *
- * Zaman veritabanının NOW()'ıdır — PHP ile MySQL saat dilimi farklı olsa da
- * pencere tutarlı kalır.
+ * Zaman veritabanının saatidir (VnlSql::now()) — PHP ile veritabanının saat
+ * dilimi farklı olsa da pencere tutarlı kalır.
  *
  * Tablo yoksa (migration çalıştırılmadıysa) istisna yükselir: giriş gibi
  * güvenlik kapılarında "sınırlayıcı çalışmıyor, geç" demek yerine istek
@@ -54,16 +55,8 @@ class RateLimiter
     public static function hit(string $key, int $maxAttempts, int $decaySeconds): bool
     {
         $decaySeconds = max(1, $decaySeconds);
-        $table        = self::table();
 
-        Database::connection()->statement(
-            "INSERT INTO `{$table}` (`key_hash`, `hits`, `reset_at`)
-             VALUES (?, 1, DATE_ADD(NOW(), INTERVAL ? SECOND))
-             ON DUPLICATE KEY UPDATE
-                `hits`     = IF(`reset_at` < NOW(), 1, `hits` + 1),
-                `reset_at` = IF(`reset_at` < NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND), `reset_at`)",
-            [self::hash($key), $decaySeconds, $decaySeconds]
-        );
+        self::upsert(self::hash($key), $decaySeconds);
 
         /* Ara sıra (~%1) süresi bir günden fazla geçmiş satırları sil. */
         if (random_int(1, 100) === 1) {
@@ -89,7 +82,7 @@ class RateLimiter
     {
         $row = Database::table(self::TABLE)
             ->where('key_hash', self::hash($key))
-            ->whereRaw('`reset_at` >= NOW()')
+            ->whereRaw(VnlSql::wrap('reset_at') . ' >= ' . VnlSql::now())
             ->first(['hits']);
 
         return $row ? (int)$row->hits : 0;
@@ -100,7 +93,7 @@ class RateLimiter
     {
         $row = Database::table(self::TABLE)
             ->where('key_hash', self::hash($key))
-            ->selectRaw('GREATEST(0, TIMESTAMPDIFF(SECOND, NOW(), `reset_at`)) AS `wait`')
+            ->selectRaw(VnlSql::secondsUntil('reset_at') . ' AS ' . VnlSql::wrap('wait'))
             ->first();
 
         return $row ? (int)$row->wait : 0;
@@ -123,8 +116,10 @@ class RateLimiter
     {
         Database::table(self::TABLE)
             ->where('key_hash', self::hash($key))
-            ->whereRaw('`reset_at` >= NOW()')
-            ->update(['hits' => Database::raw('IF(`hits` > 0, `hits` - 1, 0)')]);
+            ->whereRaw(VnlSql::wrap('reset_at') . ' >= ' . VnlSql::now())
+            ->update(['hits' => Database::raw(
+                'CASE WHEN ' . VnlSql::wrap('hits') . ' > 0 THEN ' . VnlSql::wrap('hits') . ' - 1 ELSE 0 END'
+            )]);
     }
 
     /**
@@ -171,20 +166,77 @@ class RateLimiter
     public static function purge(): int
     {
         return Database::table(self::TABLE)
-            ->whereRaw('`reset_at` < DATE_SUB(NOW(), INTERVAL 1 DAY)')
+            ->whereRaw(VnlSql::wrap('reset_at') . ' < ' . VnlSql::nowMinus(86400))
             ->delete();
     }
 
     /* ---------------------------------------------------------------- */
 
+    /**
+     * Sayacı tek bir atomik ifadeyle artırır (yoksa 1 ile açar, pencere
+     * dolmuşsa 1'e çeker). Lehçeye göre:
+     *
+     *   mysql   INSERT … ON DUPLICATE KEY UPDATE (4.1.0 öncesiyle aynı)
+     *   pgsql   INSERT … ON CONFLICT (key_hash) DO UPDATE
+     *   sqlite  INSERT … ON CONFLICT (key_hash) DO UPDATE (3.24+)
+     *   sqlsrv  MERGE … WITH (HOLDLOCK) — HOLDLOCK olmadan iki eşzamanlı
+     *           ilk istek ikisi de "yok" görüp birincil anahtarda patlardı;
+     *           anahtar aralığı kilidi ikinciyi bekletip UPDATE kola düşürür.
+     *
+     * PostgreSQL/SQLite'ta SET'teki her ifade satırın ESKİ değerini görür;
+     * MySQL soldan sağa değerlendirir ama hits atamasına dayanan bir ifade
+     * yoktur (reset_at'in koşulu reset_at'e bakar).
+     */
+    private static function upsert(string $hash, int $decaySeconds): void
+    {
+        $connection = Database::connection();
+        $table      = VnlSql::table(self::TABLE);
+
+        switch (VnlSql::dialect()) {
+            case 'pgsql':
+            case 'sqlite':
+                $now   = VnlSql::now();
+                $reset = VnlSql::nowPlus($decaySeconds);
+                $connection->statement(
+                    "INSERT INTO {$table} (key_hash, hits, reset_at)
+                     VALUES (?, 1, {$reset})
+                     ON CONFLICT (key_hash) DO UPDATE SET
+                        hits     = CASE WHEN {$table}.reset_at < {$now} THEN 1 ELSE {$table}.hits + 1 END,
+                        reset_at = CASE WHEN {$table}.reset_at < {$now} THEN excluded.reset_at ELSE {$table}.reset_at END",
+                    [$hash]
+                );
+                return;
+
+            case 'sqlsrv':
+                $now   = VnlSql::now();
+                $reset = VnlSql::nowPlus($decaySeconds);
+                $connection->statement(
+                    "MERGE {$table} WITH (HOLDLOCK) AS t
+                     USING (SELECT CAST(? AS NCHAR(64)) AS key_hash) AS s
+                        ON t.key_hash = s.key_hash
+                     WHEN MATCHED THEN UPDATE SET
+                        t.hits     = CASE WHEN t.reset_at < {$now} THEN 1 ELSE t.hits + 1 END,
+                        t.reset_at = CASE WHEN t.reset_at < {$now} THEN {$reset} ELSE t.reset_at END
+                     WHEN NOT MATCHED THEN
+                        INSERT (key_hash, hits, reset_at) VALUES (s.key_hash, 1, {$reset});",
+                    [$hash]
+                );
+                return;
+
+            default:
+                $connection->statement(
+                    "INSERT INTO {$table} (`key_hash`, `hits`, `reset_at`)
+                     VALUES (?, 1, DATE_ADD(NOW(), INTERVAL ? SECOND))
+                     ON DUPLICATE KEY UPDATE
+                        `hits`     = IF(`reset_at` < NOW(), 1, `hits` + 1),
+                        `reset_at` = IF(`reset_at` < NOW(), DATE_ADD(NOW(), INTERVAL ? SECOND), `reset_at`)",
+                    [$hash, $decaySeconds, $decaySeconds]
+                );
+        }
+    }
+
     private static function hash(string $key): string
     {
         return hash('sha256', $key);
-    }
-
-    /** Ham SQL için önekli tablo adı (Eloquent modelleriyle aynı kural). */
-    private static function table(): string
-    {
-        return Database::connection()->getTablePrefix() . self::TABLE;
     }
 }

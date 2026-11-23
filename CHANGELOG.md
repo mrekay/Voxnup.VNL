@@ -13,6 +13,173 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ---
 
+## [4.1.0] — 2026-11-23
+
+Ara sürüm. Kırıcı değişiklik yoktur. Getirdikleri:
+- çekirdek tabloları ve çekirdek sınıfları artık MySQL dışında PostgreSQL,
+  SQL Server ve SQLite'ta da çalışıyor. MySQL dışındaki projelerde giriş hız
+  sınırı, Audit, kuyruk ve API jetonları ilk kez kuruluyor (güvenlik);
+- projenin kendi Bearer jetonu ve kendi hata kanalı için iki kanca;
+- jQuery'siz istekler (fetch, XHR, sendBeacon) için CSRF istemcisi.
+
+Yükseltme: `php vnl.php update`, ardından `php vnl.php migrate --run`.
+MySQL kurulumlarında bekleyen migration çıkmaz. Ayrıntı aşağıdaki
+"Yükseltme" bölümünde.
+
+### Eklenenler
+
+- **Proje jeton doğrulayıcı kancası.** Projeler artık `VnlDispatcher`'ı ezmeden
+  kendi Bearer jeton biçimini (ör. öneksiz mobil jetonlar) kullanabilir:
+  - `helpers/` altında `vnl_project_authenticate_token($bearer, $module, $method)`
+    tanımlanır. Dağıtıcı önce çekirdek `ApiToken`'ı dener, o tanımazsa kancayı
+    çağırır. Geçerli bir `vnl_` jetonu kancaya hiç sorulmaz.
+  - Kanca `null` (tanımadım), kullanıcı kimliği, kullanıcı nesnesi ya da
+    `['user' => …, 'meta' => [...]]` döndürür. Etkin olmayan kullanıcı yine 401
+    `VNL_TOKEN` alır. Kancasız davranış değişmedi.
+  - Jetonla gelen istekte giriş ve CSRF adımları, çekirdek jetonunda olduğu gibi
+    atlanır.
+- **`vnl_bearer()` ve `vnl_is_bearer_request_for($userId, ?$via)`.** İsteğin
+  hangi Bearer jetonuyla, hangi yoldan (`core` ya da `project`) doğrulandığını
+  söyler. Parola yerine jeton sahipliğini kabul eden hassas işlemler içindir.
+  Ayrıntı: `VnlDispatcher::bearer()`, `/docs/security` → *Proje jetonları*.
+- **Proje günlük kancası `vnl_project_log_exception($e, $ref, $channel)`.**
+  `vnl_log_exception()` çekirdeğin `error_log` satırını yazdıktan sonra onu
+  çağırır. İstisna aynı başvuru koduyla projenin kendi kanalına (veritabanı,
+  Sentry, Slack…) da gider. Sayfa hataları, action'ların 500 yanıtı ve kuyruk
+  işçisi aynı yoldan geçer. Kancanın fırlattığı istisna isteği düşürmez, kanca
+  kendi içinden yeniden çağrılmaz. Ayrıntı: `/docs/errors`.
+- **jQuery'siz istekler için CSRF istemcisi: `vnl/assets/js/vnl-csrf.js`.**
+  Önceden jetonu yalnız jQuery istekleri (vnl.js) ve VNL Table taşıyordu; düz
+  `fetch`, ham `XMLHttpRequest` ve `navigator.sendBeacon` 403 `VNL_CSRF`
+  alıyordu. Dosya bu üçünü sarar, çağrı noktası değişmez:
+  - Yalnız aynı kökene ve yalnız yazan yöntemlere (GET, HEAD, OPTIONS dışı)
+    `X-CSRF-Token` ekler. Jeton her istekte `<meta name="csrf-token">`'den
+    okunur.
+  - Başlık zaten konmuşsa dokunmaz. Bu sayede vnl.js'in jQuery ön süzgeciyle
+    birlikte çalışır: XHR'da başlık iki kez konsaydı değerler birleşir ve
+    sunucu jetonu reddederdi.
+  - `sendBeacon` başlık taşıyamadığı için jeton gövdeye `_token` alanı olarak
+    girer (`FormData`, `URLSearchParams` ya da boş gövde). Dizge/`Blob` gövdeli
+    beacon olduğu gibi gider.
+  - jQuery'ye ve vnl.js'e bağlı değildir; jQuery yüklemeyen sayfalarda da
+    çalışır. Ayrıntı: `/docs/security` → *CSRF jetonu*.
+- **Çekirdek tabloları PostgreSQL, SQL Server ve SQLite'ta.** `vnl/migrations/`
+  altında her numaranın `.pgsql.sql`, `.sqlsrv.sql` ve `.sqlite.sql` hâli var.
+  `php vnl.php migrate` artık `DB_DRIVER`'a göre dosya seçiyor:
+  - Sürücüye özel hâl `NNNN_ad.<sürücü>.sql` adını taşır ve o sürücüde düz
+    dosyanın yerine geçer. Hâli olmayan sürücüde düz dosya çalışır; proje
+    migration'ları için de geçerli. Kayıt yine (kaynak, numara) ile tutulur.
+  - MySQL dışında bir migration ve kaydı tek işlemdir (transaction). Düşen
+    migration bütünüyle geri alınır.
+  - MySQL dışındaki sürücülere migrate, uygulamanın kendi bağlantı kurucusuyla
+    (Illuminate) bağlanır. `config/definitions.php`'deki sürücü anahtarları
+    (`encrypt`, `trust_server_certificate`, `sslmode` …) burada da geçerli.
+  - İfade bölücü lehçeyi tanıyor: PostgreSQL'de `$$ … $$` gövdeleri, SQL
+    Server'da `[köşeli]` adlar; bu ikisinde ve SQLite'ta `#` yorum, ters bölü
+    kaçış değildir. MySQL kuralları değişmedi.
+  - `mariadb` sürücüsü MySQL dosyalarını kullanır (önceden migrate onu
+    reddediyordu).
+- **`VnlSql`**: çekirdeğin ham SQL'i için küçük lehçe sınıfı (`now()`,
+  `nowPlus()`, `nowMinus()`, `secondsUntil()`, `wrap()`, `table()`).
+- **Test ortamı öbür sürücülerde.** `compose.test.yml`'e `test-pgsql`
+  (PostgreSQL 17), `test-sqlsrv` (SQL Server 2022, `pdo_sqlsrv` + ODBC Driver
+  18) ve `test-sqlite` eklendi. Yeni `CoreTablesTest` hız sınırı, kuyruk,
+  Audit ve API jetonunu her sürücüde sınar. Hız sınırı sayacı ve kuyruk
+  ayırması gerçek alt süreçlerle eşzamanlı olarak da sınanıyor.
+
+Kırıcı değişiklik yok. `classes/VnlDispatcher.php` ezmesi taşıyan projeler kancayı
+kullanamaz; `vnl_bearer()` o projelerde her zaman `null` döner. `vnl-csrf.js`
+kendiliğinden yüklenmez (`vnl_core_scripts()` listesinde değil): projenin
+`<head>`'i yükler.
+
+### Düzeltilenler
+
+- **MySQL dışındaki projelerde güvenlik tabloları yoktu (güvenlik).** 4.0.1'e
+  kadar çekirdek migration'ları yalnız MySQL'de kurulabiliyordu, migrate de
+  başka sürücüyü reddediyordu. Bu yüzden SQL Server ya da PostgreSQL projesinde
+  şunlar hiç çalışmıyordu: giriş hız sınırı (`RateLimiter`), denetim kaydı
+  (`Audit`), kuyruk, API jetonları, TOTP tekrar koruması ve "beni hatırla"
+  damgası. Hız sınırı tablo yokken isteği düşürür (fail closed), Audit
+  sessizce günlüğe yazar. Yani ya giriş kırılıyordu ya da hiçbir şey
+  kaydedilmiyordu.
+- **Çekirdek sınıflarında MySQL'e özgü SQL kalmadı.** Değişenler:
+  - `RateLimiter`: sayaç her sürücüde tek atomik ifadeyle artıyor. PostgreSQL
+    ve SQLite'ta `ON CONFLICT … DO UPDATE`, SQL Server'da
+    `MERGE … WITH (HOLDLOCK)`. HOLDLOCK olmadan aynı anahtarın eşzamanlı ilk
+    iki denemesi birincil anahtar ihlaliyle düşüyordu; elle yapılan yük
+    denemesinde görüldü.
+  - `Queue::reserve()`: PostgreSQL'de `FOR UPDATE SKIP LOCKED`, SQL Server'da
+    `UPDLOCK, READPAST`. İki işçi aynı işi alamıyor.
+  - `Queue::releaseStale()`, `VnlJob::log()`, `queue:work`'ün başarı yazımı:
+    `IF()`, `CONCAT`, `DATE_ADD` ve ters tırnak yerine sürücüye göre SQL.
+  - MySQL'de üretilen SQL 4.1.0 öncesiyle aynı; `decrement()` ve
+    `queue:work`'teki `IF()` yalnız eşdeğer `CASE`'e döndü.
+  - SQL Server'da zaman saniyeye yuvarlanarak karşılaştırılıyor
+    (`CAST(GETDATE() AS DATETIME2(0))`). Yoksa yeni eklenen iş saniyenin ikinci
+    yarısında "henüz zamanı gelmemiş" görünüyordu.
+- **`doctor` her sürücüde çekirdek migration'larını denetliyor.** 4.0.1'deki
+  "çekirdek tabloları yalnız MySQL'de kurulabilir" uyarısı kalktı.
+  - Denetim migrate'in kendi keşfini kullanıyor; sürücüye özel dosya seçimi de
+    buna dahil.
+  - Kayıt tablosu yoksa bütün çekirdek migration'larını bekleyen olarak
+    listeliyor. Tabloyu oluşturmuyor.
+- **VNL Table metin aramaları SQL Server ve SQLite'ta da düz metin.**
+  `contains`, `startsWith`, `endsWith` ve `notContains` koşulları `%` ve `_`
+  karakterlerini ters bölüyle kaçırıyordu. Ters bölü yalnız MySQL ve
+  PostgreSQL'de LIKE'ın kaçış karakteridir; SQL Server ve SQLite'ta "50%"
+  araması hiçbir şey bulmuyordu. Artık `TableModel` gibi `ESCAPE '!'`
+  kullanılıyor.
+  - SQL Server'ın `[...]` karakter kümesi de kaçırılıyor, `TableModel`'in
+    `like`/`ilike` filtresinde de: "k[a]z" araması orada "kaz"ı buluyordu.
+- **Kullanıcı adı PostgreSQL ve SQLite'ta da büyük/küçük harfe duyarsız.**
+  MySQL'de `utf8mb4_unicode_ci` bunu zaten sağlıyor: `Admin` ile `admin`
+  aynı hesaptır, girişte harf büyüklüğü önemli değildir. 0002 artık
+  PostgreSQL'de sütunu `CITEXT` (`CREATE EXTENSION IF NOT EXISTS citext`;
+  PG13'ten beri güvenilir eklenti), SQLite'ta `COLLATE NOCASE` açıyor.
+  - Bu yalnız 0002'nin AÇTIĞI tabloyu etkiler. Projenin önceden açtığı
+    `tbl_users`'ın sütun türüne dokunulmaz. Böyle bir PostgreSQL tablosunu
+    harfe duyarsız yapmak için tekrarları temizleyip
+    `ALTER TABLE tbl_users ALTER COLUMN username TYPE CITEXT` çalıştırın.
+  - SQL Server'da karşılaştırma veritabanının harmanlamasına bağlıdır;
+    varsayılan `…_CI_AS` harfe duyarsızdır.
+
+### Proje dosyaları (güncelleme dokunmaz; şablondan elle alın)
+
+- **`view/includes/static/head-standard.php`** `vnl-csrf.js`'i CSRF meta
+  etiketinin hemen altında yüklüyor. Türetilmiş projede jQuery'siz `/app`
+  isteği varsa aynı satırı kendi `<head>`'inize ekleyin:
+  `<script src="<?= vnl_e(vnl_asset('js/vnl-csrf.js')) ?>"></script>`
+- **`config/definitions.php`**: `DB_PORT` ve `DB_CHARSET` boşsa sürücüye göre
+  varsayılan alıyor (pgsql 5432/`utf8`, sqlsrv 1433/`utf8`; MySQL'de değişiklik
+  yok). PostgreSQL `utf8mb4`'ü `client_encoding` olarak reddediyordu.
+  sqlsrv'de isteğe bağlı `DB_ENCRYPT` / `DB_TRUST_SERVER_CERTIFICATE` var. Kendi
+  dosyanızda bağlantı çalışıyorsa almanız gerekmez.
+- **`compose.test.yml`, `docker/test/Dockerfile`**: sürücü servisleri ve
+  `DB_DRIVERS` derleme argümanı. **`.env.example`**: yeni anahtarlar.
+
+### Yükseltme
+
+`php vnl.php update`, ardından **her sürücüde** `php vnl.php migrate --run`.
+
+- **MySQL / MariaDB:** yapılacak bir şey yok. Bekleyen çekirdek migration'ı
+  çıkmaz, `migrate --status` uygulanmış dosyaları `[+]` gösterir.
+- **SQL Server ya da PostgreSQL'de 4.0.x çalıştıran proje:** çekirdek tabloları
+  hiç kurulmamıştır. Güncellemeden sonra şunu çalıştırın:
+  `php vnl.php migrate --status` (0001–0008 bekliyor görünür), sonra
+  `php vnl.php migrate --run`, sonra `php vnl.php doctor`. Bu adım şunları yapar:
+  - `tbl_vnl_rate_limits`, `tbl_vnl_audit_log`, `tbl_vnl_jobs`,
+    `tbl_vnl_api_tokens` ve `tbl_remember_tokens` açılır. Var olan
+    `tbl_remember_tokens`'a yalnız `auth_stamp` eklenir.
+  - Var olan `tbl_users`'a eksik sütunlar eklenir (`is_active` varsayılan 1,
+    `totp_*`, `last_*`, zaman damgaları); var olan sütunun türüne dokunulmaz.
+    255'ten dar `password` sütunu genişletilir.
+  - `tbl_permissions`'a zaman damgaları ve `Users` kodu eklenir.
+  - Migration'lar oturumun varsayılan şemasında (çoğunlukla `dbo`) çalışır.
+    Kullanıcı tablonuz başka bir şemadaysa ya da bir görünümse önce
+    `--dry-run` ile bakın.
+
+---
+
 ## [4.0.1] — 2026-11-22
 
 Düzeltme sürümü. Bulgular, bir sqlsrv projesinin (IIS üzerinde) 4.0.0'a geçişinden

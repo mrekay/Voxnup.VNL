@@ -64,13 +64,36 @@ function vnl_error_detail_visible(Throwable $e): bool
 /**
  * İstisnayı sunucu günlüğüne yazar ve kullanıcıya gösterilecek başvuru
  * kodunu döner. Kullanıcı kodu bildirir, geliştirici günlükte arar.
+ *
+ * Proje kancası (4.1.0): vnl_project_log_exception(Throwable $e, string $ref,
+ * string $channel) tanımlıysa error_log'dan SONRA çağrılır — istisnayı aynı
+ * başvuru koduyla kendi kanalına (veritabanı, Sentry, Slack…) da gönderir.
+ * Çekirdeğin günlüğü kancanın yerine geçmez, her durumda yazılır. Kancanın
+ * fırlattığı istisna isteği düşürmez: kendisi error_log'a yazılır. Kanca
+ * içinde oluşup yine buraya düşen bir istisna kancayı ikinci kez çağırmaz.
  */
 function vnl_log_exception(Throwable $e, string $channel = 'VNL'): string
 {
+    static $inHook = false;
+
     $ref = bin2hex(random_bytes(6));
 
     error_log("[{$channel}][{$ref}] " . get_class($e) . ': ' . $e->getMessage()
         . ' @ ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString());
+
+    if (!$inHook && function_exists('vnl_project_log_exception')) {
+        $inHook = true;
+
+        try {
+            vnl_project_log_exception($e, $ref, $channel);
+        } catch (Throwable $hookError) {
+            error_log("[VNL][{$ref}] vnl_project_log_exception() hata verdi: "
+                . get_class($hookError) . ': ' . $hookError->getMessage()
+                . ' @ ' . $hookError->getFile() . ':' . $hookError->getLine());
+        } finally {
+            $inHook = false;
+        }
+    }
 
     return $ref;
 }

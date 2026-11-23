@@ -72,3 +72,40 @@ jobs:
       - name: Kapat
         if: always()
         run: docker compose -f compose.test.yml down -v
+
+  # 4.1.0: çekirdek tabloları ve ham SQL öbür sürücülerde. Asgari PHP ile tek
+  # koşu yeter: sürücü farkı PHP sürümüne bağlı değil.
+  drivers:
+    name: ${{ matrix.driver }} (PHP 8.3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    strategy:
+      fail-fast: false
+      matrix:
+        driver: [pgsql, sqlsrv, sqlite]
+
+    env:
+      PHP_VERSION: "8.3"
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4.4.0
+
+      - name: İmajı hazırla
+        run: docker compose -f compose.test.yml build test-${{ matrix.driver }}
+
+      - name: Migration + testler
+        run: docker compose -f compose.test.yml run --rm test-${{ matrix.driver }}
+
+      - name: Migration ikinci kez (bekleyen yok, değişen yok)
+        run: |
+          docker compose -f compose.test.yml run --rm test-${{ matrix.driver }} sh -c '
+            touch /tmp/vnl_test.sqlite
+            php vnl.php migrate --run && php vnl.php migrate --run | grep -q "Bekleyen migration yok"'
+
+      - name: doctor (yalnız sorunlar başarısız sayılır)
+        run: docker compose -f compose.test.yml run --rm test-${{ matrix.driver }} php vnl.php doctor
+
+      - name: Kapat
+        if: always()
+        run: docker compose -f compose.test.yml --profile all down -v

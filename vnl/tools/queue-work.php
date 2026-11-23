@@ -153,7 +153,8 @@ function vnl_queue_run_job(VnlJob $job, callable $say): void
         /* 'error' önce: SET soldan sağa değerlendirilir, status henüz eski
            değerindeyken --stale'in yazdığı zaman aşımı notu temizlenir. */
         $done = $job->reservation()->update([
-            'error'       => Database::raw("IF(`status` = 'failed', NULL, `error`)"),
+            'error'       => Database::raw('CASE WHEN ' . VnlSql::wrap('status') . " = 'failed' THEN NULL ELSE "
+                . VnlSql::wrap('error') . ' END'),
             'status'      => 'done',
             'progress'    => 100,
             'finished_at' => Queue::now(),

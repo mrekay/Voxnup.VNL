@@ -130,7 +130,7 @@
                                 <tbody>
                                     <tr>
                                         <td><code>static/head-standard.php</code></td>
-                                        <td>Meta etiketleri, pre-paint tema modu script'i, ardından <code>vnl_core_styles()</code> listesi: <code>vnl.min.css</code> (+ skin), <code>bi.min.css</code>, <code>fa.min.css</code>, <code>vnltable.css</code>, <code>vnl-date.css</code></td>
+                                        <td>Meta etiketleri (CSRF jetonu dahil), pre-paint tema modu script'i, CSRF istemcisi <code>vnl-csrf.js</code>, ardından <code>vnl_core_styles()</code> listesi: <code>vnl.min.css</code> (+ skin), <code>bi.min.css</code>, <code>fa.min.css</code>, <code>vnltable.css</code>, <code>vnl-date.css</code></td>
                                     </tr>
                                     <tr>
                                         <td><code>static/script-standard.php</code></td>

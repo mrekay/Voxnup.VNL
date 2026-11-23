@@ -12,3 +12,5 @@ d279a9d5d2ccce2b2c041339176bbbd1d43ac462:vnl/tests/db/AuthFlowTest.php:generic-a
 0acb3d5ef553f1950782f4f09e7880af4e61fd8d:libs/vendor/ratchet/rfc6455/tests/unit/Handshake/ServerNegotiatorTest.php:generic-api-key:102
 0acb3d5ef553f1950782f4f09e7880af4e61fd8d:libs/vendor/ratchet/rfc6455/tests/unit/Handshake/ServerNegotiatorTest.php:generic-api-key:134
 0acb3d5ef553f1950782f4f09e7880af4e61fd8d:libs/vendor/ratchet/rfc6455/tests/unit/Handshake/ServerNegotiatorTest.php:generic-api-key:168
+# SessionRevocationTest'in test parolası (const PASSWORD); AuthFlowTest'tekiyle aynı durum.
+e60d91fa93dda4efd258b3ea394dadc3a56324e9:vnl/tests/db/SessionRevocationTest.php:generic-api-key:11

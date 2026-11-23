@@ -140,12 +140,23 @@ class VnlJob
     public function log(string $line): void
     {
         $text  = '[' . date('H:i:s') . '] ' . rtrim($line, "\r\n") . "\n";
-        $table = Queue::rawTable();
+        $table = VnlSql::table(Queue::TABLE);
+
+        /* Ekleme veritabanında yapılır (oku-yaz değil). 4.1.0: birleştirme
+           sürücüye göre; PostgreSQL CONCAT()'te bağlı parametrenin türünü
+           çıkaramaz, SQL Server'da + NULL'da NULL verir. */
+        $append = match (VnlSql::dialect()) {
+            'pgsql'  => "COALESCE(output, '') || CAST(? AS TEXT)",
+            'sqlite' => "COALESCE(output, '') || ?",
+            'sqlsrv' => "COALESCE([output], N'') + CAST(? AS NVARCHAR(MAX))",
+            default  => "CONCAT(COALESCE(`output`, ''), ?)",
+        };
+        $w = static fn(string $c): string => VnlSql::wrap($c);
 
         /* Çit reservation() ile aynı: id + jeton + running|failed. */
         $this->write(fn() => Database::connection()->update(
-            "UPDATE `{$table}` SET `output` = CONCAT(COALESCE(`output`, ''), ?), `updated_at` = NOW()
-              WHERE `id` = ? AND `reserved_by` = ? AND `status` IN ('running', 'failed')",
+            "UPDATE {$table} SET {$w('output')} = {$append}, {$w('updated_at')} = " . VnlSql::now() . "
+              WHERE {$w('id')} = ? AND {$w('reserved_by')} = ? AND {$w('status')} IN ('running', 'failed')",
             [$text, $this->id(), (string)$this->reservationToken()]
         ));
     }

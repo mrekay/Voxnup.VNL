@@ -1,0 +1,7 @@
+-- =============================================================================
+-- 0007 — TOTP tekrar kullanım koruması (SQLite hâli, VNL 4.1.0)
+--
+-- Boş: SQLite hâlinde totp_last_step sütununu 0002 tabloyla birlikte açar.
+-- Numara sayaç bütünlüğü için kayda geçer. (SQLite'ta koşullu ADD COLUMN
+-- yoktur; projenin önceden açtığı tbl_users'a sütunu kendiniz ekleyin.)
+-- =============================================================================

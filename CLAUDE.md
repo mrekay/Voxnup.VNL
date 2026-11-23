@@ -143,6 +143,9 @@ değiştiren migration koşullu yazılmalıdır — örneği `vnl/migrations/000
 # Testler — PHP + MySQL, migration dahil (yeşil olmadan commit yok)
 docker compose -f compose.test.yml run --rm test
 docker compose -f compose.test.yml run --rm test php vnl.php test --suite=unit --filter=Csrf
+
+# Aynı takım öbür sürücülerde (çekirdek tablosu/ham SQL değiştirdiyseniz koşun)
+docker compose -f compose.test.yml run --rm test-pgsql     # test-sqlsrv, test-sqlite
 ```
 
 Testler `vnl/tests/` (çekirdek) ve `tests/` (proje) altında; nasıl yazıldığı

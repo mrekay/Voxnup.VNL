@@ -205,7 +205,7 @@ private $version       = "1.0.0";   // projenin sürümü; çekirdeğinki vnl/VE
                                 <tr>
                                     <td class="ps-5"><code>driver</code></td>
                                     <td><code>"mysql"</code></td>
-                                    <td>Veritabanı sürücüsü. <code>mysql</code>, <code>pgsql</code>, <code>sqlsrv</code> desteklenir.</td>
+                                    <td>Veritabanı sürücüsü. <code>mysql</code> (<code>mariadb</code>), <code>pgsql</code>, <code>sqlsrv</code>, <code>sqlite</code> desteklenir; çekirdek migration'ları 4.1.0'dan beri hepsinde çalışır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>host</code></td>
