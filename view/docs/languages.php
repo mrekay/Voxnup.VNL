@@ -5,14 +5,14 @@
             <div class="vnl-page-hero mb-12 mt-6">
                 <div class="vnl-overline mb-3">// docs/languages</div>
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Dil ve Çoklu Dil Desteği (i18n)</h1>
-                <div class="vnl-lead">VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong> — ana dosya (<code>languages/tr.json</code>) artı 3.4.0'dan beri modül başına parçalar (<code>languages/tr/*.json</code>); aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.</div>
+                <div class="vnl-lead">VNL, JSON tabanlı bir dil sistemi kullanır. Dil dosyaları <code>languages/</code> klasöründe tutulur ve <strong>tek doğruluk kaynağıdır</strong> — ana dosya (<code>languages/tr.json</code>) artı modül başına parçalar (<code>languages/tr/*.json</code>); aktif dil session üzerinden yönetilir. <code>lang('ANAHTAR')</code> söz dizimi ile herhangi bir yerden dil anahtarlarına erişilebilir.</div>
             </div>
 
             <div class="alert alert-info d-flex flex-column flex-sm-row p-5 mb-10">
                 <i class="fa-solid fa-globe fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
                 <div class="d-flex flex-column pe-0 pe-sm-10">
                     <h5 class="mb-1">Desteklenen Diller</h5>
-                    <span>Varsayılan olarak <span class="badge badge-soft-primary">Türkçe (tr)</span> ve <span class="badge badge-soft-success">İngilizce (en)</span> desteklenir. Yeni bir dil eklemek için JSON dosyası oluşturup <code>Languages</code> enum'una değer eklemek yeterlidir.</span>
+                    <span>Varsayılan olarak <span class="badge badge-soft-primary">Türkçe (tr)</span> ve <span class="badge badge-soft-success">İngilizce (en)</span> desteklenir. Yeni bir dil için JSON dosyası oluşturulur ve <code>Languages</code> enum'una değer eklenir. Enum çekirdektedir (<code>vnl/helpers/enums.php</code>); <code>vnl/</code> altına yazmayın — dosyanın tamamını projenin <code>helpers/enums.php</code>'sine kopyalayıp orada genişletin, aynı adlı proje dosyası çekirdeğinkinin yerine yüklenir.</span>
                 </div>
             </div>
 
@@ -45,7 +45,7 @@ $yuklu = Language::current();
                                     <h6 class="fw-bold mb-2">JSON Dosyaları</h6>
                                     <code class="fs-7">languages/tr.json</code><br>
                                     <code class="fs-7">languages/en.json</code><br>
-                                    <code class="fs-7">languages/&lt;dil&gt;/*.json</code> <span class="text-muted fs-8">(parçalar, 3.4.0)</span>
+                                    <code class="fs-7">languages/&lt;dil&gt;/*.json</code> <span class="text-muted fs-8">(parçalar)</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -76,14 +76,15 @@ $yuklu = Language::current();
                         </p>
 
                         <div class="vnl-code mb-5">
-                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>enum Languages: string
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// vnl/helpers/enums.php (çekirdek) — genişletmek için helpers/enums.php ile ezin
+enum Languages: string
 {
     case TR = 'tr';
     case EN = 'en';
 }
 
-// Language sınıfında temel dil
-Language::base_language = Languages::TR;
+// Language sınıfında temel dil (sınıf sabiti)
+const base_language = Languages::TR;
 
 // Kullanım
 Language::set(Languages::TR); // Türkçe yükle
@@ -109,11 +110,11 @@ Language::set(Languages::EN); // İngilizce yükle
                                     <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>[
     {
         "ERR_GENERAL": "Bir hata oluştu.",
-        "PLEASE_FILL_THE_REQUIRED_FIELD": "%s alanını doldurunuz.",
-        "DATATABLES_PROCESSING": "Yükleniyor...",
-        "SUCCESS": "İşlem başarılı.",
-        "DELETE_SUCCESS": "Kayıt silindi.",
-        "UPDATE_SUCCESS": "Güncelleme yapıldı."
+        "PLEASE_FILL_THE_REQUIRED_FIELD": "Lütfen gerekli alanları doldurunuz.",
+        "PLEASE_FILL_IN_FIELD": "Lütfen %s alanını doldurun.",
+        "ERR_PERM": "Bu işlem için yetkiniz bulunmamaktadır.",
+        "SUC_GENERAL": "İşlem başarıyla gerçekleştirildi.",
+        "BTN_SAVE": "Kaydet"
     }
 ]</code></pre>
                                 </div>
@@ -124,11 +125,11 @@ Language::set(Languages::EN); // İngilizce yükle
                                     <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>[
     {
         "ERR_GENERAL": "An error occurred.",
-        "PLEASE_FILL_THE_REQUIRED_FIELD": "Please fill in %s.",
-        "DATATABLES_PROCESSING": "Loading...",
-        "SUCCESS": "Operation successful.",
-        "DELETE_SUCCESS": "Record deleted.",
-        "UPDATE_SUCCESS": "Update completed."
+        "PLEASE_FILL_THE_REQUIRED_FIELD": "Please fill in the required field.",
+        "PLEASE_FILL_IN_FIELD": "Please fill in the %s field.",
+        "ERR_PERM": "You do not have permission for this action.",
+        "SUC_GENERAL": "The operation was completed successfully.",
+        "BTN_SAVE": "Save"
     }
 ]</code></pre>
                                 </div>
@@ -140,7 +141,7 @@ Language::set(Languages::EN); // İngilizce yükle
                             <span class="text-body fs-6">Bir anahtar ikinci dilde eksikse metin <strong>temel dilden</strong> karşılanır ve durum hata günlüğüne yazılır — boş metin görünmez. Ayrıntı için 9. bölüme bakın.</span>
                         </div>
 
-                        <h5 class="fw-bold text-body-emphasis mt-8 mb-3">Dil parçaları — <code>languages/&lt;dil&gt;/*.json</code> (3.4.0)</h5>
+                        <h5 class="fw-bold text-body-emphasis mt-8 mb-3">Dil parçaları — <code>languages/&lt;dil&gt;/*.json</code></h5>
                         <p class="fs-6 text-body mb-4">
                             Tek dil dosyası, paralel çalışan her modülün aynı dosyada çakışması demekti. <code>Language</code> ana dosyayı (<code>languages/tr.json</code>) okuduktan sonra <code>languages/tr/</code> altındaki her <code>*.json</code>'u <b>ad sırasıyla</b> sözlüğe ekler. Biçim ana dosyayla aynıdır. Aynı anahtar iki yerde varsa <b>sonra okunan dosya kazanır</b> ve günlüğe <code>[VNL][Language]</code> uyarısı düşer. Her parçanın öbür dillerde de karşılığı olmalıdır (<code>languages/en/domains.json</code>).
                         </p>
@@ -210,7 +211,7 @@ echo Language::PLEASE_FILL_IN_FIELD('Ad Soyad');
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">5. Dil Anahtarları</h3>
                         <p class="fs-5 text-body mb-4">
-                            Sözlüğün tek doğruluk kaynağı dosyanın kendisidir; <code>languages/tr.json</code> şu an <b>171 anahtar</b> taşıyor (3.4.0). Aşağıdaki tablo onların tamamı değil, <b>çekirdeğin kendi çağırdıklarından</b> bir seçki — bunlar bir projede eksik kalırsa doğrulama ve hata mesajları anahtar adını basar.
+                            Sözlüğün tek doğruluk kaynağı dosyanın kendisidir; tam liste <code>languages/tr.json</code>'dadır. Aşağıdaki tablo onların tamamı değil, <b>çekirdeğin kendi çağırdıklarından</b> bir seçki — bunlar bir projede eksik kalırsa doğrulama ve hata mesajları anahtar adını basar.
                         </p>
 
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-5">
@@ -308,18 +309,23 @@ $mevcutDil = Language::GetLanguage();
 // Dönüş: Languages::TR veya Languages::EN
 // Session yoksa Language::base_language döner (Languages::TR)
 
-// Action içinde dil değiştirme örneği
-public function dilDegistir(): void
+// Action içinde dil değiştirme örneği — POST /app/dil/degistir (+ CSRF)
+class action_dil
 {
-    global $req;
-    $dil = $req->post('dil'); // 'tr' veya 'en'
+    // Giriş ekranında da dil seçilebilsin: girişsiz çağrılır.
+    // Yalnız ziyaretçinin kendi oturumunu değiştirdiği için yetki kodu sorulmaz;
+    // veri okuyan ya da yazan her metotta ilk satır Auth::CheckPermission() olur.
+    public const PUBLIC_METHODS = ['degistir'];
 
-    $secilen = Languages::tryFrom($dil);
-    if (!$secilen) throwErrorMessage(lang('ERR_INVALID_PARAMETERS_SENT'));
+    public function degistir($req): void
+    {
+        $secilen = Languages::tryFrom((string)$req->post('dil')); // 'tr' veya 'en'
+        if (!$secilen) throwErrorMessage(lang('ERR_INVALID_PARAMETERS_SENT'));
 
-    Language::set($secilen);
+        Language::set($secilen);
 
-    returnSuccessMessage(lang('SUC_GENERAL'));
+        returnSuccessMessage(lang('SUC_GENERAL'));
+    }
 }
 </code></pre>
                         </div>

@@ -14,4 +14,5 @@ $page_config = [
 
 require view('static/header');
 require view('docs/architecture');
+require view('docs/partials/pager');
 require view('static/footer');

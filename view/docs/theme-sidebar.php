@@ -7,7 +7,7 @@
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Sidebar ve Menü</h1>
                 <div class="vnl-lead">
                     Menü tanımı VNL 2.x'ten beri aynı dizidir: <code>view/static/leftSidebar.php</code>
-                    içindeki <code>$SidebarMenu</code>. 3.4.0'dan beri modüller kendi öğelerini ayrı
+                    içindeki <code>$SidebarMenu</code>. Modüller kendi öğelerini ayrı
                     dosyalarda tanımlayabilir: <code>config/menu/*.php</code> (menü parçaları).
                     Tema yalnız üretilen markup'ı ve davranışı yeniler: iki daraltma modu, iki alt menü
                     modu ve mobilde native offcanvas.
@@ -52,7 +52,7 @@
                             URL üzerinden otomatiktir; aktif dalın başlığı ve linki işaretlenir.
                         </p>
 
-                        <h5 class="fw-bold text-body-emphasis mt-8 mb-3">Menü parçaları — <code>config/menu/*.php</code> (3.4.0)</h5>
+                        <h5 class="fw-bold text-body-emphasis mt-8 mb-3">Menü parçaları — <code>config/menu/*.php</code></h5>
                         <p class="text-body mb-4">
                             Tek bir <code>$SidebarMenu</code> dizisi, paralel çalışan geliştiricilerin (ya da ajanların) aynı
                             dosyada çakışması demekti. <code>leftSidebar.php</code> temel diziden sonra <code>config/menu/</code>
@@ -159,19 +159,30 @@ $page_config = ['submenu' => 'accordion'];</code></pre></div>
                             burada karar vermez, projeye sorar:
                         </p>
 
-                        <div class="vnl-code mb-5"><pre><code>// helpers/yetki.php — vnl_load_dir('helpers') kendiliğinden yükler,
-// çekirdeğe dokunmak gerekmez.
-function vnl_project_permission(string $code, $user): bool
+                        <div class="vnl-code mb-5"><pre><code>// helpers/permissions.php — şablonla gelir, projenindir;
+// vnl_load_dir('helpers') kendiliğinden yükler. Kendi şemanız için BU dosyayı
+// düzenleyin: aynı fonksiyonu ikinci bir dosyada tanımlamak "Cannot redeclare" verir.
+function vnl_project_permission(string $code, $user, string $ability = 'view'): bool
 {
-    return $user !== null && UserPermissions::CanViewByCode($user->id, $code);
+    if ($user === null || empty($user-&gt;id) || !UserModule::IsActiveUser($user)) {
+        return false;
+    }
+    if ((int)$user-&gt;perm_id === User::SUPER_ADMIN) {
+        return true;   // süper yönetici
+    }
+    return UserPermissions::Can((int)$user-&gt;id, $code, $ability);   // view|insert|edit|delete
 }</code></pre></div>
 
                         <div class="alert alert-info d-flex align-items-start p-4 mb-5">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
                             <span class="text-body fs-6">
-                                Bu fonksiyon <b>tanımlanmadığı sürece kapı açıktır</b>: her öğe görünür ve
-                                davranış VNL 3.1 ile birebir aynıdır. Yeni bir çekirdek sürümü kimsenin
-                                menüsünü boşaltmaz. Kanca istisna fırlatırsa yutulmaz — yetki sorgusundaki
+                                <b>Menü için</b> bu fonksiyon tanımlanmadığı sürece kapı açıktır: her öğe görünür.
+                                Yeni bir çekirdek sürümü kimsenin
+                                menüsünü boşaltmaz. <b>Sayfa ve action kapıları ise tersine kapanır</b>:
+                                <code>vnl_require_permission()</code>, <code>Auth::CheckPermission()</code> ve
+                                <code>Auth::Can()</code> katı sorar, kanca yokken kimseyi geçirmez ve sebebi
+                                günlüğe yazar; <code>php vnl.php doctor</code> kancanın varlığını sınar.
+                                Kanca istisna fırlatırsa yutulmaz — yetki sorgusundaki
                                 bir hatayı sessizce "yetkisi yok"a çevirmek onu boş bir menünün arkasında
                                 saklardı.
                             </span>
@@ -187,7 +198,7 @@ function vnl_project_permission(string $code, $user): bool
                         <div class="alert alert-warning d-flex align-items-start p-4">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">
-                                <b>VNL 3.1 ve öncesinde bu denetim hiç çalışmıyordu.</b>
+                                <b>Eski şablonlarda bu denetim hiç çalışmıyordu.</b>
                                 <code>leftSidebar.php</code> içinde yetki satırları yoruma alınmış,
                                 <code>$pagePermission = true;</code> ile kısa devre edilmişti;
                                 <code>hasVisibleChild()</code> tanımlıydı ama hiçbir yerden çağrılmıyordu.

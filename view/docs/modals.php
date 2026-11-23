@@ -74,9 +74,7 @@
 
 $meta        = ['title' => 'Kullanıcılar', 'upper_title' => 'Yönetim'];
 $page_config = [
-    'topbar'        => true,
-    'leftsidebar'   => true,
-    'contentheader' => true,
+    'layout'        => 'app',
     'toolbaritems'  => [
         [
             'type'   => 'button',
@@ -162,24 +160,23 @@ $('#btn_kullanici_kaydet').on('click', function () {
     var btn = $(this);
     btn.attr('data-vnl-indicator', 'on');
 
+    // X-CSRF-Token başlığını vnl.js ekler. Hata dalı yok: 4xx/5xx mesajını
+    // vnl.js'in genel ajaxComplete kancası basar; burada bir daha göstermek
+    // aynı hatayı iki kez açardı. Mesajı kendiniz basacaksanız isteğe
+    // customErrMessage: true verin.
     $.ajax({
         type: 'POST',
         url: '/app/kullanici/kaydet',
         data: {
             ad:    $('#inp_kullanici_ad').val(),
             email: $('#inp_kullanici_email').val(),
-        },
-        success: function (response) {
-            btn.removeAttr('data-vnl-indicator');
-            $('#modal_kullanici_ekle').modal('hide');
-            // Sayfayı yenile veya tabloyu güncelle
-            location.reload();
-        },
-        error: function (xhr) {
-            btn.removeAttr('data-vnl-indicator');
-            // Hata mesajını göster
-            alert(xhr.responseJSON?.message ?? 'Bir hata oluştu.');
         }
+    }).done(function () {
+        $('#modal_kullanici_ekle').modal('hide');
+        // Sayfayı yenile veya tabloyu güncelle
+        location.reload();
+    }).always(function () {
+        btn.removeAttr('data-vnl-indicator');
     });
 });
 &lt;/script&gt;
@@ -216,7 +213,7 @@ require view('static/footer');
 &lt;select class="form-select form-select-solid" id="inp_kullanici_rol"&gt;
     &lt;option value=""&gt;Rol Seçin&lt;/option&gt;
     &lt;?php foreach ($roller as $rol): ?&gt;
-        &lt;option value="&lt;?= $rol-&gt;id ?&gt;"&gt;&lt;?= $rol-&gt;name ?&gt;&lt;/option&gt;
+        &lt;option value="&#123;&#123; $rol-&gt;id }}"&gt;&#123;&#123; $rol-&gt;name }}&lt;/option&gt;
     &lt;?php endforeach; ?&gt;
 &lt;/select&gt;
 </code></pre>
@@ -230,12 +227,12 @@ require view('static/footer');
                     <div class="mb-0">
                         <h3 class="fw-bold text-body-emphasis mb-4">5. Global Modals (<code>view/static/modals.php</code>)</h3>
                         <p class="fs-5 text-body mb-4">
-                            Tüm sayfalarda ortak kullanılan modal'lar (örneğin resim önizleme kutusu) <code>view/static/modals.php</code> dosyasında tanımlanır ve <code>static/footer</code> tarafından her sayfaya otomatik dahil edilir. Bu dosyaya eklediğiniz her modal uygulamanın tamamında kullanılabilir olur.
+                            Tüm sayfalarda ortak kullanılacak modal'lar <code>view/static/modals.php</code> dosyasına yazılır; dosya <code>static/footer</code> tarafından her sayfaya otomatik dahil edilir. Bu dosyaya eklediğiniz her modal uygulamanın tamamında kullanılabilir olur. Şablondaki dosya boştur (yalnız açıklama taşır): görsel önizleme artık bir modal değil, tema lightbox'ıdır — <code>vnlLightbox(src, caption)</code> ya da bir <code>&lt;img&gt;</code>'e <code>.modal-image</code> sınıfı.
                         </p>
 
                         <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
-                            <span class="text-body fs-6">Sadece giriş yapmış kullanıcılar için görünmesi istenen global modal'lar <code>if (!empty($CurrentUser->id))</code> kontrolüyle sarılmalıdır. Mevcut <code>modals.php</code> bu kontrolü zaten uygulamaktadır.</span>
+                            <span class="text-body fs-6">Sadece giriş yapmış kullanıcılar için görünmesi istenen global modal'lar <code>if (vnl_logged_in())</code> kontrolüyle sarılmalıdır. <code>$CurrentUser</code>'a bakmayın: girişsiz istekte de boş bir model olarak kurulur, <code>null</code> değildir.</span>
                         </div>
                     </div>
                     <!--end::Section 5-->

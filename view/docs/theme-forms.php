@@ -90,19 +90,24 @@
                                 </tr>
                                 </thead>
                                 <tbody class="text-body fw-semibold">
-                                <tr><td><code>action</code></td><td>POST atılacak uç: <code>app/{modül}/{metod}</code>; <code>{id, text}</code> dizisi döner</td></tr>
+                                <tr><td><code>action</code></td><td>POST atılacak uç: <code>/app/{modül}/{metod}</code> — başındaki <code>/</code> ile; değer olduğu gibi kullanıldığından göreli adres alt dizindeki sayfada (<code>/docs/…</code>) <code>/docs/app/…</code>'ya gider. <code>{id, text}</code> dizisi döner</td></tr>
                                 <tr><td><code>prm_*</code></td><td><code>prm_rol="admin"</code> → POST'a <code>rol=admin</code> olarak gider</td></tr>
-                                <tr><td><code>no-option</code> / <code>multiple</code></td><td>Verilmemişse başa <code>value="0"</code> "Seçiniz" eklenir (<code>ClearForm()</code> buna dayanır)</td></tr>
+                                <tr><td><code>no-option</code> / <code>multiple</code></td><td>Verilmemişse başa <code>value="0"</code> "Seçiniz" eklenir (<code>clearForm()</code> buna dayanır)</td></tr>
                                 <tr><td><code>async</code></td><td>Varsa istek senkron yerine asenkron çalışır (tarihsel davranış korunur)</td></tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div class="vnl-code"><pre><code>&lt;select class="vnl-select" action="app/kullanici/listele" prm_rol="admin"&gt;&lt;/select&gt;
+                        <div class="vnl-code"><pre><code>&lt;select class="vnl-select" action="/app/kullanici/listele" prm_rol="admin"&gt;&lt;/select&gt;
 
 &lt;script&gt;
     selectReload($('select.vnl-select[action]'));   // sayfa açılışında zaten otomatik koşar
-    // ClearForm($form) SlimSelect örneklerini de "Seçiniz"e sıfırlar
+    // clearForm($form) SlimSelect örneklerini de "Seçiniz"e sıfırlar
 &lt;/script&gt;</code></pre></div>
+                        <p class="text-body-secondary mb-0 mt-4">
+                            Uç sıradan bir action'dır: yalnız POST + CSRF kabul eder — jeton jQuery isteğine
+                            <code>vnl.js</code> tarafından eklenir —, girişi zorunlu kılar ve metodun ilk satırı
+                            <code>Auth::CheckPermission('Kod', 'view');</code> olur. Ayrıntı: <a href="/docs/request-handling">İstek Yönetimi</a>.
+                        </p>
                     </div>
 
                 </div>

@@ -192,13 +192,24 @@
     // Bellekteki veriyle:
     $t-&gt;groupFrom($filtrelenmisSatirlar, ['tutar' =&gt; 'sum']);
 
-    // SQL ile:
-    $q = Kayit::query()-&gt;selectRaw("$t-&gt;groupBy as k, count(*) as n, sum(tutar) as toplam");
-    $t-&gt;applyFilters($q, $alanlar);
+    // SQL ile: sorgu modelde
+    $t-&gt;respondGroups(Kayit::gruplar($t));
+}
 
-    $t-&gt;respondGroups($q-&gt;groupBy($t-&gt;groupBy)-&gt;get()-&gt;map(fn($r) =&gt; [
-        'k' =&gt; $r-&gt;k, 'n' =&gt; $r-&gt;n, 'totals' =&gt; ['tutar' =&gt; $r-&gt;toplam],
-    ])-&gt;all());
+// classes/Kayit.php — ALANLAR ve alan() için bkz. Grid §5
+public static function gruplar(VnlTableRequest $t): array
+{
+    // $t-&gt;groupBy istemcinin yazdığı ham addır: beyaz listeden geçmeden
+    // select/groupBy'a giremez, bilinmeyen ad isteği düşürür.
+    $sutun = self::alan($t-&gt;groupBy);
+
+    return $t-&gt;applyFilters(self::query(), self::ALANLAR)
+        -&gt;select($sutun . ' as k')
+        -&gt;selectRaw('count(*) as n, sum(tutar) as toplam')   // sabit metin
+        -&gt;groupBy($sutun)
+        -&gt;get()
+        -&gt;map(fn($r) =&gt; ['k' =&gt; $r-&gt;k, 'n' =&gt; $r-&gt;n, 'totals' =&gt; ['tutar' =&gt; $r-&gt;toplam]])
+        -&gt;all();
 }</code></pre>
                         </div>
 
@@ -268,20 +279,37 @@
                         <h6 class="fw-bold mb-3"><code>getList</code> tarafı</h6>
                         <div class="vnl-code mb-5">
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>if ($t-&gt;op === VnlTableRequest::OP_SAVE) {
-    Auth::CheckPermission('KayitDuzenle');
+    Auth::CheckPermission('Kayit', 'edit');
 
     // Yazilabilir sutunlarin BEYAZ LISTESI. Listede olmayan ad
     // sessizce atlanmaz, istek hatayla biter.
-    $sutun = $t-&gt;editColumn(['ad' =&gt; 'name', 'sehir' =&gt; 'city', 'durum' =&gt; 'status']);
+    $sutun = $t-&gt;editColumn(Kayit::DUZENLENEBILIR);
 
     $deger = trim((string)$t-&gt;value);
     if ($deger === '') throwErrorMessage('Bos birakilamaz.');
 
-    Kayit::where('id', $t-&gt;rowKey)-&gt;update([$sutun =&gt; $deger]);
+    $eski = Kayit::hucreYaz($t-&gt;rowKey, $sutun, $deger);   // sorgu modelde
+    Audit::log('kayit.update', 'kayit', $t-&gt;rowKey, ['sutun' =&gt; $sutun, 'eski' =&gt; $eski, 'yeni' =&gt; $deger]);
 
     // Deger dondurursen istemci hucreyi onunla tazeler: kirpilmis,
     // bicimlenmis ya da buyuk harfe cevrilmis hali gorunsun.
     $t-&gt;respondSaved($deger);
+}
+
+// classes/Kayit.php
+public const DUZENLENEBILIR = ['ad' =&gt; 'name', 'sehir' =&gt; 'city', 'durum' =&gt; 'status'];
+
+/** Tek hücreyi yazar, eski değeri döndürür (denetim kaydı için). */
+public static function hucreYaz(string $id, string $sutun, string $deger)
+{
+    $kayit = self::find($id);
+    if (!$kayit) throwErrorMessage('Kayit bulunamadi.', 404);
+
+    $eski = $kayit-&gt;{$sutun};
+    $kayit-&gt;{$sutun} = $deger;
+    $kayit-&gt;save();
+
+    return $eski;
 }</code></pre>
                         </div>
 
@@ -293,7 +321,10 @@
                                 burada <b>yanlış sütuna yazılır</b>. Sütun adı da satır kimliği de
                                 istemciden gelir — yetki kontrolünü ve doğrulamayı burada yapın.
                                 <code>'editable' =&gt; true</code> yalnız arayüzü açar, sunucuda
-                                hiçbir şeyi yetkilendirmez.
+                                hiçbir şeyi yetkilendirmez. Okuma ucunun <code>'view'</code> yetkisi
+                                yazmaya yetmez: kayıt ve toplu işlem dalları kendi
+                                <code>Auth::CheckPermission('Kod', 'edit|delete')</code> satırıyla açılır
+                                ve durum değiştiren her işlem <code>Audit::log()</code> yazar.
                             </span>
                         </div>
 
@@ -350,7 +381,7 @@
 // actions/action_satis.php
 public function detay($req)
 {
-    Auth::CheckLogin();
+    Auth::CheckPermission('Satis', 'view');
     $t = VnlTableRequest::from($req);
 
     $satis = Satis::find($t-&gt;rowKey);
@@ -430,21 +461,30 @@ public function detay($req)
                             <div class="col-md-6">
                                 <h6 class="fw-bold mb-3"><span class="badge badge-soft-success me-2">getList</span> tarafı</h6>
                                 <div class="vnl-code">
-                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>if ($t-&gt;op === VnlTableRequest::OP_BULK) {
-    Auth::CheckPermission('KayitSil');
+                                    <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>if ($t-&gt;op === VnlTableRequest::OP_BULK
+    &amp;&amp; $t-&gt;action === 'sil') {
+    Auth::CheckPermission('Kayit', 'delete');
 
     if (!$t-&gt;hasSelection()) {
         throwErrorMessage('Hicbir kayit secilmedi.');
     }
 
-    $q = Kayit::query();
-    $t-&gt;applyFilters($q, $alanlar);   // ONCE filtreler
-    $t-&gt;applySelection($q, 'id');     // SONRA secim
-
-    $adet = $q-&gt;count();
-    $q-&gt;delete();
+    $adet = Kayit::seciliSil($t);   // sorgu modelde
+    Audit::log('kayit.bulk_delete', 'kayit', null,
+        ['adet' =&gt; $adet, 'secim' =&gt; $t-&gt;selection]);
 
     $t-&gt;respondBulk($adet . ' kayit silindi.');
+}
+
+// classes/Kayit.php
+public static function seciliSil(
+    VnlTableRequest $t
+): int {
+    $q = $t-&gt;applyFilters(self::query(),
+        self::ALANLAR);              // ONCE filtreler
+    $t-&gt;applySelection($q, 'id');   // SONRA secim
+
+    return $q-&gt;delete();
 }</code></pre>
                                 </div>
                             </div>

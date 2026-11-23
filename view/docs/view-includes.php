@@ -93,14 +93,14 @@
     ├── header/                     ← Sayfa başına otomatik/manuel yüklenen CSS
     │   ├── head-index.php          ← Otomatik: sadece "index" route için
     │   ├── head-login.php          ← Otomatik: sadece "login" route için
-    │   └── proje-app/
-    │       └── head-proje-list.php ← Manuel: $page_config['css_files'] ile
+    │   └── project-app/
+    │       └── head-project-list.php ← Manuel: $page_config['css_files'] ile
     │
     ├── footer/                     ← Sayfa sonuna otomatik/manuel yüklenen JS
     │   ├── script-index.php        ← Otomatik: sadece "index" route için
     │   ├── script-login.php        ← Otomatik: sadece "login" route için
-    │   └── proje-app/
-    │       └── script-proje-list.php ← Manuel: $page_config['js_files'] ile
+    │   └── project-app/
+    │       └── script-project-list.php ← Manuel: $page_config['js_files'] ile
     │
     └── modals/                     ← Sayfalara ait modal HTML şablonları
         ├── kullanici/
@@ -206,23 +206,27 @@ if (file_exists(view('includes/footer/script-' . route(0))))
                         <h5 class="fw-bold text-body-emphasis mb-3">Örnek: script-kullanici.php</h5>
                         <pre class="vnl-code mb-0"><code>&lt;script&gt;
     // Bu kod sadece /kullanici route'u yüklendiğinde çalışır
-    $('#btnKullaniciEkle').click(function () {
-        showModal('ModalKullaniciEkle');
+    $('#btnKullaniciEkle').on('click', function () {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modal_kullanici_ekle')).show();
     });
 
+    // Onay + POST + CSRF + hata mesajı vnl.js'te hazır
     function kullaniciSil(id) {
-        $.ajax({
-            type: 'POST',
-            url: 'app/kullanici/sil',
-            data: { id: id },
-            success: function (res) {
-                showMessage('Kullanıcı silindi.', 'success');
-                KullaniciTable.ajax.reload();
-            },
-            error: function (err) {
-                showMessage(err.responseJSON.message, 'error');
-            }
+        deleteItemFromDB({
+            url:   '/app/kullanici/sil',
+            data:  { id: id },
+            table: 'kullanicilar'          // başarıda vnlTable('kullanicilar').reload()
         });
+    }
+
+    // Elle $.ajax: X-CSRF-Token'ı vnl.js ekler, 4xx/5xx mesajını genel
+    // ajaxComplete kancası basar — error dalında ikinci kez göstermeyin.
+    function kullaniciPasifle(id) {
+        $.ajax({ type: 'POST', url: '/app/kullanici/pasifle', data: { id: id } })
+            .done(function () {
+                showMessage('Kullanıcı pasifleştirildi.');   // 2. parametre is_err
+                vnlTable('kullanicilar').reload();
+            });
     }
 &lt;/script&gt;</code></pre>
                     </div>
@@ -238,10 +242,9 @@ if (file_exists(view('includes/footer/script-' . route(0))))
 
                         <pre class="vnl-code mb-4"><code>// controller/kullanici/liste.php
 $page_config = [
-    'topbar'      => true,
-    'leftsidebar' => true,
-    'css_files'   => ['kullanici/head-liste.php'],       // view/includes/header/ altında aranır
-    'js_files'    => ['kullanici/script-liste.php'],     // view/includes/footer/ altında aranır
+    'layout'      => 'app',
+    'css_files'   => ['kullanici/head-liste'],       // view/includes/header/kullanici/head-liste.php
+    'js_files'    => ['kullanici/script-liste'],     // view/includes/footer/kullanici/script-liste.php
 ];</code></pre>
 
                         <div class="table-responsive mb-6">
@@ -256,12 +259,12 @@ $page_config = [
                                 <tbody>
                                     <tr>
                                         <td><code>css_files</code></td>
-                                        <td><code>view/includes/header/{dosya}</code></td>
+                                        <td><code>view/includes/header/{dosya}.php</code></td>
                                         <td><code>&lt;head&gt;</code> içi (sayfa başı)</td>
                                     </tr>
                                     <tr>
                                         <td><code>js_files</code></td>
-                                        <td><code>view/includes/footer/{dosya}</code></td>
+                                        <td><code>view/includes/footer/{dosya}.php</code></td>
                                         <td><code>&lt;/body&gt;</code> öncesi (sayfa sonu)</td>
                                     </tr>
                                 </tbody>
@@ -272,6 +275,9 @@ $page_config = [
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <span class="text-body fs-6">
                                 Dosya bulunamazsa sessizce atlanır — PHP hatası oluşmaz. Yolu doğru yazdığınızdan emin olun.
+                                Adı <b><code>.php</code> uzantısız</b> yazın: liste <code>view()</code>'dan geçer ve
+                                uzantıyı o ekler; <code>'kullanici/head-liste.php'</code> yazılırsa
+                                <code>head-liste.php.php</code> aranır ve dosya hiç yüklenmez.
                             </span>
                         </div>
                     </div>

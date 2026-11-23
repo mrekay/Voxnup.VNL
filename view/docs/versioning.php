@@ -20,6 +20,7 @@ php vnl.php update --check  yeni çekirdek sürümü var mı
 php vnl.php doctor          kurulumu bu çekirdeğin beklentisine karşı sınar
 php vnl.php version         çekirdek ve proje sürümleri
 php vnl.php serve           yerel geliştirme sunucusu
+php vnl.php test            çekirdek + proje testleri (4.0.0)
 php vnl.php release         yayın arşivi üretir (bakım için)</code></pre></div>
                     <p class="fs-6 text-muted mb-0">
                         Windows'ta <code>vnl.cmd</code> kısayolu vardır: <code>vnl migrate --run</code> (PowerShell'de <code>.\vnl</code>). Unix'te <code>chmod +x vnl.php</code> sonrası <code>./vnl.php</code>. Adı düz <code>vnl</code> olamaz: bir dizinde aynı adı taşıyan dosya ve dizin bir arada bulunamaz, kökte zaten <code>vnl/</code> var.
@@ -48,17 +49,17 @@ php vnl.php release         yayın arşivi üretir (bakım için)</code></pre></
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td><b>ANA</b><br><span class="text-muted fs-7">3.0.0 → 4.0.0</span></td>
+                                    <td><b>ANA</b><br><span class="text-muted fs-7">4.0.0 → 5.0.0</span></td>
                                     <td>Var olan bir çağrının adı, imzası ya da davranışı değişti; bir dosya yer değiştirdi; bir özellik kaldırıldı. Şema değişikliği <b>zorunlu</b> hale geldi.</td>
                                     <td>CHANGELOG'un <b>Kırıcı Değişiklikler</b> bölümü baştan sona okunur; kod düzeltmesi gerekir.</td>
                                 </tr>
                                 <tr>
-                                    <td><b>YAN</b><br><span class="text-muted fs-7">3.0.0 → 3.1.0</span></td>
+                                    <td><b>YAN</b><br><span class="text-muted fs-7">4.0.0 → 4.1.0</span></td>
                                     <td>Yeni bir özellik, yeni bir sınıf/metot/ayar geldi. Var olan hiçbir çağrı bozulmadı. Yeni migration gelebilir ama eski kod onsuz da çalışır.</td>
                                     <td><code>vnl/</code> değiştirilir, migration çalıştırılır. Kod düzeltmesi gerekmez.</td>
                                 </tr>
                                 <tr>
-                                    <td><b>YAMA</b><br><span class="text-muted fs-7">3.0.0 → 3.0.1</span></td>
+                                    <td><b>YAMA</b><br><span class="text-muted fs-7">4.1.0 → 4.1.1</span></td>
                                     <td>Hata düzeltmesi. Davranış yalnızca <b>zaten yanlış olan</b> yerde değişir.</td>
                                     <td><code>vnl/</code> değiştirilir. Başka bir şey gerekmez.</td>
                                 </tr>
@@ -91,7 +92,7 @@ php vnl.php release         yayın arşivi üretir (bakım için)</code></pre></
                                     <td>Sürüm başına ne değiştiği. Kırıcı bölümü aynı zamanda göç rehberidir.</td>
                                 </tr>
                                 <tr>
-                                    <td><code>git tag v3.0.0</code></td>
+                                    <td><code>git tag v4.1.0</code></td>
                                     <td>Yayın işareti. Etiket adı <code>v</code> önekiyle yazılır, dosyadaki numarayla birebir aynıdır.</td>
                                 </tr>
                                 <tr>
@@ -165,7 +166,7 @@ php vnl.php release         yayın arşivi üretir (bakım için)</code></pre></
                             <li class="mb-0">Sütun sözleşmesi: <code>snake_case</code>, birincil anahtar <code>id</code>, yumuşak silme <code>deleted_at</code>.</li>
                         </ul>
 
-                        <h4 class="fw-bold text-body-emphasis mb-3">Sürücüler <span class="badge badge-soft-primary ms-1">4.1.0</span></h4>
+                        <h4 class="fw-bold text-body-emphasis mb-3">Sürücüler</h4>
                         <p class="fs-5 text-body mb-4">
                             Araç <code>DB_DRIVER</code>'a bakar: <code>mysql</code> (ve <code>mariadb</code>), <code>pgsql</code>, <code>sqlsrv</code>, <code>sqlite</code>. Bir numaranın sürücüye özel hâli <code>NNNN_ad.&lt;sürücü&gt;.sql</code> adını taşır ve o sürücüde düz dosyanın yerine geçer. Özel hâli olmayan sürücüde düz dosya çalışır — yani tek sürücülü bir proje kendi migration'larını düz <code>.sql</code> olarak, kendi sürücüsünün söz dizimiyle yazar.
                         </p>
@@ -174,7 +175,7 @@ vnl/migrations/0003_vnl_rate_limits.pgsql.sql    PostgreSQL
 vnl/migrations/0003_vnl_rate_limits.sqlsrv.sql   SQL Server
 vnl/migrations/0003_vnl_rate_limits.sqlite.sql   SQLite</code></pre></div>
                         <ul class="fs-5 text-body mb-5">
-                            <li class="mb-2">Kayıt yine (kaynak, numara) iledir; ad son eksiz tutulur. Hangi dosyanın seçildiği kimliği değiştirmez. MySQL kurulumları 4.1.0 öncesinde uyguladıkları dosyaları aynen görür: bekleyen ya da <code>[!]</code> işaretli çekirdek migration'ı çıkmaz.</li>
+                            <li class="mb-2">Kayıt yine (kaynak, numara) iledir; ad son eksiz tutulur. Hangi dosyanın seçildiği kimliği değiştirmez. MySQL kurulumları daha önce uyguladıkları dosyaları aynen görür: bekleyen ya da <code>[!]</code> işaretli çekirdek migration'ı çıkmaz.</li>
                             <li class="mb-2">Aynı numarada farklı adlar (ya da aynı sürücünün iki hâli) çakışmadır; araç hiçbir şey çalıştırmadan durur.</li>
                             <li class="mb-2">Bağlantı uygulamanınkiyle aynı kurulur: <code>config/definitions.php</code>'ye eklediğiniz sürücü anahtarları (<code>encrypt</code>, <code>trust_server_certificate</code>, <code>sslmode</code>, <code>search_path</code> …) migrate'te de geçerlidir.</li>
                             <li class="mb-2"><b>SQL Server dosyaları:</b> her ifade ayrı bir toplu iş olarak gönderilir, <code>GO</code> yazılmaz. Koşullu iş tek ifadede yapılır (<code>IF OBJECT_ID(…) IS NULL CREATE TABLE …</code>, <code>IF COL_LENGTH(…) IS NULL ALTER TABLE … ADD …</code>). Türkçe metinleri <code>N'…'</code> ile yazın.</li>
@@ -217,7 +218,7 @@ docker run --rm -v "$PWD":/app -w /app php:8.3-cli php vnl.php migrate --status<
 
                         <div class="alert alert-warning d-flex align-items-start p-4 mb-0">
                             <i class="fa-solid fa-triangle-exclamation fs-2 text-warning me-3 mt-1"></i>
-                            <span class="text-body fs-6"><b>MySQL'de DDL işlem (transaction) içinde geri alınamaz.</b> Bir migration ortasında çökerse ondan önceki ifadeler uygulanmış kalır. Araç böyle bir durumda kaydı <b>yazmaz</b> ve durur; hatayı düzeltip yeniden çalıştırdığınızda dosya baştan işlenir — bu yüzden <code>IF NOT EXISTS</code> sözleşmesi bir üslup tercihi değil, kurtarma mekanizmasıdır. PostgreSQL, SQL Server ve SQLite'ta (4.1.0) bir migration'ın ifadeleri ve kaydı tek işlem içinde çalışır: düşen migration bütünüyle geri alınır. Bu yüzden orada işlem içinde çalışamayan ifadeler (<code>CREATE INDEX CONCURRENTLY</code>, <code>VACUUM</code>) migration'a yazılamaz.</span>
+                            <span class="text-body fs-6"><b>MySQL'de DDL işlem (transaction) içinde geri alınamaz.</b> Bir migration ortasında çökerse ondan önceki ifadeler uygulanmış kalır. Araç böyle bir durumda kaydı <b>yazmaz</b> ve durur; hatayı düzeltip yeniden çalıştırdığınızda dosya baştan işlenir — bu yüzden <code>IF NOT EXISTS</code> sözleşmesi bir üslup tercihi değil, kurtarma mekanizmasıdır. PostgreSQL, SQL Server ve SQLite'ta bir migration'ın ifadeleri ve kaydı tek işlem içinde çalışır: düşen migration bütünüyle geri alınır. Bu yüzden orada işlem içinde çalışamayan ifadeler (<code>CREATE INDEX CONCURRENTLY</code>, <code>VACUUM</code>) migration'a yazılamaz.</span>
                         </div>
                     </div>
                     <!--end::Section 5-->
@@ -229,7 +230,8 @@ docker run --rm -v "$PWD":/app -w /app php:8.3-cli php vnl.php migrate --status<
                         <h3 class="fw-bold text-body-emphasis mb-4">6. Yükseltme</h3>
 
                         <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>php vnl.php update --check      yeni sürüm var mı, neler değişti
-php vnl.php update --to 3.1.0   çekirdeği değiştir
+php vnl.php update --latest     bu ana sürümün en yenisine geç
+php vnl.php update --to 4.1.1   ya da belirli bir sürüme (aynı ana sürüm)
 php vnl.php doctor              proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run       şemayı güncelle</code></pre></div>
 
@@ -243,6 +245,14 @@ php vnl.php migrate --run       şemayı güncelle</code></pre></div>
                                 <tr>
                                     <td style="width:210px"><code>--verify</code></td>
                                     <td>Kurulu çekirdeği <code>vnl/MANIFEST</code>'e karşı sınar. <b>Güncellemeden önce kendiliğinden çalışır</b> ve kurcalanmış dosya bulursa durur — aksi halde o değişiklikler sessizce silinirdi. Bilerek yapıldıysa <code>--force</code>.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--latest</code> · <code>--to X.Y.Z</code></td>
+                                    <td>Kurulu ana sürümün içinde kalır. Güncelleyici GitHub'ın &laquo;latest&raquo; yayınına bakmaz, yayın listesinden kendi serisinin en yenisini bulur; <code>--check</code> da öyle, yeni bir ana sürüm varsa onu ayrıca &laquo;kırıcı&raquo; diye bildirir. <code>--to</code> ile başka bir ana sürüm istenirse <code>--major</code> olmadan reddedilir.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--major 5</code></td>
+                                    <td>Yeni ana sürüme geçiş (4.0.0); ayrı ve açık bir komuttur, çünkü kırıcıdır. Önce CHANGELOG'un yükseltme bölümünü okuyun. Kurulumdan önce yeni çekirdeğin istediği PHP sürümü (<code>vnl/composer.json</code> → <code>require.php</code>) denetlenir; yetersizse çekirdeğe dokunulmaz.</td>
                                 </tr>
                                 <tr>
                                     <td><code>--file a.tar.gz</code></td>

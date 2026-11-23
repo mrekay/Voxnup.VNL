@@ -36,6 +36,11 @@
   &lt;div class="modal-dialog modal-fullscreen"&gt;             &lt;!-- tam ekran --&gt;
 
 &lt;div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false"&gt;  &lt;!-- dışarı tıklamayla kapanmaz --&gt;</code></pre></div>
+                        <p class="text-body-secondary mb-0 mt-4">
+                            Modal sayfanın içeriğinde, <code>.app-content</code> içinde de yazılabilir: modal, offcanvas
+                            ve her <code>position: fixed</code> öğe viewport'a göre konumlanır — modalleri içeriğin
+                            dışına taşımak gerekmez.
+                        </p>
                     </div>
 
                     <div class="separator separator-dashed my-8"></div>

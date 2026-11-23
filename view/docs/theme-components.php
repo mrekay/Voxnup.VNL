@@ -54,7 +54,7 @@
                         <div class="d-flex flex-wrap align-items-center gap-5 mb-5">
                             <span class="symbol symbol-30px"><span class="symbol-label">A</span></span>
                             <span class="symbol symbol-40px symbol-circle"><span class="symbol-label">VN</span></span>
-                            <span class="symbol symbol-50px symbol-circle"><img src="<?= $cDefinitions->getAssetsUrl() ?>/media/images/user.png" alt=""/></span>
+                            <span class="symbol symbol-50px symbol-circle"><img src="<?= vnl_e(public_url('media/images/user.png')) ?>" alt=""/></span>
                             <span class="text-body-secondary fs-8">← <code>.symbol</code> avatar/işaret kutusu (20–150px boyutları)</span>
                         </div>
                         <div class="vnl-code"><pre><code>&lt;div class="vnl-icon-box bg-primary-subtle text-primary"&gt;&lt;i class="bi bi-cpu"&gt;&lt;/i&gt;&lt;/div&gt;
@@ -101,8 +101,10 @@
                             <code>vnlBtnReset()</code>. İçerik, genişlik sabitlenerek spinner + metinle
                             takas edilir; düğmede <code>.indicator-*</code> span'ları varsa otomatik o desen
                             kullanılır. <b>Deklaratif kullanımda</b> (<code>data-vnl-loading</code>) düğme
-                            tıklanınca kendini yükler, sayfadaki AJAX trafiği bitince kendini sıfırlar —
-                            "yenile" düğmeleri için sıfır kod.
+                            tıklanınca kendini yükler, sayfadaki jQuery AJAX trafiği bitince
+                            (<code>ajaxStop</code>) kendini sıfırlar — "yenile" düğmeleri için sıfır kod.
+                            <code>fetch</code> jQuery'nin olaylarını tetiklemez: <code>fetch</code> ile çalışan
+                            düğmede <code>vnlBtnReset(btn)</code>'i kendiniz çağırın.
                         </p>
                         <div class="d-flex flex-wrap align-items-center gap-3 mb-5">
                             <button type="button" class="btn btn-soft-primary"

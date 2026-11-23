@@ -20,8 +20,12 @@ class ConfigDefinitions
     private $cdn_path;
     private $product_id;
 
-    /** PROJENİN sürümü. Burası sizindir; istediğiniz gibi kullanın. */
-    private $version = "3.0.0";
+    /**
+     * PROJENİN sürümü. Burası sizindir; istediğiniz gibi kullanın.
+     * Boş bırakılırsa version() çekirdeğin sürümünü (vnl/VERSION) döndürür —
+     * şablonun kendisi böyle çalışır, elle tutulan ikinci bir sürüm eskimesin diye.
+     */
+    private $version = "";
 
     /**
      * VNL Theme — uygulama geneli varsayılan davranışlar.
@@ -140,7 +144,7 @@ class ConfigDefinitions
     }
     public function version(): string
     {
-        return $this->version;
+        return $this->version !== '' ? $this->version : $this->vnl_version();
     }
     /**
      * ÇEKİRDEĞİN sürümü.

@@ -33,7 +33,7 @@
                                     <div class="vnl-code"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>index.php          ön denetleyici
 config/            definitions.php, database.php
 classes/           kendi modelleriniz
-controller/        sayfalar + 401/404
+controller/        sayfalar + 401/403/404
 view/              şablonlar, düzen parçaları
 actions/           AJAX işlemcileri
 validators/        doğrulama kuralları
@@ -41,8 +41,11 @@ helpers/           kendi fonksiyonlarınız
 languages/         JSON dil dosyaları
 migrations/        kendi şema değişiklikleriniz
 assets/            kendi CSS/JS/görselleriniz
+commands/  jobs/     proje komutları, kuyruk işleyicileri
+tests/             projenin testleri
 files/  api/  extensions/
-.env  .htaccess</code></pre></div>
+.env  .htaccess  web.config  nginx.conf.example
+compose.test.yml  docker/</code></pre></div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -58,7 +61,10 @@ vnl/kernel.php     yönlendirme, giriş denetimi
 vnl/env.php        .env okuyucu
 vnl/error.php      hata sayfası
 vnl/template.php   &#123;&#123; }} derleyicisi
-vnl/classes/       Request, Session, VnlTable…
+vnl/console.php    komut dağıtıcısı (cli.php: ortak CLI yardımcıları)
+vnl/KEYS           güncelleme imzasının açık anahtarları
+vnl/MANIFEST       çekirdeğin dosya özetleri
+vnl/classes/       Request, Session, VnlDispatcher, VnlSql, VnlTable…
 vnl/modules/       UserModule, MailModule…
 vnl/helpers/       controller(), view(), lang()
 vnl/validators/    DefaultValidator
@@ -66,7 +72,8 @@ vnl/exceptions/
 vnl/assets/        tema çıktısı + vnl.js
 vnl/migrations/    VNL'in şeması
 vnl/vendor/        Illuminate, PHPMailer
-vnl/tools/</code></pre></div>
+vnl/tests/         çekirdeğin testleri (php vnl.php test)
+vnl/tools/         migrate, update, doctor, release…</code></pre></div>
                                 </div>
                             </div>
                         </div>
@@ -176,11 +183,15 @@ $cDefinitions-&gt;vnl_version()   // vnl/VERSION'dan okunur</code></pre></div>
                     <div class="mb-0">
                         <h3 class="fw-bold text-body-emphasis mb-4">5. Güncelleme</h3>
                         <p class="fs-5 text-body mb-5">
-                            Sınırın tek amacı bu: yeni bir VNL sürümü çıktığında <code>vnl/</code> dizinini silip yenisini koymak yeterlidir. Kendi kodunuza ait hiçbir şey o dizinde olmadığı için birleştirme, çakışma çözümü ya da &laquo;acaba burayı ben mi değiştirmiştim&raquo; sorusu yoktur.
+                            Sınırın tek amacı bu: yeni bir VNL sürümü çıktığında yalnız <code>vnl/</code> dizini değişir; <code>php vnl.php update</code> bunu sizin yerinize yapar. Kendi kodunuza ait hiçbir şey o dizinde olmadığı için birleştirme, çakışma çözümü ya da &laquo;acaba burayı ben mi değiştirmiştim&raquo; sorusu yoktur.
                         </p>
-                        <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>rm -rf vnl/
-# yeni sürümün vnl/ dizinini yerine koyun
+                        <div class="vnl-code mb-5"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>php vnl.php update --check    # yeni sürüm var mı (kendi ana sürümünüzde)
+php vnl.php update --latest   # vnl/'yi değiştirir; eskisi vnl.bak/'a yedeklenir
+php vnl.php doctor            # proje tarafı yeni çekirdeğe uygun mu
 php vnl.php migrate --run      # bekleyen şema değişiklikleri (her sürücüde)</code></pre></div>
+                        <p class="fs-6 text-body mb-5">
+                            Güncelleyici arşivi açmadan önce Ed25519 imzasını kurulu <code>vnl/KEYS</code>'e karşı doğrular (4.0.0), içeriği arşivin <code>MANIFEST</code>'ine göre sınar ve yarıda kalırsa yedeği kendiliğinden geri yükler. <code>vnl/</code>'yi elle silip yenisini koymak da çalışır, ama bu denetimlerin hiçbiri yapılmaz. Ana sürüm geçişi ayrı bir komuttur (<code>--major</code>); ayrıntı <a href="/docs/versioning">Sürümleme</a> sayfasında.
+                        </p>
                         <div class="alert alert-info d-flex align-items-start p-4 mb-0">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3 mt-1"></i>
                             <span class="text-body fs-6">Kendi migration'larınız <code>migrations/</code> altında, VNL'inkiler <code>vnl/migrations/</code> altındadır. İkisi ayrı numaralandığı için bir VNL yükseltmesi sizin sıranızla çakışmaz.</span>

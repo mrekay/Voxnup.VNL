@@ -14,4 +14,5 @@ $page_config = [
 
 require view('static/header');
 require view('docs/cli-queue');
+require view('docs/partials/pager');
 require view('static/footer');

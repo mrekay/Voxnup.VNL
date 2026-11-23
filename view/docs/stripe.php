@@ -20,10 +20,8 @@
                         <div class="d-flex align-items-start">
                             <span class="badge badge-circle badge-primary me-4 mt-1 fs-6 flex-shrink-0">1</span>
                             <div>
-                                <div class="fw-bold text-body mb-1">Stripe PHP SDK'yı yükle</div>
-                                <div class="vnl-code mt-2">
-                                    <code class="text-warning">cd vnl &amp;&amp; composer require stripe/stripe-php</code>
-                                </div>
+                                <div class="fw-bold text-body mb-1">Eklentiyi etkinleştir</div>
+                                <div class="text-body-secondary fs-6 mt-1"><code>extensions/extensions.php</code> → <code>'stripe' =&gt; true</code>. Şablonda <code>false</code> gelir; etkin değilken sayfaları ve <code>/app/stripe/*</code> uçları 404 döner. Stripe PHP SDK eklentiyle birlikte <code>extensions/stripe/vendor/</code> altında gelir (3.0); <code>vnl/</code> altına paket kurmayın. Klasör eksikse <code>extensions/stripe/</code> içinde <code>composer install</code>.</div>
                             </div>
                         </div>
                         <div class="d-flex align-items-start">
@@ -49,7 +47,7 @@
                                     <code>https://siteniz.com/stripe-webhook</code>
                                 </div>
                                 <div class="text-body-secondary fs-6 mt-1">
-                                    Local test için: <code class="text-warning">stripe listen --forward-to https://siteniz.com/stripe-webhook</code>
+                                    Local test için: <code class="text-warning">stripe listen --forward-to http://localhost:8080/stripe-webhook</code> (<code>php vnl.php serve</code> varsayılan portu)
                                 </div>
                             </div>
                         </div>
@@ -205,14 +203,14 @@
                     <p class="fw-bold text-body mb-3">Örnek Kullanım</p>
                     <div class="vnl-code">
                         <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>// Checkout başlat (subscription)
-$customerId = StripeModule::getOrCreateCustomer($user->Id, $user->Email, $user->fullname());
+$customerId = StripeModule::getOrCreateCustomer($user->id, $user->email, $user->fullname());
 $session    = StripeModule::createCheckoutSession([
     'mode'        => 'subscription',
     'price_id'    => 'price_xxx',
     'customer_id' => $customerId,
     'success_url' => SITE_URL . '/stripe-success',
     'cancel_url'  => SITE_URL . '/stripe-test',
-    'metadata'    => ['user_id' => $user->Id],
+    'metadata'    => ['user_id' => $user->id],
 ]);
 header('Location: ' . $session->url);
 
@@ -247,7 +245,7 @@ $session = StripeModule::createCheckoutSession([
                                 <tr>
                                     <td class="ps-5"><code>POST /app/stripe/createCheckoutSession</code></td>
                                     <td><code>mode, price_id, success_url, cancel_url</code></td>
-                                    <td>Stripe Checkout oturumu başlatır, <code>data.url</code> döner.</td>
+                                    <td>Stripe Checkout oturumu başlatır; ham <code>{url, session_id}</code> döner (<code>returnSuccessDataOnly</code>, <code>data</code> sarmalı yok).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>POST /app/stripe/cancelSubscription</code></td>
@@ -301,7 +299,7 @@ $.post('/app/stripe/createCheckoutSession', {
                 </div>
                 <div class="card-body pt-2">
                     <p class="fs-5 text-body mb-5">
-                        Girişsiz erişim <code>boot.php</code>'deki <code>vnl_public_page('stripe-webhook')</code> ile açılır (3.4.0).
+                        Girişsiz erişim <code>boot.php</code>'deki <code>vnl_public_page('stripe-webhook')</code> ile açılır.
                         Stripe imzası <code>STRIPE_WEBHOOK_SECRET</code> ile doğrulanır.
                     </p>
 
@@ -327,7 +325,7 @@ $.post('/app/stripe/createCheckoutSession', {
                         <i class="fa-solid fa-circle-info fs-2hx text-info me-4"></i>
                         <div>
                             <strong>Local test:</strong>
-                            <code class="ms-1">stripe listen --forward-to https://siteniz.com/stripe-webhook</code>
+                            <code class="ms-1">stripe listen --forward-to http://localhost:8080/stripe-webhook</code>
                             komutu çıktısındaki <code>whsec_...</code> değerini <code>config.php → test_webhook_secret</code> alanına yapıştırın.
                         </div>
                     </div>

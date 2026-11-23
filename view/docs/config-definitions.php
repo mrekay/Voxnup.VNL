@@ -114,8 +114,8 @@ $debug = env('APP_DEBUG', false);      // true/false/null/empty çevrilir
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$version</code></td>
-                                    <td><code>"3.0.0"</code></td>
-                                    <td><b>Projenizin</b> sürüm numarası. <code>$cDefinitions->version()</code> ile okunur; sekme başlığı gibi yerlerde kullanılabilir. Çekirdeğin sürümüyle karıştırmayın.</td>
+                                    <td><code>""</code></td>
+                                    <td><b>Projenizin</b> sürüm numarası. <code>$cDefinitions->version()</code> ile okunur; sekme başlığı gibi yerlerde kullanılabilir. Boş bırakılırsa <code>version()</code> çekirdeğin sürümünü (<code>vnl/VERSION</code>) döndürür — şablonun kendisi böyle çalışır, elle tutulan ikinci bir sürüm eskimesin diye. Kendi numaranızı yazdığınız an çekirdeğinkinden ayrılır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$version</code> <span class="text-muted">(çekirdek)</span></td>
@@ -205,12 +205,22 @@ private $version       = "1.0.0";   // projenin sürümü; çekirdeğinki vnl/VE
                                 <tr>
                                     <td class="ps-5"><code>driver</code></td>
                                     <td><code>"mysql"</code></td>
-                                    <td>Veritabanı sürücüsü. <code>mysql</code> (<code>mariadb</code>), <code>pgsql</code>, <code>sqlsrv</code>, <code>sqlite</code> desteklenir; çekirdek migration'ları 4.1.0'dan beri hepsinde çalışır.</td>
+                                    <td>Veritabanı sürücüsü. <code>mysql</code> (<code>mariadb</code>), <code>pgsql</code>, <code>sqlsrv</code>, <code>sqlite</code> desteklenir; çekirdek migration'ları hepsinde çalışır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>host</code></td>
                                     <td><code>"localhost"</code></td>
-                                    <td>Veritabanı sunucu adresi.</td>
+                                    <td>Veritabanı sunucu adresi (<code>DB_HOST</code>). Portu buraya yazmayın.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>port</code></td>
+                                    <td><code>3306</code></td>
+                                    <td><code>DB_PORT</code>; boşsa sürücüye göre: mysql 3306, pgsql 5432, sqlsrv 1433.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>unix_socket</code></td>
+                                    <td><code>"/run/mysqld/mysqld.sock"</code></td>
+                                    <td>Yalnız <code>DB_SOCKET</code> doluysa eklenir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>database</code></td>
@@ -230,33 +240,39 @@ private $version       = "1.0.0";   // projenin sürümü; çekirdeğinki vnl/VE
                                 <tr>
                                     <td class="ps-5"><code>charset</code></td>
                                     <td><code>"utf8mb4"</code></td>
-                                    <td>Bağlantı karakter seti. Emoji desteği için <code>utf8mb4</code> önerilir.</td>
+                                    <td>Bağlantı karakter seti (<code>DB_CHARSET</code>). Boşsa MySQL/MariaDB'de <code>utf8mb4</code>, öbür sürücülerde <code>utf8</code> (PostgreSQL <code>utf8mb4</code>'ü tanımaz).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>collation</code></td>
-                                    <td><code>"utf8mb4_general_ci"</code></td>
-                                    <td>Karakter sıralama kuralı. <code>charset</code> ile uyumlu olmalıdır.</td>
+                                    <td><code>"utf8mb4_unicode_ci"</code></td>
+                                    <td>Karakter sıralama kuralı (<code>DB_COLLATION</code>). Yalnız MySQL/MariaDB'de kullanılır; öbür sürücülerde <code>null</code>.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>prefix</code></td>
                                     <td><code>""</code></td>
                                     <td>Tablo adı öneki. Örneğin <code>"app_"</code> yazılırsa <code>users</code> → <code>app_users</code> olur.</td>
                                 </tr>
+                                <tr>
+                                    <td class="ps-5"><code>encrypt</code> · <code>trust_server_certificate</code></td>
+                                    <td><code>"true"</code></td>
+                                    <td>Yalnız <code>sqlsrv</code>: <code>DB_ENCRYPT</code> / <code>DB_TRUST_SERVER_CERTIFICATE</code> doluysa eklenir. Kendinden imzalı sertifikalı sunucu için <code>DB_TRUST_SERVER_CERTIFICATE=true</code>.</td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         <div class="vnl-code">
-                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Üretim (case false) bloğu örneği
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Değerler .env'den gelir; dosyaya gerçek bilgi yazılmaz (özet)
 $this->db_info = [
-    'driver'    => 'mysql',
-    'host'      => 'localhost',
-    'database'  => 'myapp_production',
-    'username'  => 'db_user',
-    'password'  => 'güçlü_şifre',
-    'charset'   => 'utf8mb4',
-    'collation' => 'utf8mb4_general_ci',
-    'prefix'    => '',
+    'driver'    => $driver,                                   // DB_DRIVER, varsayılan mysql
+    'host'      => (string)VnlEnv::get('DB_HOST', 'localhost'),
+    'port'      => (int)VnlEnv::get('DB_PORT', 0) ?: $defaults['port'],
+    'database'  => (string)VnlEnv::get('DB_DATABASE', ''),
+    'username'  => (string)VnlEnv::get('DB_USERNAME', ''),
+    'password'  => (string)VnlEnv::get('DB_PASSWORD', ''),
+    'charset'   => (string)VnlEnv::get('DB_CHARSET', '') ?: $defaults['charset'],
+    'collation' => $isMysql ? (string)VnlEnv::get('DB_COLLATION', 'utf8mb4_unicode_ci') : null,
+    'prefix'    => (string)VnlEnv::get('DB_PREFIX', ''),
 ];
 </code></pre>
                         </div>
@@ -282,12 +298,12 @@ $this->db_info = [
                                 <tr>
                                     <td class="ps-5"><code>$cookie_prefix</code></td>
                                     <td><code>"myapp"</code></td>
-                                    <td>Oturum cookie'lerinin öneki. Tek sunucuda birden fazla VNL uygulaması çalışıyorsa her birine benzersiz önek verin; aksi hâlde cookie'ler çakışır.</td>
+                                    <td><code>APP_COOKIE_PREFIX</code> (varsayılan <code>vnl</code>). "Beni hatırla" çerezinin öneki: <code>&lt;önek&gt;remember</code>. Oturum çerezinin adı bundan bağımsızdır (<code>VNL_SESSION_NAME</code>, varsayılan <code>VNLSESSID</code>). Tek sunucuda birden fazla VNL uygulaması çalışıyorsa her birine benzersiz önek verin; aksi hâlde çerezler çakışır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$salt_text</code></td>
-                                    <td><code>"abc?123!@#"</code></td>
-                                    <td>Şifre ve hash işlemlerinde kullanılan gizli metin. En az 12 karakter, büyük/küçük harf + özel karakter içermesi önerilir. <b>Değiştirirseniz mevcut tüm şifreler geçersiz kalır.</b></td>
+                                    <td><code>""</code></td>
+                                    <td>Ayrılmış alan (<code>APP_SALT</code>). VNL çekirdeği onu hiçbir yerde okumaz: parolalar bcrypt'in kendi tuzuyla, "beni hatırla" jetonları SHA-256 ile korunur. Değiştirmek mevcut parolaları etkilemez; kendi imzalama ihtiyacınız için kullanabilirsiniz.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$master_db</code></td>
@@ -333,7 +349,7 @@ $this->db_info = [
 
                         <div class="vnl-code mb-4">
                             <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>private $login_except_pages = [
-    // Sistem sayfaları (3.4.0 varsayılanı — değiştirmeyin)
+    // Sistem sayfaları (varsayılan — değiştirmeyin)
     "app",          // Action dağıtıcısı: girişi kendisi denetler (PUBLIC_METHODS)
     "login",        // Giriş sayfası
     "logout",       // Çıkış onay sayfası (çıkışın kendisi POST /app/login/logout)
@@ -348,10 +364,10 @@ $this->db_info = [
 
                         <div class="alert alert-info d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-info me-3"></i>
-                            <span class="text-body fs-6">3.4.0: karar denetleyici çalışmadan verildiği için <code>$page_config['public'] = true</code> artık bir sayfayı açmaz. Eklentiler kendi sayfalarını <code>vnl_public_page('ad')</code> ile açar. Doküman sayfaları <code>.env</code>'de <code>VNL_PUBLIC_DOCS=true</code> iken listeye eklenir.</span>
+                            <span class="text-body fs-6">Karar denetleyici çalışmadan verildiği için <code>$page_config['public'] = true</code> artık bir sayfayı açmaz. Eklentiler kendi sayfalarını <code>vnl_public_page('ad')</code> ile açar. Doküman sayfaları <code>.env</code>'de <code>VNL_PUBLIC_DOCS=true</code> iken listeye eklenir.</span>
                         </div>
 
-                        <h5 class="fw-bold mt-8 mb-3">Girişten sonra istenen sayfaya dönüş (<code>$login_return_param</code>) <span class="badge badge-soft-primary align-middle">3.5.0</span></h5>
+                        <h5 class="fw-bold mt-8 mb-3">Girişten sonra istenen sayfaya dönüş (<code>$login_return_param</code>)</h5>
                         <p class="fs-5 text-body mb-4">
                             Varsayılan olarak kapalıdır. Parametre adı verildiğinde girişe atılan kullanıcının istediği adres yönlendirmeye eklenir: <code>/satis?yil=2026</code> → <code>/login?donus=%2Fsatis%3Fyil%3D2026</code>. <code>config/definitions.php</code> güncellemede değişmediği için önceki sürümden gelen proje alanı ve erişimciyi kendisi ekler; erişimci yoksa özellik kapalı sayılır.
                         </p>
@@ -463,7 +479,7 @@ returnSuccessMessage(lang('SUC_LOGIN'), ['url' => $url]);
                                 <tr>
                                     <td class="ps-5"><code>$cDefinitions->getSaltText()</code></td>
                                     <td><code>string</code></td>
-                                    <td>Hash salt metnini döndürür.</td>
+                                    <td><code>APP_SALT</code> değerini döndürür (ayrılmış alan; çekirdek kullanmaz).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$cDefinitions->getLoginExceptPages()</code></td>

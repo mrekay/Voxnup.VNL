@@ -156,6 +156,15 @@ kendiliğinden yüklenmez (`vnl_core_scripts()` listesinde değil): projenin
   dosyanızda bağlantı çalışıyorsa almanız gerekmez.
 - **`compose.test.yml`, `docker/test/Dockerfile`**: sürücü servisleri ve
   `DB_DRIVERS` derleme argümanı. **`.env.example`**: yeni anahtarlar.
+- **Dokümantasyon (`view/docs/`)** 4.1.0'a göre baştan gözden geçirildi:
+  koda uymayan örnekler düzeltildi (istemciden gelen sütun adını doğrudan
+  SQL'e veren VNL Table örnekleri, `CheckLogin` ile başlayan action'lar,
+  `->Id` gibi var olmayan sütunlar, `ClearForm`, kaldırılmış
+  `$page_config['public']`), ara sürüm etiketleri kaldırıldı. Her sayfanın
+  altında artık soldaki menünün sırasıyla "Önceki / Sonraki" bağlantısı var
+  (`view/docs/partials/pager.php`).
+- **`config/definitions.php`**: `$version` boşsa `version()` çekirdeğin
+  sürümünü döndürür; şablon artık topbar ve footer'da "3.0.0" göstermiyor.
 
 ### Yükseltme
 

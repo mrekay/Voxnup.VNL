@@ -192,6 +192,18 @@ $page_config = ['skin' => 'ornekskin'];</code></pre></div>
                             Radius/font gibi yapısal değişiklikler skin kapsamı dışındadır — onlar için
                             <code>_variables.scss</code> ile kendi build'inizi alın.
                         </p>
+                        <div class="alert alert-warning d-flex align-items-start p-4 mt-5 mb-0">
+                            <i class="bi bi-exclamation-triangle fs-2 text-warning me-3"></i>
+                            <span class="text-body fs-6">
+                                <b>Derlenen skin <code>vnl/</code> sınırının içine düşer.</b> Skin yalnız
+                                <code>vnl/assets/theme/css/skins/</code> altında aranır (<code>vnl_core_styles()</code>);
+                                bu dizin çekirdeğindir. <code>php vnl.php update --verify</code> yeni dosyayı
+                                <code>FAZLADAN</code>, yeniden derlenmiş <code>vnl.min.css</code>'i <code>DEGISMIS</code> diye
+                                listeler; <code>php vnl.php update</code> kurcalanmış çekirdekte durur, <code>--force</code> ile
+                                <code>vnl/</code>'yi komple değiştirir ve skin <b>kaybolur</b>. Palet dosyasını kendi
+                                deponuzda saklayın, her güncellemeden sonra yeniden derleyin.
+                            </span>
+                        </div>
                     </div>
 
                     <script>

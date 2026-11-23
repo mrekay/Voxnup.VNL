@@ -45,7 +45,7 @@
                                 <div class="border border-dashed rounded p-5 h-100 text-center">
                                     <i class="fa-solid fa-gear fs-3x text-warning mb-3"></i>
                                     <h6 class="fw-bold mb-2">Config Entegrasyonu</h6>
-                                    <span class="text-muted fs-7"><code>getDBInfo()</code> ile bağlantı bilgileri okunur; test/üretim moduna göre doğru veritabanı seçilir.</span>
+                                    <span class="text-muted fs-7"><code>getDBInfo()</code> ile bağlantı bilgileri okunur. Değerler <code>.env</code>'den gelir (<code>DB_DRIVER</code>, <code>DB_HOST</code>, <code>DB_DATABASE</code> …); 2.x'teki test/üretim anahtarı kaldırıldı. <code>mysql</code>/<code>mariadb</code>, <code>pgsql</code>, <code>sqlsrv</code> ve <code>sqlite</code> sürücüleri desteklenir.</span>
                                 </div>
                             </div>
                         </div>
@@ -90,7 +90,7 @@
                                 <tr>
                                     <td class="ps-5"><code>protected static $columns</code></td>
                                     <td><span class="badge badge-soft-danger">Kesinlikle Zorunlu</span></td>
-                                    <td><code>SelectList</code> içinde filtrelenecek ve seçilecek sütunların listesi. Bu alan <b>doldurulmak zorundadır</b>, boş bırakılmamalıdır.</td>
+                                    <td>Sütun listesi değil, <b>filtre haritası</b>: anahtar dışarıdan gelen filtre adı, <code>'name'</code> gerçek sütun, <code>'operator'</code> karşılaştırma. Haritada olmayan filtre anahtarı isteği düşürür. Bu alan <b>doldurulmak zorundadır</b>, boş bırakılmamalıdır.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>SoftDeletes trait</code></td>
@@ -173,11 +173,12 @@ class Urun extends TableModel
         'fiyat',
         'stok',
         'aktif',
-        'InsertDate',
         'InsertUser',
-        'UpdateDate',
         'UpdateUser',
     ];
+    // created_at / updated_at Eloquent tarafından kendiliğinden doldurulur
+    // (TableModel::CREATED_AT / UPDATED_AT). Tabloda bu sütunlar yoksa
+    // public $timestamps = false; yazın, yoksa save() düşer.
 
     // Felsefe gereği zorunlu gibi — ilişkisel sınıflar tanımlanmalı
     protected $foreign_keys = [
@@ -195,7 +196,7 @@ class Urun extends TableModel
         'ad'       => ['name' => 'tbl_urunler.ad', 'operator' => 'like'],
         'fiyat'    => ['name' => 'tbl_urunler.fiyat'],
         'stok'     => ['name' => 'tbl_urunler.stok'],
-        'aktif'    => ['name' => 'tbl_urunler.aktif', 'zero' => true],   // 0 da geçerli filtre (3.4.0)
+        'aktif'    => ['name' => 'tbl_urunler.aktif', 'zero' => true],   // 0 da geçerli filtre
         'kategori' => ['name' => 'tbl_urunler.kategori_id'],
     ];
 
@@ -275,9 +276,9 @@ $filters = ['fiyat_aralik' => '100|500'];</code></pre>
                             <span class="text-body fs-6"><b>Filtre anahtarı <code>$columns</code>'ta tanımlı değilse istek düşer.</b> <code>setFilterDefault()</code> tanımadığı her anahtar için <code>throwErrorMessage("İç Veritabanı Hatası : Geçerli Filtre Gelmedi (...)")</code> fırlatır. Bu bilinçlidir: dışarıdan gelen bir ad doğrudan sütun adına çevrilseydi, filtre listesi bir SQL enjeksiyon yüzeyi olurdu. Değeri boş olan filtreler ise sessizce atılır, sorguya hiç girmez — <code>null</code>, <code>''</code> ve <code>[]</code> her zaman; <code>0</code>, <code>'0'</code> ve <code>false</code> ise anahtarda <code>'zero' =&gt; true</code> yoksa (aşağıya bakın).</span>
                         </div>
 
-                        <h5 class="fw-bold text-body-emphasis mb-3">Sıfır değerli filtreler — <code>'zero' =&gt; true</code> (3.4.0)</h5>
+                        <h5 class="fw-bold text-body-emphasis mb-3">Sıfır değerli filtreler — <code>'zero' =&gt; true</code></h5>
                         <p class="fs-6 text-body mb-4">
-                            3.3'e kadar <code>['aktif' =&gt; 0]</code> filtresi "boş" sayılıp atılıyor ve <b>bütün</b> satırlar dönüyordu. Seçim kutularının çoğu "hepsi" için <code>"0"</code> gönderdiğinden kural genel olarak değiştirilmedi; sıfırın gerçek bir değer olduğu anahtar filtre haritasında bunu kendisi söyler. O anahtar için <code>0</code>, <code>'0'</code> ve <code>false</code> geçerli değerdir; <code>null</code>, <code>''</code> ve <code>[]</code> yine atılır. Karar <code>TableModel::filterHasValue()</code>'dadır.
+                            Varsayılan olarak <code>['aktif' =&gt; 0]</code> filtresi "boş" sayılıp atılır ve <b>bütün</b> satırlar döner — seçim kutularının çoğu "hepsi" için <code>"0"</code> gönderir; sıfırın gerçek bir değer olduğu anahtar filtre haritasında bunu kendisi söyler. O anahtar için <code>0</code>, <code>'0'</code> ve <code>false</code> geçerli değerdir; <code>null</code>, <code>''</code> ve <code>[]</code> yine atılır. Karar <code>TableModel::filterHasValue()</code>'dadır.
                         </p>
                         <div class="vnl-code mb-5">
                             <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>protected static $columns = [
@@ -307,7 +308,7 @@ X::SelectList(['status' =&gt; ''])-&gt;get();  // filtre yok — hepsi</code></p
                                 <tr>
                                     <td class="ps-5"><code>like</code></td>
                                     <td><code>'bisiklet'</code></td>
-                                    <td><code>LOWER(sutun) LIKE '%bisiklet%'</code> üretir &mdash; iki taraf da küçültüldüğü için MySQL'de büyük/küçük harf duyarsızdır. Aranan metindeki <code>%</code> ve <code>_</code> joker değil düz karakterdir (4.0.0): <code>'50%'</code> yalnız "50%" geçen satırları bulur.</td>
+                                    <td><code>LOWER(sutun) LIKE '%bisiklet%'</code> üretir &mdash; iki taraf da küçültüldüğü için büyük/küçük harf duyarsızdır. Aranan metindeki <code>%</code> ve <code>_</code> joker değil düz karakterdir (4.0.0): <code>'50%'</code> yalnız "50%" geçen satırları bulur. Kaçış karakteri <code>!</code>'dir ve sorguya <code>ESCAPE '!'</code> yazılır; bu yüzden her sürücüde aynı çalışır. SQL Server'ın karakter kümesi sözdizimi <code>[...]</code> de kaçırılır: "k[a]z" araması "kaz"ı bulmaz.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>ilike</code></td>
@@ -366,7 +367,7 @@ X::SelectList(['status' =&gt; ''])-&gt;get();  // filtre yok — hepsi</code></p
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">5. Soft Delete ve Update — Felsefe Gereği Zorunlu</h3>
                         <p class="fs-5 text-body mb-4">
-                            VNL felsefesinde <code>delete()</code> ve <code>update()</code> işlemleri <b>model sınıfı üzerinden</b> yapılmalıdır. Soft delete tüm modellerde kullanılmalı; fiziksel silme <code>forceDelete()</code> ile yalnızca özel durumlarda tercih edilmelidir.
+                            VNL felsefesinde <code>delete()</code> ve <code>update()</code> işlemleri <b>model sınıfı üzerinden</b> yapılmalıdır. Soft delete tüm modellerde kullanılmalı; fiziksel silme <code>forceDelete()</code> ile yalnızca özel durumlarda tercih edilmelidir. Aşağıdaki çağrılar modelin bir metodunda durur; action onu çağırır ve durum değiştiren işlemi <code>Audit::log()</code> ile kaydeder (bkz. <a href="/docs/request-handling">İstek Yönetimi</a>).
                         </p>
 
                         <div class="row g-5 mb-6">
@@ -376,9 +377,9 @@ X::SelectList(['status' =&gt; ''])-&gt;get();  // filtre yok — hepsi</code></p
                                     <div class="vnl-code">
                                         <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// deleted_at doldurulur
 // Kayıt hâlâ tabloda durur
-Urun::where('Id', $id)
-    ->update(['DeleteUser' => Auth::User()->Id]);
-Urun::where('Id', $id)->delete();</code></pre>
+Urun::where('id', $id)
+    ->update(['DeleteUser' => Auth::User()->id]);
+Urun::where('id', $id)->delete();</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -386,12 +387,12 @@ Urun::where('Id', $id)->delete();</code></pre>
                                 <div class="border border-dashed rounded p-5 h-100">
                                     <span class="badge badge-soft-primary mb-3">Update (Standart)</span>
                                     <div class="vnl-code">
-                                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>$urun = Urun::Select(['Id' => $id]);
+                                        <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Anahtar $columns'taki filtre adı: 'id'
+$urun = Urun::Select(['id' => $id]);
 $urun->ad = $yeniAd;
 $urun->fiyat = $yeniFiyat;
-$urun->UpdateDate = now();
-$urun->UpdateUser = Auth::User()->Id;
-$urun->save();</code></pre>
+$urun->UpdateUser = Auth::User()->id;
+$urun->save();   // updated_at kendiliğinden</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -402,9 +403,8 @@ $urun->save();</code></pre>
                                         <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>$urun = new Urun();
 $urun->ad = $ad;
 $urun->fiyat = $fiyat;
-$urun->InsertDate = now();
-$urun->InsertUser = Auth::User()->Id;
-$urun->save();</code></pre>
+$urun->InsertUser = Auth::User()->id;
+$urun->save();   // created_at kendiliğinden</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -457,7 +457,7 @@ $list = Capsule::table('tbl_urunler')
                                         <div class="vnl-code">
                                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Model üzerinden statik çağrı
 $list = Urun::SelectList(
-    ['u.aktif' => 1], []
+    ['aktif' => 1], []   // anahtar $columns'taki filtre adı
 )->get();</code></pre>
                                         </div>
                                         <p class="text-muted fs-7 mt-3 mb-0">Merkezi, yeniden kullanılabilir, filtreleye ve genişletilebilir.</p>

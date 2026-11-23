@@ -53,12 +53,21 @@
                     <div class="mb-0">
                         <h3 class="fw-bold text-body-emphasis mb-4">3. Tek Sete İnmek</h3>
                         <p class="text-body mb-4">
-                            İki set birlikte ~<b>370 KB</b> CSS + font yüküdür. Projeniz tek sete karar verdiğinde:
+                            Her sayfada yüklenen stil dosyaları <code>fa.min.css</code> ~<b>122 KB</b> ve
+                            <code>bi.min.css</code> ~<b>81 KB</b>'tır. Font dosyaları (woff2: FA solid ~116 KB,
+                            brands ~112 KB, regular ~19 KB; BI ~131 KB) tarayıcı o setten bir ikon çizdiğinde
+                            indirilir.
                         </p>
-                        <ul class="text-body mb-0">
-                            <li class="mb-2"><b>Yalnız Bootstrap Icons:</b> <code>head-standard.php</code>'den <code>fa.min.css</code> satırını silin; koddaki <code>fa-*</code> kullanımlarını <code>bi-*</code> karşılıklarına çevirin (menü kısa adları dahil). ~245 KB kazanç.</li>
-                            <li><b>Yalnız Font Awesome:</b> <code>bi.min.css</code> satırını silin; tema iskeleti <code>view/static/</code> içindeki <code>bi-*</code> ikonlarını <code>fa-*</code> ile değiştirin. ~125 KB kazanç.</li>
+                        <ul class="text-body mb-4">
+                            <li class="mb-2"><b>Yalnız Bootstrap Icons (desteklenen yol):</b> koddaki <code>fa-*</code> kullanımlarını <code>bi-*</code> karşılıklarına çevirin (menü kısa adları dahil — kısa ad <code>fa-solid fa-*</code> üretir, tam class yazın). Sonra <code>fa.min.css</code>'i yüklemeyi bırakın: <code>head-standard.php</code>'de ayrı bir satır yoktur, liste çekirdekten gelir (<code>vnl_core_styles()</code>); döngü projenindir ve süzülebilir:</li>
+                            <li><b>Yalnız Font Awesome: yapılamaz.</b> Bootstrap Icons çekirdeğin bir parçasıdır: parola göster/gizle düğmesi (<code>vnl.min.js</code>), VNL Table'ın sayfalama, filtre ve dışa aktarma düğmeleri (<code>vnltable.js</code>) ve <code>vnl.js</code> <code>bi-*</code> basar. Bu dosyalar <code>vnl/</code> altındadır, değiştirilemez; <code>bi.min.css</code> kalkarsa bu düğmeler ikonsuz kalır.</li>
                         </ul>
+                        <div class="vnl-code"><pre><code>&lt;?php // view/includes/static/head-standard.php
+foreach (vnl_core_styles($vnl_skin) as $vnl_css) {
+    if (basename(parse_url($vnl_css, PHP_URL_PATH)) === 'fa.min.css') continue;   // yalnız BI
+    ?&gt;
+&lt;link href="&lt;?= $vnl_css ?&gt;" rel="stylesheet" type="text/css"/&gt;
+&lt;?php } ?&gt;</code></pre></div>
                     </div>
 
                 </div>

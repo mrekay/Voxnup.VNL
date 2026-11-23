@@ -19,7 +19,7 @@
             <div class="alert alert-warning d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-lock fs-2hx text-warning me-4"></i>
                 <div class="d-flex flex-column">
-                    <h4 class="mb-1">3.4.0 — Canlıda ayrıntı yok</h4>
+                    <h4 class="mb-1">Canlıda ayrıntı yok</h4>
                     <span class="text-body">Aşağıda anlatılan ayrıntılı sayfa ve <code>error</code> alanlı JSON yalnız <code>.env</code>'de <code>APP_DEBUG=true</code> iken gösterilir. Varsayılan (<code>false</code>) kipte istisna PHP günlüğüne <code>[VNL][ref]</code> ile yazılır; kullanıcı kaynak kod, yol ve SQL metni içermeyen genel bir sayfa ya da <code>{"message","devcode":"VNL_FATAL","ref"}</code> görür. <code>display_errors</code> da yalnız debug kipinde açıktır. Action içindeki beklenmeyen istisnalar da aynı kurala uyar; <code>throwErrorMessage($m, 422)</code> ise durum kodunu korur.</span>
                 </div>
             </div>
@@ -55,9 +55,9 @@
                                     <td><code>E_ERROR</code>, <code>E_PARSE</code>, <code>E_COMPILE_ERROR</code> — bunlar exception handler'a düşmez; PHP kapanırken yakalanır. Tanımsız metot ve sınıf hataları buraya girer.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>vnl/kernel.php</code> / <code>controller/app.php</code></td>
+                                    <td class="ps-5"><code>vnl/kernel.php</code> / <code>VnlDispatcher</code></td>
                                     <td><span class="badge badge-soft-warning">Controller & Action</span></td>
-                                    <td>Controller <code>try/catch</code> içinde çalıştırılır. Action tarafında <code>app.php</code> istisnayı JSON'a çevirir.</td>
+                                    <td>Controller <code>try/catch</code> içinde çalıştırılır. Action tarafında <code>controller/app.php</code> yalnız <code>VnlDispatcher::handle()</code>'ı çağırır; istisnayı JSON'a çekirdekteki dağıtıcı çevirir.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -190,7 +190,7 @@
                         <div class="alert alert-danger d-flex align-items-center p-5 mb-0">
                             <i class="fa-solid fa-circle-exclamation fs-2hx text-danger me-4"></i>
                             <div class="d-flex flex-column">
-                                <h5 class="mb-1 text-danger">Ayrıntılı sayfa yalnız <code>APP_DEBUG=true</code> iken (3.4.0)</h5>
+                                <h5 class="mb-1 text-danger">Ayrıntılı sayfa yalnız <code>APP_DEBUG=true</code> iken</h5>
                                 <span class="text-body">Yukarıdaki ayrıntılı sayfa ve <code>error</code> alanlı JSON (dosya yolları, kaynak kod, çağrı zinciri, SQL) <b>yalnız</b> <code>.env</code>'de <code>APP_DEBUG=true</code> iken gösterilir. Varsayılan (<code>false</code>, canlı) kipte istisna <code>[VNL][ref]</code> başvuru koduyla ve yığın iziyle <code>error_log</code>'a yazılır; kullanıcı ayrıntısız genel bir sayfa ya da <code>{"message", "devcode": "VNL_FATAL", "ref"}</code> görür — destek talebinde <code>ref</code> ile günlükte aranır. <code>vnl/boot.php</code>'deki handler'ı sarmanız gerekmez (çekirdek dosyası zaten güncellemede değişir); kendi ekranınız için aşağıdaki <code>vnl_project_error_page()</code> kancasını kullanın. Canlıda <code>php vnl.php doctor</code> <code>APP_DEBUG</code>'ın kapalı olduğunu sınar.</span>
                             </div>
                         </div>
@@ -290,7 +290,7 @@ function vnl_project_error_detail(Throwable $e): bool
                             <li class="mb-0"><code>vnl_project_error_page()</code> tanımlıysa önce o çalışır. O dönerse çekirdeğin ekranı bu kararla basılır.</li>
                         </ul>
 
-                        <h4 class="fw-bold text-body-emphasis mb-3">Hatayı kendi kanalınıza göndermek: <code>vnl_project_log_exception()</code> <span class="badge badge-soft-primary ms-1">4.1.0</span></h4>
+                        <h4 class="fw-bold text-body-emphasis mb-3">Hatayı kendi kanalınıza göndermek: <code>vnl_project_log_exception()</code></h4>
                         <p class="fs-5 text-body mb-4">
                             Çekirdek her istisnayı <code>vnl_log_exception()</code> ile <code>error_log</code>'a başvuru koduyla yazar: sayfa hataları, action'ların 500 yanıtı ve kuyruk işçisi aynı yoldan geçer. Proje <code>vnl_project_log_exception(Throwable $e, string $ref, string $channel)</code> tanımlarsa çekirdek satırı yazdıktan <b>sonra</b> onu da çağırır. Aynı <code>$ref</code>'i alırsınız; kullanıcının bildirdiği kod sizin kanalınızda da aranabilir.
                         </p>
@@ -338,7 +338,7 @@ function vnl_project_log_exception(Throwable $e, string $ref, string $channel): 
                             <i class="fa-solid fa-circle-exclamation fs-2hx text-warning me-4"></i>
                             <div class="d-flex flex-column">
                                 <h5 class="mb-1 text-warning">Constructor yanıtı basar ve süreci bitirir (web)</h5>
-                                <span class="text-body">Bu sınıflar <b>constructor'ında</b> <code>returnErrorMessage()</code> çağırır; o fonksiyon da JSON'u basıp <code>die</code> eder. Yani web isteğinde <code>new StandartException('...')</code> yazdığınız an — <code>throw</code> etmeseniz bile — yanıt gönderilmiş ve istek sonlanmış olur. Sonuç: <b>bu istisnaları web'de <code>try/catch</code> ile yakalayamazsınız.</b> Yakalamak istediğiniz bir hata varsa <code>throwErrorMessage()</code> kullanın. <b>3.4.0 — komut satırında</b> (kuyruk işi, zamanlayıcı, <code>commands/</code>) constructor hiçbir şey basmaz ve süreci öldürmez; istisna normal fırlatılır: işte kullanılan <code>DefaultValidator</code> işi gerçek mesajıyla başarısız sayar, komutta çıkış kodu 1 olur.</span>
+                                <span class="text-body">Bu sınıflar <b>constructor'ında</b> <code>returnErrorMessage()</code> çağırır; o fonksiyon da JSON'u basıp <code>die</code> eder. Yani web isteğinde <code>new StandartException('...')</code> yazdığınız an — <code>throw</code> etmeseniz bile — yanıt gönderilmiş ve istek sonlanmış olur. Sonuç: <b>bu istisnaları web'de <code>try/catch</code> ile yakalayamazsınız.</b> Yakalamak istediğiniz bir hata varsa <code>throwErrorMessage()</code> kullanın. <b>Komut satırında</b> (kuyruk işi, zamanlayıcı, <code>commands/</code>) constructor hiçbir şey basmaz ve süreci öldürmez; istisna normal fırlatılır: işte kullanılan <code>DefaultValidator</code> işi gerçek mesajıyla başarısız sayar, komutta çıkış kodu 1 olur.</span>
                             </div>
                         </div>
 
@@ -413,7 +413,7 @@ function vnl_project_log_exception(Throwable $e, string $ref, string $channel): 
                         <div class="vnl-code mb-5">
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// vnl/classes/VnlDispatcher.php — 7. adım (özet)
 } catch (VnlHttpException $e) {      // throwErrorMessage() ve alt sınıfları: beklenen hata
-    // durum ve devcode istisnadan gelir; 3.4.1: headers() gönderilir, extra() gövdeye eklenir
+    // durum ve devcode istisnadan gelir; headers() gönderilir, extra() gövdeye eklenir
     // → 404 {"message": "Sipariş bulunamadı.", "devcode": ""}
 } catch (Throwable $e) {              // beklenmeyen: ayrıntı günlüğe
     // → 500 {"message": "...", "devcode": "VNL_FATAL", "ref": "3f9c0a..."}
@@ -429,7 +429,8 @@ class action_siparis
 {
     public function iptalEt($req)
     {
-        Auth::CheckLogin();
+        // Giriş zaten dağıtıcıda zorunlu; ilk satır yetki kapısıdır
+        Auth::CheckPermission('Siparisler', 'edit');
 
         $siparis = Siparis::Select(['id' => $req->post('id')]);
 
@@ -446,6 +447,7 @@ class action_siparis
 
         $siparis->durum = 'iptal';
         $siparis->save();
+        Audit::log('siparis.iptal', 'siparis', $siparis->id, ['sebep' => $req->post('sebep')]);
 
         returnSuccessMessage("Sipariş iptal edildi.");
     }
@@ -459,7 +461,7 @@ class action_siparis
 
                     <!--begin::Section 7-->
                     <div class="mb-0">
-                        <h3 class="fw-bold text-body-emphasis mb-4">7. Ek alan ve başlık — <code>extra()</code> / <code>headers()</code> <span class="badge badge-soft-primary align-middle">3.4.1</span></h3>
+                        <h3 class="fw-bold text-body-emphasis mb-4">7. Ek alan ve başlık — <code>extra()</code> / <code>headers()</code></h3>
 
                         <p class="fs-6 text-body mb-3"><code>VnlHttpException</code> gövdeye <code>message</code> ve <code>devcode</code> dışında alan (alan hataları, kota bilgisi) ve yanıta başlık (<code>Retry-After</code>) taşıyabilir. Kurucunun <code>$previous</code>'tan sonraki iki isteğe bağlı parametresiyle ya da alt sınıfta <code>extra()</code> / <code>headers()</code> ezilerek verilir; dağıtıcıyı kopyalamak gerekmez.</p>
 
@@ -515,7 +517,7 @@ Content-Type: application/json; charset=utf-8
                                 </tr>
                                 <tr>
                                     <td class="ps-5">Geriye uyum</td>
-                                    <td>3.4.0 çağrıları (<code>throwErrorMessage()</code>, dört parametreli kurucu) aynı yanıtı üretir. Dağıtıcıyı <code>classes/VnlDispatcher.php</code> ile ezen proje yeni alanları yazmak için <code>catch (VnlHttpException $e)</code> bloğunda <code>$e-&gt;headers()</code> ve <code>$e-&gt;extra()</code>'yı kendisi kullanmalıdır.</td>
+                                    <td>Eski çağrılar (<code>throwErrorMessage()</code>, dört parametreli kurucu) aynı yanıtı üretir. Dağıtıcıyı <code>classes/VnlDispatcher.php</code> ile ezen proje yeni alanları yazmak için <code>catch (VnlHttpException $e)</code> bloğunda <code>$e-&gt;headers()</code> ve <code>$e-&gt;extra()</code>'yı kendisi kullanmalıdır.</td>
                                 </tr>
                                 </tbody>
                             </table>

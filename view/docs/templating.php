@@ -350,10 +350,10 @@ class action_bakim
 {
     public function sablonOnbelleginiTemizle($req)
     {
-        Auth::CheckLogin();
-        Auth::HasPermis([1]);          // yalnızca yönetici
+        Auth::CheckPermission('Bakim', 'edit');   // her action'ın ilk satırı
 
         $silinen = VnlTemplate::clearCache();
+        Audit::log('bakim.view_cache_clear', null, null, ['silinen' => $silinen]);
 
         returnSuccessMessage("Şablon önbelleği temizlendi.", ['silinen' => $silinen]);
     }
@@ -406,7 +406,8 @@ class action_bakim
                             <i class="fa-solid fa-circle-xmark fs-2hx text-danger me-4"></i>
                             <div class="d-flex flex-column">
                                 <h5 class="mb-1 text-danger">Kaçışsız çıktı bir XSS kapısıdır</h5>
-                                <span class="text-body"><code>&#123;!! !!}</code> ve <code>&lt;?= $veri ?&gt;</code> aynı şeydir: veri ne ise o basılır. Kullanıcının yazdığı bir metni bu şekilde basarsanız <code>&lt;script&gt;</code> etiketi çalışır. VNL 3.0 girişte kaçışlamayı bıraktığı için <b>bu sorumluluk tamamen view katmanındadır</b>.</span>
+                                <span class="text-body"><code>&#123;!! !!}</code> ve <code>&lt;?= $veri ?&gt;</code> aynı şeydir: veri ne ise o basılır. Kullanıcının yazdığı bir metni bu şekilde basarsanız <code>&lt;script&gt;</code> etiketi çalışır. VNL 3.0 girişte kaçışlamayı bıraktığı için <b>bu sorumluluk tamamen view katmanındadır</b>.
+                                    4.0.0'dan beri <code>tests/unit/ViewUnescapedEchoTest.php</code> bir mandaldır: <code>view/</code> altında dosya başına kaçışsız <code>&lt;?= $</code> basımı sayısı listedekinden artarsa (ya da azalıp liste indirilmezse) test düşer. Yeni basımı <code>&#123;&#123; }}</code> ya da <code>vnl_e()</code> ile yazın; gerçekten HTML basılacaksa listeye gerekçesiyle ekleyin.</span>
                             </div>
                         </div>
                     </div>

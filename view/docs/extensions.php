@@ -95,7 +95,7 @@ foreach (vnl_enabled_extensions() as $_extName) {
                     <p class="fs-5 text-body mb-5">Her eklenti <code>extensions/{eklenti-adi}/</code> altında şu yapıyı takip eder:</p>
                     <div class="vnl-code mb-8">
                         <pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>extensions/
-├── extensions.php          ← MANİFEST: hangi eklenti aktif? (core dosyası, eklentiye ait değil)
+├── extensions.php          ← MANİFEST: hangi eklenti aktif? (projenin dosyası, eklentiye ait değil; güncelleme dokunmaz)
 └── my-extension/
     ├── boot.php            ← Manifest'te true ise yüklenir. Autoloader, config, sınıf yükleme buraya.
     ├── config.php          ← Eklentiye özgü ayarlar (kullanıcı düzenler)
@@ -187,7 +187,7 @@ require view('static/footer');                              // VNL layout
                         <div>
                             <strong>Public sayfalar için</strong> (auth gerektirmeyen, örn. webhook):
                             eklentinin <code>boot.php</code>'sinde <code>vnl_public_page('sayfa-adi');</code>
-                            çağrılır (3.4.0). <code>$page_config['public']</code> artık bir şey açmaz.
+                            çağrılır. <code>$page_config['public']</code> artık bir şey açmaz.
                             Eklenti denetleyicileri ve action'ları yalnız <code>extensions.php</code>'de
                             <code>true</code> işaretliyse çözülür.
                         </div>
@@ -215,14 +215,15 @@ class action_myext
 {
     public function getData($req)
     {
-        Auth::CheckLogin();
-        // ...
+        Auth::CheckPermission('MyExt', 'view');   // her zaman ilk satır
+        $data = MyModel::SelectList(['Status' => 1])->get();   // sorgu modelde
         returnSuccessDataOnly(['items' => $data]);
     }
 }
 
-// JavaScript:
-// $.post('/app/myext/getData', {}, res => console.log(res.data));
+// JavaScript (vnl.js CSRF jetonunu kendiliğinden ekler):
+// returnSuccessDataOnly ham veriyi döndürür — {data: …} sarmalı yok
+// $.post('/app/myext/getData', {}, res => console.log(res.items));
 </code></pre>
                     </div>
                 </div>
@@ -293,7 +294,7 @@ class MyModel extends TableModel
                             <span class="badge badge-circle badge-primary me-4 mt-1 fs-6 flex-shrink-0">3</span>
                             <div>
                                 <div class="fw-bold text-body mb-1">Gerekli bağımlılıkları yükle</div>
-                                <div class="text-body-secondary fs-6">Eklentinin talep ettiği Composer paketlerini <code>vnl/</code> altında kur. Örn: <code>composer require stripe/stripe-php</code></div>
+                                <div class="text-body-secondary fs-6">Eklenti bağımlılıklarını kendi klasöründe taşır (ör. <code>extensions/stripe/vendor/</code>) ve <code>boot.php</code>'sinden yükler. <b><code>vnl/</code> altına paket kurmayın</b>: güncelleme <code>vnl/</code>'ü komple değiştirir, kurulan paket kaybolur. Eklentinin <code>vendor/</code>'ü gelmemişse eklenti klasöründe <code>composer install</code>.</div>
                             </div>
                         </div>
                         <div class="d-flex align-items-start">

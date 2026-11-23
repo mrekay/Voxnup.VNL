@@ -54,7 +54,7 @@
                                 <span class="badge badge-circle badge-success me-4 mt-1">4</span>
                                 <div class="flex-grow-1">
                                     <h6 class="fw-bold mb-2">Migrasyonları çalıştırın</h6>
-                                    <p class="text-body fs-6 mb-0">Aşağıdaki <b>6. bölüme</b> bakın — <code>0001</code> her kurulumda zorunludur.</p>
+                                    <p class="text-body fs-6 mb-0"><code>php vnl.php migrate --run</code>, ardından ilk yönetici için <code>php vnl.php user:create --username=admin --super</code> ve <code>php vnl.php doctor</code>. Ayrıntı <b>6. bölümde</b>.</p>
                                 </div>
                             </div>
                         </div>
@@ -118,6 +118,11 @@
                                     <td>CSS/JS/medya kök yolu. CDN kullanıyorsanız tam URL yazabilirsiniz.</td>
                                 </tr>
                                 <tr>
+                                    <td class="ps-5"><code>VNL_ASSETS_URL</code></td>
+                                    <td><code>/vnl/assets</code></td>
+                                    <td>Çekirdeğin varlıklarının kök yolu; <code>vnl_asset()</code> bunu kullanır. Projenin kendi varlıkları için <code>APP_ASSETS_URL</code>.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>APP_COOKIE_PREFIX</code></td>
                                     <td><code>vnl</code></td>
                                     <td>Çerez öneki. Aynı sunucuda birden fazla VNL uygulaması varsa <b>her birine benzersiz verin</b>; aksi hâlde "beni hatırla" çerezleri çakışır.</td>
@@ -128,17 +133,17 @@
                                     <td><span class="badge badge-soft-danger me-2">Kritik</span><code>safeEncrypt()</code> / <code>safeDecrypt()</code> anahtarı — base64 kodlanmış 32 bayt. Değiştirmek daha önce şifrelenmiş <b>her veriyi</b> çözülemez hâle getirir.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>APP_DEBUG</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td class="ps-5"><code>APP_DEBUG</code></td>
                                     <td><code>false</code></td>
                                     <td>Yalnız <code>true</code> iken ayrıntılı hata sayfası/JSON (kaynak, yol, yığın izi) ve <code>display_errors</code> açıktır. Canlıda <code>false</code>: kullanıcı başvuru kodu (<code>ref</code>) görür, ayrıntı <code>error_log</code>'a gider. Bkz. <a href="/docs/errors">/docs/errors</a>.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>APP_TIMEZONE</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td class="ps-5"><code>APP_TIMEZONE</code></td>
                                     <td><code>Europe/Istanbul</code></td>
-                                    <td>PHP'nin saat dilimi (<code>date_default_timezone_set</code>). <b>MySQL oturumunun saat dilimine dokunulmaz</b>: PHP ile veritabanı saat dilimleri birbirinden bağımsızdır. <code>date()</code> ile yazılan zamanlar PHP diliminde, <code>NOW()</code> ile yazılanlar sunucunun diliminde olur; çekirdeğin kuyruk ve hız sınırı tabloları bu yüzden her zaman veritabanının saatini kullanır (MySQL'de <code>NOW()</code>; 4.1.0'dan beri sürücüye göre, bkz. <code>VnlSql::now()</code>).</td>
+                                    <td>PHP'nin saat dilimi (<code>date_default_timezone_set</code>). <b>MySQL oturumunun saat dilimine dokunulmaz</b>: PHP ile veritabanı saat dilimleri birbirinden bağımsızdır. <code>date()</code> ile yazılan zamanlar PHP diliminde, <code>NOW()</code> ile yazılanlar sunucunun diliminde olur; çekirdeğin kuyruk ve hız sınırı tabloları bu yüzden her zaman veritabanının saatini kullanır (MySQL'de <code>NOW()</code>, öbür sürücülerde karşılığı; bkz. <code>VnlSql::now()</code>).</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>LOG_PATH</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td class="ps-5"><code>LOG_PATH</code></td>
                                     <td><code>files/logs</code></td>
                                     <td><code>LogModule</code> ve <code>schedule:run</code> günlük dizini (0750, dosyalar 0640). Web kökünün dışında bir yol önerilir.</td>
                                 </tr>
@@ -170,7 +175,7 @@
                                 <tr>
                                     <td class="ps-5"><code>DB_DRIVER</code></td>
                                     <td><code>mysql</code></td>
-                                    <td><code>mysql</code>, <code>mariadb</code>, <code>pgsql</code>, <code>sqlsrv</code>, <code>sqlite</code>. Çekirdek tabloları (hız sınırı, Audit, kuyruk, API jetonları, TOTP) 4.1.0'dan beri hepsinde <code>php vnl.php migrate --run</code> ile kurulur.</td>
+                                    <td><code>mysql</code>, <code>mariadb</code>, <code>pgsql</code>, <code>sqlsrv</code>, <code>sqlite</code>. Çekirdek tabloları (hız sınırı, Audit, kuyruk, API jetonları, TOTP) hepsinde <code>php vnl.php migrate --run</code> ile kurulur.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>DB_HOST</code></td>
@@ -178,12 +183,12 @@
                                     <td>Veritabanı sunucusu. Portu buraya yazmayın (<code>host:port</code> PDO'da çalışmaz); <code>DB_PORT</code> kullanın.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>DB_PORT</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td class="ps-5"><code>DB_PORT</code></td>
                                     <td><code>3306</code> · <code>5432</code> · <code>1433</code></td>
-                                    <td>TCP portu. Boşsa sürücüye göre varsayılan (4.1.0: mysql 3306, pgsql 5432, sqlsrv 1433). Web ve <code>php vnl.php migrate</code> aynı değeri kullanır (eski <code>host:port</code> yazımı MySQL'de <code>migrate</code>'te geri düşüş olarak okunur).</td>
+                                    <td>TCP portu. Boşsa sürücüye göre varsayılan (mysql 3306, pgsql 5432, sqlsrv 1433). Web ve <code>php vnl.php migrate</code> aynı değeri kullanır (eski <code>host:port</code> yazımı MySQL'de <code>migrate</code>'te geri düşüş olarak okunur).</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>DB_SOCKET</code> <span class="badge badge-soft-primary ms-1">3.4.0</span></td>
+                                    <td class="ps-5"><code>DB_SOCKET</code></td>
                                     <td><code>""</code></td>
                                     <td>Unix soketi (ör. <code>/run/mysqld/mysqld.sock</code>). Doluysa <code>DB_HOST</code>/<code>DB_PORT</code> yerine soket kullanılır.</td>
                                 </tr>
@@ -195,10 +200,10 @@
                                 <tr>
                                     <td class="ps-5"><code>DB_CHARSET</code> · <code>DB_COLLATION</code></td>
                                     <td><code>utf8mb4</code> · <code>utf8mb4_unicode_ci</code></td>
-                                    <td>3.4.0 varsayılanı <code>utf8mb4</code> (3.3: <code>utf8</code> = utf8mb3, emoji ve 4 baytlık karakterleri kesiyordu). <code>.env</code>'de tanımlıysa o geçerlidir. 4.1.0: MySQL dışındaki sürücülerde boş <code>DB_CHARSET</code>'in varsayılanı <code>utf8</code>'dir (PostgreSQL <code>utf8mb4</code>'ü tanımaz) ve <code>DB_COLLATION</code> kullanılmaz.</td>
+                                    <td>Varsayılan <code>utf8mb4</code> (<code>utf8</code> = utf8mb3, emoji ve 4 baytlık karakterleri keser). <code>.env</code>'de tanımlıysa o geçerlidir. MySQL dışındaki sürücülerde boş <code>DB_CHARSET</code>'in varsayılanı <code>utf8</code>'dir (PostgreSQL <code>utf8mb4</code>'ü tanımaz) ve <code>DB_COLLATION</code> kullanılmaz.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>DB_ENCRYPT</code> · <code>DB_TRUST_SERVER_CERTIFICATE</code> <span class="badge badge-soft-primary ms-1">4.1.0</span></td>
+                                    <td class="ps-5"><code>DB_ENCRYPT</code> · <code>DB_TRUST_SERVER_CERTIFICATE</code></td>
                                     <td><code>""</code></td>
                                     <td>Yalnız <code>sqlsrv</code>. Boşsa ODBC sürücüsünün varsayılanı geçerlidir (Driver 18: şifreli, sertifika doğrulanır). Kendinden imzalı sertifikalı sunucu için <code>DB_TRUST_SERVER_CERTIFICATE=true</code>.</td>
                                 </tr>
@@ -216,7 +221,7 @@
                             </table>
                         </div>
 
-                        <h5 class="fw-bold text-body-emphasis mb-3">Oturum ve güvenlik (3.4.0)</h5>
+                        <h5 class="fw-bold text-body-emphasis mb-3">Oturum ve güvenlik</h5>
                         <div class="table-responsive border rounded bg-body-tertiary mb-6">
                             <table class="table align-middle table-row-dashed fs-6 gy-4 mb-0">
                                 <thead>
@@ -235,7 +240,7 @@
                                 <tr>
                                     <td class="ps-5"><code>VNL_IDLE_KEEPS_REMEMBER</code></td>
                                     <td><code>false</code></td>
-                                    <td><code>true</code>: boşta kalan oturum "beni hatırla" jetonuyla aynı istekte sessizce yeniden açılır (3.4.0 öncesi davranış).</td>
+                                    <td><code>true</code>: boşta kalan oturum "beni hatırla" jetonuyla aynı istekte sessizce yeniden açılır (eski davranış).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>VNL_REMEMBER_DAYS</code></td>
@@ -301,7 +306,7 @@
                                 <tr>
                                     <td class="ps-5"><code>VNL_JSON_DATA_FLAGS</code> <span class="badge badge-soft-primary ms-1">4.0.0</span></td>
                                     <td><code>""</code></td>
-                                    <td><code>returnSuccessDataOnly()</code>'nin ek <code>json_encode</code> bayrakları, virgülle: <code>NUMERIC_CHECK</code>, <code>PRESERVE_ZERO_FRACTION</code>, <code>UNESCAPED_SLASHES</code>, <code>PRETTY_PRINT</code>, <code>FORCE_OBJECT</code>. 3.4.0'da kaldırılan <code>NUMERIC_CHECK</code>'e bağlı istemcisi olan proje bunu <code>helpers/app.php</code>'yi kopyalamadan geri açar.</td>
+                                    <td><code>returnSuccessDataOnly()</code>'nin ek <code>json_encode</code> bayrakları, virgülle: <code>NUMERIC_CHECK</code>, <code>PRESERVE_ZERO_FRACTION</code>, <code>UNESCAPED_SLASHES</code>, <code>PRETTY_PRINT</code>, <code>FORCE_OBJECT</code>. Varsayılandan kaldırılan <code>NUMERIC_CHECK</code>'e bağlı istemcisi olan proje bunu <code>helpers/app.php</code>'yi kopyalamadan geri açar.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>VNL_MAX_JSON_BODY</code></td>
@@ -316,7 +321,7 @@
                                 <tr>
                                     <td class="ps-5"><code>VNL_PUBLIC_DOCS</code> · <code>VNL_PUBLIC_CAPTURE</code></td>
                                     <td><code>false</code></td>
-                                    <td>Doküman sayfalarını girişsiz aç · 3.3'ün <code>$page_config['public']</code> geçiş kipi (güvenli değil).</td>
+                                    <td>Doküman sayfalarını girişsiz aç · eski <code>$page_config['public']</code> geçiş kipi (güvenli değil).</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -531,7 +536,7 @@ if ($anahtar === '') {
 
                         <div class="alert alert-danger d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-exclamation fs-2 text-danger me-3"></i>
-                            <span class="text-body fs-6">Nginx kullanıyorsanız bu iki dosya <b>hiçbir işe yaramaz</b>. <code>location ~ /\. { deny all; }</code> benzeri bir kuralı kendiniz eklemelisiniz.</span>
+                            <span class="text-body fs-6">Nginx kullanıyorsanız bu iki dosya <b>hiçbir işe yaramaz</b>. Kökteki <code>nginx.conf.example</code>'ı temel alın: yalnız <code>index.php</code> çalışır, yalnız <code>assets/</code> ve <code>vnl/assets/</code> servis edilir. Hazır panel (aaPanel ve benzerleri) kullanıyorsanız dosyadaki yorumlu <code>deny</code> kurallarını panelin PHP bloğundan önce ekleyin.</span>
                         </div>
                     </div>
                     <!--end::Section 5-->
@@ -542,14 +547,19 @@ if ($anahtar === '') {
                     <div class="mb-0">
                         <h3 class="fw-bold text-body-emphasis mb-4">6. Migrasyonlar</h3>
                         <p class="fs-5 text-body mb-5">
-                            Veritabanı değişiklikleri <code>migrations/</code> altında <b>numara sırasıyla</b> çalıştırılan SQL dosyalarıdır. Otomatik bir çalıştırıcı yoktur; dağıtım sırasında elle uygulanırlar.
+                            Veritabanı değişiklikleri <code>migrations/</code> altında <b>numara sırasıyla</b> çalıştırılan SQL dosyalarıdır. <code>php vnl.php migrate</code> bunları uygular ve hangisinin çalıştığını veritabanında (<code>tbl_vnl_migrations</code>) tutar. VNL'in kendi şeması <code>vnl/migrations/</code> altındadır ve aynı komutla, sizinkilerden önce uygulanır. Sürücüye özel dosyalar ve ayrıntılar: <a href="/docs/versioning" class="fw-bold">Sürümleme</a>.
                         </p>
 
                         <div class="vnl-code mb-6">
-                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>migrations/
-├── README.md
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>vnl/migrations/                 VNL'in (güncellemeyle gelir)
 ├── 0001_vnl_3_0_upgrade.sql
-└── 0002_siparis_tablosu.sql</code></pre>
+├── 0001_vnl_3_0_upgrade.pgsql.sql   (sürücüye özel hâller)
+└── …  0008_vnl_remember_auth_stamp.sql
+
+migrations/                     sizin
+├── README.md
+├── 0001_siparis_tablosu.sql
+└── 0002_siparis_durum.sql</code></pre>
                         </div>
 
                         <h5 class="fw-bold text-body-emphasis mb-3">Kurallar</h5>
@@ -567,7 +577,7 @@ if ($anahtar === '') {
                                     <td><code>NNNN_kisa_aciklama.sql</code> — numara dört haneli ve artan.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5">Tek numara (3.4.0)</td>
+                                    <td class="ps-5">Tek numara</td>
                                     <td>Aynı dizinde aynı numara iki kez kullanılamaz: kayıt (kaynak, numara) ile tutulur. <code>migrate</code> çakışmayı görünce hiçbir şey çalıştırmadan durur ve veritabanında kayıtlı olanı adıyla söyler — <b>diğerini</b> yeniden numaralandırın. Paralel geliştirmede modül başına numara bloğu ayırın (ör. alan adları <code>0100–0199</code>).</td>
                                 </tr>
                                 <tr>
@@ -595,8 +605,8 @@ php vnl.php migrate --run      # önce çekirdek (vnl/migrations), sonra proje (
                         <div class="alert alert-danger d-flex align-items-center p-5 mb-0">
                             <i class="fa-solid fa-circle-exclamation fs-2hx text-danger me-4"></i>
                             <div class="d-flex flex-column">
-                                <h5 class="mb-1 text-danger"><code>0001</code> zorunludur</h5>
-                                <span class="text-body">Sıfırdan kurulumda da, VNL 2.x'ten yükseltmede de bir kez çalıştırın. İki kritik değişiklik içerir:
+                                <h5 class="mb-1 text-danger">Çekirdek migration'ları zorunludur</h5>
+                                <span class="text-body">Sıfırdan kurulumda da, yükseltmede de <code>migrate --run</code> çalıştırın; <code>vnl/migrations/0001</code>–<code>0008</code> kullanıcı/yetki şemasını, hız sınırını, denetim kaydını, kuyruğu, API jetonlarını ve TOTP tekrar korumasını kurar. Eksik olanı <code>php vnl.php doctor</code> bildirir. <code>0001</code>'in iki kritik değişikliği:
                                     <br>• <code>tbl_users.password</code> → <code>VARCHAR(255)</code>. VNL 3.0 bcrypt kullanır (60 karakter); 2.x'in <code>sha1(md5())</code> hash'ine 40 karakter yetiyordu. Sütun dar kalırsa <b>hash sessizce kırpılır</b> ve kullanıcı bir sonraki girişinde içeri giremez.
                                     <br>• <code>tbl_remember_tokens</code> tablosu — bu tablo yoksa <a href="/docs/session" class="fw-bold">"beni hatırla"</a> çalışmaz.</span>
                             </div>

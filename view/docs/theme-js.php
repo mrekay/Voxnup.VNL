@@ -6,10 +6,12 @@
                 <div class="vnl-overline mb-3">// docs/theme-js</div>
                 <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">JavaScript API</h1>
                 <div class="vnl-lead">
-                    İstemci katmanı üç dosyadan oluşur: <code>vendors.min.js</code> (jQuery, Bootstrap,
-                    SweetAlert2, SlimSelect), <code>vnl.min.js</code> (tema davranışları) ve
-                    <code>vnl/assets/js/vnl.js</code> (VNL çekirdeği). Hepsi <code>head</code>'de yüklenir;
-                    sayfa içi satır arası <code>$(...)</code> kullanımı güvenlidir.
+                    İstemci katmanının sırası çekirdekten gelir: <code>vnl_core_scripts()</code> →
+                    <code>vendors.min.js</code> (jQuery, Bootstrap, SweetAlert2, SlimSelect),
+                    <code>vnl.min.js</code> (tema davranışları), <code>vnl.js</code> (VNL çekirdeği),
+                    <code>vnltable.js</code>, <code>flatpickr.min.js</code> ve <code>vnl-date.js</code>.
+                    Önlerinde, CSRF meta etiketinin hemen altında <code>vnl-csrf.js</code> yüklenir.
+                    Hepsi <code>head</code>'dedir; sayfa içi satır arası <code>$(...)</code> kullanımı güvenlidir.
                 </div>
             </div>
 
@@ -33,10 +35,11 @@
                                 <tbody class="text-body fw-semibold">
                                 <tr><td><code>showMessage(mesaj, hataMi)</code></td><td>Sağ altta toast (SweetAlert2)</td></tr>
                                 <tr><td><code>showModalMessage(mesaj, mod)</code></td><td>Modal; mod: <code>0/false</code> başarı · <code>1/true</code> hata · <code>2</code> uyarı · <code>3</code> bilgi</td></tr>
-                                <tr><td><code>vnlBtnLoading(btn, metin?)</code> / <code>vnlBtnReset(btn)</code></td><td>Yükleniyor düğmeleri; deklaratif <code>data-vnl-loading</code> AJAX bitince kendini sıfırlar — bkz. <a href="/docs/theme-components">Bileşenler</a></td></tr>
+                                <tr><td><code>vnlBtnLoading(btn, metin?)</code> / <code>vnlBtnReset(btn)</code></td><td>Yükleniyor düğmeleri; deklaratif <code>data-vnl-loading</code> jQuery AJAX trafiği bitince (<code>ajaxStop</code>) kendini sıfırlar; <code>fetch</code> ile çalışan düğmede <code>vnlBtnReset(btn)</code>'i kendiniz çağırın — bkz. <a href="/docs/theme-components">Bileşenler</a></td></tr>
                                 <tr><td><code>showSpinner()</code> / <code>hideSpinner()</code></td><td>Tam sayfa yükleniyor katmanı (<code>#loadingSpinner</code>)</td></tr>
                                 <tr><td><code>deleteItemFromDB({url, data, …})</code></td><td>Onaylı silme akışı (Swal onayı + AJAX) — seçenekler aşağıda</td></tr>
                                 <tr><td><code>copyToClipboard(metin, bildir?)</code></td><td>Panoya kopyala; Clipboard API, güvenli bağlam yoksa execCommand'e düşer. Bildirim yalnızca kopyalama başarılıysa gösterilir</td></tr>
+                                <tr><td><code>vnl-csrf.js</code></td><td>jQuery'siz istekler için CSRF: düz <code>fetch</code>, ham <code>XMLHttpRequest</code> ve <code>navigator.sendBeacon</code> çağrılarını sarar. Yalnız aynı kökene ve yazan yöntemlere (GET/HEAD/OPTIONS dışı) <code>X-CSRF-Token</code> ekler; <code>sendBeacon</code> başlık taşıyamadığı için jeton gövdeye <code>_token</code> olarak girer. Çağrı noktası değişmez. Kendi <code>&lt;head&gt;</code>'ini yazan proje: <code>&lt;script src="&lt;?= vnl_e(vnl_asset('js/vnl-csrf.js')) ?&gt;"&gt;&lt;/script&gt;</code></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -93,7 +96,7 @@
                                 <tr><td><code>vnlLightbox(src, altyazı)</code></td><td>Tam ekran görsel; bir <code>&lt;img&gt;</code>'e <code>.modal-image</code> vermek de yeterli</td></tr>
                                 <tr><td><code>vnlTooltips(kapsam)</code></td><td>Tooltip'leri başlatır (<code>data-bs-toggle</code> ve eski <code>data-toggle</code>); AJAX sonrası otomatik çağrılır</td></tr>
                                 <tr><td><code>selectReload($(…))</code></td><td>AJAX select doldurma — bkz. <a href="/docs/theme-forms">Form ve Select</a></td></tr>
-                                <tr><td><code>clearForm($form)</code> / <code>validateForm($form)</code></td><td>Form temizleme (SlimSelect ve VNL Date dahil) ve basit doğrulama. VNL 3.0'da adlar <code>ClearForm</code> / <code>checkValidity</code> idi</td></tr>
+                                <tr><td><code>clearForm($form)</code> / <code>validateForm($form)</code></td><td>Form temizleme (SlimSelect ve VNL Date dahil) ve basit doğrulama. VNL 3.0'dan önce (2.x) adlar <code>ClearForm</code> / <code>checkValidity</code> idi</td></tr>
                                 <tr><td><code>vnlDate(el)</code> · <code>vnlDate.set/clear/init/parse/format</code></td><td>Tarih ve saat seçici; sayfa <code>&lt;input data-vnl-date&gt;</code> yazar, JS gerekmez — bkz. <a href="/docs/theme-dates">Tarih ve Saat</a></td></tr>
                                 </tbody>
                             </table>
@@ -102,10 +105,8 @@
                         <div class="alert alert-secondary d-flex align-items-start p-4 mt-5">
                             <i class="fa-solid fa-circle-info fs-2 text-body-secondary me-3"></i>
                             <span class="text-body fs-6">
-                                <b>Genel bir JS dil köprüsü yoktur.</b> Bu sayfa VNL 3.1'e kadar
-                                <code>vnlLang('ANAHTAR')</code> ve <code>VNL_LANG</code> diye iki API anlatıyordu;
-                                ikisi de hiçbir dosyada tanımlı değildi. VNL 3.2'de doküman koda uyduruldu:
-                                girdiler kaldırıldı. Sözlüğün tamamını tarayıcıya indirmek yerine
+                                <b>Genel bir JS dil köprüsü yoktur.</b> <code>vnlLang('ANAHTAR')</code> ya da
+                                <code>VNL_LANG</code> gibi bir API tanımlı değildir. Sözlüğün tamamını tarayıcıya indirmek yerine
                                 <b>her bileşen kendi metinlerini kendi tanımıyla taşır</b> — VNL Table'ın
                                 yaptığı budur (<code>VnlTable::lang()</code>, metinler tablo tanımının
                                 <code>lang</code> bloğunda gelir). Kendi bileşeninizde de aynısını yapın:

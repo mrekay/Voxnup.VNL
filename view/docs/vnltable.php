@@ -23,7 +23,8 @@
                         panelleri (başlıktaki huni, Excel tarzı değer seçimi) <code>grid</code> ile
                         gelir ve <a href="/docs/vnltable-grid" class="fw-bold">VNL Table — Grid</a>
                         sayfasında anlatılır. <code>workbench</code> (sütun sabitleme, gruplama,
-                        hücre düzenleme, pivot) sırada.
+                        hücre düzenleme, detay satırı, toplu işlem, pivot) ise
+                        <a href="/docs/vnltable-workbench" class="fw-bold">VNL Table — Workbench</a> sayfasında.
                     </span>
                 </div>
             </div>
@@ -262,10 +263,10 @@
                         <h3 class="fw-bold text-body-emphasis mb-4">5. Hücre Biçimlendiricileri</h3>
 
                         <p class="fs-5 text-body mb-4">
-                            Hücre ham değer taşır — bu kuralın bedeli VNL 3.1'e kadar şuydu: bir hücrede
-                            rozet göstermek isteyen sunucu, <b>değerin yerine HTML göndermek</b> zorundaydı
-                            (<code>render =&gt; 'html'</code>). Veri biçime feda oluyor, kaçış sorumluluğu da
-                            her eylem dosyasına dağılıyordu.
+                            Hücre ham değer taşır — <code>format</code> olmasaydı bu kuralın bedeli şu olurdu: bir hücrede
+                            rozet göstermek isteyen sunucu, <b>değerin yerine HTML göndermek</b> zorunda kalırdı
+                            (<code>render =&gt; 'html'</code>). Veri biçime feda olur, kaçış sorumluluğu da
+                            her eylem dosyasına dağılırdı.
                         </p>
                         <p class="fs-5 text-body mb-6">
                             <code>format</code> dengeyi tersine çevirir: <b>değer ham kalır</b>, sunucu yalnız
@@ -352,7 +353,7 @@
                                 <tr>
                                     <td class="ps-5"><code>link</code></td>
                                     <td><a href="#" class="vnl-cell-link" onclick="return false">42</a></td>
-                                    <td><code>href</code> zorunlu; <code>{sutun}</code> yer tutucuları <b>satırın</b> değerleriyle dolar ve URL-kodlanır. <code>target</code> verilirse <code>rel="noopener"</code> eklenir.</td>
+                                    <td><code>href</code> zorunlu; <code>{sutun}</code> yer tutucuları <b>satırın</b> değerleriyle dolar ve URL-kodlanır. Şema yalnız <code>http</code> · <code>https</code> · <code>mailto</code> · <code>tel</code> ya da göreli adres olabilir; başkası tanımda hata verir. <code>target</code> verilirse <code>rel="noopener noreferrer"</code> eklenir.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -467,35 +468,93 @@ vnlTable.formatter('sil', function (value, row) {
                         <p class="fs-5 text-body mb-4">
                             <code>getList</code> adı VNL 2.x'ten korunur, sözleşme tamamen değişti.
                             <code>VnlTableRequest</code> gelen isteği çözer ve yanıtı biçimlendirir.
-                            Tek action üç işi görür; hangisi olduğunu <code>op</code> alanı söyler.
+                            Hangi işin istendiğini <code>op</code> alanı söyler. <code>list</code>
+                            modunda üç iş vardır (<code>list</code> · <code>export</code>; grid'de
+                            <code>distinct</code>); grid ve workbench <code>group</code>, <code>save</code>,
+                            <code>detail</code>, <code>bulk</code> ve <code>pivot</code>'u ekler.
                         </p>
 
                         <div class="vnl-code mb-5">
-                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>public function getList($req)
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// classes/Kayit.php — sorgu modelde, tek yerde
+class Kayit extends TableModel
 {
-    Auth::CheckLogin();
+    protected $table = 'tbl_kayit';
+
+    protected static $columns = [
+        'id'         =&gt; ['name' =&gt; 'tbl_kayit.id'],
+        'ad'         =&gt; ['name' =&gt; 'tbl_kayit.ad', 'operator' =&gt; 'like'],   // düz arama
+        'created_at' =&gt; ['name' =&gt; 'tbl_kayit.created_at'],
+    ];
+
+    public static function SelectList($filters = [], $extras = [])
+    {
+        return self::selectListQuery(self::$columns, $filters, $extras)-&gt;select('tbl_kayit.*');
+    }
+}
+
+// actions/action_kayit.php
+public function getList($req)
+{
+    Auth::CheckPermission('Kayit', 'view');
 
     $t = VnlTableRequest::from($req);
 
-    // $t-&gt;op       list | distinct | export
+    // $t-&gt;op       list | export (grid: distinct; workbench daha fazlası)
     // $t-&gt;page     $t-&gt;size     $t-&gt;offset()
     // $t-&gt;sort     [['col' =&gt; 'ad', 'dir' =&gt; 'asc']]
     // $t-&gt;search   düz arama metni
     // $t-&gt;context  tanımdaki context() ile gönderilen sabitler
 
-    $extras = $t-&gt;extras('created_at', 'desc');   // TableModel için hazır dizi
-    $rows   = Kayit::SelectList($t-&gt;modelFilters(), $extras)-&gt;get();
+    // Düz arama modele filtre olarak gider: 'ad' $columns'ta 'like'.
+    // Boş metin filtre sayılmaz.
+    $filtre = ['ad' =&gt; $t-&gt;search];
+    $extras = $t-&gt;extras('created_at', 'desc');   // begin, limit, order, order_by
 
     if ($t-&gt;op === VnlTableRequest::OP_EXPORT) {
-        $t-&gt;exportXlsx($tumSatirlar, ['id' =&gt; 'No', 'ad' =&gt; 'Ad'], 'kayit');
+        // Sayfalamadan ÖNCE: kullanıcı gördüğü sayfayı değil, filtrenin tamamını indirir.
+        $hepsi = Kayit::SelectList($filtre, ['order' =&gt; $extras['order'], 'order_by' =&gt; $extras['order_by']])
+            -&gt;get()-&gt;map(fn($r) =&gt; ['id' =&gt; $r-&gt;id, 'ad' =&gt; $r-&gt;ad])-&gt;all();
+
+        $t-&gt;exportXlsx($hepsi, ['id' =&gt; 'No', 'ad' =&gt; 'Ad'], 'kayit');   // akıtır ve biter
     }
 
     $t-&gt;respond(
-        $rows-&gt;map(fn($r) =&gt; ['id' =&gt; $r-&gt;id, 'ad' =&gt; $r-&gt;ad])-&gt;all(),
+        Kayit::SelectList($filtre, $extras)-&gt;get()
+            -&gt;map(fn($r) =&gt; ['id' =&gt; $r-&gt;id, 'ad' =&gt; $r-&gt;ad])-&gt;all(),
         Kayit::SelectList(null, null)-&gt;count(),      // toplam
-        Kayit::SelectList($t-&gt;modelFilters(), null)-&gt;count()  // filtrelenmiş
+        Kayit::SelectList($filtre, null)-&gt;count()    // filtrelenmiş
     );
 }</code></pre>
+                        </div>
+
+                        <div class="alert alert-info d-flex flex-column flex-sm-row p-5 mb-5">
+                            <i class="fa-solid fa-circle-info fs-2hx text-info me-4 mb-5 mb-sm-0"></i>
+                            <div class="d-flex flex-column pe-0 pe-sm-10">
+                                <span>
+                                    <b><code>extras()</code> aramayı uygulamaz.</b> Dizi bir <code>search</code>
+                                    anahtarı da taşır ama <code>TableModel::selectListQuery()</code> onu okumaz;
+                                    arama ancak yukarıdaki gibi <code>$columns</code>'ta <code>'like'</code>
+                                    tanımlı bir filtreye verilince çalışır. Sıralama da aynı listeden geçer:
+                                    <code>order</code> <code>$columns</code>'ta yoksa sıralama yapılmaz. Filtre
+                                    dizisine <code>$columns</code>'ta olmayan bir anahtar girerse istek düşer.
+                                    <code>like</code> araması her sürücüde düz metindir
+                                    (<code>ESCAPE '!'</code>): "50%" yüzde işaretini arar.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning d-flex flex-column flex-sm-row p-5 mb-5">
+                            <i class="fa-solid fa-shield-halved fs-2hx text-warning me-4 mb-5 mb-sm-0"></i>
+                            <div class="d-flex flex-column pe-0 pe-sm-10">
+                                <span>
+                                    <b>Tablo isteği sıradan bir action isteğidir.</b> <code>vnltable.js</code>
+                                    her isteği <code>POST</code>, JSON gövde ve <code>X-CSRF-Token</code> başlığıyla
+                                    gönderir; dağıtıcı girişi ve CSRF'i action'dan önce denetler. Girişsiz bir
+                                    sayfadaki tablonun ucu action sınıfında
+                                    <code>public const PUBLIC_METHODS = ['getList'];</code> ister (örnek:
+                                    <code>actions/action_vnltable.php</code>); CSRF yine zorunludur.
+                                </span>
+                            </div>
                         </div>
 
                         <div class="row g-5">
@@ -547,8 +606,8 @@ vnlTable.formatter('sil', function (value, row) {
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Varsayilan: getList icinde uret
 if ($t-&gt;op === VnlTableRequest::OP_EXPORT) {
     // Sayfalamadan ONCE cagirin: kullanici gordugu sayfayi degil,
-    // filtrenin tamamini indirsin.
-    $t-&gt;exportXlsx($tumSatirlar, ['id' =&gt; 'No', 'ad' =&gt; 'Ad'], 'kayit');
+    // filtrenin tamamini indirsin ($hepsi: limit/offset'siz sorgu, bkz. §6).
+    $t-&gt;exportXlsx($hepsi, ['id' =&gt; 'No', 'ad' =&gt; 'Ad'], 'kayit');
 }
 
 // Dosyayi diske yazmak / maile eklemek icin
@@ -573,6 +632,7 @@ $binary = VnlTableExport::build($satirlar, ['id' =&gt; 'No', 'ad' =&gt; 'Ad']);<
 // actions/action_rapor.php
 public function aylikSatis($req)
 {
+    Auth::CheckPermission('Satis', 'view');
     $t = VnlTableRequest::from($req);     // ayni sozlesme
     // ... sablonu doldur, istediginiz dosyayi akitin ...
 }</code></pre>
@@ -606,6 +666,7 @@ public function aylikSatis($req)
                                 <tr><td class="ps-5"><code>height</code></td><td>—</td><td>Gövde yüksekliği (<code>'420px'</code>); başlık yapışkan kalır.</td></tr>
                                 <tr><td class="ps-5"><code>skin</code></td><td><code>'default'</code></td><td><code>default</code> · <code>modern</code> · <code>compact</code>. Kendi skin'inizi <code>.vnl-skin-adiniz</code> sınıfıyla CSS'te tanımlayabilirsiniz.</td></tr>
                                 <tr><td class="ps-5"><code>striped</code></td><td><code>false</code></td><td>Satırları dönüşümlü renklendirir. Skin'den bağımsızdır; rengi seçili skin sağlar.</td></tr>
+                                <tr><td class="ps-5"><code>minWidth</code></td><td>—</td><td>Tablonun taban genişliği (<code>'1200px'</code>). Tablo normalde kabına sığar; sabit sütunun iş görmesi için taşması gerekir. Verilmezse sabit sütunlu tabloda sütunların <code>width</code>'leri toplanır.</td></tr>
                                 </tbody>
                             </table>
                         </div>

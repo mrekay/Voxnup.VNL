@@ -23,7 +23,7 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">1. Validator Nedir?</h3>
                         <p class="fs-5 text-body mb-4">
-                            Validatorlar, action sınıflarında veritabanı işlemlerinden önce çalıştırılan doğrulama sınıflarıdır. Bir doğrulama başarısız olduğunda <code>StandartException</code> fırlatılır. Bu exception kendi constructor'ında <code>returnErrorMessage()</code> fonksiyonunu çağırır; dolayısıyla action metodu anında sonlanır ve istemciye JSON hata mesajı iletilir.
+                            Validatorlar, action sınıflarında veritabanı işlemlerinden önce çalıştırılan doğrulama sınıflarıdır. Bir doğrulama başarısız olduğunda <code>StandartException</code> fırlatılır. Bu exception kendi constructor'ında <code>returnErrorMessage()</code> fonksiyonunu çağırır; dolayısıyla action metodu anında sonlanır ve istemciye JSON hata mesajı iletilir. Komut satırında (kuyruk işçisi, <code>commands/</code>) yanıt basılmaz, istisna normal biçimde fırlar — işçi işi başarısız deneme olarak yazar.
                         </p>
 
                         <div class="row g-5">
@@ -68,8 +68,12 @@
                                 </thead>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
+                                    <td class="ps-5"><code>validateEmpty($param, $region='')</code></td>
+                                    <td>Değer <code>empty()</code> ise (<code>null</code>, <code>''</code>, <code>0</code>, <code>'0'</code>, <code>[]</code>) hata fırlatır. Boşluk kontrolünün asıl adı budur.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>validateEmptyString($param, $region='')</code></td>
-                                    <td>Değer boş string veya <code>null</code> ise hata fırlatır.</td>
+                                    <td><code>validateEmpty()</code> ile aynı (eski ad).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>validateEmptyData($param, $region='')</code></td>
@@ -129,7 +133,15 @@
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>validateValidPassword($password, $region='')</code></td>
-                                    <td>Minimum 8 karakter, en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter zorunludur.</td>
+                                    <td>Parola kuralını uygular. 4.0.0'dan beri ayarlanabilir: <code>VNL_PASSWORD_MIN_LENGTH</code> (varsayılan 8) ve <code>VNL_PASSWORD_REQUIRE=upper,lower,digit,symbol</code> (varsayılan dördü de; boş = hiçbiri). Uzunluk bayt değil karakter sayılır; <code>Ş</code>, <code>Ğ</code>, <code>İ</code> büyük, <code>ş</code>, <code>ğ</code>, <code>ı</code> küçük harftir ve ASCII dışı harf "özel karakter" sayılmaz.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>requireValidPassword($password, $region='')</code></td>
+                                    <td><code>validateValidPassword()</code> ile aynı kural (4.0.0).</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>passwordPolicy()</code></td>
+                                    <td>Geçerli kuralı döndürür: <code>['min' => 8, 'require' => ['upper', ...]]</code> (4.0.0). Formda kuralı göstermek için.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -197,10 +209,9 @@ class UserValidator extends DefaultValidator
      */
     public static function validateUniqueUsername(string $username, int $excludeId = 0): void
     {
-        $filters = ['Username' => $username];
-        $count = User::SelectList($filters, null)->count();
-
-        if ($count > 0 && $excludeId === 0) {
+        // Sorgu modelde: User::usernameExists() silinmişleri de sayar,
+        // düzenlenen kaydın kendisini ($excludeId) dışarıda bırakır.
+        if (User::usernameExists($username, $excludeId)) {
             throw new StandartException('Bu kullanıcı adı zaten kullanılıyor.');
         }
     }
@@ -208,7 +219,7 @@ class UserValidator extends DefaultValidator
     /**
      * TC kimlik numarası formatını doğrular.
      */
-    public function validateTCKN(string $tckn, string $region = ''): void
+    public static function validateTCKN(string $tckn, string $region = ''): void
     {
         if (!preg_match('/^[1-9][0-9]{10}$/', $tckn)) {
             $msg = $region
@@ -242,11 +253,13 @@ class UserValidator extends DefaultValidator
 // Dosya: actions/action_kullanici.php
 // Validatörler ve modüller statik olarak çağrılır
 
+use ActionGlobal\Auth;
+
 class action_kullanici
 {
     public function kaydet($req): void
     {
-        Auth::CheckLogin();
+        Auth::CheckPermission('Users', 'insert');   // her zaman ilk satır
 
         $ad       = $req->post('ad');
         $soyad    = $req->post('soyad');
@@ -254,7 +267,6 @@ class action_kullanici
         $sifre    = $req->post('sifre');
         $dogum    = $req->post('dogum_tarihi');
         $username = $req->post('username');
-        $user_id  = $req->post('user_id');
 
         // Doğrulamalar — statik çağrı, hata olursa otomatik JSON yanıtı döner
         DefaultValidator::validateEmptyString($ad,    'Ad');
@@ -266,23 +278,17 @@ class action_kullanici
         UserValidator::validateUniqueUsername($username);
 
         // Tüm doğrulamalar geçtiyse DB işlemi — model üzerinden
-        $kullanici = empty($user_id) ? new User() : User::Select(['Id' => $user_id]);
+        $kullanici = new User();
+        $kullanici->fill([
+            'name'     => $ad,
+            'surname'  => $soyad,
+            'email'    => $email,
+            'username' => $username,
+        ]);
+        $kullanici->setStoredPassword(EncryptionModule::PasswordHash($sifre));
+        $kullanici->save();   // created_at / updated_at kendiliğinden
 
-        $kullanici->Name     = $ad;
-        $kullanici->Surname  = $soyad;
-        $kullanici->Email    = $email;
-        $kullanici->Username = $username;
-        if (!empty($sifre)) {
-            $kullanici->setStoredPassword(EncryptionModule::PasswordHash($sifre));
-        }
-        if (empty($user_id)) {
-            $kullanici->InsertDate = date('Y-m-d H:i:s');
-            $kullanici->InsertUser = Auth::User()->Id;
-        } else {
-            $kullanici->UpdateDate = date('Y-m-d H:i:s');
-            $kullanici->UpdateUser = Auth::User()->Id;
-        }
-        $kullanici->save();
+        Audit::log('user.create', 'user', $kullanici->id, ['username' => $username]);
 
         returnSuccessMessage('Kullanıcı başarıyla kaydedildi.');
     }
@@ -368,14 +374,14 @@ class action_kullanici
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">4</span>
                                 <div>
                                     <span class="fw-bold text-body">Action'da kullanın</span>
-                                    <div class="text-muted fs-6 mt-1"><code>$this->siparisValidator = new SiparisValidator();</code> şeklinde action constructor'ında başlatın.</div>
+                                    <div class="text-muted fs-6 mt-1">Metotlar statiktir; örnek oluşturmadan çağırın: <code>SiparisValidator::validateStok($adet);</code></div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
-                            <span class="text-body fs-6">Dosya adı sınıf adıyla eşleşmelidir: <code>SiparisValidator.php</code> dosyasında <code>class SiparisValidator</code> bulunmalıdır. Bu kural <code>spl_autoload</code> yükleyicisinin gerektirdiği standarttır.</span>
+                            <span class="text-body fs-6">Dosya adı sınıf adıyla eşleşmelidir: <code>SiparisValidator.php</code> dosyasında <code>class SiparisValidator</code> bulunmalıdır. <code>vnl/validators/</code> ve <code>validators/</code> açılışta dosya adına göre birleştirilip <code>require_once</code> ile yüklenir; aynı dosya adı projede varsa çekirdeğinki hiç yüklenmez. Dosya adı ile sınıf adı tutarlı olmazsa hangi sınıfı ezdiğiniz belirsizleşir.</span>
                         </div>
                     </div>
                     <!--end::Section 7-->

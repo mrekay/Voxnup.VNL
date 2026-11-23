@@ -12,7 +12,7 @@
                 <i class="fa-solid fa-lightbulb fs-2hx text-primary me-4"></i>
                 <div class="d-flex flex-column text-primary">
                     <h4 class="mb-1 text-primary">Temel Kural</h4>
-                    <span>URL'deki ilk segment her zaman çalıştırılacak <b>Controller</b> dosyasının adını belirler. Dosya yoksa <code>controller/404.php</code> devreye girer.</span>
+                    <span>URL'deki ilk segment her zaman çalıştırılacak <b>Controller</b> dosyasının adını belirler. Dosya yoksa <code>controller/404.php</code> devreye girer. Sayfalar varsayılan olarak <b>girişe kapalıdır</b>: karar denetleyici çalışmadan <code>vnl/kernel.php</code>'de verilir; girişsiz ziyaretçi bilinmeyen adreste de 404 değil <code>/login</code> görür (sayfanın var olup olmadığı belli olmasın diye). Adres parçaları <code>[A-Za-z0-9_.-]</code> ile sınırlıdır. <code>/app/&lt;dosya&gt;/&lt;metot&gt;</code> ayrılmıştır: <code>VnlDispatcher</code>'a gider ve yalnız POST + CSRF kabul eder (<a href="/docs/security" class="fw-bold">Güvenlik</a>).</span>
                 </div>
             </div>
 
@@ -61,13 +61,15 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">2. Controller Anatomisi</h3>
                         <p class="fs-5 text-body mb-4">
-                            Her controller dosyası aynı temel yapıyı izler: önce <code>$meta</code> ve <code>$page_config</code> tanımlanır, ardından veritabanı işlemleri yapılır, son olarak <code>header</code> + <code>içerik</code> + <code>footer</code> view'ları birleştirilerek ekrana basılır. Sınıf tanımlamasına (<code>class</code>) ya da constructor'a gerek yoktur; dosya düz PHP olarak çalışır.
+                            Her controller dosyası aynı temel yapıyı izler: önce <code>$meta</code> ve <code>$page_config</code> tanımlanır, ardından veri modelden çekilir (sorgu modelde durur), son olarak <code>header</code> + <code>içerik</code> + <code>footer</code> view'ları birleştirilerek ekrana basılır. Sınıf tanımlamasına (<code>class</code>) ya da constructor'a gerek yoktur; dosya düz PHP olarak çalışır. Denetleyici yan etkisizdir (veri okur, yazmaz); yetki gerekiyorsa ilk satırı <code>vnl_require_permission('Kod', 'view');</code> olur — yetkisiz kullanıcı 403 sayfasını görür.
                         </p>
 
                         <div class="vnl-code mb-5">
                             <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // Dosya: controller/kullanici.php
 // Erişim: site.com/kullanici  veya  site.com/kullanici/profil/15
+
+vnl_require_permission('Users', 'view');   // girişsiz → /login, yetkisiz → 403
 
 // 1. META — Sekme başlığı ve breadcrumb bilgileri
 $meta = [
@@ -84,13 +86,11 @@ $page_config = [
     'contentheader' => true,
 ];
 
-// 3. VERİTABANI — route() ile hangi sayfada olduğumuzu anlıyoruz
+// 3. VERİ — route() ile hangi sayfada olduğumuzu anlıyoruz; sorgu modelde (classes/User.php)
 $islem = route(1) ?: 'liste';
 
 if ($islem === 'profil') {
-    $kullanici = Capsule::table('tbl_users')
-        ->where('id', route(2))
-        ->first();
+    $kullanici = User::Select(['id' => (int)route(2)]);
 
     // 4. VIEW — Header + sayfa içeriği + footer birleştirilir
     require view('static/header');
@@ -98,7 +98,7 @@ if ($islem === 'profil') {
     require view('static/footer');
 
 } else {
-    $kullanicilar = Capsule::table('tbl_users')->get();
+    $kullanicilar = User::SelectList([], ['order' => 'name'])->get();
 
     require view('static/header');
     require view('kullanici/liste');
@@ -245,8 +245,8 @@ if ($islem === 'profil') {
                                 <tr>
                                     <td class="ps-5"><code>public</code></td>
                                     <td><em>Tanımsız</em></td>
-                                    <td><code>true</code></td>
-                                    <td>Giriş yapılmadan erişime izin verir. Tanımlanmazsa veya <code>false</code> ise login gerekir. Detay için <a href="/docs/session" class="text-primary fw-bold">Oturum Yönetimi</a> sayfasına bakın.</td>
+                                    <td><em>Kullanımdan kalktı</em></td>
+                                    <td><b>Bir sayfayı açmaz</b>: giriş kararı denetleyici çalışmadan verilir, bu anahtar yalnız günlüğe bir uyarı düşürür. Girişsiz açılacak sayfa <code>config/definitions.php</code> → <code>$login_except_pages</code>'e yazılır ya da eklentide <code>vnl_public_page('ad')</code> ile kaydedilir. Bkz. <a href="/docs/config-definitions" class="text-primary fw-bold">Config Definitions</a>.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>toolbaritems</code></td>
@@ -369,11 +369,11 @@ if ($islem === 'profil') {
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">6. <code>view()</code> Fonksiyonu</h3>
                         <p class="fs-5 text-body mb-4">
-                            Controller içinden HTML çıktısı vermek için <code>require view('...')</code> kullanılır. Fonksiyon, <code>setting('theme')</code> ile belirlenen aktif tema klasörüne göre tam dosya yolunu oluşturur.
+                            Controller içinden HTML çıktısı vermek için <code>require view('...')</code> kullanılır. Yol <code>view/</code> altında çözülür; proje tarafında yoksa çekirdeğe bakılır. <code>setting('theme')</code> tanımlıysa araya o tema klasörü girer (<code>view/&lt;tema&gt;/…</code>), tanımsızsa yol doğrudan <code>view/…</code> olur.
                         </p>
 
                         <div class="vnl-code mb-4">
-                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tam yol: view/{tema}/kullanici/profil.php
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Tam yol: view/kullanici/profil.php  (tema tanımlıysa view/&lt;tema&gt;/kullanici/profil.php)
 require view('kullanici/profil');
 
 // Tipik controller şablonu

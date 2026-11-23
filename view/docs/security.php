@@ -4,8 +4,8 @@
 
             <div class="vnl-page-hero mb-12 mt-6">
                 <div class="vnl-overline mb-3">// docs/security</div>
-                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Güvenlik (3.4.0)</h1>
-                <div class="vnl-lead">VNL 3.4.0 ile şablon <b>varsayılan olarak kapalı</b> gelir: sayfalar girişe, action'lar POST + CSRF + girişe, yetkiler koda bağlıdır. Bu sayfa kapıları, yetki modelini, oturum kurallarını, hız sınırını, iki adımlı doğrulamayı, denetim kaydını ve API jetonlarını tek yerde toplar.</div>
+                <h1 class="fs-2hx fw-bold mb-4 text-body-emphasis">Güvenlik</h1>
+                <div class="vnl-lead">Şablon <b>varsayılan olarak kapalı</b> gelir: sayfalar girişe, action'lar POST + CSRF + girişe, yetkiler koda bağlıdır. Bu sayfa kapıları, yetki modelini, oturum kurallarını, hız sınırını, iki adımlı doğrulamayı, denetim kaydını ve API jetonlarını tek yerde toplar.</div>
             </div>
 
             <div class="card mb-10">
@@ -108,7 +108,7 @@ class action_domains
                             </table>
                         </div>
 
-                        <h4 class="fw-bold text-body-emphasis mt-8 mb-3">jQuery'siz istekler: <code>vnl-csrf.js</code> (4.1.0)</h4>
+                        <h4 class="fw-bold text-body-emphasis mt-8 mb-3">jQuery'siz istekler: <code>vnl-csrf.js</code></h4>
                         <p class="fs-5 text-body mb-4">
                             <code>vnl/assets/js/vnl-csrf.js</code> <code>fetch</code>, <code>XMLHttpRequest</code> ve
                             <code>navigator.sendBeacon</code>'ı sarar; çağrı noktası değişmez. jQuery'ye ve <code>vnl.js</code>'e
@@ -182,7 +182,7 @@ Permission::EnsureCode('Domains', 'Domainler');</code></pre>
                         </div>
                         <div class="alert alert-warning d-flex align-items-center p-4 mb-0">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
-                            <span class="text-body fs-6"><b>Katı ve gevşek soru.</b> Yetki <b>kapıları</b> — <code>vnl_require_permission()</code>, <code>Auth::CheckPermission()</code>, <code>Auth::Can()</code> — <code>vnl_can($kod, $yetenek, true)</code> ile katı sorar: kanca tanımlı değilse ya da kod boşsa cevap <b>hayır</b>dır ve eksik kanca günlüğe yazılır. Yalnız menü görünürlüğü 3.1 uyumlu gevşek soruyu kullanır (kanca yoksa her öğe görünür). <code>php vnl.php doctor</code> kancanın varlığını sınar. Kullanıcı yönetimi uçları <code>actions/action_users.php</code>'de (<code>getList</code>, <code>get</code>, <code>save</code>, <code>delete</code>, <code>permissions</code>, <code>setPermissions</code>; yetki kodu <code>Users</code>): süper yönetici atamak yalnız süper yöneticinin, kendi hesabını değiştirmek kimsenin işi değildir; süper olmayan yönetici yalnız kendisinde olan yetenekleri dağıtabilir ve <b>yalnız bütün yetenekleri kendisinde de olan</b> bir kullanıcıyı düzenleyebilir, parolasını sıfırlayabilir, silebilir ya da yetkilerini değiştirebilir — aksi halde <code>Users:edit</code> ile daha yetkili birinin parolasını sıfırlayıp onun yerine girmek mümkün olurdu.</span>
+                            <span class="text-body fs-6"><b>Katı ve gevşek soru.</b> Yetki <b>kapıları</b> — <code>vnl_require_permission()</code>, <code>Auth::CheckPermission()</code>, <code>Auth::Can()</code> — <code>vnl_can($kod, $yetenek, true)</code> ile katı sorar: kanca tanımlı değilse ya da kod boşsa cevap <b>hayır</b>dır ve eksik kanca günlüğe yazılır. Yalnız menü görünürlüğü geriye uyumlu gevşek soruyu kullanır (kanca yoksa her öğe görünür). <code>php vnl.php doctor</code> kancanın varlığını sınar. Kullanıcı yönetimi uçları <code>actions/action_users.php</code>'de (<code>getList</code>, <code>get</code>, <code>save</code>, <code>delete</code>, <code>permissions</code>, <code>setPermissions</code>; yetki kodu <code>Users</code>): süper yönetici atamak yalnız süper yöneticinin, kendi hesabını değiştirmek kimsenin işi değildir; süper olmayan yönetici yalnız kendisinde olan yetenekleri dağıtabilir ve <b>yalnız bütün yetenekleri kendisinde de olan</b> bir kullanıcıyı düzenleyebilir, parolasını sıfırlayabilir, silebilir ya da yetkilerini değiştirebilir — aksi halde <code>Users:edit</code> ile daha yetkili birinin parolasını sıfırlayıp onun yerine girmek mümkün olurdu.</span>
                         </div>
                     </div>
                     <!--end::Section 3-->
@@ -193,12 +193,13 @@ Permission::EnsureCode('Domains', 'Domainler');</code></pre>
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">4. Oturum ve giriş</h3>
                         <ul class="fs-6 text-body mb-0">
-                            <li class="mb-2">Oturum çerezi <code>HttpOnly</code>, <code>SameSite=Lax</code> (<code>VNL_SESSION_SAMESITE</code>), TLS'te <code>Secure</code>; <code>session.use_strict_mode</code> açık.</li>
+                            <li class="mb-2">Oturum çerezinin adı <code>VNLSESSID</code>'dir (<code>VNL_SESSION_NAME</code>, 4.0.0; aynı alan adındaki başka bir PHP uygulamasının <code>PHPSESSID</code>'iyle çakışmaz). Çerez <code>HttpOnly</code>, <code>SameSite=Lax</code> (<code>VNL_SESSION_SAMESITE</code>), TLS'te <code>Secure</code>; <code>session.use_strict_mode</code> açık.</li>
                             <li class="mb-2">Girişte oturum kimliği yenilenir (<code>Session::regenerate()</code>) ve CSRF jetonu döner.</li>
                             <li class="mb-2"><code>VNL_SESSION_IDLE</code> saniye (varsayılan 3600) istek gelmezse oturum biter ve bu cihazın "beni hatırla" jetonu da iptal edilir; oturum dosyası önceden silinmişse jetonun son kullanımı (<code>used_at</code>) aynı sınırla denetlenir. <code>VNL_IDLE_KEEPS_REMEMBER=true</code> eski davranışı açar (cihaz aynı istekte sessizce yeniden girer). <code>VNL_REMEMBER_DAYS=0</code> kalıcı girişi tamamen kapatır.</li>
                             <li class="mb-2">Hesap pasifleşirse (<code>is_active = 0</code>) açık oturum bir sonraki istekte kapanır.</li>
-                            <li class="mb-2"><b>Hız sınırı</b> (15 dk pencere → 429 <code>VNL_RATE</code>): IP başına 20 deneme (IPv6'da <code>/64</code> öneki; <code>::ffff:</code> ile gelen IPv4 tam adres), hesap + IP başına 5, hesap başına bütün adreslerden 100. Deneme parola denetlenmeden <b>önce</b> sayılır ve kapı sayımın sonucuna bakar — paralel istekler sınırı aşamaz; başarılı deneme IP bütçesinden geri düşülür. Hesap anahtarı <b>kayıtlı</b> kullanıcı adından üretilir: harmanlama (<code>utf8mb4_unicode_ci</code>) <code>ädmin</code>'i de <code>admin</code>'e eşlediği için yazım değiştirmek yeni hak kazandırmaz; sıkı kilit hesap + IP olduğundan başka bir adresten 5 yanlış parola gerçek yöneticiyi kilitleyemez.
-                                <br>Genel API: <code>if (!RateLimiter::hit($anahtar, $max, $sn)) { /* 429 */ }</code> — önce say, sonra karar ver; <code>RateLimiter::ipKey($ip)</code>, <code>decrement()</code>, <code>clear()</code>, <code>availableIn()</code>. <code>tooMany()</code> yalnız ön kontroldür, tek kapı olamaz. IP'nin gerçek istemci olması sunucuya bağlıdır: nginx → Apache arkasında <code>mod_remoteip</code> yoksa herkes vekilin adresinden gelir.</li>
+                            <li class="mb-2"><b>Parola ya da 2FA değişince açık oturumlar kapanır</b> (4.0.0). Girişte oturuma parola hash'i ile TOTP sırrından türetilen bir damga yazılır (<code>UserModule::AuthStamp()</code>) ve her istekte yeniden hesaplanır; tutmazsa oturum kapanır, <code>auth.session_revoked</code> yazılır. "Beni hatırla" jetonu da aynı damgaya bağlıdır (migration <code>0008</code>; tutmazsa jeton silinir, <code>auth.remember_revoked</code>). Parolayı değiştiren her yol — panel, konsol, projenin kendi kodu — ek çağrı yapmadan çalışır. Kendi parolasını değiştiren kullanıcının mevcut oturumu açık kalsın isteniyorsa <code>UserModule::RefreshAuthStamp($user)</code>.</li>
+                            <li class="mb-2"><b>Hız sınırı</b> (15 dk pencere → 429 <code>VNL_RATE</code>): IP başına 20 deneme (IPv6'da <code>/64</code> öneki; <code>::ffff:</code> ile gelen IPv4 tam adres), hesap + IP başına 5, hesap başına bütün adreslerden 100. Deneme parola denetlenmeden <b>önce</b> sayılır ve kapı sayımın sonucuna bakar — paralel istekler sınırı aşamaz; başarılı deneme IP bütçesinden geri düşülür. Hesap anahtarı <b>kayıtlı</b> kullanıcı adından üretilir: harmanlama (MySQL'de <code>utf8mb4_unicode_ci</code>) <code>ädmin</code>'i de <code>admin</code>'e eşlediği için yazım değiştirmek yeni hak kazandırmaz; sıkı kilit hesap + IP olduğundan başka bir adresten 5 yanlış parola gerçek yöneticiyi kilitleyemez.
+                                <br>Genel API: <code>if (!RateLimiter::hit($anahtar, $max, $sn)) { /* 429 */ }</code> — önce say, sonra karar ver; <code>RateLimiter::ipKey($ip)</code>, <code>decrement()</code>, <code>clear()</code>, <code>availableIn()</code>. <code>tooMany()</code> yalnız ön kontroldür, tek kapı olamaz. İstemci adresi <code>vnl_client_ip()</code>'den gelir (4.0.0; hız sınırı ve <code>Audit</code> da onu kullanır). CDN, yük dengeleyici ya da nginx → Apache arkasında <code>.env</code>'e <code>VNL_TRUSTED_PROXIES</code> (IP/CIDR, virgülle) yazın: yalnız bu vekillerden gelen istekte <code>X-Forwarded-For</code> sağdan sola okunur. Liste boşsa başlığa hiç bakılmaz — istemci sahte başlıkla sınırı atlatamaz, ama vekil arkasında bütün site tek kovaya düşer.</li>
                             <li class="mb-2"><b>Çıkış</b> <code>POST /app/login/logout</code>'tur; <code>data-vnl-logout</code> taşıyan her öğe onu çağırır. <code>GET /logout</code> yalnız onay sayfasıdır.</li>
                             <li>İlk yönetici: <code>php vnl.php user:create --username=admin --super</code> (parola bir kez basılır).</li>
                         </ul>
@@ -242,12 +243,12 @@ $user-&gt;totp_enabled = 1;</code></pre>
                         <h3 class="fw-bold text-body-emphasis mb-4">6. Denetim kaydı</h3>
                         <p class="fs-5 text-body mb-4">
                             <code>Audit::log($eylem, $tur = null, $kimlik = null, $veri = [])</code> kullanıcıyı, IP'yi, tarayıcıyı ve
-                            zamanı kendisi doldurur, <b>asla istisna fırlatmaz</b> ve adı <code>password</code>/<code>token</code>/<code>secret</code>
+                            zamanı kendisi doldurur, <b>asla istisna fırlatmaz</b> ve adı <code>password</code>/<code>token</code>/<code>secret</code> (4.0.0'dan beri ayrıca <code>sifre</code>, <code>parola</code>, <code>otp</code>, <code>api_key</code>, <code>authorization</code>, <code>cookie</code>, <code>credential</code>, <code>private_key</code>…)
                             içeren anahtarların değerini (dizi de olsa tamamını) <code>[redacted]</code> olarak yazar. <b><code>$veri</code>'nin
                             anahtarları alan adıdır, veri değil:</b> izin kodu, alan adı gibi veriden türeyen tanımlayıcılar kayıt listesi
                             olarak yazılır (<code>['permissions' =&gt; [['code' =&gt; 'ApiTokens', 'abilities' =&gt; ['view']]]]</code>) — anahtar
                             yapılsaydı <code>ApiTokens</code> gibi bir kod süzgece takılırdı. Yerleşik olaylar: <code>auth.login</code>, <code>auth.login_failed</code>,
-                            <code>auth.logout</code>, <code>auth.password_changed</code>, <code>auth.totp_*</code>, <code>user.*</code>,
+                            <code>auth.logout</code>, <code>auth.password_changed</code>, <code>auth.totp_*</code>, <code>auth.session_revoked</code>, <code>auth.remember_revoked</code>, <code>user.*</code>,
                             <code>api.token_*</code>. Yönetim ekranı: <code>Audit::query()</code>; konsolda işlemi yapan:
                             <code>Audit::actingAs($userId)</code>.
                         </p>
@@ -277,7 +278,7 @@ php vnl.php token:revoke --id=12
 ApiToken::issue($userId, 'ad', ['domains'], 90);   // düz jeton — bir kez gösterin</code></pre>
                         </div>
 
-                        <h4 class="fw-bold text-body-emphasis mt-8 mb-3">Proje jetonları (4.1.0)</h4>
+                        <h4 class="fw-bold text-body-emphasis mt-8 mb-3">Proje jetonları</h4>
                         <p class="fs-6 text-body mb-4">
                             Projenin kendi jeton biçimi varsa (ör. mobil uygulamanın öneksiz jetonları), <code>helpers/</code> altında
                             <code>vnl_project_authenticate_token(string $bearer, string $module, string $method)</code> tanımlayın.
@@ -319,8 +320,8 @@ vnl_is_bearer_request_for($userId, 'project');</code></pre>
                         <h3 class="fw-bold text-body-emphasis mb-4">8. Sunucu tarafı</h3>
                         <ul class="fs-6 text-body mb-0">
                             <li class="mb-2"><code>APP_DEBUG=false</code> canlıda: hata ayrıntısı günlüğe, kullanıcıya başvuru kodu.</li>
-                            <li class="mb-2">Güvenlik başlıkları (<code>VNL_SECURITY_HEADERS</code>): <code>X-Frame-Options: SAMEORIGIN</code>, <code>nosniff</code>, <code>Referrer-Policy: same-origin</code>, <code>Permissions-Policy</code>, TLS'te HSTS. CSP henüz yok (satır içi betikler).</li>
-                            <li class="mb-2">nginx: <code>nginx.conf.example</code> — yalnız <code>index.php</code> çalışır, yalnız <code>assets/</code> ve <code>vnl/assets/</code> servis edilir. Apache: <code>.htaccess</code> çekirdek ve proje dizinlerindeki dosyaları reddeder.</li>
+                            <li class="mb-2">Güvenlik başlıkları (<code>VNL_SECURITY_HEADERS</code>): <code>X-Frame-Options: SAMEORIGIN</code>, <code>nosniff</code>, <code>Referrer-Policy: strict-origin-when-cross-origin</code> (4.0.0; önceden <code>same-origin</code>), <code>Permissions-Policy</code>, <code>Content-Security-Policy: object-src 'none'; base-uri 'self'</code> (4.0.0; <code>script-src</code> bilerek yok, satır içi betikler), TLS'te HSTS. Her başlık <code>VNL_HEADER_*</code> ile tek tek ayarlanır ya da kapatılır; bkz. <a href="/docs/environment">Ortam</a>.</li>
+                            <li class="mb-2">nginx: <code>nginx.conf.example</code> — yalnız <code>index.php</code> çalışır, yalnız <code>assets/</code> ve <code>vnl/assets/</code> servis edilir. Apache: <code>.htaccess</code> çekirdek ve proje dizinlerindeki dosyaları reddeder. IIS: <code>web.config</code> aynı kuralları URL Rewrite ile taşır (4.0.0).</li>
                             <li>Günlükler <code>LOG_PATH</code> (varsayılan <code>files/logs</code>, dizin 0750, dosya 0640): <code>LogModule::info/warning/error($kanal, $mesaj, $bağlam)</code>.</li>
                         </ul>
                     </div>

@@ -133,6 +133,7 @@ document.addEventListener('vnl:social-auth', (e) =&gt; {
 &lt;/script&gt;
 </code></pre>
                     </div>
+                    <p class="text-body-secondary fs-6 mt-3 mb-0">Popup açılamazsa (engelleyici) akış tam sayfa yönlendirmeye düşer; dönüşte sonuç oturumda bekler. Sayfa onu <code>SocialAuth::takeFlash()</code> ile bir kez okuyup aynı işleyiciye vermelidir (yoksa <code>null</code>).</p>
                 </div>
             </div>
             <!--end::Kurulum-->
@@ -148,7 +149,7 @@ document.addEventListener('vnl:social-auth', (e) =&gt; {
                         <li class="mb-2">Doğrulanmamış e-posta profile hiç girmez (Microsoft iş hesapları: <code>xms_edov</code>). E-postayla hesap bağlamak bu yüzden güvenlidir.</li>
                         <li class="mb-2">Yönlendirme durumu (state + nonce) 10 dakikalık <code>__vnl_oauth</code> çerezindedir; state tutmazsa giriş reddedilir (giriş CSRF'i).</li>
                         <li class="mb-2"><code>POST /app/social/google</code> girişsiz çağrılabilir (<code>PUBLIC_METHODS</code>) ama CSRF denetiminden geçer.</li>
-                        <li class="mb-2">Dönüş yolu (<code>ret</code>) çekirdeğin <code>vnl_safe_return_url()</code> fonksiyonundan geçer. Yalnız site içi göreli adres kabul edilir; boşluk ya da kontrol karakteri taşıyan adresler reddedilir (3.5.2'ye kadar <code>/%09/evil.com</code> geçiyordu).</li>
+                        <li class="mb-2">Dönüş yolu (<code>ret</code>) çekirdeğin <code>vnl_safe_return_url()</code> fonksiyonundan geçer. Yalnız site içi göreli adres kabul edilir; boşluk ya da kontrol karakteri taşıyan adresler reddedilir (örneğin <code>/%09/evil.com</code>).</li>
                         <li><code>/oauth/...</code> uçları <code>boot.php</code>'de <code>vnl_public_page('oauth')</code> ile girişe açılır.</li>
                     </ul>
                 </div>

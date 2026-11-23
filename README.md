@@ -11,6 +11,8 @@
 
 **VNL** (Voxnup Not Laravel), **[Voxnup](https://voxnup.com)'ın çekirdeğini oluşturan PHP uygulama çatısıdır (framework).**
 
+📖 Dokümantasyon ve canlı örnek: **[vnl.voxnup.com](https://vnl.voxnup.com)**
+
 Projeye depoyu klonlayarak başlarsınız: `vnl/` dizini sürümlenen ve güncellenen çekirdektir,
 geri kalan her şey sizin kodunuzdur. Yönlendirme, Eloquent (Illuminate/Capsule) ORM, `{{ }}`
 şablon derleyicisi, oturum ve yetkilendirme, dil sistemi, migration'lar, bir konsol ve kendi
@@ -212,7 +214,9 @@ docker run --rm -p 8080:8080 -v "$PWD":/app -w /app php:8.5-cli \
 
 ## 📚 Dokümantasyon
 
-Uygulama, sol menüden erişilen kapsamlı bir dokümantasyon setiyle gelir:
+Dokümantasyonun güncel hâli çevrimiçi: **[vnl.voxnup.com](https://vnl.voxnup.com)**.
+
+Aynı sayfalar uygulamanın içinde de, sol menüden erişilen bir set olarak gelir:
 routing, istek yönetimi, modal sistemi, oturum, modeller, validator'lar,
 dil sistemi (i18n), modüller, view include sistemi, extension sistemi ve
 **VNL Theme** (/docs/theme).

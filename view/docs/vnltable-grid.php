@@ -272,31 +272,70 @@ $t-&gt;respond($sayfa, $toplam, $filtreli, $totals);</code></pre>
                         </p>
 
                         <div class="vnl-code mb-5">
-                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>public function getList($req)
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// classes/Kayit.php — sorgular modelde, tek yerde
+class Kayit extends TableModel
 {
-    Auth::CheckLogin();
+    protected $table = 'tbl_kayit';
+
+    /** İstemcideki ad → veritabanı sütunu. Tablonun TEK beyaz listesi. */
+    public const ALANLAR = [
+        'id' =&gt; 'id', 'ad' =&gt; 'name', 'sehir' =&gt; 'city', 'tutar' =&gt; 'tutar', 'tarih' =&gt; 'tarih',
+    ];
+
+    /** İstemciden gelen adı sütuna çevirir; listede yoksa istek düşer. */
+    public static function alan(string $ad): string
+    {
+        if (!isset(self::ALANLAR[$ad])) {
+            throwErrorMessage('Geçersiz sütun.', 400);
+        }
+
+        return self::ALANLAR[$ad];
+    }
+
+    /** Panelin değer listesi: hedef sütunun KENDİ filtresi hariç tutulur. */
+    public static function degerListesi(VnlTableRequest $t): array
+    {
+        $sutun = self::alan($t-&gt;column);              // ham ad sorguya girmez
+        $q     = self::query()-&gt;select($sutun)-&gt;distinct();
+        $t-&gt;applyFilters($q, self::ALANLAR, $t-&gt;filtersExcept());
+
+        return $q-&gt;limit(VnlTableRequest::DISTINCT_LIMIT + 1)-&gt;pluck($sutun)-&gt;all();
+    }
+
+    /** Filtrelenmiş + sıralanmış + sayfalanmış satırlar ve filtrelenmiş sayı. */
+    public static function tabloSayfasi(VnlTableRequest $t): array
+    {
+        $q        = $t-&gt;applyFilters(self::query(), self::ALANLAR);
+        $filtered = (clone $q)-&gt;count();
+
+        foreach ($t-&gt;sort as $s) {
+            $q-&gt;orderBy(self::alan($s['col']), $s['dir']);   // dir yalnız asc|desc gelir
+        }
+
+        $rows = $q-&gt;offset($t-&gt;offset())-&gt;limit($t-&gt;size)-&gt;get()-&gt;map(fn($r) =&gt; [
+            'id' =&gt; $r-&gt;id, 'ad' =&gt; $r-&gt;name, 'sehir' =&gt; $r-&gt;city,
+            'tutar' =&gt; $r-&gt;tutar, 'tarih' =&gt; $r-&gt;tarih,
+        ])-&gt;all();
+
+        return [$rows, $filtered];
+    }
+
+    // SelectList() — TableModel'in zorunlu metodu, bkz. VNL Table §6
+}
+
+// actions/action_kayit.php
+public function getList($req)
+{
+    Auth::CheckPermission('Kayit', 'view');
 
     $t = VnlTableRequest::from($req);
 
-    // İstemciden gelen ad ile gerçek sütunu bu liste bağlar.
-    // Listede olmayan hiçbir ad sorguya girmez.
-    $alanlar = ['ad' =&gt; 'name', 'sehir' =&gt; 'city', 'tutar', 'tarih'];
-
-    // Değer listesi: hedef sütunun KENDİ filtresi hariç tutulur
     if ($t-&gt;op === VnlTableRequest::OP_DISTINCT) {
-        $q = Kayit::query()-&gt;select($t-&gt;column)-&gt;distinct();
-        $t-&gt;applyFilters($q, $alanlar, $t-&gt;filtersExcept());
-
-        $t-&gt;respondDistinct($q-&gt;limit(501)-&gt;pluck($t-&gt;column)-&gt;all());
+        $t-&gt;respondDistinct(Kayit::degerListesi($t));   // yanıtı basar ve biter
     }
 
-    $q = Kayit::query();
-    $t-&gt;applyFilters($q, $alanlar);
-
-    $filtered = $q-&gt;count();
-    $rows     = $q-&gt;orderBy(...)-&gt;offset($t-&gt;offset())-&gt;limit($t-&gt;size)-&gt;get();
-
-    $t-&gt;respond($rows-&gt;toArray(), Kayit::query()-&gt;count(), $filtered);
+    [$rows, $filtered] = Kayit::tabloSayfasi($t);
+    $t-&gt;respond($rows, Kayit::count(), $filtered);
 }</code></pre>
                         </div>
 
@@ -305,7 +344,14 @@ $t-&gt;respond($sayfa, $toplam, $filtreli, $totals);</code></pre>
                             <span class="text-body fs-6">
                                 <code>applyFilters()</code>'ın sütun listesi <b>isteğe bağlı değildir</b>.
                                 Filtre adları istemciden gelir; doğrudan sorguya verilmeleri sütun adı
-                                enjeksiyonuna açık olurdu. Listede olmayan ad sessizce atlanır.
+                                enjeksiyonuna açık olurdu. Listede olmayan filtre adı sessizce atlanır.
+                                Aynı kural <b>sütun adı olarak kullandığınız her alan</b> için geçerlidir:
+                                <code>$t-&gt;column</code>, <code>$t-&gt;sort[]['col']</code> ve
+                                <code>$t-&gt;groupBy</code> istemcinin yazdığı ham metindir,
+                                <code>VnlTableRequest</code> onları doğrulamaz. <code>select()</code>,
+                                <code>orderBy()</code>, <code>pluck()</code> ya da <code>selectRaw()</code>'a
+                                vermeden önce yukarıdaki <code>alan()</code> gibi bir beyaz listeden geçirin
+                                ve bilinmeyen adı reddedin.
                             </span>
                         </div>
 
@@ -454,8 +500,11 @@ $tek      = $t-&gt;matches($satir);         // tek satır sınaması</code></pre
 
                                 <h6 class="fw-bold mb-2">Büyük/küçük harf</h6>
                                 <p class="fs-6 text-body mb-0">
-                                    SQL tarafında sütunun collation'ına bağlıdır (MySQL'in
-                                    <code>_ci</code> collation'larında duyarsız). Bellekte
+                                    SQL tarafında sütunun collation'ına bağlıdır: MySQL'in
+                                    <code>_ci</code> collation'larında ve SQL Server'ın varsayılan
+                                    <code>…_CI_AS</code>'ında duyarsız. Metin koşulları düz
+                                    <code>LIKE</code> ile kurulur; PostgreSQL'de <code>LIKE</code> harfe
+                                    duyarlıdır, "ankara" araması "Ankara"yı bulmaz. Bellekte
                                     <code>TextGeneralModule::trToLower</code> ile katlanır; istemcideki
                                     liste araması da aynı eşlemeyi yapar — <code>toLowerCase()</code>
                                     Türkçe'de <code>I</code>'yı <code>i</code> yapıp "İZMİR" aramasını
@@ -466,7 +515,11 @@ $tek      = $t-&gt;matches($satir);         // tek satır sınaması</code></pre
                                 <h6 class="fw-bold mb-2">Aranan metindeki joker karakterler</h6>
                                 <p class="fs-6 text-body mb-5">
                                     <code>%</code> ve <code>_</code> kaçışlanır: "50%" yazan kullanıcı
-                                    yüzde işaretini arar, "her şey"i değil.
+                                    yüzde işaretini arar, "her şey"i değil. Kaçış karakteri
+                                    ters bölü değil <code>!</code>'dir ve sorguda <code>ESCAPE '!'</code>
+                                    açıkça yazılır; böylece MySQL, PostgreSQL, SQL Server ve SQLite'ta aynı
+                                    sonuç çıkar. SQL Server'ın <code>[...]</code> karakter kümesi de
+                                    kaçışlanır: "k[a]z" yalnız "k[a]z"ı bulur.
                                 </p>
 
                                 <h6 class="fw-bold mb-2">Tarihte saat</h6>
@@ -486,10 +539,10 @@ $tek      = $t-&gt;matches($satir);         // tek satır sınaması</code></pre
                                 <h6 class="fw-bold mb-2">Sayısal görünen metinler</h6>
                                 <p class="fs-6 text-body mb-0">
                                     Tablonun yanıtları <code>returnSuccessDataOnly()</code> yerine
-                                    kendi JSON yayıcısını kullanır: o (3.4.0'a kadar) <code>JSON_NUMERIC_CHECK</code>
-                                    ile "007" stok kodunu <code>7</code> yapıyordu ve istemci onu geri
-                                    gönderdiğinde hiçbir satırla eşleşmiyordu. Hücre ne ise o gider.
-                                    3.4.0'da <code>returnSuccessDataOnly()</code> da sayıya çevirmez.
+                                    kendi JSON yayıcısını kullanır ve <code>JSON_NUMERIC_CHECK</code> uygulamaz:
+                                    "007" stok kodu <code>7</code>'ye dönseydi istemci onu geri
+                                    gönderdiğinde hiçbir satırla eşleşmezdi. Hücre ne ise o gider;
+                                    <code>returnSuccessDataOnly()</code> da sayıya çevirmez.
                                 </p>
                             </div>
                         </div>
@@ -500,11 +553,12 @@ $tek      = $t-&gt;matches($satir);         // tek satır sınaması</code></pre
             </div>
 
             <div class="alert alert-secondary d-flex flex-column flex-sm-row p-5 mb-10">
-                <i class="fa-solid fa-hourglass-half fs-2hx text-body-tertiary me-4 mb-5 mb-sm-0"></i>
+                <i class="fa-solid fa-arrow-right fs-2hx text-body-tertiary me-4 mb-5 mb-sm-0"></i>
                 <div class="d-flex flex-column pe-0 pe-sm-10">
-                    <h5 class="mb-1"><code>workbench</code> sırada</h5>
+                    <h5 class="mb-1">Sonraki adım: <code>workbench</code></h5>
                     <span>Sütun sabitleme, satır gruplama ve alt toplamları, detay satırı,
-                        seçim ve toplu işlem, hücre içi düzenleme, pivot.</span>
+                        seçim ve toplu işlem, hücre içi düzenleme, pivot —
+                        <a href="/docs/vnltable-workbench" class="fw-bold">VNL Table — Workbench</a>.</span>
                 </div>
             </div>
 

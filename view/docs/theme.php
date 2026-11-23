@@ -23,6 +23,19 @@
                 </div>
             </div>
 
+            <div class="alert alert-warning d-flex align-items-start p-5 mb-10">
+                <i class="bi bi-exclamation-triangle fs-2hx text-warning me-4"></i>
+                <div class="d-flex flex-column">
+                    <span class="fw-bold">Kendi build'iniz ya da skin'iniz <code>vnl/</code> sınırının içine yazılır.</span>
+                    <span class="text-body-secondary"><code>vnl/assets/theme/</code> çekirdeğindir: dosyaları <code>vnl/MANIFEST</code>'te
+                    kayıtlıdır. <code>php vnl.php update --verify</code> değişen dosyayı <code>DEGISMIS</code>, yeni skin'i
+                    <code>FAZLADAN</code> diye listeler; <code>php vnl.php update</code> kurcalanmış çekirdekte durur ve
+                    <code>--force</code> ile devam edildiğinde <code>vnl/</code>'yi komple değiştirir — derlediğiniz çıktı
+                    (yeni skin'ler dahil) <b>kaybolur</b>. Tema kaynağını ve derleme komutunu kendi deponuzda saklayın,
+                    her güncellemeden sonra yeniden derleyin.</span>
+                </div>
+            </div>
+
             <!--begin::El kitabı haritası-->
             <?php
             $vnl_handbook = [
@@ -65,7 +78,10 @@
                             <a href="https://github.com/mrekay/Voxnup.VNL.Theme" target="_blank" rel="noopener">Voxnup.VNL.Theme</a> — SCSS, JS modülleri, build araçları)
                             ve <b>derlenmiş çıktı</b> (<code>vnl/assets/theme/</code> — bu repodadır). Sayfalar yalnız çıktıyı yükler;
                             asset yükleme noktaları <code>view/includes/static/head-standard.php</code> ve
-                            <code>script-standard.php</code> dosyalarıdır.
+                            <code>script-standard.php</code> dosyalarıdır. Bu iki dosya projenindir, ama
+                            <b>hangi</b> dosyaların hangi sırayla yükleneceği çekirdekten gelir:
+                            <code>vnl_core_styles($skin)</code> ve <code>vnl_core_scripts()</code>
+                            (<code>vnl/helpers/app.php</code>). VNL yeni bir varlık eklediğinde liste kendiliğinden güncellenir.
                         </p>
                         <div class="vnl-code"><pre><code>Voxnup.VNL.Theme/     (ayrı depo)
 ├── scss/            → vnl.scss (Bootstrap + tema), bi.scss, fa.scss
@@ -77,9 +93,17 @@ vnl/assets/theme/           (bu repo — build çıktısı)
 ├── css/vnl.min.css  → Bootstrap 5.3.8 + VNL Theme + SweetAlert2/SlimSelect skin'leri
 ├── css/bi.min.css   → Bootstrap Icons 1.13
 ├── css/fa.min.css   → Font Awesome Free (solid/regular/brands + v4 shim)
+├── css/skins/       → hazır skin'ler (dracula.min.css) — $page_config['skin'] / themeDefaults()
 ├── js/vendors.min.js→ jQuery 3.7.1 + Bootstrap bundle + SweetAlert2 v11 + SlimSelect
 ├── js/vnl.min.js    → tema davranışları
-└── fonts/           → Inter variable, JetBrains Mono, FA ve BI webfont'ları</code></pre></div>
+└── fonts/           → Inter variable, JetBrains Mono, FA ve BI webfont'ları
+
+vnl/assets/                 (bu repo — temadan bağımsız çekirdek varlıkları)
+├── css/vnltable.css · css/vnl-date.css
+├── js/vnl.js        → VNL çekirdek JS'i (mesajlar, AJAX kancaları, form yardımcıları)
+├── js/vnltable.js   → VNL Table
+├── js/flatpickr.min.js + js/vnl-date.js → VNL Date
+└── js/vnl-csrf.js   → jQuery'siz fetch/XHR/sendBeacon için CSRF</code></pre></div>
                     </div>
 
                     <div class="separator separator-dashed my-8"></div>

@@ -36,7 +36,7 @@
                             </div>
                             <div>
                                 <div class="fw-bold text-body fs-5">MySQL / MariaDB</div>
-                                <div class="text-muted fs-7">PostgreSQL & MSSQL de desteklenir</div>
+                                <div class="text-muted fs-7">PostgreSQL, SQL Server ve SQLite da desteklenir (çekirdek tabloları dahil)</div>
                             </div>
                         </div>
                     </div>
@@ -50,8 +50,8 @@
                                 </span>
                             </div>
                             <div>
-                                <div class="fw-bold text-body fs-5">Apache / Nginx</div>
-                                <div class="text-muted fs-7">mod_rewrite aktif olmalı</div>
+                                <div class="fw-bold text-body fs-5">Apache / Nginx / IIS</div>
+                                <div class="text-muted fs-7">Apache'de mod_rewrite; nginx için <code>nginx.conf.example</code>, IIS için <code>web.config</code></div>
                             </div>
                         </div>
                     </div>
@@ -87,12 +87,18 @@
                             Şemayı kurun ve kurulumu doğrulayın:
                         </p>
 
-                        <div class="vnl-code mb-4"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>php vnl.php migrate --run   # bekleyen şema değişikliklerini uygula
+                        <div class="vnl-code mb-4"><pre class="mb-0" style="background:transparent; white-space:pre-wrap;"><code>php -r "echo base64_encode(random_bytes(32));"   # .env → APP_ENCRYPTION_KEY
+php vnl.php migrate --run   # bekleyen şema değişikliklerini uygula
+php vnl.php user:create --username=admin --super   # ilk yönetici (parola bir kez basılır)
 php vnl.php doctor          # eksik bir şey kalmış mı</code></pre></div>
+
+                        <p class="fs-6 text-body mb-4">
+                            Sayfalar varsayılan olarak girişe kapalıdır; ilk yönetici olmadan uygulamaya giremezsiniz. Geliştirme makinesinde hata ayrıntısını görmek için <code>.env</code>'e <code>APP_DEBUG=true</code> yazın; canlıda <code>false</code> kalmalıdır.
+                        </p>
 
                         <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
-                            <span class="text-body fs-6">Alt dizine kuruyorsanız <code>.htaccess</code>'deki HTTPS yönlendirme kuralını ve <code>.env</code> içindeki <code>APP_URL</code> değerini buna göre güncelleyin.</span>
+                            <span class="text-body fs-6">Alt dizine kuruyorsanız <code>.env</code> içindeki <code>APP_URL</code> değerini buna göre güncelleyin. HTTPS yönlendirmesi <code>.htaccess</code>'te isteğe bağlıdır ve kapalı gelir; açacaksanız kuralı da alt dizine göre düzenleyin.</span>
                         </div>
                     </div>
                     <!--end::Section 1-->
@@ -138,12 +144,12 @@ php vnl.php doctor          # eksik bir şey kalmış mı</code></pre></div>
                                 <tr>
                                     <td class="ps-5"><code>$cookie_prefix</code></td>
                                     <td><code>"myapp"</code></td>
-                                    <td>Oturum cookie öneki. Aynı sunucuda birden fazla VNL varsa benzersiz yapın.</td>
+                                    <td>"Beni hatırla" çerezinin öneki (oturum çerezinin adı ayrıdır: <code>VNL_SESSION_NAME</code>, varsayılan <code>VNLSESSID</code>). Aynı sunucuda birden fazla VNL varsa benzersiz yapın.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>$salt_text</code></td>
-                                    <td><code>"abc?123!@#"</code></td>
-                                    <td>Şifre hash salt'ı. Sonradan değiştirmeyin; mevcut şifreler geçersiz kalır.</td>
+                                    <td><code>""</code></td>
+                                    <td>Ayrılmış alan (<code>APP_SALT</code>). Çekirdek onu hiçbir yerde okumaz: parolalar bcrypt'in kendi tuzuyla saklanır.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -166,7 +172,7 @@ php vnl.php doctor          # eksik bir şey kalmış mı</code></pre></div>
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">1</span>
                                 <div>
                                     <code class="fw-bold text-body">.htaccess</code>
-                                    <p class="text-muted fs-7 mb-0 mt-1">Gelen her isteği (dosya/klasör değilse) <code>index.php</code>'ye yönlendirir. HTTPS zorlaması da burada yapılır.</p>
+                                    <p class="text-muted fs-7 mb-0 mt-1">Gelen her isteği (dosya/klasör değilse) <code>index.php</code>'ye yönlendirir. İsteğe bağlı HTTPS yönlendirmesi de buradadır (varsayılan kapalı).</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
@@ -187,7 +193,7 @@ php vnl.php doctor          # eksik bir şey kalmış mı</code></pre></div>
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">4</span>
                                 <div>
                                     <code class="fw-bold text-body">vnl/bootstrap.php</code>
-                                    <p class="text-muted fs-7 mb-0 mt-1">Otomatik yükleyici (önce <code>classes/</code>, sonra <code>vnl/classes/</code>), yardımcılar, oturum, <code>$req</code> ve dil. <code>modules/</code>, <code>exceptions/</code>, <code>validators/</code> iki taraftan birleştirilerek taranır; aynı adlı dosyada sizinki kazanır.</p>
+                                    <p class="text-muted fs-7 mb-0 mt-1">Otomatik yükleyici (önce <code>classes/</code>, sonra <code>vnl/classes/</code>), yardımcılar, oturum, <code>$req</code> ve dil. <code>helpers/</code>, <code>enums/</code>, <code>modules/</code>, <code>exceptions/</code>, <code>validators/</code> iki taraftan birleştirilerek taranır; aynı adlı dosyada sizinki kazanır.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
@@ -239,7 +245,7 @@ php vnl.php doctor          # eksik bir şey kalmış mı</code></pre></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>controller/</b><span class="text-muted fw-normal ms-2">— Her URL segmentine karşılık gelen düz PHP dosyaları. Hata sayfaları da (<code>401.php</code>, <code>404.php</code>) sizindir.</span></div>
+                                    <div><b>controller/</b><span class="text-muted fw-normal ms-2">— Her URL segmentine karşılık gelen düz PHP dosyaları. Hata sayfaları da (<code>401.php</code>, <code>403.php</code>, <code>404.php</code>) sizindir.</span></div>
                                 </li>
                                 <li class="mb-3 d-flex align-items-start">
                                     <i class="bi bi-folder2-open text-warning fs-3 me-3 flex-shrink-0 mt-1"></i>
@@ -279,7 +285,7 @@ php vnl.php doctor          # eksik bir şey kalmış mı</code></pre></div>
                                 </li>
                                 <li class="mb-0 d-flex align-items-start">
                                     <i class="bi bi-file-earmark-code text-primary fs-3 me-3 flex-shrink-0 mt-1"></i>
-                                    <div><b>.htaccess</b><span class="text-muted fw-normal ms-2">— Apache rewrite kuralları. Her isteği <code>index.php</code>'ye yönlendirir; HTTPS zorlamasını içerir. <code>.env</code> ve konsol dosyalarını web'den engeller.</span></div>
+                                    <div><b>.htaccess</b><span class="text-muted fw-normal ms-2">— Apache rewrite kuralları. Her isteği <code>index.php</code>'ye yönlendirir; isteğe bağlı (kapalı) HTTPS kuralını içerir. <code>.env</code>, çekirdek ve proje dizinlerindeki dosyaları web'den engeller. IIS karşılığı <code>web.config</code>, nginx için <code>nginx.conf.example</code>.</span></div>
                                 </li>
                             </ul>
                         </div>
@@ -344,6 +350,8 @@ php vnl.php doctor          # eksik bir şey kalmış mı</code></pre></div>
                                     <code class="fs-7 text-muted d-block mb-1">controller/musteriler.php</code>
                                     <div class="vnl-code mt-3">
                                         <pre class="mb-0" style="background:transparent;white-space:pre-wrap"><code>&lt;?php
+vnl_require_permission('Musteriler', 'view');   // yetki gerekiyorsa ilk satır
+
 $meta = [
     'title'       => 'Müşteriler',
     'upper_title' => 'CRM',
@@ -354,8 +362,8 @@ $page_config = [
     'contentheader' => true,
 ];
 
-$musteriler = Capsule::table('tbl_musteriler')
-    ->get();
+// Sorgu modelde durur (classes/Musteri.php, TableModel)
+$musteriler = Musteri::SelectList([], ['order' => 'ad'])->get();
 
 require view('static/header');
 require view('musteriler/liste');
@@ -376,7 +384,7 @@ require view('static/footer');</code></pre>
     &lt;?php foreach ($musteriler as $m): ?&gt;
       &lt;div class="card mb-3"&gt;
         &lt;div class="card-body"&gt;
-          &lt;?= $m-&gt;ad ?&gt;
+          &#123;&#123; $m-&gt;ad }}
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;?php endforeach; ?&gt;
@@ -386,7 +394,7 @@ require view('static/footer');</code></pre>
                                 </div>
                             </div>
                         </div>
-                        <p class="fs-6 text-body">Artık <code>site.com/musteriler</code> adresine gittiğinizde sayfa çalışır. Detaylar için <a href="/docs/routing" class="text-primary fw-bold">Routing ve Controller</a> sayfasına bakın.</p>
+                        <p class="fs-6 text-body">Artık giriş yapmış bir kullanıcı <code>site.com/musteriler</code> adresine gittiğinde sayfa çalışır. Sayfalar varsayılan olarak girişe kapalıdır; girişsiz açılacak sayfa <code>config/definitions.php</code> → <code>$login_except_pages</code>'e yazılır. <code>&#123;&#123; }}</code> çıktıyı kaçırır, <code>&lt;?= ?&gt;</code> kaçırmaz. Detaylar için <a href="/docs/routing" class="text-primary fw-bold">Routing ve Controller</a> sayfasına bakın.</p>
                     </div>
                     <!--end::Section 5-->
 

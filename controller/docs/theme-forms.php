@@ -15,4 +15,5 @@ $page_config = [
 
 require view('static/header');
 require view('docs/theme-forms');
+require view('docs/partials/pager');
 require view('static/footer');

@@ -78,7 +78,7 @@ if (EncryptionModule::PasswordNeedsRehash($kullanici->storedPassword())) {
 }
 
 // Genel amaçlı şifreleme — .env'deki APP_ENCRYPTION_KEY kullanılır
-$jeton = EncryptionModule::safeEncrypt(['user_id' => $user->Id, 'time' => time()]);
+$jeton = EncryptionModule::safeEncrypt(['user_id' => $user->id, 'time' => time()]);
 
 $veri = EncryptionModule::safeDecrypt($jeton);
 if ($veri === false) { /* kurcalanmış, anahtar değişmiş veya geçersiz */ }
@@ -219,7 +219,7 @@ $gg = DateTimeModule::DiffDay('2024-01-01', '2024-12-31');
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>TextGeneralModule::SafeText($content)</code></td>
-                                    <td>HTML entity decode + stripslashes uygular. Veritabanından gelen veriyi view'a basmadan önce kullanın.</td>
+                                    <td>HTML entity decode + stripslashes uygular. 2.x'te girişte kaçışlanmış veriyi geri açmak içindi; 3.0'dan beri veri girişte kaçışlanmadığı için gerekmez. <b>Kaçışı geri açar:</b> çıktısını ekrana yine <code>&#123;&#123; }}</code> ya da <code>vnl_e()</code> ile basın, kaçışsız basmayın (XSS).</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -263,7 +263,11 @@ echo TextGeneralModule::NumberFormatTR(1234567.89, 2);
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>FileManagerModule::UploadFile($dest, $file, $allows, $newName)</code></td>
-                                    <td>Dosyayı yükler. Dizin yoksa oluşturur. <code>$allows</code>: <code>'pdf,xlsx'</code> veya <code>'all'</code>. Başarıda dosya adı, hata durumunda boş string döner.</td>
+                                    <td>Dosyayı yükler. Dizin yoksa oluşturur. <code>$allows</code>: <code>'pdf,xlsx'</code> veya <code>'all'</code>. Başarıda dosya adı, hata durumunda boş string döner. <code>'all'</code> dahil her durumda sunucunun çalıştırabileceği (<code>php*</code>, <code>phtml</code>, <code>phar</code>, <code>cgi</code> …), yapılandırma (<code>.htaccess</code>, <code>.ini</code>) ve tarayıcıda betik açılan (<code>html</code>, <code>svg</code>) uzantılar, bunları adın herhangi bir parçasında taşıyan (<code>fatura.php.jpg</code>), uzantısız ve nokta ile başlayan adlar reddedilir. Yine de yalnız gereken uzantıları açıkça yazın.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>FileManagerModule::IsSafeUploadName($name)</code></td>
+                                    <td>Yukarıdaki ad kuralını tek başına uygular, <code>bool</code> döner. <code>FileRequest::move()</code> da aynı kuralı kullanır (4.0.0).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>FileManagerModule::DeleteFile($location)</code></td>
@@ -285,7 +289,7 @@ echo TextGeneralModule::NumberFormatTR(1234567.89, 2);
                             <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Action içinde dosya yükleme
 $fileReq = new FileRequest();   // $_FILES'i normalize eder, dosya adini temizler
 $dosya   = $fileReq->get('dosya');
-$hedef = getDocumentRoot() . 'files/belgeler/' . Auth::User()->Id . '/';
+$hedef = getDocumentRoot() . 'files/belgeler/' . Auth::User()->id . '/';
 
 $dosyaAdi = FileManagerModule::UploadFile($hedef, $dosya, 'pdf,docx,xlsx');
 if (empty($dosyaAdi)) {
@@ -293,7 +297,7 @@ if (empty($dosyaAdi)) {
 }
 
 // Kaydet
-$belge->DosyaYolu = 'files/belgeler/' . Auth::User()->Id . '/' . $dosyaAdi;
+$belge->DosyaYolu = 'files/belgeler/' . Auth::User()->id . '/' . $dosyaAdi;
 $belge->save();
 
 // Silme
@@ -377,47 +381,50 @@ $data = CurlModule::GetCurlPage('https://api.example.com/products', 5, true);
                             <h3 class="fw-bold text-body-emphasis mb-0">LogModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/LogModule.php</span>
                         </div>
-                        <p class="fs-5 text-body mb-4">Günlük bazında log dosyası oluşturur. Her gün ayrı bir <code>log_Y-m-d.log</code> dosyası oluşturulur.</p>
+                        <p class="fs-5 text-body mb-4">Kanal ve seviye taşıyan JSON satırı günlükler. Her satır <code>{"ts","level","channel","msg","ctx","user","ip"}</code> nesnesidir; dosya <code>&lt;LOG_PATH&gt;/&lt;kanal&gt;-YYYY-MM-DD.log</code>. <code>LOG_PATH</code> boşsa <code>files/logs</code> kullanılır; dizinler 0750, dosyalar 0640 açılır. Günlük yazılamazsa istek düşmez, satır PHP'nin <code>error_log</code>'una gider.</p>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
                                 <thead>
                                 <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0 border-bottom">
                                     <th class="ps-5 min-w-320px">Metot</th>
-                                    <th class="min-w-120px">Hedef Klasör</th>
+                                    <th class="min-w-120px">Kanal / seviye</th>
                                     <th class="min-w-250px">Açıklama</th>
                                 </tr>
                                 </thead>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
-                                    <td class="ps-5"><code>LogModule::SetMysqErrorlLog($msg)</code></td>
-                                    <td><code>mysql-log/</code></td>
-                                    <td>MySQL hata loglarını yazar.</td>
+                                    <td class="ps-5"><code>LogModule::write($kanal, $seviye, $mesaj, $ctx = [])</code></td>
+                                    <td>serbest</td>
+                                    <td>Temel yazım. Seviye: <code>debug, info, notice, warning, error, critical</code>; tanınmayan seviye <code>info</code> sayılır.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>LogModule::SetMysqlLog($msg)</code></td>
-                                    <td><code>mysql-log/execution/</code></td>
-                                    <td>SQL sorgu execution loglarını yazar.</td>
+                                    <td class="ps-5"><code>LogModule::debug|info|warning|error($kanal, $mesaj, $ctx = [])</code></td>
+                                    <td>adındaki seviye</td>
+                                    <td>Kısa yollar.</td>
                                 </tr>
                                 <tr>
-                                    <td class="ps-5"><code>LogModule::SetEventLog($msg)</code></td>
-                                    <td><code>event-log/</code></td>
-                                    <td>Genel olay loglarını yazar. Kullanıcı aksiyonları, sistem olayları için uygundur.</td>
+                                    <td class="ps-5"><code>LogModule::path()</code></td>
+                                    <td>—</td>
+                                    <td>Günlük dizinini döndürür.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>SetMysqErrorlLog</code> / <code>SetMysqlLog</code> / <code>SetEventLog($msg)</code></td>
+                                    <td><code>mysql</code> error / <code>mysql</code> info / <code>event</code> info</td>
+                                    <td><b>Kullanımdan kalktı.</b> Eski çağrılarla uyumluluk için duruyor, yeni API'ye yönlenir. Eski <code>mysql-log/</code> ve <code>event-log/</code> dizinleri artık yazılmaz.</td>
                                 </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         <div class="vnl-code">
-                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Önemli bir olayı logla
-LogModule::SetEventLog(
-    '[' . date('Y-m-d H:i:s') . '] User #' . Auth::User()->Id . ' deleted product #' . $product_id
-);
+                            <pre class="mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Önemli bir olayı logla — zaman, kullanıcı ve IP satıra kendiliğinden girer
+LogModule::info('urun', 'Ürün silindi', ['product_id' => $product_id]);
 
 // Hata logla
-LogModule::SetMysqErrorlLog(
-    '[' . date('H:i:s') . '] Sorgu hatası: ' . $e->getMessage()
-);
+LogModule::error('mysql', 'Sorgu hatası', ['error' => $e->getMessage()]);
+
+// Kimin neyi değiştirdiği (denetim) için günlük değil Audit::log() kullanılır
 </code></pre>
                         </div>
                     </div>
@@ -496,7 +503,7 @@ LogModule::SetMysqErrorlLog(
                             <h3 class="fw-bold text-body-emphasis mb-0">PDFModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/PDFModule.php</span>
                         </div>
-                        <p class="fs-5 text-body mb-4">PDF oluşturma servisiyle entegrasyon. Uzak print URL'ini çağırarak PDF üretir.</p>
+                        <p class="fs-5 text-body mb-4"><b>Kullanımdan kalktı.</b> <code>CreatePDF()</code> hiçbir zaman çalışmadı: hedef aldığı <code>/pdf/printurl.php</code> VNL'de hiç olmadı. Artık çağrıldığında <code>RuntimeException</code> fırlatır. PDF üretimi gereken proje kendi <code>modules/PDFModule.php</code>'sini yazar; uzun sürecek üretim <code>Queue::push()</code> ile kuyruğa verilir.</p>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
@@ -509,7 +516,7 @@ LogModule::SetMysqErrorlLog(
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>PDFModule::CreatePDF($orientation, $printurl, $title, $prefix, $filename, $queue_id)</code></td>
-                                    <td><code>$orientation</code>: <code>'Portrait'</code> veya <code>'Landscape'</code>. Print URL'i çağırarak PDF üretir ve dosya adını döndürür.</td>
+                                    <td>Her çağrıda <code>RuntimeException</code> fırlatır. İmza yalnız eski çağrılar derlensin diye duruyor.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -564,7 +571,7 @@ if (!empty($videoId)) {
                             <h3 class="fw-bold text-body-emphasis mb-0">MailModule</h3>
                             <span class="text-muted fs-7 ms-3 font-monospace">vnl/modules/MailModule.php</span>
                         </div>
-                        <p class="fs-5 text-body mb-4">PHPMailer üzerinden SMTP e-posta gönderimi. SMTP ayarları modül içinde yapılandırılır.</p>
+                        <p class="fs-5 text-body mb-4">PHPMailer üzerinden SMTP e-posta gönderimi. SMTP ayarları <code>.env</code>'den okunur.</p>
 
                         <div class="table-responsive border rounded bg-body-tertiary mb-5">
                             <table class="table align-middle table-row-dashed fs-6 gy-3 mb-0">
@@ -589,7 +596,7 @@ if (!empty($videoId)) {
 
                         <div class="alert alert-warning d-flex align-items-center p-4">
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
-                            <span class="text-body fs-6">SMTP bilgilerini (<code>Host</code>, <code>Username</code>, <code>Password</code>, <code>Port</code>) modül içinde yapılandırın. Üretim için bu değerleri config sistemi üzerinden okumanız önerilir.</span>
+                            <span class="text-body fs-6">SMTP bilgileri <code>.env</code>'dedir: <code>MAIL_HOST</code>, <code>MAIL_PORT</code> (varsayılan 465), <code>MAIL_USERNAME</code>, <code>MAIL_PASSWORD</code>, <code>MAIL_ENCRYPTION</code> (<code>ssl</code> | <code>tls</code> | boş), <code>MAIL_FROM_ADDRESS</code>, <code>MAIL_FROM_NAME</code>. Modül dosyasını düzenlemeyin. 4.0.0: <code>VNL_MAIL_EMBED_HOSTS</code> doluysa bu alan adlarındaki <code>&lt;img src&gt;</code> görselleri gönderimde indirilip maile <code>cid:</code> olarak gömülür (<code>MailModule::embedRemoteImages()</code>). Alan adı tam eşleşmelidir; yönlendirme izlenmez, görsel başına sınır 5 MB'tır.</span>
                         </div>
                     </div>
                     <!--end::MailModule-->

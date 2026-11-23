@@ -100,7 +100,7 @@ $SidebarMenu = array(
                                 "child" => []
                         ],
                         [
-                                "text" => "Güvenlik (3.4)",
+                                "text" => "Güvenlik",
                                 'url' => 'docs/security',
                                 'page_name' => 'security.php',
                                 'permission' => '',

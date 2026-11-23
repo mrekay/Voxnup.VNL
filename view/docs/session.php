@@ -28,7 +28,7 @@
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">2</span>
                                 <div>
                                     <span class="fw-bold text-body">Kullanıcı Bilgisi Yükleme</span>
-                                    <p class="text-body-secondary fs-6 mb-0 mt-1"><code>UserModule::SetCurrentUserInfo()</code> — Session'da <code>user_id</code> varsa veritabanından kullanıcı nesnesi çekilerek global <code>$CurrentUser</code>'a atanır. Kullanıcı bulunamazsa (silinmiş/deaktif) otomatik çıkış yapılır.</p>
+                                    <p class="text-body-secondary fs-6 mb-0 mt-1"><code>UserModule::SetCurrentUserInfo()</code> — Session'da <code>user_id</code> varsa veritabanından kullanıcı nesnesi çekilerek global <code>$CurrentUser</code>'a atanır. Kullanıcı bulunamazsa (silinmiş/deaktif) otomatik çıkış yapılır. 4.0.0: oturumdaki <code>auth_stamp</code> parola hash'i ve TOTP sırrından yeniden hesaplanır; tutmazsa (parola ya da 2FA bu oturumdan sonra değişti) oturum kapanır ve <code>auth.session_revoked</code> denetim kaydı yazılır.</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-start mb-5">
@@ -42,7 +42,7 @@
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">4</span>
                                 <div>
                                     <span class="fw-bold text-body">Sayfa Erişim Kontrolü (<code>vnl/kernel.php</code>)</span>
-                                    <p class="text-body-secondary fs-6 mb-0 mt-1">İstenen sayfa <code>$login_except_pages</code>'de (ya da <code>vnl_public_page()</code> ile kayıtlı) değilse ve kullanıcı giriş yapmamışsa denetleyici <b>hiç çalıştırılmadan</b> <code>/login</code>'e yönlendirilir (AJAX isteğine 401 <code>VNL_AUTH</code>). 3.4.0: boşta kalma sınırı (<code>VNL_SESSION_IDLE</code>) aşılmışsa ya da hesap pasifleşmişse oturum burada kapanır; boşta kalmada bu cihazın "beni hatırla" jetonu da iptal edilir (<code>VNL_IDLE_KEEPS_REMEMBER=true</code> eski sessiz yeniden girişi açar).</p>
+                                    <p class="text-body-secondary fs-6 mb-0 mt-1">İstenen sayfa <code>$login_except_pages</code>'de (ya da <code>vnl_public_page()</code> ile kayıtlı) değilse ve kullanıcı giriş yapmamışsa denetleyici <b>hiç çalıştırılmadan</b> <code>/login</code>'e yönlendirilir (AJAX isteğine 401 <code>VNL_AUTH</code>). Boşta kalma sınırı (<code>VNL_SESSION_IDLE</code>) aşılmışsa ya da hesap pasifleşmişse oturum burada kapanır; boşta kalmada bu cihazın "beni hatırla" jetonu da iptal edilir (<code>VNL_IDLE_KEEPS_REMEMBER=true</code> eski sessiz yeniden girişi açar).</p>
                                 </div>
                             </div>
                         </div>
@@ -84,6 +84,18 @@
                                     <td>Tüm session verisini yok eder. Çıkış işlemlerinde kullanılır.</td>
                                 </tr>
                                 <tr>
+                                    <td class="ps-5"><code>Session::setMany([...])</code></td>
+                                    <td>Birden çok anahtarı tek açılışta yazar (tek kilit, tek dosya yazımı).</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>Session::regenerate()</code></td>
+                                    <td>Oturum kimliğini yeniler; veriler korunur, eski kimlik geçersizleşir (session fixation). Girişte <code>SetUser()</code> çağırır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>Session::id()</code></td>
+                                    <td>Geçerli oturum kimliğini döndürür.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>Session::checkSession()</code></td>
                                     <td>Oturum durumunu döner: <code>1</code> = giriş yapılmış, <code>0</code> = kilitli, <code>-1</code> = giriş yok.</td>
                                 </tr>
@@ -92,9 +104,8 @@
                         </div>
 
                         <div class="vnl-code">
-                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Oturum açma (action içinde)
-Session::set('login', true);
-Session::set('user_id', $kullanici->id);
+                            <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>// Oturum açmak için anahtarları elle yazmayın: UserModule::CompleteLogin($user)
+// kimliği yeniler, CSRF jetonunu döndürür, auth_stamp ve denetim kaydını yazar.
 
 // Veri okuma (herhangi bir yerden)
 $kullanici_id = Session::get('user_id');
@@ -102,10 +113,10 @@ $kullanici_id = Session::get('user_id');
 // Tek anahtar silme
 Session::delete('gecici_veri');
 
-// Tam oturum kapatma
-Session::destroy();
-header('Location: /login');
-exit;
+// Çıkış: Session::destroy() "beni hatırla" jetonunu iptal etmez.
+// Çıkış POST'tur: POST /app/login/logout ya da data-vnl-logout
+// taşıyan düğme; sunucu tarafında UserModule::LogOut() çağrılır.
+UserModule::LogOut();
 </code></pre>
                         </div>
                     </div>
@@ -128,8 +139,11 @@ exit;
                                         <li class="mb-2"><code>login</code> → <span class="badge badge-soft-success">true</span></li>
                                         <li class="mb-2"><code>lock</code> → <span class="badge badge-soft-danger">false</span></li>
                                         <li class="mb-2"><code>user_id</code> → <code>$user->id</code></li>
-                                        <li class="mb-0"><code>login_time</code> → <code>time()</code></li>
+                                        <li class="mb-2"><code>login_time</code> → <code>time()</code></li>
+                                        <li class="mb-2"><code>last_seen</code> → <code>time()</code> (boşta kalma ölçüsü)</li>
+                                        <li class="mb-0"><code>auth_stamp</code> → <code>UserModule::AuthStamp($user)</code> (4.0.0)</li>
                                     </ul>
+                                    <p class="fs-7 text-muted mt-3 mb-0">Yazmadan önce oturum kimliği yenilenir (<code>Session::regenerate()</code>), bekleyen 2FA adımı silinir; yazdıktan sonra CSRF jetonu döndürülür (<code>vnl_csrf_rotate()</code>). Oturum çerezinin adı 4.0.0'dan beri <code>VNLSESSID</code>'dir (<code>VNL_SESSION_NAME</code>).</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -144,21 +158,32 @@ exit;
 
                         <div class="vnl-code">
                             <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
-// actions/action_login.php örnek kalıbı
+// actions/action_login.php — şablondaki dosyanın kısaltılmış hâli.
+// Hız sınırı sayaçları (RateLimiter) burada gösterilmiyor; asıl dosyaya bakın.
 
 class action_login
 {
-    public function Login($req)
+    // Girişsiz çağrılan metotlar; yoksa dağıtıcı 401 döner
+    public const PUBLIC_METHODS = ['login', 'totp', 'logout'];
+
+    public function login($req)
     {
-        $username = $req->post('username');
-        $password = $req->post('password');
+        $username = trim((string)$req->post('email', ''));
+        $password = (string)$req->post('password', '');
 
         // Hash ile SORGULANMAZ: password_hash her çağrıda farklı tuz üretir.
         // Önce kullanıcı çekilir, sonra doğrulanır.
-        $user = User::select(['username' => $username]);
+        $user = User::Select(['username' => $username]);
 
-        if (empty($user) || !EncryptionModule::PasswordVerify($password, $user->storedPassword())) {
-            throwErrorMessage("Kullanıcı adı veya şifre hatalı.", 401);
+        // Kullanıcı yoksa da aynı maliyette bcrypt işi yapılır:
+        // yanıt süresi kullanıcı adının varlığını ele vermesin.
+        $valid = empty($user)
+            ? (EncryptionModule::PasswordHash($password) === '' && false)
+            : EncryptionModule::PasswordVerify($password, $user->storedPassword());
+
+        if (!$valid) {
+            Audit::log('auth.login_failed', 'user', $user->id ?? null);
+            throw new StandartException(lang('ERR_LOGIN_EXCEPTION'));
         }
 
         // 2.x'ten kalan sha1(md5()) hash'ini sessizce bcrypt'e yükselt
@@ -167,15 +192,19 @@ class action_login
             $user->save();
         }
 
-        // Session'ı doldur
-        UserModule::SetUser($user);
+        $remember = !empty($req->post('rememberMe')) && UserModule::rememberDays() > 0;
 
-        // Kullanıcı "beni hatırla" işaretlediyse kalıcı jeton üret
-        if (!empty($req->post('rememberMe'))) {
-            UserModule::RememberMe($user);
+        // 2FA açıksa oturum henüz AÇILMAZ: ikinci adım POST /app/login/totp
+        if ($user->hasTotp()) {
+            Session::regenerate();
+            Session::set('_2fa_pending', ['user_id' => (int)$user->id, 'remember' => $remember, 'at' => time()]);
+            returnSuccessMessage(lang('LOGIN_TOTP_REQUIRED'), ['step' => 'totp']);
         }
 
-        returnSuccessMessage("Giriş başarılı.", ['redirect' => '/']);
+        // SetUser() + son giriş bilgisi + isteğe bağlı RememberMe() + Audit
+        UserModule::CompleteLogin($user, $remember);
+
+        returnSuccessMessage(lang('SUC_LOGIN'), ['url' => '/']);
     }
 }
 </code></pre>
@@ -233,7 +262,7 @@ if ($CurrentUser->id > 0) {
                                             <code>config/definitions.php</code> dosyasındaki <code>$login_except_pages</code> dizisine sayfa adını ekleyin. Controller hiç yüklenmeden doğrudan erişim verilir.
                                         </p>
                                         <div class="bg-body-tertiary rounded p-3">
-                                            <code class="fs-7">private $login_except_pages = [<br>&nbsp;&nbsp;"login", "register", "hakkimizda"<br>];</code>
+                                            <code class="fs-7">private $login_except_pages = [<br>&nbsp;&nbsp;"app", "login", "logout",   // varsayılanlar — silmeyin<br>&nbsp;&nbsp;"register", "hakkimizda"<br>];</code>
                                         </div>
                                         <p class="text-muted fs-7 mt-3 mb-0">Gruplu sayfa için: <code>"docs/getting-started"</code> formatı kullanın.</p>
                                     </div>
@@ -244,7 +273,7 @@ if ($CurrentUser->id > 0) {
                                     <div class="card-body p-6">
                                         <div class="d-flex align-items-center mb-4">
                                             <span class="badge badge-circle badge-primary me-3">B</span>
-                                            <h5 class="mb-0 fw-bold">Yöntem 2 — <code>vnl_public_page()</code> (3.4.0)</h5>
+                                            <h5 class="mb-0 fw-bold">Yöntem 2 — <code>vnl_public_page()</code></h5>
                                         </div>
                                         <p class="fs-6 text-body mb-3">
                                             Listeye yazamayan kod (eklentinin <code>boot.php</code>'si) sayfayı çalışma anında kaydeder. Karar yine denetleyici <b>çalışmadan</b> verilir.
@@ -252,7 +281,7 @@ if ($CurrentUser->id > 0) {
                                         <div class="bg-body-tertiary rounded p-3">
                                             <code class="fs-7">vnl_public_page('stripe-webhook');</code>
                                         </div>
-                                        <p class="text-muted fs-7 mt-3 mb-0">3.3'teki <code>$page_config['public'] = true</code> artık bir şey açmaz (geçiş kipi: <code>VNL_PUBLIC_CAPTURE=true</code>).</p>
+                                        <p class="text-muted fs-7 mt-3 mb-0"><code>$page_config['public'] = true</code> artık bir şey açmaz (geçiş kipi: <code>VNL_PUBLIC_CAPTURE=true</code>).</p>
                                     </div>
                                 </div>
                             </div>
@@ -262,7 +291,7 @@ if ($CurrentUser->id > 0) {
                             <i class="fa-solid fa-circle-info fs-2 text-warning me-3"></i>
                             <div>
                                 <span class="text-body fs-6 fw-bold">İki Yöntem Arasındaki Fark:</span>
-                                <span class="text-body fs-6 ms-2">3.3'e kadar <code>public=true</code> yöntemi korumalı denetleyiciyi girişsiz istekte de <b>çalıştırıyordu</b> — denetleyicideki her yan etki anonim ziyaretçi için gerçekleşiyordu. 3.4.0'da girişsiz istek korumalı denetleyiciye hiç ulaşmaz. Giriş yapılmışsa <code>$CurrentUser</code> açık sayfalarda da dolu gelir. Ayrıntı: <a href="/docs/security">/docs/security</a>.</span>
+                                <span class="text-body fs-6 ms-2">İkisinde de girişsiz istek korumalı denetleyiciye <b>hiç ulaşmaz</b> — denetleyicideki yan etkiler anonim ziyaretçi için gerçekleşmez. Giriş yapılmışsa <code>$CurrentUser</code> açık sayfalarda da dolu gelir. Ayrıntı: <a href="/docs/security">/docs/security</a>.</span>
                             </div>
                         </div>
                     </div>
@@ -284,8 +313,20 @@ if ($CurrentUser->id > 0) {
                                 </thead>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
+                                    <td class="ps-5"><code>UserModule::CompleteLogin($user, $remember = false)</code></td>
+                                    <td>Parola (ve varsa ikinci adım) doğrulandıktan sonra girişi tamamlar: <code>SetUser()</code>, son giriş bilgisi, istenirse <code>RememberMe()</code> ve <code>auth.login</code> denetim kaydı. Girişi bitirmenin önerilen yolu.</td>
+                                </tr>
+                                <tr>
                                     <td class="ps-5"><code>UserModule::SetUser($user)</code></td>
-                                    <td>Başarılı girişten sonra session'ı doldurur.</td>
+                                    <td>Oturum kimliğini yeniler ve session'ı doldurur. Tek başına denetim kaydı yazmaz; <code>CompleteLogin()</code> kullanın.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>UserModule::AuthStamp($user)</code></td>
+                                    <td>Parola hash'i ile TOTP sırrından türetilen damga (4.0.0). Her istekte oturumdakiyle karşılaştırılır.</td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-5"><code>UserModule::RefreshAuthStamp($user)</code></td>
+                                    <td>Kendi parolasını ya da 2FA'sını değiştiren kullanıcının <b>bu</b> oturumu açık kalsın diye çağrılır; diğer oturumları yine kapanır (4.0.0).</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>UserModule::SetCurrentUserInfo()</code></td>
@@ -403,7 +444,7 @@ if ($CurrentUser->id > 0) {
                             <div class="d-flex align-items-start mb-4">
                                 <span class="badge badge-circle badge-primary me-4 mt-1 flex-shrink-0">3</span>
                                 <div><span class="fw-bold text-body">Süre, boşta kalma ve kullanıcı doğrulanır.</span>
-                                    <p class="text-body-secondary fs-6 mb-0 mt-1">Jeton süresi geçmişse, kullanıcı silinmiş ya da pasifse satır ve çerez birlikte temizlenir. 3.4.0: jetonun son kullanımı (<code>used_at</code> — girişli istek dakikada bir yeniler; hiç yenilenmediyse <code>created_at</code>) <code>VNL_SESSION_IDLE</code>'dan eskiyse de jeton reddedilir. Oturum dosyası silinmiş olsa bile (tarayıcı kapandı, GC) gözetimsiz bir tarayıcı 30 gün açık kalmaz. Eski davranış: <code>VNL_IDLE_KEEPS_REMEMBER=true</code> ya da <code>VNL_SESSION_IDLE=0</code>.</p></div>
+                                    <p class="text-body-secondary fs-6 mb-0 mt-1">Jeton süresi geçmişse, kullanıcı silinmiş ya da pasifse satır ve çerez birlikte temizlenir. Jetonun son kullanımı (<code>used_at</code> — girişli istek dakikada bir yeniler; hiç yenilenmediyse <code>created_at</code>) <code>VNL_SESSION_IDLE</code>'dan eskiyse de jeton reddedilir. Oturum dosyası silinmiş olsa bile (tarayıcı kapandı, GC) gözetimsiz bir tarayıcı 30 gün açık kalmaz. Eski davranış: <code>VNL_IDLE_KEEPS_REMEMBER=true</code> ya da <code>VNL_SESSION_IDLE=0</code>.</p></div>
                             </div>
                             <div class="d-flex align-items-start mb-0">
                                 <span class="badge badge-circle badge-success me-4 mt-1 flex-shrink-0">4</span>
@@ -420,10 +461,13 @@ UserModule::LogOut();          // ForgetMe() dahili olarak çağrılır
 // Yalnızca "beni hatırla"yı iptal et, oturumu kapatma
 UserModule::ForgetMe();
 
-// Parola değişimi: çalınmış olabilecek tüm jetonları düşür
+// Parola değişimi (4.0.0): auth_stamp değiştiği için diğer oturumlar ve damgalı
+// "beni hatırla" jetonları kendiliğinden düşer. Jeton satırlarını hemen silmek
+// için ForgetAllDevices; kullanıcının kendi oturumu açık kalsın diye RefreshAuthStamp.
 $user->setStoredPassword(EncryptionModule::PasswordHash($yeniParola));
 $user->save();
 UserModule::ForgetAllDevices($user->id);
+UserModule::RefreshAuthStamp($user);
 
 // Bakım: süresi dolmuş jetonları temizle (cron ya da bakım action'ı)
 $silinen = RememberToken::purgeExpired();
@@ -434,7 +478,7 @@ $silinen = RememberToken::purgeExpired();
                             <i class="fa-solid fa-database fs-2hx text-danger me-4"></i>
                             <div class="d-flex flex-column">
                                 <h5 class="mb-1 text-danger"><code>tbl_remember_tokens</code> tablosu gerekir</h5>
-                                <span class="text-body">Tablo yoksa kalıcı giriş çalışmaz. <code>migrations/0001_vnl_3_0_upgrade.sql</code> bu tabloyu oluşturur — bkz. <a href="/docs/environment" class="fw-bold">Ortam Yapılandırması ve Migrasyonlar</a>.</span>
+                                <span class="text-body">Tablo yoksa kalıcı giriş çalışmaz. <code>vnl/migrations/0001_vnl_3_0_upgrade.sql</code> bu tabloyu oluşturur, <code>0008</code> ona <code>auth_stamp</code> sütununu ekler (4.0.0). Her migration'ın PostgreSQL, SQL Server ve SQLite hâli de vardır; <code>php vnl.php migrate --run</code> sürücüye göre seçer — bkz. <a href="/docs/environment" class="fw-bold">Ortam Yapılandırması ve Migrasyonlar</a>.</span>
                             </div>
                         </div>
 

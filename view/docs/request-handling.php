@@ -19,8 +19,8 @@
             <div class="alert alert-warning d-flex align-items-center p-5 mb-10">
                 <i class="fa-solid fa-lock fs-2hx text-warning me-4"></i>
                 <div class="d-flex flex-column">
-                    <h4 class="mb-1">3.4.0 — Dağıtıcının kuralları</h4>
-                    <span class="text-body"><code>/app/*</code> yalnız <b>POST</b> kabul eder (405), her istekte <b>CSRF jetonu</b> ister (<code>X-CSRF-Token</code> başlığı ya da <code>_token</code> alanı; vnl.js, VNL Table ve jQuery'siz istekler için vnl-csrf.js kendiliğinden ekler — 403 <code>VNL_CSRF</code>) ve <b>girişi varsayılan olarak zorunlu</b> kılar (401 <code>VNL_AUTH</code> — girişsiz istekte CSRF'ten önce bakılır: süresi dolan sekme 403 değil 401 alır ve <code>/login</code>'e gider). Girişsiz çağrılacak metot sınıfta <code>public const PUBLIC_METHODS = ['login'];</code>, imzasını kendisi doğrulayan webhook <code>public const CSRF_EXEMPT = ['webhook'];</code> ile listelenir. Yalnız <code>public</code>, static olmayan ve <code>__</code> ile başlamayan metotlar çağrılabilir. Her action'ın ilk satırı: <code>Auth::CheckPermission('Kod', 'view|insert|edit|delete');</code>. Ayrıntı: <a href="/docs/security">/docs/security</a>.</span>
+                    <h4 class="mb-1">Dağıtıcının kuralları</h4>
+                    <span class="text-body"><code>/app/*</code> yalnız <b>POST</b> kabul eder (405), her istekte <b>CSRF jetonu</b> ister (<code>X-CSRF-Token</code> başlığı ya da <code>_token</code> alanı; vnl.js, VNL Table ve jQuery'siz istekler için <code>vnl-csrf.js</code> kendiliğinden ekler — 403 <code>VNL_CSRF</code>; <code>vnl-csrf.js</code> kendiliğinden yüklenmez, şablonun <code>head-standard.php</code>'si yükler, türetilmiş projede satırı kendi <code>&lt;head&gt;</code>'inize ekleyin) ve <b>girişi varsayılan olarak zorunlu</b> kılar (401 <code>VNL_AUTH</code> — girişsiz istekte CSRF'ten önce bakılır: süresi dolan sekme 403 değil 401 alır ve <code>/login</code>'e gider). Girişsiz çağrılacak metot sınıfta <code>public const PUBLIC_METHODS = ['login'];</code>, imzasını kendisi doğrulayan webhook <code>public const CSRF_EXEMPT = ['webhook'];</code> ile listelenir. Yalnız <code>public</code>, static olmayan ve <code>__</code> ile başlamayan metotlar çağrılabilir. Her action'ın ilk satırı: <code>Auth::CheckPermission('Kod', 'view|insert|edit|delete');</code>. Durum değiştiren her işlem <code>Audit::log()</code> yazar. <code>Authorization: Bearer &lt;jeton&gt;</code> taşıyan istekte oturum ve CSRF adımları atlanır: önce çekirdeğin API jetonu (<code>vnl_…</code>) denenir, tanınmazsa projenin <code>vnl_project_authenticate_token($bearer, $module, $method)</code> kancası sorulur; hangi jetonla gelindiğini <code>vnl_bearer()</code> söyler. Ayrıntı: <a href="/docs/security">/docs/security</a>.</span>
                 </div>
             </div>
 
@@ -30,7 +30,7 @@
                     <div class="mb-10">
                         <h3 class="fw-bold text-body-emphasis mb-4">1. Action URL Yapısı</h3>
                         <p class="fs-5 text-body mb-5">
-                            Tüm AJAX istekleri <code>/app/</code> ön ekiyle gönderilir. <code>controller/app.php</code> bu istekleri karşılar ve URL'yi aşağıdaki kurala göre parçalar:
+                            Tüm AJAX istekleri <code>/app/</code> ön ekiyle gönderilir. <code>controller/app.php</code> tek satırdır (<code>VnlDispatcher::handle($req)</code>); isteği çekirdekteki <code>VnlDispatcher</code> karşılar ve URL'yi aşağıdaki kurala göre parçalar:
                         </p>
 
                         <div class="d-flex align-items-center bg-body-tertiary border border-dashed rounded p-4 mb-6">
@@ -84,22 +84,29 @@
                             <pre class=" mb-0" style="background: transparent; white-space: pre-wrap;"><code>&lt;?php
 // Dosya: actions/action_kullanici.php
 
+use ActionGlobal\Auth;
+
 class action_kullanici
 {
     public function kaydet($req)
     {
+        Auth::CheckPermission('Kullanicilar', 'insert');   // her zaman ilk satır
+
         // $req buraya otomatik gelir
         $ad    = $req->post('ad');
         $email = $req->post('email');
 
-        // ... işlemler ...
+        DefaultValidator::validateEmpty($ad, 'Ad');
+        $kayit = Kullanici::create(['ad' => $ad, 'email' => $email]);   // iş modelde
 
+        Audit::log('kullanici.create', 'kullanici', $kayit->id);
         returnSuccessMessage("Kullanıcı kaydedildi.");
     }
 
     public function sil($req)
     {
-        $id = $req->post('id');
+        Auth::CheckPermission('Kullanicilar', 'delete');
+        $id = (int)$req->post('id');
         // ...
     }
 }
@@ -127,8 +134,8 @@ $rows = Capsule::table('tbl_users')
     ->get();
 
 // ✅ İzinli: zincir sınıftan başlar; join edilen taraf da bir sınıftır
-$rows = Users::SelectList($filters, $extras)
-    ->leftJoin((new Roller)->getTable(), 'tbl_roller.id', '=', 'tbl_users.rol_id')
+$rows = User::SelectList($filters, $extras)
+    ->leftJoin(Roller::tableName('r'), 'r.id', '=', 'tbl_users.rol_id')
     ->get();
 
 // ✅ En iyisi: join'in kendisi de modelde yaşar
@@ -258,7 +265,7 @@ $rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
                                 <tbody class="text-body fw-semibold">
                                 <tr>
                                     <td class="ps-5"><code>Auth::CheckPermission('Kod', 'edit')</code></td>
-                                    <td><b>3.4.0 — her action'ın ilk satırı.</b> Girişsiz → 401 <code>VNL_AUTH</code>, yetkisiz → 403 <code>VNL_PERM</code>; ikisi de isteği koşulsuz bitirir. Yetenekler: <code>view</code>, <code>insert</code>, <code>edit</code>, <code>delete</code>. Karar <code>vnl_can($kod, $yetenek, true)</code> (katı) → <code>helpers/permissions.php</code>; kanca yoksa kimse geçemez.</td>
+                                    <td><b>Her action'ın ilk satırı.</b> Girişsiz → 401 <code>VNL_AUTH</code>, yetkisiz → 403 <code>VNL_PERM</code>; ikisi de isteği koşulsuz bitirir. Yetenekler: <code>view</code>, <code>insert</code>, <code>edit</code>, <code>delete</code>. Karar <code>vnl_can($kod, $yetenek, true)</code> (katı) → <code>helpers/permissions.php</code>; kanca yoksa kimse geçemez.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::Can('Kod', 'edit')</code></td>
@@ -266,7 +273,7 @@ $rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::CheckLogin()</code></td>
-                                    <td>Kullanıcı giriş yapmamışsa hata fırlatır ve işlemi durdurur (3.4.0: 401 <code>VNL_AUTH</code>). Ölçüt <code>vnl_logged_in()</code>. Dağıtıcı girişi zaten varsayılan olarak ister; yetki gereken yerde <code>CheckPermission</code> kullanın.</td>
+                                    <td>Kullanıcı giriş yapmamışsa hata fırlatır ve işlemi durdurur (401 <code>VNL_AUTH</code>). Ölçüt <code>vnl_logged_in()</code>. Dağıtıcı girişi zaten varsayılan olarak ister; yetki gereken yerde <code>CheckPermission</code> kullanın.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::User()</code></td>
@@ -274,7 +281,7 @@ $rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::HasPermis([1, 2])</code></td>
-                                    <td>Kullanıcının rolü (<code>perm_id</code>) verilen dizide yoksa hata fırlatır (3.4.0: 403). Girişsiz istek de elenir.</td>
+                                    <td>Kullanıcının rolü (<code>perm_id</code>) verilen dizide yoksa hata fırlatır (403). Girişsiz istek de elenir.</td>
                                 </tr>
                                 <tr>
                                     <td class="ps-5"><code>Auth::UserPermis()</code></td>
@@ -291,9 +298,9 @@ $rows = Roller::UsersWithRoles($filters, $extras)->get();</code></pre>
                         <div class="alert alert-danger d-flex align-items-start p-5 mb-5">
                             <i class="fa-solid fa-shield-halved fs-2hx text-danger me-4"></i>
                             <div class="d-flex flex-column">
-                                <h5 class="mb-1 text-danger">VNL 3.2 güvenlik düzeltmesi — <code>CheckLogin()</code> hiç denetlemiyordu</h5>
+                                <h5 class="mb-1 text-danger">Güvenlik uyarısı — eski <code>actions/Auth.php</code>'de <code>CheckLogin()</code> hiç denetlemiyordu</h5>
                                 <span class="text-body">
-                                    VNL 3.1'e kadar ölçüt <code>!empty(self::User())</code> idi.
+                                    Şablonun eski <code>actions/Auth.php</code>'sinde ölçüt <code>!empty(self::User())</code> idi.
                                     <code>$CurrentUser</code> her istekte koşulsuz kurulur
                                     (<code>config/database.php</code>) ve PHP'de bir nesne hiçbir zaman
                                     <code>empty</code> olmaz — yani denetim <b>her zaman <code>true</code></b>
@@ -313,8 +320,8 @@ class action_kullanici
 {
     public function sil($req)
     {
-        Auth::CheckLogin();          // Giriş zorunluluğu
-        Auth::HasPermis([1, 2]);     // Sadece 1 ve 2 nolu roller
+        // Girişsiz → 401, yetkisiz → 403; ikisi de isteği bitirir
+        Auth::CheckPermission('Kullanicilar', 'delete');
         // ...
     }
 }
@@ -368,7 +375,7 @@ class action_kullanici
                                 <tr>
                                     <td class="ps-5"><code>throwErrorMessage($mesaj, $kod = 400, $devcode = '')</code></td>
                                     <td><span class="badge badge-soft-danger">400+</span></td>
-                                    <td><code>VnlHttpException</code> fırlatır (<code>Exception</code>'dan türer). <code>VnlDispatcher</code> yakalar ve kendi durum koduyla JSON'a dönüştürür. Kodun herhangi bir yerinden hata fırlatmak için idealdir. Gövdeye ek alan (<code>errors[]</code>) ya da yanıta başlık (<code>Retry-After</code>) gerekiyorsa <code>VnlHttpException</code>'ı doğrudan fırlatın — 3.4.1, <a href="/docs/errors">/docs/errors</a> §7.</td>
+                                    <td><code>VnlHttpException</code> fırlatır (<code>Exception</code>'dan türer). <code>VnlDispatcher</code> yakalar ve kendi durum koduyla JSON'a dönüştürür. Kodun herhangi bir yerinden hata fırlatmak için idealdir. Gövdeye ek alan (<code>errors[]</code>) ya da yanıta başlık (<code>Retry-After</code>) gerekiyorsa <code>VnlHttpException</code>'ı doğrudan fırlatın — bkz. <a href="/docs/errors">/docs/errors</a> §7.</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -392,7 +399,7 @@ class action_kullanici
                                         <h5 class="mb-0 fw-bold">Hata Fırlatma</h5>
                                     </div>
                                     <code class="d-block bg-body-tertiary p-3 rounded mb-2 fs-7">throwErrorMessage("E-posta adresi geçersiz.", 400);</code>
-                                    <span class="text-muted fs-7">İşlemi anında keser; <code>app.php</code>'deki catch bloğu JSON olarak döndürür.</span>
+                                    <span class="text-muted fs-7">İşlemi anında keser; <code>VnlDispatcher</code> yakalar ve kodu koruyarak JSON olarak döndürür.</span>
                                 </div>
                             </div>
                         </div>
@@ -416,16 +423,14 @@ class action_profil
 {
     public function guncelle($req)
     {
-        // 1. Login ve yetki kontrolü
-        Auth::CheckLogin();
+        // 1. Yetki kontrolü — her zaman ilk satır (girişsiz 401, yetkisiz 403)
+        Auth::CheckPermission('Profil', 'edit');
 
         // 2. POST verilerini al (ham gelir; ekrana basarken @{{ }} kaçışlar)
-        $kullanici_id = $req->post('user_id');
+        //    Kimlik istekten ALINMAZ: user_id=43 yazan başkasının profilini
+        //    değiştirirdi (IDOR). Oturumdaki kullanıcı kullanılır.
+        $kullanici_id = (int)Auth::User()->id;
         $biyografi    = $req->post('bio');
-
-        if (empty($kullanici_id)) {
-            throwErrorMessage("Kullanıcı kimliği eksik!", 400);
-        }
 
         // 3. Dosya yükleme (FileRequest manuel başlatılır)
         $fileReq = new FileRequest();
@@ -458,7 +463,9 @@ class action_profil
             $veri['avatar'] = $yeni_avatar;
         }
 
-        Capsule::table('users')->where('id', $kullanici_id)->update($veri);
+        // Sorgu action'da kurulmaz; modelin metodu çağrılır (classes/Profil.php)
+        Profil::updateForUser($kullanici_id, $veri);
+        Audit::log('profil.update', 'user', $kullanici_id, ['avatar' => $yeni_avatar !== null]);
 
         // 5. Başarı yanıtı
         returnSuccessMessage("Profil güncellendi.", ['avatar' => $yeni_avatar]);

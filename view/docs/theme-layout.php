@@ -94,7 +94,7 @@ private $theme_defaults = [
                                 <tr><td><code>loader</code></td><td><code>true</code> | <code>false</code></td><td><code>#loadingSpinner</code> katmanının basılması</td></tr>
                                 <tr><td><code>toolbaritems</code></td><td>dizi</td><td>İçerik başlığının sağındaki buton/dropdown'lar (aşağıda)</td></tr>
                                 <tr><td><code>css_files</code> / <code>js_files</code></td><td>dizi</td><td>Route'a özel ek include'lar — bkz. <a href="/docs/view-includes">View Includes</a></td></tr>
-                                <tr><td><code>public</code></td><td><code>true</code></td><td>Login zorunluluğundan muaf sayfa (bkz. <a href="/docs/routing">Routing</a>)</td></tr>
+                                <tr><td><code>public</code> <span class="badge badge-soft-warning ms-1">kalktı</span></td><td>—</td><td>Artık hiçbir sayfayı açmaz; giriş kararı denetleyici çalışmadan verilir ve bu anahtar yalnız günlüğe "deprecated" satırı düşürür. Girişsiz sayfa <code>config/definitions.php</code> → <code>$login_except_pages</code>'e yazılır ya da eklentide <code>vnl_public_page('ad')</code> ile kaydedilir (bkz. <a href="/docs/routing">Routing</a>)</td></tr>
                                 </tbody>
                             </table>
                         </div>

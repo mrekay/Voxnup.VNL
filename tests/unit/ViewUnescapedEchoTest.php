@@ -22,7 +22,7 @@ final class ViewUnescapedEchoTest extends VnlTestCase
         'view/401.php'                                             => 1,
         'view/403.php'                                             => 1,
         'view/404.php'                                             => 1,
-        'view/docs/theme-components.php'                           => 2,
+        'view/docs/theme-components.php'                           => 1,
         'view/docs/theme-modals.php'                               => 1,
         'view/docs/theme.php'                                      => 4,
         'view/includes/footer/project-app/script-view-project.php' => 1,
