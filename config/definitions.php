@@ -74,21 +74,43 @@ class ConfigDefinitions
         /* 3.4.0: DB_PORT / DB_SOCKET ayrı anahtarlar ("host:port" PDO'da
            çalışmıyordu); varsayılan karakter kümesi utf8mb4 (utf8 = utf8mb3,
            emoji ve 4 baytlık karakterleri kesiyordu). */
+        /* 4.1.0: port ve karakter kümesi varsayılanları sürücüye göre.
+           PostgreSQL 'utf8mb4'ü client_encoding olarak tanımaz, SQL Server
+           3306'da dinlemez. MySQL'in varsayılanları değişmedi. */
+        $driver   = strtolower((string)VnlEnv::get('DB_DRIVER', 'mysql'));
+        $isMysql  = in_array($driver, ['mysql', 'mariadb'], true);
+        $defaults = [
+            'port'    => ['pgsql' => 5432, 'sqlsrv' => 1433][$driver] ?? 3306,
+            'charset' => $isMysql ? 'utf8mb4' : 'utf8',
+        ];
+
         $this->db_info = [
-            'driver'    => (string)VnlEnv::get('DB_DRIVER', 'mysql'),
+            'driver'    => $driver,
             'host'      => (string)VnlEnv::get('DB_HOST', 'localhost'),
-            'port'      => (int)VnlEnv::get('DB_PORT', 3306),
+            'port'      => (int)VnlEnv::get('DB_PORT', 0) ?: $defaults['port'],
             'database'  => (string)VnlEnv::get('DB_DATABASE', ''),
             'username'  => (string)VnlEnv::get('DB_USERNAME', ''),
             'password'  => (string)VnlEnv::get('DB_PASSWORD', ''),
-            'charset'   => (string)VnlEnv::get('DB_CHARSET', 'utf8mb4'),
-            'collation' => (string)VnlEnv::get('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'charset'   => (string)VnlEnv::get('DB_CHARSET', '') ?: $defaults['charset'],
+            'collation' => $isMysql ? (string)VnlEnv::get('DB_COLLATION', 'utf8mb4_unicode_ci') : null,
             'prefix'    => (string)VnlEnv::get('DB_PREFIX', ''),
         ];
 
         $socket = (string)VnlEnv::get('DB_SOCKET', '');
         if ($socket !== '') {
             $this->db_info['unix_socket'] = $socket;
+        }
+
+        /* SQL Server (4.1.0): ODBC Driver 18 bağlantıyı varsayılan olarak
+           şifreler ve sertifikayı doğrular. Kendinden imzalı sertifikalı bir
+           sunucu (geliştirme, iç ağ) için DB_TRUST_SERVER_CERTIFICATE=true. */
+        if ($driver === 'sqlsrv') {
+            foreach (['encrypt' => 'DB_ENCRYPT', 'trust_server_certificate' => 'DB_TRUST_SERVER_CERTIFICATE'] as $key => $env) {
+                $value = VnlEnv::get($env, null);
+                if ($value !== null && $value !== '') {
+                    $this->db_info[$key] = is_bool($value) ? ($value ? 'true' : 'false') : (string)$value;
+                }
+            }
         }
 
         if (VnlEnv::get('VNL_PUBLIC_DOCS', false) === true) {

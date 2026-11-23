@@ -26,7 +26,10 @@ php vnl.php test --project           yalnızca bu dizindekiler
 Bu makinede PHP yoksa ya da veritabanıyla birlikte koşmak istiyorsanız:
 
 ```
-docker compose -f compose.test.yml run --rm test
+docker compose -f compose.test.yml run --rm test           # MySQL 8.4
+docker compose -f compose.test.yml run --rm test-pgsql     # PostgreSQL 17
+docker compose -f compose.test.yml run --rm test-sqlsrv    # SQL Server 2022
+docker compose -f compose.test.yml run --rm test-sqlite    # SQLite
 ```
 
 ## Test yazmak

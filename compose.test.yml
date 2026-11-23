@@ -1,12 +1,29 @@
-# VNL test ortamı — PHP CLI + MySQL, tek komut:
+# VNL test ortamı — PHP CLI + veritabanı, tek komut:
 #
 #   docker compose -f compose.test.yml run --rm test
 #   docker compose -f compose.test.yml run --rm test php vnl.php test --suite=unit
 #   docker compose -f compose.test.yml down -v        # veritabanını sil
 #
+# Aynı takım öbür sürücülerde (4.1.0; her biri kendi veritabanını açar):
+#
+#   docker compose -f compose.test.yml run --rm test-pgsql     # PostgreSQL 17
+#   docker compose -f compose.test.yml run --rm test-sqlsrv    # SQL Server 2022
+#   docker compose -f compose.test.yml run --rm test-sqlite    # SQLite (sunucusuz)
+#   docker compose -f compose.test.yml --profile all down -v   # hepsini kapat
+#
 # Bu dosya şablonun (projenin) malıdır; türetilmiş proje isterse siler ya da
-# kendi servislerini ekler. Veritabanı yalnız testler içindir, şifresi gizli
-# değildir ve dışarıya port açılmaz.
+# kendi servislerini ekler. Veritabanları yalnız testler içindir, şifreleri
+# gizli değildir ve dışarıya port açılmaz.
+
+x-test: &test
+  working_dir: /app
+  volumes:
+    - .:/app
+  command: ["sh", "-c", "php vnl.php migrate --run && php vnl.php test"]
+
+x-test-env: &test-env
+  APP_DEBUG: "false"
+  APP_TIMEZONE: Europe/Istanbul
 
 services:
   mysql:
@@ -22,17 +39,46 @@ services:
       timeout: 3s
       retries: 60
 
+  postgres:
+    image: postgres:17-alpine
+    profiles: ["pgsql", "all"]
+    environment:
+      POSTGRES_DB: vnl_test
+      POSTGRES_USER: vnl_test
+      POSTGRES_PASSWORD: vnl_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "vnl_test", "-d", "vnl_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+
+  # SQL Server veri dizini tmpfs'e konamaz (O_DIRECT). Veritabanını
+  # kendisi açmadığı için sağlık denetimi vnl_test'i yoksa oluşturur;
+  # oluşturulana kadar "sağlıksız" sayılır.
+  sqlsrv:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    profiles: ["sqlsrv", "all"]
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: Vnl_test_2026!
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -b -Q \"IF DB_ID('vnl_test') IS NULL CREATE DATABASE vnl_test\""]
+      interval: 3s
+      timeout: 10s
+      retries: 60
+      start_period: 10s
+
   test:
+    <<: *test
     build:
       context: docker/test
       args:
         PHP_VERSION: ${PHP_VERSION:-8.3}
-    working_dir: /app
-    volumes:
-      - .:/app
     environment:
-      APP_DEBUG: "false"
-      APP_TIMEZONE: Europe/Istanbul
+      <<: *test-env
       DB_HOST: mysql
       DB_PORT: "3306"
       DB_DATABASE: vnl_test
@@ -41,4 +87,61 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-    command: ["sh", "-c", "php vnl.php migrate --run && php vnl.php test"]
+
+  test-pgsql:
+    <<: *test
+    profiles: ["pgsql", "all"]
+    build:
+      context: docker/test
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+        DB_DRIVERS: pgsql
+    environment:
+      <<: *test-env
+      DB_DRIVER: pgsql
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_DATABASE: vnl_test
+      DB_USERNAME: vnl_test
+      DB_PASSWORD: vnl_test
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  test-sqlsrv:
+    <<: *test
+    profiles: ["sqlsrv", "all"]
+    build:
+      context: docker/test
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+        DB_DRIVERS: sqlsrv
+    environment:
+      <<: *test-env
+      DB_DRIVER: sqlsrv
+      DB_HOST: sqlsrv
+      DB_PORT: "1433"
+      DB_DATABASE: vnl_test
+      DB_USERNAME: sa
+      DB_PASSWORD: Vnl_test_2026!
+      # Kapsayıcının sertifikası kendinden imzalı (ODBC 18 şifrelemeyi zorunlu tutar).
+      DB_TRUST_SERVER_CERTIFICATE: "true"
+    depends_on:
+      sqlsrv:
+        condition: service_healthy
+
+  # Veritabanı dosyası kapsayıcının içinde durur (depoya yazılmaz); her
+  # çalıştırma boş bir dosyayla başlar.
+  test-sqlite:
+    <<: *test
+    profiles: ["sqlite", "all"]
+    build:
+      context: docker/test
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+        DB_DRIVERS: sqlite
+    environment:
+      <<: *test-env
+      DB_DRIVER: sqlite
+      DB_DATABASE: /tmp/vnl_test.sqlite
+    command: ["sh", "-c", "touch /tmp/vnl_test.sqlite && php vnl.php migrate --run && php vnl.php test"]
