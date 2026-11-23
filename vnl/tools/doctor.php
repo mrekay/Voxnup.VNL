@@ -341,53 +341,36 @@ TXT
         'sqlite'  => 'pdo_sqlite',
     ][$dbDriver] ?? null;
 
+    /* 4.1.0: çekirdek migration'ları her desteklenen sürücüde (mysql,
+       mariadb, pgsql, sqlsrv, sqlite) var; denetim migrate'in kendi
+       keşfini kullanır (sürücüye özel dosya seçimi dahil) ve kayıt
+       tablosunu OLUŞTURMAZ. 4.0.1'deki "yalnız MySQL" uyarısı kalktı. */
     if ($dbProblem !== null) {
         // definitions.php okunamadı; aşağıda yalnız uyarı
-    } elseif ($pdoExtension !== 'pdo_mysql') {
-        $dbProblem = "DB_DRIVER={$dbDriver}: cekirdek migrationlari (vnl/migrations) yalniz\n"
-            . "        MySQL icin yazili. Bu surucude cekirdek tablolari (giris hiz siniri,\n"
-            . "        Audit, kuyruk, API jetonlari, TOTP tekrar korumasi) kurulamaz.";
-    } elseif (!extension_loaded('pdo_mysql')) {
-        $dbProblem = 'pdo_mysql yok';
+    } elseif ($pdoExtension === null) {
+        $dbProblem = "DB_DRIVER={$dbDriver} taninmiyor";
+    } elseif (!extension_loaded($pdoExtension)) {
+        $dbProblem = "{$pdoExtension} yok";
     } elseif ($dbInfo === null) {
         $dbProblem = 'config/definitions.php yok';
     } else {
         try {
-            if ((string)($dbInfo['database'] ?? '') === '') {
-                throw new RuntimeException('DB_DATABASE bos');
-            }
+            require_once VNL_PATH . '/tools/migrate.php';
 
-            $socket = (string)($dbInfo['unix_socket'] ?? '');
-            $dsn    = ($socket !== ''
-                    ? 'mysql:unix_socket=' . $socket
-                    : 'mysql:host=' . $dbInfo['host'] . ((int)($dbInfo['port'] ?? 0) > 0 ? ';port=' . (int)$dbInfo['port'] : ''))
-                . ';dbname=' . $dbInfo['database'] . ';charset=utf8mb4';
-
-            $pdo = new PDO($dsn, (string)$dbInfo['username'], (string)$dbInfo['password'], [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_TIMEOUT => 3,
-            ]);
-
-            $applied = $pdo->query('SELECT `number` FROM `' . ($dbInfo['prefix'] ?? '') . "tbl_vnl_migrations` WHERE `source` = 'vnl'")
-                ->fetchAll(PDO::FETCH_COLUMN);
-
-            $pendingCore = [];
-            foreach (glob(VNL_PATH . '/migrations/*.sql') ?: [] as $migrationFile) {
-                if (preg_match('/^(\d{4})_/', basename($migrationFile), $mm) && !in_array($mm[1], $applied, true)) {
-                    $pendingCore[] = basename($migrationFile);
-                }
-            }
+            $pendingCore = (new VnlMigrate(new ConfigDefinitions(), 3))->pending('vnl');
         } catch (Throwable $e) {
             $dbProblem = $e->getMessage();
         }
     }
 
+    $pendingTotp = (bool)array_filter($pendingCore ?? [], static fn($f) => str_starts_with($f, '0007_'));
+
     $checks[] = $pendingCore === null
         ? $check('Cekirdek migrationlari (veritabani)', false,
-            "Denetlenemedi: {$dbProblem}" . ($pdoExtension === 'pdo_mysql' ? "\n        Elle: php vnl.php migrate --status" : ''), false)
+            "Denetlenemedi: {$dbProblem}" . ($pdoExtension !== null ? "\n        Elle: php vnl.php migrate --status" : ''), false)
         : $check('Cekirdek migrationlari uygulanmis', $pendingCore === [],
             'Bekleyen: ' . implode(', ', $pendingCore) . "\n"
-            . "        php vnl.php migrate --run" . (in_array('0007_vnl_totp_replay.sql', $pendingCore, true)
+            . "        php vnl.php migrate --run" . ($pendingTotp
                 ? "\n        0007 uygulanmadan iki adimli dogrulamali kullanicilar giris YAPAMAZ."
                 : ''));
 

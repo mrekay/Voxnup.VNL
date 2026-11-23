@@ -15,9 +15,42 @@ Araç uygulananları veritabanında `tbl_vnl_migrations` tablosunda tutar; aynı
 migration ikinci kez çalıştırılmaz. Ayrıntı için uygulama içindeki
 **/docs/versioning** sayfasına bakın.
 
+## Sürücüler (4.1.0)
+
+Her numaranın dört hâli vardır; araç `DB_DRIVER`'a göre seçer:
+
+```
+0003_vnl_rate_limits.sql          MySQL / MariaDB (4.1.0 öncesindeki dosyanın aynısı)
+0003_vnl_rate_limits.pgsql.sql    PostgreSQL
+0003_vnl_rate_limits.sqlsrv.sql   SQL Server
+0003_vnl_rate_limits.sqlite.sql   SQLite
+```
+
+Sürücüye özel hâl (`NNNN_ad.<sürücü>.sql`) o sürücüde düz dosyanın yerine
+geçer; hâli olmayan sürücüde düz dosya çalışır. Kayıt (kaynak, numara) ile
+tutulur, ad son eksizdir: MySQL kurulumları uyguladıkları dosyaları aynen
+görür. Düz `.sql` dosyaları **değişmedi** (özetleri aynı).
+
+MySQL dışındaki sürücülerde bir migration ve kaydı tek işlemdir (transaction);
+düşen migration geri alınır.
+
+- **`0001` MySQL dışında:** 2.x'ten gelen bir kurulum yoktur ama projenin kendi
+  `tbl_users`'ı olabilir. PostgreSQL ve SQL Server hâlleri parola sütununu
+  yalnız varsa ve 255'ten darsa genişletir (türü ve NULL kabulü korunur);
+  `tbl_remember_tokens` ve `tbl_permissions` yoksa açılır.
+- **`0002` MySQL dışında:** tablo varsa dokunulmaz, eksik sütunlar eklenir
+  (PostgreSQL `ADD COLUMN IF NOT EXISTS`, SQL Server `COL_LENGTH`). Var olan
+  sütunun türü değişmez.
+- **SQLite:** koşullu `ADD COLUMN` yoktur; SQLite hâlleri sıfırdan kuruluma göre
+  yazılmıştır (`totp_last_step` ve `auth_stamp` tablolarla birlikte açılır,
+  `0007`/`0008` boştur). Projenin önceden açtığı tablolara sütun eklenmez.
+
 ## Kurallar
 
 - Dosya adı `NNNN_kisa_aciklama.sql` biçimindedir; numara dört haneli ve artan.
+  Sürücüye özel hâl `NNNN_kisa_aciklama.<mysql|pgsql|sqlsrv|sqlite>.sql`.
+- SQL Server dosyalarında `GO` yazılmaz; her ifade ayrı toplu iştir. Koşullu iş
+  tek ifadede yapılır (`IF OBJECT_ID(…) IS NULL CREATE TABLE …`). Metin `N'…'`.
 - Bir migration yayımlandıktan sonra **düzenlenmez**; düzeltme için yeni numara
   açılır. Araç dosya özetini saklar ve sonradan değişeni `[!]` ile bildirir.
 - Her migration hem sıfırdan kurulumda hem mevcut kurulumda çalışabilmelidir:

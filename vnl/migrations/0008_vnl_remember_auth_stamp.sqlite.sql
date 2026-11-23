@@ -1,0 +1,7 @@
+-- =============================================================================
+-- 0008 — "Beni hatırla" jetonu kimlik bilgisine bağlanır (SQLite hâli,
+-- VNL 4.1.0)
+--
+-- Boş: SQLite hâlinde auth_stamp sütununu 0001 tabloyla birlikte açar.
+-- Numara sayaç bütünlüğü için kayda geçer.
+-- =============================================================================
