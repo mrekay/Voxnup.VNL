@@ -11,6 +11,21 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
 
 ## [Yayımlanmadı]
 
+---
+
+## [4.1.0] — 2026-11-23
+
+Ara sürüm. Kırıcı değişiklik yoktur. Getirdikleri:
+- çekirdek tabloları ve çekirdek sınıfları artık MySQL dışında PostgreSQL,
+  SQL Server ve SQLite'ta da çalışıyor. MySQL dışındaki projelerde giriş hız
+  sınırı, Audit, kuyruk ve API jetonları ilk kez kuruluyor (güvenlik);
+- projenin kendi Bearer jetonu ve kendi hata kanalı için iki kanca;
+- jQuery'siz istekler (fetch, XHR, sendBeacon) için CSRF istemcisi.
+
+Yükseltme: `php vnl.php update`, ardından `php vnl.php migrate --run`.
+MySQL kurulumlarında bekleyen migration çıkmaz. Ayrıntı aşağıdaki
+"Yükseltme" bölümünde.
+
 ### Eklenenler
 
 - **Proje jeton doğrulayıcı kancası.** Projeler artık `VnlDispatcher`'ı ezmeden
