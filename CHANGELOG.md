@@ -27,9 +27,33 @@ kırıcı sayıldığı için **/docs/versioning** sayfasına bakın.
   hangi Bearer jetonuyla, hangi yoldan (`core` ya da `project`) doğrulandığını
   söyler. Parola yerine jeton sahipliğini kabul eden hassas işlemler içindir.
   Ayrıntı: `VnlDispatcher::bearer()`, `/docs/security` → *Proje jetonları*.
+- **jQuery'siz istekler için CSRF istemcisi: `vnl/assets/js/vnl-csrf.js`.**
+  Önceden jetonu yalnız jQuery istekleri (vnl.js) ve VNL Table taşıyordu; düz
+  `fetch`, ham `XMLHttpRequest` ve `navigator.sendBeacon` 403 `VNL_CSRF`
+  alıyordu. Dosya bu üçünü sarar, çağrı noktası değişmez:
+  - Yalnız aynı kökene ve yalnız yazan yöntemlere (GET, HEAD, OPTIONS dışı)
+    `X-CSRF-Token` ekler. Jeton her istekte `<meta name="csrf-token">`'den
+    okunur.
+  - Başlık zaten konmuşsa dokunmaz. Bu sayede vnl.js'in jQuery ön süzgeciyle
+    birlikte çalışır: XHR'da başlık iki kez konsaydı değerler birleşir ve
+    sunucu jetonu reddederdi.
+  - `sendBeacon` başlık taşıyamadığı için jeton gövdeye `_token` alanı olarak
+    girer (`FormData`, `URLSearchParams` ya da boş gövde). Dizge/`Blob` gövdeli
+    beacon olduğu gibi gider.
+  - jQuery'ye ve vnl.js'e bağlı değildir; jQuery yüklemeyen sayfalarda da
+    çalışır. Ayrıntı: `/docs/security` → *CSRF jetonu*.
 
 Kırıcı değişiklik yok. `classes/VnlDispatcher.php` ezmesi taşıyan projeler kancayı
-kullanamaz; `vnl_bearer()` o projelerde her zaman `null` döner.
+kullanamaz; `vnl_bearer()` o projelerde her zaman `null` döner. `vnl-csrf.js`
+kendiliğinden yüklenmez (`vnl_core_scripts()` listesinde değil): projenin
+`<head>`'i yükler.
+
+### Proje dosyaları (güncelleme dokunmaz; şablondan elle alın)
+
+- **`view/includes/static/head-standard.php`** `vnl-csrf.js`'i CSRF meta
+  etiketinin hemen altında yüklüyor. Türetilmiş projede jQuery'siz `/app`
+  isteği varsa aynı satırı kendi `<head>`'inize ekleyin:
+  `<script src="<?= vnl_e(vnl_asset('js/vnl-csrf.js')) ?>"></script>`
 
 ---
 
